@@ -91,6 +91,10 @@ AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
    [AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
    [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])])
 
+# Test for required KERNEL path
+AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
+  [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])
+
 # Ignore KERNEL path when no platform is set
 AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
 
