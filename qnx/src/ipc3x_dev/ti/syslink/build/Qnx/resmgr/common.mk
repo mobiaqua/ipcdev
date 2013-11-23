@@ -50,15 +50,6 @@ ifeq ("$(SYSLINK_DEBUG)", "1")
 CCOPTS += -g -O0
 endif # ifeq ("$(SYSLINK_DEBUG)", "1")
 
-ifeq ("$(SYSLINK_PLATFORM)", "")
-#default value
-SYSLINK_PLATFORM=omap4430
-endif # ifeq ("$(SYSLINK_PLATFORM)", "")
-
-ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-CCOPTS += -DSYSLINK_PLATFORM_OMAP4430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM
-endif # ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 ifeq ("$(VIRTIO)", "true")
 CCOPTS += -DOMAP5430_VIRTIO
@@ -68,19 +59,6 @@ CCOPTS += -DSYSLINK_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")
 CCOPTS += -DSYSLINK_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
-
-ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
-CCOPTS += -DSYSLINK_PLATFORM_TI81XX -DARM_TARGET -DC60_TARGET
-
-ifeq ("$(SYSLINK_VARIANT)", "TI814X")
-CCOPTS += -DSYSLINK_VARIANT_TI814X
-endif
-
-ifeq ("$(SYSLINK_VARIANT)", "TI811X")
-CCOPTS += -DSYSLINK_VARIANT_TI811X
-endif
-
-endif # ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
 
 ifeq ("$(SYSLINK_PLATFORM)", "vayu")
 ifeq ("$(VIRTIO)", "true")
@@ -152,29 +130,11 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)/family/$(SYSLINK_PLATFORM)	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)
 
-ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/ipu
-endif
-
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/ipu
 
 EXCLUDE_OBJS = GateMP_daemon.o gatemp_devctl.o
-endif
-
-ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
-EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)videom3	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)vpssm3	\
-		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/Qnx	\
-		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
-		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)videom3	\
-		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)vpssm3
 endif
 
 ifeq ("$(SYSLINK_PLATFORM)", "vayu")
@@ -205,7 +165,3 @@ else
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.le.v7
 LIBS += utils
 endif # ifeq ("$(SYSLINK_DEBUG)", "1")
-
-ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-LIBS += powman camdrv login slog2
-endif

@@ -164,7 +164,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to stop gpt 3");
                     }
@@ -172,7 +172,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to disable gpt 3");
                     }
@@ -188,7 +188,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to stop gpt 4");
                     }
@@ -196,7 +196,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to disable gpt 4");
                     }
@@ -209,7 +209,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to stop gpt 5");
                     }
@@ -217,7 +217,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     if (ret != EOK) {
                         status = PROCESSOR_E_FAIL;
                         GT_setFailureReason (curTrace, GT_4CLASS,
-                                             "OMAP4430DUCATI_halResetCtrl",
+                                             "OMAP5430DUCATI_halResetCtrl",
                                              status,
                                              "Failed to disable gpt 5");
                     }
@@ -419,7 +419,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                             /* Check that releasing resets would indeed be effective */
                             reg =  INREG32(DSPRstCtrl);
                             if (reg != 3) {
-                                Osal_printf("proc4430_start: DSP Resets in not proper state! [0x%x]", reg);
+                                Osal_printf("proc5430_start: DSP Resets in not proper state! [0x%x]", reg);
                                 OUTREG32(DSPRstCtrl,0x3);
                                 counter = 1000;
                                 while ((--counter)&&((INREG32(DSPRstCtrl) & 0x3) != 0x3));
@@ -470,7 +470,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                         }
                         break;
                     default:
-                        Osal_printf("proc4430_start: ERROR input");
+                        Osal_printf("proc5430_start: ERROR input");
                         break;
                 }
             }

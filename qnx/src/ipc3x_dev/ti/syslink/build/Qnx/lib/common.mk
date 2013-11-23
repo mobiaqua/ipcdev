@@ -24,14 +24,6 @@ SYSLINK_BUILD_DEBUG := 0
 #To override the TRACE flag
 SYSLINK_TRACE_ENABLE := 0
 
-ifeq ("$(SYSLINK_PLATFORM)", "")
-#default value
-SYSLINK_PLATFORM=omap4430
-endif # ifeq ("$(SYSLINK_PLATFORM)", "")
-
-ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-CCOPTS += -DSYSLINK_PLATFORM_OMAP4430
-endif # ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 CCOPTS += -DSYSLINK_PLATFORM_OMAP5430
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")

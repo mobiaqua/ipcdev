@@ -187,9 +187,9 @@ typedef struct GPTIMER_REGS {
     uint32_t tcar2;
 } GPTIMER_REGS;
 
-#define OMAP44XX_IRQ_GPT6 74
-#define OMAP44XX_IRQ_GPT9 77
-#define OMAP44XX_IRQ_GPT11 79
+#define OMAP54XX_IRQ_GPT6 74
+#define OMAP54XX_IRQ_GPT9 77
+#define OMAP54XX_IRQ_GPT11 79
 
 #define GPTIMER3_BASE        0x48034000
 #define GPTIMER4_BASE        0x48036000
@@ -1646,7 +1646,7 @@ static int ipu_pm_powman_init(void)
     /* get IVA OPPs   */
     dvfsMessage.dvfs.type   = getListOfDomainOPPs;
     dvfsMessage.dvfs.domain = CPUDLL_OMAP_IVA;
-    if (MsgSend( cpudll_coid, &dvfsMessage, sizeof( dvfsMessage ), &cpudll_iva_opp, sizeof(cpudll_iva_opp) ) == -1)	 {
+    if (MsgSend( cpudll_coid, &dvfsMessage, sizeof( dvfsMessage ), &cpudll_iva_opp, sizeof(cpudll_iva_opp) ) == -1)  {
         GT_setFailureReason(curTrace, GT_4CLASS, "powman_init", ENOMEM,
                             "Could not get list of IVA OPPs.");
         return -ENOMEM;
@@ -2186,7 +2186,7 @@ int ipu_pm_attach(int proc_id)
         ipu_pm_gpt_enable(GPTIMER_9);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_9;
-        isrParams.intId = OMAP44XX_IRQ_GPT9;
+        isrParams.intId = OMAP54XX_IRQ_GPT9;
         isrParams.sharedInt = FALSE;
         ipu_pm_state.gpt9IsrObject =
             OsalIsr_create(&ipu_pm_gptimer_interrupt,
@@ -2209,7 +2209,7 @@ int ipu_pm_attach(int proc_id)
         ipu_pm_gpt_enable(GPTIMER_11);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_11;
-        isrParams.intId = OMAP44XX_IRQ_GPT11;
+        isrParams.intId = OMAP54XX_IRQ_GPT11;
         isrParams.sharedInt = FALSE;
         ipu_pm_state.gpt11IsrObject =
             OsalIsr_create(&ipu_pm_gptimer_interrupt,
@@ -2230,7 +2230,7 @@ int ipu_pm_attach(int proc_id)
         ipu_pm_gpt_enable(GPTIMER_6);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_6;
-        isrParams.intId = OMAP44XX_IRQ_GPT6;
+        isrParams.intId = OMAP54XX_IRQ_GPT6;
         isrParams.sharedInt = FALSE;
         ipu_pm_state.gpt6IsrObject =
             OsalIsr_create(&ipu_pm_gptimer_interrupt,

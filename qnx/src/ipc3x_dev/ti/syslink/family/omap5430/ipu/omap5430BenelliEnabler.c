@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -180,7 +180,7 @@ static Void iotlb_setLock (OMAP5430BENELLI_HalObject * halObject,
     OUTREG32(&mmuRegs->LOCK, reg);
 }
 
-static void omap4_tlb_read_cr (OMAP5430BENELLI_HalObject * halObject,
+static void omap5_tlb_read_cr (OMAP5430BENELLI_HalObject * halObject,
                                struct cr_regs *cr)
 {
     OMAP5430Benelli_MMURegs * mmuRegs =
@@ -199,7 +199,7 @@ static struct cr_regs __iotlb_read_cr (OMAP5430BENELLI_HalObject * halObject,
      iotlb_getLock(halObject, &l);
      l.vict = n;
      iotlb_setLock(halObject, &l);
-     omap4_tlb_read_cr(halObject, &cr);
+     omap5_tlb_read_cr(halObject, &cr);
      return cr;
 }
 
@@ -2048,14 +2048,14 @@ static Int iotlb_cr_valid (struct cr_regs *cr)
 
 
 
-static struct cr_regs *omap4_alloc_cr (struct iotlb_entry *e)
+static struct cr_regs *omap5_alloc_cr (struct iotlb_entry *e)
 {
     struct cr_regs *cr;
 
     if (e->da & ~(get_cam_va_mask(e->pgsz))) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
-                             "omap4_alloc_cr",
+                             "omap5_alloc_cr",
                              -EINVAL,
                              "failed mask check");
         return NULL;
@@ -2072,7 +2072,7 @@ static struct cr_regs *omap4_alloc_cr (struct iotlb_entry *e)
     {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
-                             "omap4_alloc_cr",
+                             "omap5_alloc_cr",
                              -EINVAL,
                              "mmap failed");
         return NULL;
@@ -2096,7 +2096,7 @@ static struct cr_regs *iotlb_alloc_cr (struct iotlb_entry *e)
         return NULL;
     }
 
-    return omap4_alloc_cr(e);
+    return omap5_alloc_cr(e);
 }
 
 

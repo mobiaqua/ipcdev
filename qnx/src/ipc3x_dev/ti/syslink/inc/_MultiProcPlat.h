@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -61,17 +61,6 @@ extern "C" {
  *  Platform-specific definitions.
  * =============================================================================
  */
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-MultiProc_Config MultiProc_PlatformConfig = {
-    .numProcessors = 4, /* numProcessors */
-    .nameList[0] = "HOST",
-    .nameList[1] = "CORE0",
-    .nameList[2] = "CORE1",
-    .nameList[3] = "DSP",
-    .id = 0,
-};
-#endif
-
 #if defined(SYSLINK_PLATFORM_OMAP5430)
 #ifdef SYSLINK_SYSBIOS_SMP
 MultiProc_Config MultiProc_PlatformConfig = {
@@ -88,27 +77,6 @@ MultiProc_Config MultiProc_PlatformConfig = {
     .nameList[1] = "CORE0",
     .nameList[2] = "CORE1",
     .nameList[3] = "DSP",
-    .id = 0,
-};
-#endif
-#endif
-
-#if defined(SYSLINK_PLATFORM_TI81XX)
-#if !defined (SYSLINK_VARIANT_TI813X)
-MultiProc_Config MultiProc_PlatformConfig = {
-    .numProcessors = 4, /* numProcessors */
-    .nameList[0] = "HOST",
-    .nameList[1] = "VPSS-M3",
-    .nameList[2] = "VIDEO-M3",
-    .nameList[3] = "DSP",
-    .id = 0,
-};
-#else
-MultiProc_Config MultiProc_PlatformConfig = {
-    .numProcessors = 4, /* numProcessors */
-    .nameList[0] = "HOST",
-    .nameList[1] = "VPSS-M3",
-    .nameList[2] = "DSP",
     .id = 0,
 };
 #endif

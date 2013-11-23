@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -351,7 +351,7 @@ extern "C" {
 #define OMAP5_MAILBOX_IRQENABLE(u)    (0x108 + 0x10 * (u))
 
 /* Macro for size of the mailbox FIFO */
-#define OMAP4_MAILBOX_FIFO_LENGTH 4
+#define OMAP5_MAILBOX_FIFO_LENGTH 4
 
 /* Msg elem used to store messages from the remote proc */
 typedef struct Omap5430IpcInt_MsgListElem_tag {
@@ -467,7 +467,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
     Memory_MapInfo mapInfo;
     List_Params listParams;
     UInt32 msg;
-    int max_tries = OMAP4_MAILBOX_FIFO_LENGTH;
+    int max_tries = OMAP5_MAILBOX_FIFO_LENGTH;
 
     GT_1trace (curTrace, GT_ENTER, "Omap5430IpcInt_setup", cfg);
 
@@ -589,7 +589,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                                 MAILBOX_MESSAGE_m_OFFSET(1));
                 }
                 /* Clear the messages in the HOST->CORE0 mailbox */
-                max_tries = OMAP4_MAILBOX_FIFO_LENGTH;
+                max_tries = OMAP5_MAILBOX_FIFO_LENGTH;
                 while ((REG32(Omap5430IpcInt_state.mailboxBase + \
                              MAILBOX_MSGSTATUS_m_OFFSET(0))) && (max_tries-- > 0)) {
                     /* Read the register to get the msg from the mailbox FIFO */
@@ -597,7 +597,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                                 MAILBOX_MESSAGE_m_OFFSET(0));
                 }
                 /* Clear the messages in the DSP->HOST mailbox */
-                max_tries = OMAP4_MAILBOX_FIFO_LENGTH;
+                max_tries = OMAP5_MAILBOX_FIFO_LENGTH;
                 while ((REG32(Omap5430IpcInt_state.mailboxBase + \
                              MAILBOX_MSGSTATUS_m_OFFSET(2))) && (max_tries-- > 0)) {
                     /* Read the register to get the msg from the mailbox FIFO */
@@ -605,7 +605,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                                 MAILBOX_MESSAGE_m_OFFSET(2));
                 }
                 /* Clear the messages in the HOST->DSP mailbox */
-                max_tries = OMAP4_MAILBOX_FIFO_LENGTH;
+                max_tries = OMAP5_MAILBOX_FIFO_LENGTH;
                 while ((REG32(Omap5430IpcInt_state.mailboxBase + \
                              MAILBOX_MSGSTATUS_m_OFFSET(3))) && (max_tries-- > 0)) {
                     /* Read the register to get the msg from the mailbox FIFO */
@@ -625,7 +625,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                         ((MAILBOX_NUMBER_3) << 1));
 
                 /* Clear the messages in the CORE0->CORE1 mailbox */
-                max_tries = OMAP4_MAILBOX_FIFO_LENGTH;
+                max_tries = OMAP5_MAILBOX_FIFO_LENGTH;
                 while ((REG32(Omap5430IpcInt_state.mailboxBase + \
                              MAILBOX_MSGSTATUS_m_OFFSET(4))) && (max_tries-- > 0)) {
                     /* Read the register to get the msg from the mailbox FIFO */

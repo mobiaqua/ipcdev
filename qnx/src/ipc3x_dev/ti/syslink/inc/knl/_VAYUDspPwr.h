@@ -1,7 +1,7 @@
 /**
  *  @file   _VAYUDspPwr.h
  *
- *  @brief      Internal header for Power Manager interface for dm8168dsp.
+ *  @brief      Internal header for Power Manager interface for vayu dsp.
  *
  *
  */

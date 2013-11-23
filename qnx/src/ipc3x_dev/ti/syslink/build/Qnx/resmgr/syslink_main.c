@@ -57,9 +57,6 @@
 #include <sys/siginfo.h>
 #include <signal.h>
 #include <stdbool.h>
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-#include <login.h>
-#endif
 
 #include <IpcKnl.h>
 
@@ -73,7 +70,7 @@
 #include <_GateMP_daemon.h>
 #include <OsalSemaphore.h>
 #include <ti/syslink/utils/OsalPrint.h>
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP5430)
 #include <_ipu_pm.h>
 #endif
 #include <ti/syslink/utils/Trace.h>
@@ -99,7 +96,7 @@ static bool gatempEnabled = false;
 
 // Syslink hibernation global variables
 Bool syslink_hib_enable = TRUE;
-#if !defined(SYSLINK_PLATFORM_OMAP4430) && !defined(SYSLINK_PLATFORM_OMAP5430)
+#if !defined(SYSLINK_PLATFORM_OMAP5430)
 #define PM_HIB_DEFAULT_TIME 5000
 #endif
 uint32_t syslink_hib_timeout = PM_HIB_DEFAULT_TIME;
@@ -534,18 +531,6 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
     return ret;
 }
 
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-#define SYSLINK_CARVEOUT
-#ifdef SYSLINK_CARVEOUT
-#define IPU_MEM_SIZE  49 * 1024 * 1024
-#define IPU_MEM_PHYS  0x97F00000
-#else
-#define IPU_MEM_SIZE  104 * 1024 * 1024
-#define IPU_MEM_ALIGN 0x1000000
-#endif
-#endif
-
-
 /*
  * Initialize the syslink ipc
  *
@@ -556,74 +541,11 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
 int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover)
 {
     int status = 0;
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-    int32_t ret = 0;
-    uint32_t len = 0;
-#ifndef SYSLINK_CARVEOUT
-    int64_t pa = 0;
-    void * da;
-#endif
-    int64_t paddr = 0;
-#endif
     Ipc_Config iCfg;
     OsalThread_Params threadParams;
     ProcMgr_AttachParams attachParams;
     UInt16 procId;
     int i;
-
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-    /* Map a contiguous memory section for ipu - currently hard-coded */
-    if (!recover) {
-#ifdef SYSLINK_CARVEOUT
-        dev->da_virt = mmap64(NULL, IPU_MEM_SIZE,
-                              PROT_NOCACHE | PROT_READ | PROT_WRITE,
-                              MAP_PHYS,
-                              NOFD,
-                              IPU_MEM_PHYS);
-#else
-        dev->da_virt = mmap64(NULL, IPU_MEM_SIZE + IPU_MEM_ALIGN,
-                              PROT_NOCACHE | PROT_READ | PROT_WRITE,
-                              MAP_ANON | MAP_PHYS | MAP_SHARED,
-                              NOFD,
-                              0);
-
-#endif
-
-        if (dev->da_virt == MAP_FAILED) {
-            status = ENOMEM;
-            goto exit;
-        }
-    }
-
-    if (status >= 0) {
-#ifdef SYSLINK_CARVEOUT
-        /* Make sure the memory is contiguous */
-        ret = mem_offset64(dev->da_virt, NOFD, IPU_MEM_SIZE, &paddr, &len);
-        if (ret)
-            status = ret;
-        else if (len != IPU_MEM_SIZE)
-            status = ENOMEM;
-#else
-        /* Make sure the memory is contiguous */
-        ret = mem_offset64(dev->da_virt, NOFD, IPU_MEM_SIZE + IPU_MEM_ALIGN,
-                           &paddr, &len);
-        if (ret)
-            status = ret;
-        else if (len != IPU_MEM_SIZE + IPU_MEM_ALIGN)
-            status = ENOMEM;
-        else {
-            pa = (paddr + IPU_MEM_ALIGN - 1) / IPU_MEM_ALIGN * IPU_MEM_ALIGN;
-            if ((pa - paddr) < 0x900000)
-                pa += 0x900000;
-            else
-                pa -= 0x700000;
-            da = dev->da_virt + (pa - paddr);
-        }
-#endif
-        if (status != 0)
-            goto memoryos_fail;
-    }
-#endif
 
     if (status >= 0) {
         if (!recover) {
@@ -634,15 +556,6 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
         }
 
         /* Setup IPC and platform-specific items */
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-#ifdef SYSLINK_CARVEOUT
-        iCfg.vAddr = (uint32_t)dev->da_virt;
-        iCfg.pAddr = (uint32_t)paddr;
-#else
-        iCfg.vAddr = (uint32_t)da;
-        iCfg.pAddr = (uint32_t)pa;
-#endif
-#endif
         status = Ipc_setup (&iCfg);
         if (status < 0)
             goto ipcsetup_fail;
@@ -831,14 +744,6 @@ osalthreadcreate_fail:
 ipcsetup_fail:
     MemoryOS_destroy();
 memoryos_fail:
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-    if (dev->da_virt != MAP_FAILED)
-#ifdef SYSLINK_CARVEOUT
-        munmap(dev->da_virt, IPU_MEM_SIZE);
-#else
-        munmap(dev->da_virt, IPU_MEM_SIZE + IPU_MEM_ALIGN);
-#endif
-#endif
 exit:
     return status;
 }
@@ -935,18 +840,6 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
         if (status < 0) {
             printf("MemoryOS_destroy() failed 0x%x", status);
         }
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-        if (dev->da_virt != MAP_FAILED) {
-#ifdef SYSLINK_CARVEOUT
-            status = munmap(dev->da_virt, IPU_MEM_SIZE);
-#else
-            status = munmap(dev->da_virt, IPU_MEM_SIZE + IPU_MEM_ALIGN);
-#endif
-            if (status < 0) {
-               printf("munmap failed %d", errno);
-            }
-        }
-#endif
     }
 
     return status;

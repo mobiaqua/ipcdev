@@ -105,13 +105,6 @@ Void VAYUIPUMMU_enable(PwrMgr_Handle handle)
             /*Enable the Ipu Logic*/
             CLEAR_BIT(REG(object->prcmVA + RM_DEFAULT_RSTCTRL), 0x4);
             while((((REG(object->prcmVA + RM_DEFAULT_RSTST)&0x10))!=0x10));
-#if defined(SYSLINK_VARIANT_TI814X) || \
-    defined(SYSLINK_VARIANT_TI813X) || \
-    defined(SYSLINK_VARIANT_TI811X)
-            /* This delay is required only in case of centaurus*/
-//            OsalDelay_udelay(2);
-            OsalThread_delay(2); //2ms sec delay
-#endif
             /* Write a while(1) so that even if m3 comes out of reset
              * m3 wont crash  */
             REG(object->ipubaseVA)        = 0x10000;

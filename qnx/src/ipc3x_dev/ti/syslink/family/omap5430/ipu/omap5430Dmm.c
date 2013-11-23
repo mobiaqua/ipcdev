@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -81,7 +81,7 @@
 
 #include <errno.h>
 #include <ti/syslink/Std.h>
-#include "OMAP4430Dmm.h"
+#include "OMAP5430Dmm.h"
 #include <OsalMutex.h>
 
 #define DMM_ADDR_VIRTUAL(x, a)                        \
