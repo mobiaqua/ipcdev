@@ -352,9 +352,15 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
 
     cmd.cmd = LAD_MESSAGEQ_CREATE;
     cmd.clientId = handle;
-    strncpy(cmd.args.messageQCreate.name, name,
-            LAD_MESSAGEQCREATEMAXNAMELEN - 1);
-    cmd.args.messageQCreate.name[LAD_MESSAGEQCREATEMAXNAMELEN - 1] = '\0';
+    if (name == NULL) {
+        cmd.args.messageQCreate.name[0] = '\0';
+    }
+    else {
+        strncpy(cmd.args.messageQCreate.name, name,
+                LAD_MESSAGEQCREATEMAXNAMELEN - 1);
+        cmd.args.messageQCreate.name[LAD_MESSAGEQCREATEMAXNAMELEN - 1] = '\0';
+    }
+
     if (params) {
         memcpy(&cmd.args.messageQCreate.params, params, sizeof(*params));
     }

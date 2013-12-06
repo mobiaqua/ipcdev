@@ -93,6 +93,7 @@ int main(int argc, char * argv[])
     Int flags;
     Int i;
     Int n;
+    String tmpString;
 #if DAEMON
     pid_t pid;
     pid_t sid;
@@ -409,10 +410,14 @@ opencommandFIFO:
             break;
 
           case LAD_MESSAGEQ_CREATE:
-            LOG2("LAD_MESSAGEQ_CREATE: calling MessageQ_create(%p, %p)...\n", cmd.args.messageQCreate.name, &cmd.args.messageQCreate.params)
+            LOG2("LAD_MESSAGEQ_CREATE: calling MessageQ_create(%p, %p)...\n",
+                    cmd.args.messageQCreate.name,
+                    &cmd.args.messageQCreate.params);
 
-            handle = MessageQ_create(cmd.args.messageQCreate.name,
-                &cmd.args.messageQCreate.params);
+            tmpString = (cmd.args.messageQCreate.name[0] == '\0') ? NULL :
+                cmd.args.messageQCreate.name;
+
+            handle = MessageQ_create(tmpString, &cmd.args.messageQCreate.params);
             rsp.messageQCreate.serverHandle = handle;
 
             if (handle) {
