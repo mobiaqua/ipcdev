@@ -393,7 +393,7 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
     status = Semaphore_pend(semRemoteWait, NameServerRemoteNotify_timeout);
 
     if (status == FALSE) {
-        retval = NameServer_E_OSFAILURE;
+        retval = NameServer_E_TIMEOUT;
     }
     else {
         /* getting here means we got the notification back */

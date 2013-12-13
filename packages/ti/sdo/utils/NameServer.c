@@ -370,7 +370,8 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
                         /* continue only if not found */
                         if ((status >= 0) ||
                             ((status < 0) &&
-                            (status != NameServer_E_NOTFOUND))) {
+                            (status != NameServer_E_NOTFOUND) &&
+                            (status != NameServer_E_TIMEOUT))) {
                              break;
                         }
                     }
@@ -402,7 +403,8 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
             /* continue only if not found */
             if ((status >= 0) ||
                 ((status < 0) &&
-                (status != NameServer_E_NOTFOUND))) {
+                (status != NameServer_E_NOTFOUND) &&
+                (status != NameServer_E_TIMEOUT))) {
                  break;
             }
             else {
