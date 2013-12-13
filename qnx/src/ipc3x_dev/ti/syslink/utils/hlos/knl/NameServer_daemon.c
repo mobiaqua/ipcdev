@@ -946,7 +946,8 @@ Int NameServer_get(NameServer_Handle handle,
             }
 
             if ((status >= 0) ||
-                ((status < 0) && (status != NameServer_E_NOTFOUND))) {
+                ((status < 0) && (status != NameServer_E_NOTFOUND)
+                && (status != NameServer_E_TIMEOUT))) {
                 break;
             }
 
