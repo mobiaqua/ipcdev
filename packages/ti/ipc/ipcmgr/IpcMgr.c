@@ -71,7 +71,7 @@ Void IpcMgr_ipcStartup()
     status = TransportRpmsgSetup_attach(procId, 0);
     Assert_isTrue(status >= 0, NULL);
 
-    /* Sets up to comminicate with host's NameServer: */
+    /* Sets up to communicate with host's NameServer: */
     status = NameServerRemoteRpmsg_attach(procId, 0);
     Assert_isTrue(status >= 0, NULL);
 }
