@@ -80,7 +80,8 @@ function getLibs(prog)
         return ("");
     }
 
-    if (prog.platformName.match(/ipu/)) {
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    if (BIOS.smpEnabled) {
         smp = "_smp";
     }
 
@@ -113,10 +114,14 @@ function getLibs(prog)
  */
 function validate()
 {
-    var BIOS = xdc.module('ti.sysbios.BIOS');
-    var suffix = prog.build.target.findSuffix(this);
-
-    if (!BIOS.smpEnabled && (suffix != "e66")) {
-        throw new Error(Pkg.$name+" must have BIOS.smpEnabled set to true.");
+    if (xdc.om.$name == "cfg") {
+        if (Program.build.target.isa.match(/v7M4/)) {
+            /* On Vayu's IPUs, VirtQueue only supports SMP BIOS */
+            var BIOS = xdc.module('ti.sysbios.BIOS');
+            if (!BIOS.smpEnabled) {
+                throw new Error(this.$name + " must have BIOS.smpEnabled " +
+                        "set to true.");
+            }
+        }
     }
 }
