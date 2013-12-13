@@ -263,7 +263,7 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
     InterruptDsp_FxnTable *table;
 
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
-                   (remoteProcId == MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
+                   (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
     index = PROCID(remoteProcId);
 
