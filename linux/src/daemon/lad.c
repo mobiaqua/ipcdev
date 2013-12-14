@@ -60,7 +60,6 @@ FILE *logPtr = NULL;
 
 static String commandFIFOFile = LAD_COMMANDFIFO;
 static FILE *commandFIFOFilePtr = NULL;
-static String serverDir;
 
 /* LAD client info arrays */
 static Bool clientConnected[LAD_MAXNUMCLIENTS];
@@ -102,17 +101,6 @@ int main(int argc, char * argv[])
     /* if more than two args: turn "ON" launch status printfs */
     if (argc > 2) {
         printf("\nLAD starting up...");
-    }
-
-    /* check for env variable indicating server exe repository */
-    serverDir = getenv("LAD_SERVERPATH");
-    if (argc > 2) {
-        if (serverDir != NULL) {
-            printf("\nLAD_SERVERPATH = %s\n", serverDir);
-        }
-        else {
-            printf("\nLAD_SERVERPATH = <NULL>\n");
-        }
     }
 
     /* change to LAD's working directory */
