@@ -223,12 +223,12 @@ var evmDRA7XX_SR_0 = {
  *  --- External Memory ---
  *  Virtual     Physical        Size            Comment
  *  ------------------------------------------------------------------------
- *  9500_4000   ????_????    10_0000  (  ~1 MB) EXT_CODE
- *  9510_0000   ????_????    10_0000  (   1 MB) EXT_DATA
- *  9520_0000   ????_????    30_0000  (   3 MB) EXT_HEAP
- *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
- *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
- *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ *  9500_0000   ???0_0000    10_0000  (  ~1 MB) EXT_CODE
+ *  9510_0000   ???0_0000    10_0000  (   1 MB) EXT_DATA
+ *  9520_0000   ???0_0000    30_0000  (   3 MB) EXT_HEAP
+ *  9F00_0000   ???0_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   ???6_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   ???7_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
  */
 var evmDRA7XX_ExtMemMapDsp = {
     EXT_CODE: {
@@ -306,12 +306,12 @@ Build.platformTable["ti.platforms.evmDRA7XX:dsp2"] =
  *  --- External Memory ---
  *  Virtual     Physical        Size            Comment
  *  ------------------------------------------------------------------------
- *  0000_4000   ????_????    5F_C000  (  ~6 MB) EXT_CODE
- *  8000_0000   ????_????    60_0000  (   6 MB) EXT_DATA
- *  8060_0000   ????_????   960_0000  (  86 MB) EXT_HEAP
- *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
- *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
- *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ *  0000_4000   ???0_4000    5F_C000  (  ~6 MB) EXT_CODE
+ *  8000_0000   ???0_0000    60_0000  (   6 MB) EXT_DATA
+ *  8060_0000   ???0_0000   2A0_0000  (  42 MB) EXT_HEAP
+ *  9F00_0000   ???0_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   ???6_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   ???7_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
  */
 var evmDRA7XX_ExtMemMapIpu2 = {
     EXT_CODE: {
@@ -331,7 +331,7 @@ var evmDRA7XX_ExtMemMapIpu2 = {
     EXT_HEAP: {
         name: "EXT_HEAP",
         base: 0x80600000,
-        len:  0x09600000,
+        len:  0x02A00000,
         space: "data",
         access: "RW"
     },
@@ -377,12 +377,12 @@ Build.platformTable["ti.platforms.evmDRA7XX:ipu2"] = {
  *  --- External Memory ---
  *  Virtual     Physical        Size            Comment
  *  ------------------------------------------------------------------------
- *  0000_4000   ????_????     F_C000  (  ~1 MB) EXT_CODE
- *  8000_0000   ????_????    20_0000  (   2 MB) EXT_DATA
- *  8020_0000   ????_????    30_0000  (   3 MB) EXT_HEAP
- *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
- *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
- *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ *  0000_4000   ???0_4000     F_C000  (  ~1 MB) EXT_CODE
+ *  8000_0000   ???0_0000    20_0000  (   2 MB) EXT_DATA
+ *  8020_0000   ???0_0000    30_0000  (   3 MB) EXT_HEAP
+ *  9F00_0000   ???0_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   ???6_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   ???7_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
  */
 var evmDRA7XX_ExtMemMapIpu1 = {
     EXT_CODE: {

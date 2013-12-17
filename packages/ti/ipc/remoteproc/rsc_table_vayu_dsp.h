@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,9 +102,9 @@
  */
 /* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #if defined (VAYU_DSP_1)
-#define PHYS_MEM_IPC_VRING      0x95000000
+#define PHYS_MEM_IPC_VRING      0x99000000
 #elif defined (VAYU_DSP_2)
-#define PHYS_MEM_IPC_VRING      0x94800000
+#define PHYS_MEM_IPC_VRING      0x9F000000
 #endif
 
 /* Need to be identical to that of IPU */

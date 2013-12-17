@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,10 +102,10 @@
 #define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
 #endif
 
-#if defined(VAYU_IPU_2)
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 156)
-#elif defined(VAYU_IPU_1)
+#if defined(VAYU_IPU_1)
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 5)
+#elif defined(VAYU_IPU_2)
+#define IPU_MEM_DATA_SIZE       (SZ_1M * 48)
 #endif
 
 #define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
@@ -116,7 +116,7 @@
  */
 /* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #if defined(VAYU_IPU_1)
-#define PHYS_MEM_IPC_VRING      0x94000000
+#define PHYS_MEM_IPC_VRING      0x9D000000
 #elif defined (VAYU_IPU_2)
 #define PHYS_MEM_IPC_VRING      0x95800000
 #endif

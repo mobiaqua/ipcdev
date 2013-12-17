@@ -106,7 +106,7 @@
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  */
 /* This address is derived from current IPU & ION carveouts */
-#define PHYS_MEM_IPC_VRING      0x95000000
+#define PHYS_MEM_IPC_VRING      0x99000000
 
 /* Need to be identical to that of IPU */
 #define PHYS_MEM_IOBUFS         0xBA300000
