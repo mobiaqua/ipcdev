@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef _RSC_TABLE_IPU_H_
-#define _RSC_TABLE_IPU_H_
+#ifndef _RSC_TABLE_OMAP5_IPU_H_
+#define _RSC_TABLE_OMAP5_IPU_H_
 
 #include "rsc_types.h"
 
@@ -89,7 +89,7 @@
 #define IPU_MEM_IPC_VRING_SIZE  SZ_1M
 #define IPU_MEM_IPC_DATA_SIZE   SZ_1M
 #define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 156)
+#define IPU_MEM_DATA_SIZE       (SZ_1M * 48)
 #define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
 
 /*
@@ -294,4 +294,4 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     },
 };
 
-#endif /* _RSC_TABLE_IPU_H_ */
+#endif /* _RSC_TABLE_OMAP5_IPU_H_ */
