@@ -31,7 +31,7 @@
  */
 
 /*
- *  ======== rsc_table_omap5_dsp.h ========
+ *  ======== rsc_table_vayu_dsp.h ========
  *
  *  Define the resource table entries for all DSP cores. This will be
  *  incorporated into corresponding base images, and used by the remoteproc
@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef _RSC_TABLE_DSP_H_
-#define _RSC_TABLE_DSP_H_
+#ifndef _RSC_TABLE_VAYU_DSP_H_
+#define _RSC_TABLE_VAYU_DSP_H_
 
 #include "rsc_types.h"
 
@@ -101,14 +101,10 @@
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  */
 /* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
-#ifdef OMAP5
-#define PHYS_MEM_IPC_VRING      0x95000000
-#elif defined (VAYU_DSP_1)
+#if defined (VAYU_DSP_1)
 #define PHYS_MEM_IPC_VRING      0x95000000
 #elif defined (VAYU_DSP_2)
 #define PHYS_MEM_IPC_VRING      0x94800000
-#else
-#define PHYS_MEM_IPC_VRING      0x98800000
 #endif
 
 /* Need to be identical to that of IPU */
@@ -328,4 +324,4 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     },
 };
 
-#endif /* _RSC_TABLE_DSP_H_ */
+#endif /* _RSC_TABLE_VAYU_DSP_H_ */

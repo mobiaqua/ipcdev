@@ -31,7 +31,7 @@
  */
 
 /*
- *  ======== rsc_table_omap5_ipu.h ========
+ *  ======== rsc_table_vayu_ipu.h ========
  *
  *  Define the resource table entries for all IPU cores. This will be
  *  incorporated into corresponding base images, and used by the remoteproc
@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef _RSC_TABLE_IPU_H_
-#define _RSC_TABLE_IPU_H_
+#ifndef _RSC_TABLE_VAYU_IPU_H_
+#define _RSC_TABLE_VAYU_IPU_H_
 
 #include "rsc_types.h"
 
@@ -84,11 +84,7 @@
 #define IPU_MEM_TEXT            0x0
 #define IPU_MEM_DATA            0x80000000
 
-#if defined(OMAP5) || defined(VAYU_IPU_1) || defined(VAYU_IPU_2)
 #define IPU_MEM_IOBUFS          0x90000000
-#else
-#define IPU_MEM_IOBUFS          0x88000000
-#endif
 
 #define IPU_MEM_IPC_DATA        0x9F000000
 #define IPU_MEM_IPC_VRING       0x60000000
@@ -100,18 +96,16 @@
 #define IPU_MEM_IPC_VRING_SIZE  SZ_1M
 #define IPU_MEM_IPC_DATA_SIZE   SZ_1M
 
-#ifdef VAYU_IPU_1
+#if defined(VAYU_IPU_1)
 #define IPU_MEM_TEXT_SIZE       (SZ_1M)
-#else
+#elif defined(VAYU_IPU_2)
 #define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
 #endif
 
-#if defined(OMAP5) || defined(VAYU_IPU_2)
+#if defined(VAYU_IPU_2)
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 156)
 #elif defined(VAYU_IPU_1)
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 5)
-#else
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 100)
 #endif
 
 #define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
@@ -121,14 +115,10 @@
  * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
  */
 /* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
-#ifdef OMAP5
-#define PHYS_MEM_IPC_VRING      0x95800000
-#elif defined(VAYU_IPU_1)
+#if defined(VAYU_IPU_1)
 #define PHYS_MEM_IPC_VRING      0x94000000
 #elif defined (VAYU_IPU_2)
 #define PHYS_MEM_IPC_VRING      0x95800000
-#else
-#define PHYS_MEM_IPC_VRING      0x99000000
 #endif
 
 #define PHYS_MEM_IOBUFS         0xBA300000
@@ -347,4 +337,4 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     },
 };
 
-#endif /* _RSC_TABLE_IPU_H_ */
+#endif /* _RSC_TABLE_VAYU_IPU_H_ */
