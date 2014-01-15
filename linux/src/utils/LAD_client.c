@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,10 @@
 #include <ladclient.h>
 #include <_lad.h>
 
-static Bool verbose = FALSE;
+
+/* traces in this file are controlled via _LAD_Client_verbose */
+Bool _LAD_Client_verbose = FALSE;
+#define verbose _LAD_Client_verbose
 
 typedef struct _LAD_ClientInfo {
     Bool connectedToLAD;               /* connection status */

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,10 @@ typedef struct MessageQ_Config_tag {
  *  APIs
  * =============================================================================
  */
+
+/* Internal variable to enable/disable tracing throughout MessageQ */
+extern Bool _MessageQ_verbose;
+
 /*!
  *  @brief      Function to get the default configuration for the MessageQ
  *              module.

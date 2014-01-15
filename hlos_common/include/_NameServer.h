@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,10 @@ extern "C" {
  * APIs
  * =============================================================================
  */
+
+/* Internal variable to enable/disable tracing throughout NameServer */
+extern Bool _NameServer_verbose;
+
 /*!
  *  @brief      Function to setup the nameserver module.
  *

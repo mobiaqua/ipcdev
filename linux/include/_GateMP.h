@@ -77,6 +77,9 @@ typedef struct {
     /*!< Resource id of GateMP proxy */
 } GateMP_Object;
 
+/* Internal variable to enable/disable tracing throughout GateMP */
+extern Bool _GateMP_verbose;
+
 /* Check GateMP has been setup */
 Bool GateMP_isSetup(Void);
 

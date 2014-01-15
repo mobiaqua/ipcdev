@@ -255,6 +255,9 @@ Void GateHWSpinlock_locksinit(Void);
 /* This is exported from daemon/GateHWSpinlockCfg_<PLATFORM>.c */
 extern GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
 
+/* Internal variable to enable/disable tracing throughout GateHWSpinlock */
+extern Bool _GateHWSpinlock_verbose;
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */

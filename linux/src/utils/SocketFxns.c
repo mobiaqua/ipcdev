@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,9 @@
 /* For MultiProc id to remoteproc index map */
 #include <_MultiProc.h>
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _SocketFxns_verbose */
+Bool _SocketFxns_verbose = FALSE;
+#define verbose _SocketFxns_verbose
 
 int ConnectSocket(int sock, UInt16 procId, int dst)
 {

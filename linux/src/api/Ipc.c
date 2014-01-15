@@ -35,9 +35,6 @@
  *  @brief      Starts and stops user side Ipc
  *              All setup/destroy APIs on user side will be call from this
  *              module.
- *
- *  @ver        0002
- *
  */
 
 /* Standard headers */
@@ -86,6 +83,41 @@ Int Ipc_start (Void)
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
+
+    if (getenv("IPC_DEBUG") != NULL) {
+        /* turn on tracing */
+        if (getenv("IPC_DEBUG")[0] == '1') {
+            /* level 1 enables typical user API tracing */
+            _MessageQ_verbose = TRUE;
+            _MultiProc_verbose = TRUE;
+            _NameServer_verbose = TRUE;
+#if defined(GATEMP_SUPPORT)
+            _GateMP_verbose = TRUE;
+
+            _GateHWSpinlock_verbose = TRUE;
+#endif
+        }
+        else if ((getenv("IPC_DEBUG")[0] == '2') ||
+                (getenv("IPC_DEBUG")[0] == '3')) {
+            /* levels 2 and 3 add socket and LAD client tracing */
+            _MessageQ_verbose = TRUE;
+            _MultiProc_verbose = TRUE;
+            _NameServer_verbose = TRUE;
+
+#if defined(GATEMP_SUPPORT)
+            _GateMP_verbose = TRUE;
+
+            _GateHWSpinlock_verbose = TRUE;
+#endif
+
+            /* internals - should be declared in respective _*.h files */
+            extern Bool _SocketFxns_verbose;
+            extern Bool _LAD_Client_verbose;
+
+            _SocketFxns_verbose = TRUE;
+            _LAD_Client_verbose = TRUE;
+        }
+    }
 
     ladStatus = LAD_connect(&ladHandle);
     if (ladStatus != LAD_SUCCESS) {

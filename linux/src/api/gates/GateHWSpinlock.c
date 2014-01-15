@@ -106,7 +106,9 @@ static GateHWSpinlock_Params GateHWSpinlock_defInstParams =
     .sharedAddr = NULL
 };
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _GateHWSpinlock_verbose */
+Bool _GateHWSpinlock_verbose = FALSE;
+#define verbose _GateHWSpinlock_verbose
 
 /* =============================================================================
  * APIS

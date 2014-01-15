@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,7 @@
 /*
  *  @file	MultiProcQ.c
  *
- *  @brief	Prototype Mapping of MultiProc to Socket ABI
- *		(IPC 3).
+ *  @brief	MultiProc Linux implementation
  */
 
 /* Standard IPC header */
@@ -43,7 +42,6 @@
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
 
-/* Socket Headers */
 #include <sys/types.h>
 #include <string.h>
 #include <stdio.h>
@@ -53,7 +51,9 @@
 #include <ladclient.h>
 #include <_lad.h>
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _MultiProc_verbose */
+Bool _MultiProc_verbose = FALSE;
+#define verbose _MultiProc_verbose
 
 /* =============================================================================
  * APIS
@@ -62,8 +62,6 @@ static Bool verbose = FALSE;
 /* Function to get default configuration for the MultiProc module.
  *
  */
-
-
 Void MultiProc_getConfig (MultiProc_Config * cfg)
 {
     Int status;

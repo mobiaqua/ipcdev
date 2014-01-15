@@ -32,7 +32,7 @@
 /*
  *  @file   MessageQ.c
  *
- *  @brief  MessageQ module "client" implementation
+ *  @brief  MessageQ Linux implementation
  *
  *  This implementation is geared for use in a "client/server" model, whereby
  *  system-wide data is maintained in a "server" component and process-
@@ -40,12 +40,8 @@
  *  connects and communicates with LAD for the server connection.
  */
 
-
 /* Standard IPC header */
 #include <ti/ipc/Std.h>
-
-/* Linux specific header files, replacing OSAL: */
-#include <pthread.h>
 
 /* Module level headers */
 #include <ti/ipc/NameServer.h>
@@ -67,6 +63,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
+#include <pthread.h>
 
 /* Socket Protocol Family */
 #include <net/rpmsg.h>
@@ -139,7 +136,9 @@ typedef struct MessageQ_Object_tag {
     void                    *serverHandle;
 } MessageQ_Object;
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _MessageQ_verbose */
+Bool _MessageQ_verbose = FALSE;
+#define verbose _MessageQ_verbose
 
 
 /* =============================================================================

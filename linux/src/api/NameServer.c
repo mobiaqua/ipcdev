@@ -49,8 +49,9 @@
 #include <ladclient.h>
 #include <_lad.h>
 
-static Bool verbose = FALSE;
-
+/* traces in this file are controlled via _NameServer_verbose */
+Bool _NameServer_verbose = FALSE;
+#define verbose _NameServer_verbose
 
 /*
  * The NameServer_*() APIs are reproduced here.  These versions are just

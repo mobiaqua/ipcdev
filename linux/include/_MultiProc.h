@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,10 @@ typedef struct MultiProc_Config_tag {
  *  APIs
  * =============================================================================
  */
+
+/* Internal variable to enable/disable tracing throughout MultiProc */
+extern Bool _MultiProc_verbose;
+
 /*!
  *  @brief	Get the default configuration for the MultiProc module.
  *
