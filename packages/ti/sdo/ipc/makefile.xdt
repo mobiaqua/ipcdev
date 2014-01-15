@@ -1,6 +1,6 @@
 %%{
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ vpath %.c `XDCROOT`
 
 XOPTS = `'-I"' + XDCROOT + '"' + " -Dxdc_target_types__=" + File.getDOSPath(TARGET.$package.packageRepository) + TARGET.stdInclude + " -Dxdc_target_name__=" + TARGET.name`
 
-CCOPTS = `BIOS.getCCOpts(TARGET.name)`
+CCOPTS = `Build.getCCOpts(TARGET.name)`
 
 XDC_ROOT  = `XDCROOT`
 

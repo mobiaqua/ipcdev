@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -189,6 +189,12 @@ metaonly module Build
      *  ======== libDir ========
      */
     config String libDir = null;
+
+    /*
+     *  ======== getCCOpts ========
+     *  Get the compiler options necessary to build
+     */
+    metaonly String getCCOpts(String target);
 
     /*!
      *  ======== getDefaultCustomCCOpts ========

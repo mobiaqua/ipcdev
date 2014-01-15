@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,6 @@ function module$meta$init()
  */
 function module$use()
 {
-//  Build = this;
     BIOS = xdc.module("ti.sysbios.BIOS");
     var profile;
 
@@ -302,6 +301,14 @@ function module$validate()
             }
             break;
     }
+}
+
+/*
+ *  ======== getCCOpts ========
+ */
+function getCCOpts(target)
+{
+    return(Build.customCCOpts);
 }
 
 /*
@@ -614,7 +621,6 @@ var asmList = {
 
 function getDefaultCustomCCOpts()
 {
-    var Build = this;
 
     /* start with target.cc.opts */
     var customCCOpts = Program.build.target.cc.opts;
@@ -663,7 +669,6 @@ function getDefaultCustomCCOpts()
  */
 function getDefs()
 {
-    var Build = this;
     var Defaults = xdc.module('xdc.runtime.Defaults');
     var Diags = xdc.module("xdc.runtime.Diags");
     var BIOS = xdc.module("ti.sysbios.BIOS");
@@ -780,7 +785,6 @@ function getAsmFiles(target)
  */
 function getLibs(pkg)
 {
-    var Build = this;
     var libPath = "";
     var name = "";
     var suffix;
