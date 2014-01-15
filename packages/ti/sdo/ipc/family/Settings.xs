@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,8 @@ var deviceAliases = {
                            'TMS320TCI6618',
                            'TMS320TCI6614',
                            'TMS320C6657'],
-    'TMS320TCI6634'     : ['TMS320TCI6636',
+    'TMS320TCI6634'     : ['TMS320TCI6630K2L',
+                           'TMS320TCI6636',
                            'TMS320TCI6638',
                            'Kepler'],
     'LM3.*'             : ['LM4.*'],
@@ -175,6 +176,7 @@ var procNames = {
                            "CORE4", "CORE5", "CORE6", "CORE7"],
     'Kepler'            : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
+    'TMS320TCI6630K2L'  : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3"],
 
     'TMS320C6674'       : ["CORE0", "CORE1", "CORE2", "CORE3"],
     'TMS320C6678'       : ["CORE0", "CORE1", "CORE2", "CORE3",
@@ -242,6 +244,7 @@ var hostProcNames = {
     'TMS320C6472'       : ["CORE0"],
     'TMS320C6474'       : ["CORE0"],
     'F28M3.*'           : ["M3"],
+    'TMS320TCI6630K2L'  : ["HOST"],
     'TMS320TCI6634'     : ["CORE0"],
     'TMS320TCI6636'     : ["HOST0"],
     'TMS320TCI6638'     : ["HOST0"],

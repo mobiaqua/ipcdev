@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,14 +155,27 @@ else if (Program.platformName.match(/6614/)) {
     */
 }
 else if (Program.platformName.match(/simKepler/) ||
-        Program.cpu.deviceName.match(/^TMS320TCI663[6|8]$/)) {
+        Program.cpu.deviceName.match(/^TMS320TCI663(0K2L|6|8)$/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
     var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
 
     /* Note: MultiProc_self is set during VirtQueue_init based on DNUM. */
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
-    MultiProc.setConfig(null, ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
-                               "CORE4", "CORE5", "CORE6", "CORE7"]);
+
+    switch (Program.cpu.deviceName) {
+        case "TMS320TCI6630K2L":
+            MultiProc.setConfig(null,
+                    ["HOST", "CORE0", "CORE1", "CORE2", "CORE3"]);
+            break;
+
+        case "TMS320TCI6636":
+        case "TMS320TCI6638":
+            MultiProc.setConfig(null,
+                    ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
+                    "CORE4", "CORE5", "CORE6", "CORE7"]);
+            break;
+    }
+
     Program.sectMap[".text:_c_int00"] = new Program.SectionSpec();
     Program.sectMap[".text:_c_int00"].loadSegment = "L2SRAM";
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;

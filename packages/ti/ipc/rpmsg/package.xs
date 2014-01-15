@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ function close()
             break;
 
         case "Kepler":
+        case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":
             xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
@@ -125,6 +126,7 @@ function getLibs(prog)
             break;
 
         case "Kepler":
+        case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":
             platform = "tci6638";

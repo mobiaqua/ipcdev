@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2013, Texas Instruments Incorporated
+#   Copyright (c) 2012-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@ DEPOT ?= _your_depot_folder_
 
 # Platform to build for
 #   Supported platforms (choose one):
-#       OMAPL138, OMAP54XX, DRA7XX, TCI6636, TCI6638
+#       OMAPL138, OMAP54XX, DRA7XX, TCI6630, TCI6636, TCI6638
 #
 # Note, this is used for Linux, QNX and BIOS builds
 #

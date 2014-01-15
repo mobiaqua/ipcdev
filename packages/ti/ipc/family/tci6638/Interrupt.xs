@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,16 @@ var deviceSettings = {
         DSPINT:         5,
     },
     'TMS320TCI6636' : {
+        IPCGR0:         0x02620240,
+        IPCAR0:         0x02620280,
+        IPCGRH:         0x02620260,
+        IPCARH:         0x026202A0,
+        KICK0:          0x02620038,
+        KICK1:          0x0262003C,
+        INTERDSPINT:    105,
+        DSPINT:         5
+    },
+    'TMS320TCI6630K2L' : {
         IPCGR0:         0x02620240,
         IPCAR0:         0x02620280,
         IPCGRH:         0x02620260,
