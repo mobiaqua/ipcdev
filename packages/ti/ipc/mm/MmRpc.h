@@ -198,7 +198,7 @@ typedef union {
         size_t  addr;           /*!< address of memory buffer */
         size_t  size;           /*!< size (bytes) of memory buffer */
     } ptr;
-    
+
 } MmRpc_BufDesc;
 
 /*!
@@ -211,39 +211,57 @@ typedef struct {
 /*!
  *  @brief      Invoke a remote procedure call
  *
+ *  @param[in]      handle  MmRpc handle, obtained from MmRpc_create()
+ *  @param[in]      ctx     Context with which to invoke the remote service
+ *  @param[in, out] ret     Return value from the remotely invoked service
+ *
+ *  @sa MmRpc_create()
+ *  @sa MmRpc_delete()
  */
 int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret);
 
 /*!
  *  @brief      Create an MmRpc instance
  *
+ *  @param[in]      service     Name of the service to create
+ *  @param[in]      params      Initialized MmRpc parameters
+ *  @param[in,out]  handlePtr   Space to hold the MmRpc handle
+ *
+ *  @retval     MmRpc_S_SUCCESS @copydoc MmRpc_S_SUCCESS
+ *  @retval     MmRpc_E_FAIL    @copydoc MmRpc_E_FAIL
+ *
+ *  @remark     This instantiates an instance of the service on a remote
+ *              core.  Each remote instance consists of a unique thread
+ *              listening for requests made via a call to MmRpc_call().
  */
 int MmRpc_create(const char *service, const MmRpc_Params *params,
-        MmRpc_Handle *handlPtr);
+        MmRpc_Handle *handlePtr);
 
 /*!
  *  @brief      Delete an MmRpc instance
  *
+ *  @param[in]  handlePtr  MmRpc handle, obtained from MmRpc_create()
+ *
+ *  @sa MmRpc_create()
  */
 int MmRpc_delete(MmRpc_Handle *handlePtr);
 
 /*!
  *  @brief      Release buffers which were declared in use
  *
- *  @param[in]  type    buffer descriptor type
- *
- *  @param[in]  num     number of elements in @c desc array
- *
- *  @param[in]  desc    pointer to array of buffer descriptors
+ *  @param[in]  handle  Service handle returned by MmRpc_create()
+ *  @param[in]  type    Buffer descriptor type
+ *  @param[in]  num     Number of elements in @c desc array
+ *  @param[in]  desc    Pointer to array of buffer descriptors
  *
  *  @remark     When the remote processor no longer needs a reference
  *              to a buffer, calling MmRpc_release() will release the
  *              buffer and any associated resources.
  *
- *  @retval     MmRpc_S_SUCCESS
- *  @retval     MmRpc_E_INVALIDPARAM
- *  @retval     MmRpc_E_NOMEM
- *  @retval     MmRpc_E_SYS
+ *  @retval     MmRpc_S_SUCCESS         @copydoc MmRpc_S_SUCCESS
+ *  @retval     MmRpc_E_INVALIDPARAM    @copydoc MmRpc_E_INVALIDPARAM
+ *  @retval     MmRpc_E_NOMEM           @copydoc MmRpc_E_NOMEM
+ *  @retval     MmRpc_E_SYS             @copydoc MmRpc_E_SYS
  *
  *  @sa         MmRpc_use()
  */
@@ -253,11 +271,10 @@ int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
 /*!
  *  @brief      Declare the use of the given buffers
  *
- *  @param[in]  type    buffer descriptor type
- *
- *  @param[in]  num     number of elements in @c desc array
- *
- *  @param[in]  desc    pointer to array of buffer descriptors
+ *  @param[in]  handle  Service handle returned by MmRpc_create()
+ *  @param[in]  type    Buffer descriptor type
+ *  @param[in]  num     Number of elements in @c desc array
+ *  @param[in]  desc    Pointer to array of buffer descriptors
  *
  *  @remark     When using MmRpc_call() to invoke remote function calls,
  *              any referenced buffers will be made available to the
@@ -281,10 +298,10 @@ int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
  *      MmRpc_use(h, MmRpc_BufType_Handle, 2, desc);
  *  @endcode
  *
- *  @retval     MmRpc_S_SUCCESS
- *  @retval     MmRpc_E_INVALIDPARAM
- *  @retval     MmRpc_E_NOMEM
- *  @retval     MmRpc_E_SYS
+ *  @retval     MmRpc_S_SUCCESS         @copydoc MmRpc_S_SUCCESS
+ *  @retval     MmRpc_E_INVALIDPARAM    @copydoc MmRpc_E_INVALIDPARAM
+ *  @retval     MmRpc_E_NOMEM           @copydoc MmRpc_E_NOMEM
+ *  @retval     MmRpc_E_SYS             @copydoc MmRpc_E_SYS
  *
  *  @sa         MmRpc_release()
  */
