@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -121,6 +121,7 @@ AC_CONFIG_FILES([linux/etc/Makefile])
 AC_CONFIG_FILES([linux/src/utils/Makefile])
 AC_CONFIG_FILES([linux/src/api/Makefile])
 AC_CONFIG_FILES([linux/src/mm/Makefile])
+AC_CONFIG_FILES([linux/src/mm/libmmrpc.pc])
 AC_CONFIG_FILES([linux/src/daemon/Makefile])
 AC_CONFIG_FILES([linux/src/tests/Makefile])
 AC_OUTPUT
