@@ -16959,6 +16959,8 @@ fi
 
           ac_config_files="$ac_config_files linux/src/mm/Makefile"
 
+          ac_config_files="$ac_config_files linux/src/mm/libmmrpc.pc"
+
           ac_config_files="$ac_config_files linux/src/daemon/Makefile"
 
           ac_config_files="$ac_config_files linux/src/tests/Makefile"
@@ -17627,6 +17629,7 @@ do
   "linux/src/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/utils/Makefile" ;;
   "linux/src/api/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/api/Makefile" ;;
   "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
+  "linux/src/mm/libmmrpc.pc" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/libmmrpc.pc" ;;
   "linux/src/daemon/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/daemon/Makefile" ;;
   "linux/src/tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/tests/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
