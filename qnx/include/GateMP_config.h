@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 #define MAX_RUNTIME_ENTRIES   128  /* Max number of GateMP instances + 1 */
-#define MAX_NAME_LEN          16   /* Max name length of GateMP instances */
+#define MAX_NAME_LEN          32   /* Max name length of GateMP instances */
 
 /* Proxy functions and data structures */
 #define GateMP_RemoteSystemProxy_Params_init(x) GateHWSpinlock_Params_init(x)
