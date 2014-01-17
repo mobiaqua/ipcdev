@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013, Texas Instruments Incorporated
+##  Copyright (c) 2013-2014, Texas Instruments Incorporated
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -90,6 +90,10 @@ if TCI6614
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 else
+if TCI6630
+# Add platform specific bin applications here
+  bin_PROGRAMS +=
+else
 if TCI6636
 # Add platform specific bin application's here
   bin_PROGRAMS +=
@@ -105,6 +109,7 @@ endif
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

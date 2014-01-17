@@ -67,7 +67,7 @@ AC_SUBST([AM_LDFLAGS])
 
 # Add config variables/options and check them
 # Note that 6614 isn't documented and, though it may work, is planned for removal
-AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'TCI6636' 'TCI6638' and 'DRA7XX'. If not defined all platforms will be built.)
+AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'TCI6630' 'TCI6636' 'TCI6638' and 'DRA7XX'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
 AC_ARG_VAR(KERNEL_INSTALL_DIR, Installation path to the Linux kernel.)
 AC_ARG_VAR(DRM_PREFIX, Installation location to the DRM library.)
@@ -76,6 +76,8 @@ AC_ARG_VAR(DRM_PREFIX, Installation location to the DRM library.)
 AS_IF([test "x$PLATFORM" = "xOMAPL138"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xTCI6614"],
+  [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
+  [AS_IF([test "x$PLATFORM" = "xTCI6630"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xTCI6636"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
@@ -87,7 +89,7 @@ AS_IF([test "x$PLATFORM" = "xOMAPL138"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "x"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
-  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])
+  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])])
 
 # Test for required KERNEL path
 AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
@@ -107,6 +109,7 @@ AC_SUBST([DRM_PREFIX])
 # Define specific variables to be used in Makefile.am
 AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xOMAPL138"])
 AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xTCI6614"])
+AM_CONDITIONAL([TCI6630], [test "x$PLATFORM" = "xTCI6630"])
 AM_CONDITIONAL([TCI6636], [test "x$PLATFORM" = "xTCI6636"])
 AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xTCI6638"])
 AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xOMAP54XX"])
