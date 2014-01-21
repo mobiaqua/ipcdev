@@ -461,7 +461,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR DRM_PREFIX OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6636_TRUE TCI6636_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE DRA7XX_TRUE DRA7XX_FALSE CMEM_TRUE CMEM_FALSE KDIR_TRUE KDIR_FALSE DRM_TRUE DRM_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR DRM_PREFIX OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6630_TRUE TCI6630_FALSE TCI6636_TRUE TCI6636_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE DRA7XX_TRUE DRA7XX_FALSE CMEM_TRUE CMEM_FALSE KDIR_TRUE KDIR_FALSE DRM_TRUE DRM_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1063,9 +1063,9 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
-  PLATFORM    Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'TCI6636'
-              'TCI6638' and 'DRA7XX'. If not defined all platforms will be
-              built.
+  PLATFORM    Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'TCI6630'
+              'TCI6636' 'TCI6638' and 'DRA7XX'. If not defined all platforms
+              will be built.
   CMEM_INSTALL_DIR
               Installation path directory to the CMEM libraries
   KERNEL_INSTALL_DIR
@@ -16790,6 +16790,10 @@ else
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
+  if test "x$PLATFORM" = "xTCI6630"; then
+  { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
+echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
+else
   if test "x$PLATFORM" = "xTCI6636"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
@@ -16813,6 +16817,8 @@ else
   { { echo "$as_me:$LINENO: error: PLATFORM is set to \"${PLATFORM}\": run ./configure --help for available PLATFORM options" >&5
 echo "$as_me: error: PLATFORM is set to \"${PLATFORM}\": run ./configure --help for available PLATFORM options" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
 fi
 
 fi
@@ -16875,6 +16881,16 @@ if test "x$PLATFORM" = "xTCI6614"; then
 else
   TCI6614_TRUE='#'
   TCI6614_FALSE=
+fi
+
+
+
+if test "x$PLATFORM" = "xTCI6630"; then
+  TCI6630_TRUE=
+  TCI6630_FALSE='#'
+else
+  TCI6630_TRUE='#'
+  TCI6630_FALSE=
 fi
 
 
@@ -17133,6 +17149,13 @@ if test -z "${TCI6614_TRUE}" && test -z "${TCI6614_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"TCI6614\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"TCI6614\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${TCI6630_TRUE}" && test -z "${TCI6630_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"TCI6630\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"TCI6630\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -17792,6 +17815,8 @@ s,@OMAPL138_TRUE@,$OMAPL138_TRUE,;t t
 s,@OMAPL138_FALSE@,$OMAPL138_FALSE,;t t
 s,@TCI6614_TRUE@,$TCI6614_TRUE,;t t
 s,@TCI6614_FALSE@,$TCI6614_FALSE,;t t
+s,@TCI6630_TRUE@,$TCI6630_TRUE,;t t
+s,@TCI6630_FALSE@,$TCI6630_FALSE,;t t
 s,@TCI6636_TRUE@,$TCI6636_TRUE,;t t
 s,@TCI6636_FALSE@,$TCI6636_FALSE,;t t
 s,@TCI6638_TRUE@,$TCI6638_TRUE,;t t
