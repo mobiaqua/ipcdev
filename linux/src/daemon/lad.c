@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,10 @@
 #include <_MessageQ.h>
 #include <ti/ipc/NameServer.h>
 #include <_NameServer.h>
+#include <ti/ipc/GateMP.h>
+#include <_GateMP_daemon.h>
+
+#include <GateHWSpinlock.h>
 
 #include <ladclient.h>
 #include <_lad.h>
@@ -60,6 +64,8 @@ FILE *logPtr = NULL;
 
 static String commandFIFOFile = LAD_COMMANDFIFO;
 static FILE *commandFIFOFilePtr = NULL;
+
+static Bool gatempEnabled = FALSE;
 
 /* LAD client info arrays */
 static Bool clientConnected[LAD_MAXNUMCLIENTS];
@@ -92,6 +98,8 @@ int main(int argc, char * argv[])
     Int flags;
     Int i;
     Int n;
+    Int c;
+    Int status;
     String tmpString;
 #if DAEMON
     pid_t pid;
@@ -134,6 +142,28 @@ int main(int argc, char * argv[])
             flags = fcntl(fileno(logPtr), F_GETFD);
             if (flags != -1) {
                 fcntl(fileno(logPtr), F_SETFD, flags | FD_CLOEXEC);
+            }
+        }
+
+        /* parse other options. To pass options you must provide a log file */
+        while (1) {
+            c = getopt(argc, argv, "g");
+            if (c == -1) {
+                break;
+            }
+
+            switch (c)
+            {
+                case 'g':
+#if defined(GATEMP_SUPPORT)
+                    printf("\nGateMP support enabled on host\n");
+                    gatempEnabled = TRUE;
+#else
+                    printf("\nGateMP is not supported for this device\n");
+#endif
+                    break;
+                default:
+                    fprintf (stderr, "Unrecognized argument\n");
             }
         }
     }
@@ -201,6 +231,32 @@ int main(int argc, char * argv[])
     /* set FIFO permissions to read/write */
     chmod(commandFIFOFile, 0666);
 
+    /* Setup modules relevant for GateMP if necessary */
+#if defined(GATEMP_SUPPORT)
+    if (gatempEnabled) {
+        /* Set up NameServer for resource manager process */
+        status = NameServer_setup();
+        if (status < 0) {
+            LOG0("\nERROR: unable to setup NameServer\n")
+            return(0);
+        }
+
+        status = GateHWSpinlock_start();
+        if (status < 0) {
+            LOG0("\nERROR: unable to start GateHWSpinlock\n");
+            return(0);
+        }
+
+        /* Set up GateMP */
+        status = GateMP_setup();
+        if (status < 0) {
+            LOG0("\nERROR: unable to setup GateMP\n")
+            NameServer_destroy();
+            return(0);
+        }
+    }
+#endif
+
 opencommandFIFO:
 
     /* now open file for FIFO - will block until writer arrives... */
@@ -209,6 +265,12 @@ opencommandFIFO:
     if (commandFIFOFilePtr == NULL) {
         LOG0("\nERROR: unable to open command FIFO\n")
         unlink(commandFIFOFile);
+#if defined(GATEMP_SUPPORT)
+        if (gatempEnabled) {
+            GateMP_destroy();
+            NameServer_destroy();
+        }
+#endif
         return(0);
     }
 
@@ -223,7 +285,7 @@ opencommandFIFO:
          * if last client closes FIFO then it must be closed and reopened ...
          */
         if (!n) {
-            LOG1("    EOF detected on FIFO, closing FIFO: %s\n", commandFIFOFile)
+            LOG1("   EOF detected on FIFO, closing FIFO: %s\n", commandFIFOFile)
             fclose(commandFIFOFilePtr);
 
             goto opencommandFIFO;
@@ -302,6 +364,47 @@ opencommandFIFO:
             rsp.delete.handle = cmd.args.delete.handle;
             rsp.delete.status = NameServer_delete(&rsp.delete.handle);
 
+            LOG1("    status = %d\n", rsp.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_NAMESERVER_ADD:
+            LOG1("LAD_NAMESERVER_ADD: calling NameServer_add(%p, ", cmd.args.add.handle)
+            LOG2("'%s', %p,", cmd.args.add.name, cmd.args.add.buf)
+            LOG1(" 0x%x)...\n", cmd.args.add.len)
+
+            rsp.entryPtr = NameServer_add(
+                cmd.args.add.handle,
+                cmd.args.add.name,
+                cmd.args.add.buf,
+                cmd.args.add.len);
+
+            LOG1("    entryPtr = %p\n", rsp.entryPtr)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_NAMESERVER_GET:
+            LOG2("LAD_NAMESERVER_GET: calling NameServer_get(%p, '%s'",
+                cmd.args.get.handle, cmd.args.get.name)
+            LOG0(")...\n")
+
+            if (cmd.args.get.procId[0] == (UInt16)-1) {
+                procIdPtr = NULL;
+            }
+            else {
+                procIdPtr = cmd.args.get.procId;
+            }
+            rsp.status = NameServer_get(
+                cmd.args.get.handle,
+                cmd.args.get.name,
+                rsp.get.buf,
+                &cmd.args.get.len,
+                procIdPtr);
+            rsp.get.len = cmd.args.get.len;
+
+            LOG1("    value = 0x%x\n", rsp.get.len)
             LOG1("    status = %d\n", rsp.status)
             LOG0("DONE\n")
 
@@ -455,6 +558,77 @@ opencommandFIFO:
 
             break;
 
+#if defined(GATEMP_SUPPORT)
+          case LAD_GATEMP_START:
+            LOG0("LAD_GATEMP_START: calling GateMP_start()...\n")
+
+            rsp.gateMPStart.nameServerHandle = GateMP_getNameServer();
+            rsp.gateMPStart.status = GateMP_S_SUCCESS;;
+
+            LOG1("    status = %d\n", rsp.gateMPStart.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEMP_GETNUMRESOURCES:
+            LOG0("LAD_GATEMP_GETNUMRESOURCES: calling GateMP_getNumResources()...\n")
+
+            rsp.gateMPGetNumResources.value = GateMP_getNumResources(
+                                          cmd.args.gateMPGetNumResources.type);
+            rsp.gateMPGetNumResources.status = GateMP_S_SUCCESS;;
+
+            LOG1("    status = %d\n", rsp.gateMPGetNumResources.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEMP_GETFREERESOURCE:
+            LOG0("LAD_GATEMP_GETFREERESOURCE: calling GateMP_getFreeResource()...\n")
+
+            rsp.gateMPGetFreeResource.id = GateMP_getFreeResource(
+                                          cmd.args.gateMPGetFreeResource.type);
+            rsp.gateMPGetFreeResource.status = GateMP_S_SUCCESS;;
+
+            LOG1("    status = %d\n", rsp.gateMPGetFreeResource.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEMP_RELEASERESOURCE:
+            LOG0("LAD_GATEMP_RELEASERESOURCE: calling GateMP_releaseResource()...\n")
+
+            rsp.gateMPReleaseResource.status = GateMP_releaseResource(
+                                          cmd.args.gateMPReleaseResource.id,
+                                          cmd.args.gateMPReleaseResource.type);
+
+            LOG1("    status = %d\n", rsp.gateMPReleaseResource.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEMP_ISSETUP:
+            LOG0("LAD_GATEMP_ISSETUP: calling GateMP_isSetup()...\n")
+
+            rsp.gateMPIsSetup.result = GateMP_isSetup();
+            rsp.gateMPIsSetup.status = GateMP_S_SUCCESS;
+
+            LOG1("    status = %d\n", rsp.gateMPIsSetup.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEHWSPINLOCK_GETCONFIG:
+            LOG0("LAD_GATEHWSPINLOCK_GETCONFIG: calling GateHWSpinlock_getConfig()...\n")
+
+            GateHWSpinlock_getConfig(&rsp.gateHWSpinlockGetConfig.cfgParams);
+            rsp.gateHWSpinlockGetConfig.status = 0;
+
+            LOG1("    status = %d\n", rsp.gateHWSpinlockGetConfig.status)
+            LOG0("DONE\n")
+
+            break;
+#endif
+
           case LAD_EXIT:
             goto exitNow;
 
@@ -476,6 +650,8 @@ opencommandFIFO:
           case LAD_NAMESERVER_PARAMS_INIT:
           case LAD_NAMESERVER_CREATE:
           case LAD_NAMESERVER_DELETE:
+          case LAD_NAMESERVER_ADD:
+          case LAD_NAMESERVER_GET:
           case LAD_NAMESERVER_ADDUINT32:
           case LAD_NAMESERVER_GETUINT32:
           case LAD_NAMESERVER_REMOVE:
@@ -487,6 +663,15 @@ opencommandFIFO:
           case LAD_MESSAGEQ_DELETE:
           case LAD_MESSAGEQ_MSGINIT:
           case LAD_MULTIPROC_GETCONFIG:
+#if defined(GATEMP_SUPPORT)
+          case LAD_GATEMP_START:
+          case LAD_GATEMP_GETNUMRESOURCES:
+          case LAD_GATEMP_GETFREERESOURCE:
+          case LAD_GATEMP_RELEASERESOURCE:
+          case LAD_GATEMP_ISSETUP:
+          case LAD_GATEHWSPINLOCK_GETCONFIG:
+#endif
+
             LOG0("Sending response...\n");
 
             fwrite(&rsp, LAD_RESPONSELENGTH, 1, responseFIFOFilePtr[clientId]);
@@ -500,6 +685,12 @@ opencommandFIFO:
     }
 
 exitNow:
+#if defined(GATEMP_SUPPORT)
+    if (gatempEnabled) {
+        GateMP_destroy();
+        NameServer_destroy();
+    }
+#endif
     if (logFile) {
         LOG0("\n\nLAD IS SELF TERMINATING...\n\n")
         fclose(logPtr);

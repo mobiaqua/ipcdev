@@ -72,7 +72,7 @@ endif
 else
 if DRA7XX
 # Add platform specific bin application's here
-  bin_PROGRAMS +=
+  bin_PROGRAMS += GateMPApp
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
@@ -162,6 +162,14 @@ nano_test_SOURCES = $(common_sources) nano_test.c
 # list of sources for the 'Msgq100' binary
 Msgq100_SOURCES = $(common_sources) Msgq100.c
 
+# list of sources for the 'GateMPApp' binary
+GateMPApp_SOURCES = $(common_sources) \
+                $(top_srcdir)/linux/src/tests/main_host.c \
+                $(top_srcdir)/linux/src/tests/GateMPApp.c \
+                $(top_srcdir)/linux/src/tests/GateMPApp.h \
+                $(top_srcdir)/packages/ti/ipc/GateMP.h \
+                $(top_srcdir)/packages/ti/ipc/tests/GateMPAppCommon.h
+
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
@@ -197,6 +205,11 @@ nano_test_LDADD = $(common_libraries) \
 
 # the additional libraries needed to link Msgq100
 Msgq100_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+
+# the additional libraries needed to link GateMPApp
+GateMPApp_LDADD = $(common_libraries) \
+                $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
                 $(AM_LDFLAGS)
 
 ###############################################################################

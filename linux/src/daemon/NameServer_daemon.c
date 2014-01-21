@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -250,6 +250,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         LOG2("NameServer Request: instanceName: %s, name: %s\n",
              (String)msg->instanceName, (String)msg->name)
 
+        assert(msg->valueLen <= MAXVALUELEN);
         /*
          *  Message is a request. Lookup name in NameServer table.
          *  Send a response message back to source processor.
@@ -258,9 +259,16 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
 
         if (handle != NULL) {
             /* Search for the NameServer entry */
-            LOG0("Calling NameServer_getLocalUInt32...\n")
-            status = NameServer_getLocalUInt32(handle,
+            if (msg->valueLen <= sizeof (Bits32)) {
+                LOG0("Calling NameServer_getLocalUInt32...\n")
+                status = NameServer_getLocalUInt32(handle,
                      (String)msg->name, &msg->value);
+            }
+            else {
+                LOG0("Calling NameServer_getLocal...\n")
+                status = NameServer_getLocal(handle,
+                     (String)msg->name, (Ptr)msg->valueBuf, &msg->valueLen);
+            }
         }
 
         LOG2("NameServer Response: instanceName: %s, name: %s,",
@@ -625,12 +633,6 @@ NameServer_Handle NameServer_create(String name,
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    if (params->maxValueLen > sizeof(UInt32)) {
-        LOG1("NameServer_create: params->maxValueLen (%d) too big for now\n", params->maxValueLen)
-       /* Can't handle more than UInt32 at this time: */
-       goto leave;
-    }
-
     /* check if the name is already created or not */
     handle = NameServer_getHandle(name);
     if (handle != NULL) {
@@ -750,6 +752,13 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     /* Calculate the hash */
     hash = stringHash(name);
+
+    if (len > handle->params.maxValueLen) {
+        status = NameServer_E_INVALIDARG;
+        LOG0("NameServer_add: value length exceeded maximum!\n")
+        new_node = NULL;
+        goto exit;
+    }
 
     pthread_mutex_lock(&handle->gate);
 
@@ -959,6 +968,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     uint64_t buf = 1;
     int numBytes;
     int err;
+    int i;
 
     /* Set Timeout to wait: */
     tv.tv_sec = 0;
@@ -1023,13 +1033,28 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
         if (replyMsg->requestStatus) {
             /* name is found */
-            /* set the contents of value */
-            *(UInt32 *)value = (UInt32)replyMsg->value;
 
-            LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                 procId, (String)replyMsg->instanceName)
-            LOG2("%s, value: 0x%x...\n",
-                 (String)replyMsg->name, *(UInt32 *)value)
+            /* set length to amount of data that was copied */
+            *len = replyMsg->valueLen;
+
+            /* set the contents of value */
+            if (*len <= sizeof (Bits32)) {
+                *(UInt32 *)value = (UInt32)replyMsg->value;
+                LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                    procId, (String)replyMsg->instanceName)
+                LOG2("%s, value: 0x%x...\n",
+                    (String)replyMsg->name, *(UInt32 *)value)
+            }
+            else {
+                memcpy(value, replyMsg->valueBuf, *len);
+                LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                    procId, (String)replyMsg->instanceName)
+                for (i = 0; i < *len/4; i++) {
+                    LOG2("%s, value buffer content: 0x%x...\n",
+                        (String)replyMsg->name, ((uint32_t *)value)[i])
+                }
+            }
+
             goto exit;
         }
         else {

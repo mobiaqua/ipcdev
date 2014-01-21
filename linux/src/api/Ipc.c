@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,9 +55,13 @@
 
 /* IPC startup/shutdown stuff: */
 #include <ti/ipc/MultiProc.h>
+#include <GateHWSpinlock.h>
+#include <_GateMP.h>
 #include <_MultiProc.h>
 #include <_MessageQ.h>
 #include <_NameServer.h>
+
+GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
 
 static LAD_ClientHandle ladHandle;
 
@@ -70,12 +74,13 @@ static void cleanup(int arg);
 /* Function to start Ipc */
 Int Ipc_start (Void)
 {
-    MessageQ_Config   msgqCfg;
-    MultiProc_Config  mpCfg;
-    Int32             status;
-    LAD_Status        ladStatus;
-    UInt16            rprocId;
-    Int32             attachedAny = 0;
+    MessageQ_Config        msgqCfg;
+    MultiProc_Config       mpCfg;
+    GateHWSpinlock_Config  gateHWCfg;
+    Int32                  status;
+    LAD_Status             ladStatus;
+    UInt16                 rprocId;
+    Int32                  attachedAny = 0;
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
@@ -128,6 +133,45 @@ Int Ipc_start (Void)
         printf("Ipc_start: NameServer_setup() failed: %d\n", status);
         status = Ipc_E_FAIL;
     }
+
+    /* Start GateMP only if device has support */
+#if defined(GATEMP_SUPPORT)
+    if (GateMP_isSetup()) {
+        /*
+         * Get HWSpinlock base address and size from LAD and
+         * initialize the local config structure.
+         */
+        GateHWSpinlock_getConfig(&gateHWCfg);
+        _GateHWSpinlock_cfgParams = gateHWCfg;
+
+        status = GateHWSpinlock_start();
+        if (status < 0) {
+            printf("Ipc_start: GateHWSpinlock_start failed: %d\n",
+                status);
+            status = Ipc_E_FAIL;
+            goto gatehwspinlockstart_fail;
+        }
+        else {
+            status = GateMP_start();
+            if (status < 0) {
+                printf("Ipc_start: GateMP_start failed: %d\n",
+                status);
+                status = Ipc_E_FAIL;
+                goto gatempstart_fail;
+            }
+        }
+    }
+#endif
+    /* Success */
+    goto exit;
+#if defined(GATEMP_SUPPORT)
+gatempstart_fail:
+    GateHWSpinlock_stop();
+gatehwspinlockstart_fail:
+    for (rprocId = rprocId - 1; (rprocId > 0) && (status >= 0); rprocId--) {
+        MessageQ_detach(rprocId);
+    }
+#endif
 
 exit:
     return (status);

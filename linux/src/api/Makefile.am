@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013, Texas Instruments Incorporated
+##  Copyright (c) 2013-2014, Texas Instruments Incorporated
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -36,6 +36,10 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
         -I$(top_srcdir)/packages -I$(KERNEL_INSTALL_DIR)/include/generated/uapi\
         -D_GNU_SOURCE -Wall @AM_CFLAGS@
 
+if DRA7XX
+AM_CFLAGS += -DGATEMP_SUPPORT
+endif
+
 ###############################################################################
 # THE LIBRARIES TO BUILD
 ###############################################################################
@@ -68,6 +72,18 @@ libtiipc_la_SOURCES =    \
                         MultiProc.c \
                         NameServer.c \
                         Ipc.c
+
+if DRA7XX
+libtiipc_la_SOURCES +=  $(top_srcdir)/linux/include/IGateProvider.h \
+                        $(top_srcdir)/linux/include/GateHWSpinlock.h \
+                        $(top_srcdir)/linux/include/GateMutex.h \
+                        $(top_srcdir)/linux/include/GateMP_config.h \
+                        $(top_srcdir)/linux/include/_GateMP.h \
+                        $(top_srcdir)/packages/ti/ipc/GateMP.h \
+                        $(top_srcdir)/linux/src/api/gates/GateMP.c \
+                        $(top_srcdir)/linux/src/api/gates/GateMutex.c \
+                        $(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
+endif
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,9 @@ extern "C" {
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
 #include <stdio.h>
+#include <ti/ipc/GateMP.h>
+#include <_GateMP.h>
+#include <GateHWSpinlock.h>
 
 extern Bool logFile;
 extern FILE *logPtr;
@@ -100,6 +103,8 @@ extern FILE *logPtr;
 
 #define LAD_MESSAGEQCREATEMAXNAMELEN 32
 
+#define LAD_MAXENTRYNAMELEN 32   /* size limit for LAD NameServer name */
+#define LAD_MAXENTRYVALUELEN 32  /* size limit for LAD NameServer value */
 
 typedef enum {
     LAD_CONNECT = 0,
@@ -109,6 +114,8 @@ typedef enum {
     LAD_NAMESERVER_PARAMS_INIT,
     LAD_NAMESERVER_CREATE,
     LAD_NAMESERVER_DELETE,
+    LAD_NAMESERVER_ADD,
+    LAD_NAMESERVER_GET,
     LAD_NAMESERVER_ADDUINT32,
     LAD_NAMESERVER_GETUINT32,
     LAD_NAMESERVER_REMOVE,
@@ -120,6 +127,12 @@ typedef enum {
     LAD_MESSAGEQ_DELETE,
     LAD_MESSAGEQ_MSGINIT,
     LAD_MULTIPROC_GETCONFIG,
+    LAD_GATEMP_START,
+    LAD_GATEMP_GETNUMRESOURCES,
+    LAD_GATEMP_GETFREERESOURCE,
+    LAD_GATEMP_RELEASERESOURCE,
+    LAD_GATEMP_ISSETUP,
+    LAD_GATEHWSPINLOCK_GETCONFIG,
     LAD_EXIT
 } _LAD_Command;
 
@@ -133,7 +146,7 @@ struct LAD_CommandObj {
             Char protocol[LAD_MAXLENGTHPROTOVERS];
         } connect;
         struct {
-            Char name[NameServer_Params_MAXNAMELEN];
+            Char name[LAD_MAXENTRYNAMELEN];
             NameServer_Params params;
         } create;
         struct {
@@ -141,17 +154,29 @@ struct LAD_CommandObj {
         } delete;
         struct {
             NameServer_Handle handle;
-            Char name[NameServer_Params_MAXNAMELEN];
+            Char name[LAD_MAXENTRYNAMELEN];
+            UInt8 buf[LAD_MAXENTRYVALUELEN];
+            UInt32 len;
+        } add;
+        struct {
+            NameServer_Handle handle;
+            Char name[LAD_MAXENTRYNAMELEN];
+            UInt32 len;
+            UInt16 procId[MultiProc_MAXPROCESSORS];
+        } get;
+        struct {
+            NameServer_Handle handle;
+            Char name[LAD_MAXENTRYNAMELEN];
             UInt32 val;
         } addUInt32;
         struct {
             NameServer_Handle handle;
-            Char name[NameServer_Params_MAXNAMELEN];
+            Char name[LAD_MAXENTRYNAMELEN];
             UInt16 procId[MultiProc_MAXPROCESSORS];
         } getUInt32;
         struct {
             NameServer_Handle handle;
-            Char name[NameServer_Params_MAXNAMELEN];
+            Char name[LAD_MAXENTRYNAMELEN];
         } remove;
         struct {
             NameServer_Handle handle;
@@ -167,10 +192,28 @@ struct LAD_CommandObj {
         struct {
             Void *serverHandle;
         } messageQDelete;
+        struct {
+            GateMP_RemoteProtect type;
+        } gateMPGetNumResources;
+        struct {
+            GateMP_RemoteProtect type;
+        } gateMPGetFreeResource;
+        struct {
+            GateMP_RemoteProtect type;
+            Int32 id;
+        } gateMPReleaseResource;
+        struct {
+            Bool result;
+        } gateMPIsSetup;
     } args;
 };
 
 union LAD_ResponseObj {
+    struct {
+       Int status;
+       UInt32 len;
+       UInt8 buf[LAD_MAXENTRYVALUELEN];
+    } get;
     struct {
        Int status;
        UInt32 val;
@@ -207,6 +250,29 @@ union LAD_ResponseObj {
        Int status;
        MultiProc_Config cfg;
     } multiprocGetConfig;
+    struct {
+       Int status;
+       NameServer_Handle nameServerHandle;
+    } gateMPStart;
+    struct {
+       Int status;
+       Int32 value;
+    } gateMPGetNumResources;
+    struct {
+       Int status;
+       Int32 id;
+    } gateMPGetFreeResource;
+    struct {
+       Int status;
+    } gateMPReleaseResource;
+    struct {
+       Int status;
+       Bool result;
+    } gateMPIsSetup;
+    struct {
+       Int status;
+       GateHWSpinlock_Config cfgParams;
+    } gateHWSpinlockGetConfig;
     NameServer_Params params;
     NameServer_Handle handle;
     Ptr entryPtr;

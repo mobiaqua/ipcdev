@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013, Texas Instruments Incorporated
+##  Copyright (c) 2013-2014, Texas Instruments Incorporated
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ ipcincludedir = $(includedir)/ti/ipc
 
 # the list of common header files (to be installed later)
 ipcinclude_HEADERS = $(top_srcdir)/packages/ti/ipc/Ipc.h \
+                $(top_srcdir)/packages/ti/ipc/GateMP.h \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h \
                 $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -216,6 +216,109 @@ NameServer_Handle NameServer_create(String name,
     return rsp.handle;
 }
 
+Ptr NameServer_add(NameServer_Handle nsHandle, String name, Ptr buf,
+                   UInt32 len)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE1(
+          "NameServer_add: can't find connection to daemon for pid %d\n",
+          getpid())
+
+        return NULL;
+    }
+
+    cmd.cmd = LAD_NAMESERVER_ADD;
+    cmd.clientId = clHandle;
+    cmd.args.add.handle = nsHandle;
+    strncpy(cmd.args.add.name, name, LAD_MAXENTRYNAMELEN);
+    cmd.args.add.len = len;
+
+    if (buf != NULL) {
+        memcpy(cmd.args.add.buf, buf, len);
+    }
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1(
+          "NameServer_add: sending LAD command failed, status=%d\n",
+          status)
+        return NULL;
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1(
+           "NameServer_add: no LAD response, status=%d\n", status)
+        return NULL;
+    }
+
+    PRINTVERBOSE1(
+       "NameServer_add: got LAD response for client %d\n", clHandle)
+
+    return rsp.entryPtr;
+}
+
+Int NameServer_get(NameServer_Handle nsHandle, String name, Ptr buf,
+                   UInt32 * len, UInt16 procId[])
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE1(
+          "NameServer_get: can't find connection to daemon for pid %d\n",
+           getpid())
+
+        return NameServer_E_RESOURCE;
+    }
+
+    cmd.cmd = LAD_NAMESERVER_GET;
+    cmd.clientId = clHandle;
+    cmd.args.get.handle = nsHandle;
+    strncpy(cmd.args.get.name, name, LAD_MAXENTRYNAMELEN);
+    if (procId != NULL) {
+        memcpy(cmd.args.get.procId, procId,
+               sizeof(UInt16) * MultiProc_MAXPROCESSORS);
+    }
+    else {
+        cmd.args.get.procId[0] = (UInt16)-1;
+    }
+
+    cmd.args.get.len = *len;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1(
+           "NameServer_get: sending LAD command failed, status=%d\n",
+            status)
+        return NameServer_E_FAIL;
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_get: no LAD response, status=%d\n",
+                       status)
+        return NameServer_E_FAIL;
+    }
+
+    *len = rsp.get.len;
+    if (rsp.get.buf != NULL) {
+        memcpy(buf, rsp.get.buf, *len);
+    }
+
+    status = rsp.status;
+
+    PRINTVERBOSE1("NameServer_get: got LAD response for client %d\n",
+                   clHandle)
+
+    return status;
+}
+
 Ptr NameServer_addUInt32(NameServer_Handle nsHandle, String name, UInt32 value)
 {
     Int status;
@@ -235,7 +338,7 @@ Ptr NameServer_addUInt32(NameServer_Handle nsHandle, String name, UInt32 value)
     cmd.cmd = LAD_NAMESERVER_ADDUINT32;
     cmd.clientId = clHandle;
     cmd.args.addUInt32.handle = nsHandle;
-    strncpy(cmd.args.addUInt32.name, name, NameServer_Params_MAXNAMELEN);
+    strncpy(cmd.args.addUInt32.name, name, LAD_MAXENTRYNAMELEN);
     cmd.args.addUInt32.val = value;
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
@@ -278,7 +381,7 @@ Int NameServer_getUInt32(NameServer_Handle nsHandle, String name, Ptr buf,
     cmd.cmd = LAD_NAMESERVER_GETUINT32;
     cmd.clientId = clHandle;
     cmd.args.getUInt32.handle = nsHandle;
-    strncpy(cmd.args.getUInt32.name, name, NameServer_Params_MAXNAMELEN);
+    strncpy(cmd.args.getUInt32.name, name, LAD_MAXENTRYNAMELEN);
     if (procId != NULL) {
         memcpy(cmd.args.getUInt32.procId, procId,
                sizeof(UInt16) * MultiProc_MAXPROCESSORS);
@@ -329,7 +432,7 @@ Int NameServer_remove(NameServer_Handle nsHandle, String name)
     cmd.cmd = LAD_NAMESERVER_REMOVE;
     cmd.clientId = clHandle;
     cmd.args.remove.handle = nsHandle;
-    strncpy(cmd.args.remove.name, name, NameServer_Params_MAXNAMELEN);
+    strncpy(cmd.args.remove.name, name, LAD_MAXENTRYNAMELEN);
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
         PRINTVERBOSE1(

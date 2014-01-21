@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,11 +100,7 @@
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  */
 /* This address is derived from current IPU & ION carveouts */
-#ifdef OMAP5
 #define PHYS_MEM_IPC_VRING      0x95000000
-#else
-#define PHYS_MEM_IPC_VRING      0x98800000
-#endif
 
 /* Need to be identical to that of IPU */
 #define PHYS_MEM_IOBUFS         0xBA300000
