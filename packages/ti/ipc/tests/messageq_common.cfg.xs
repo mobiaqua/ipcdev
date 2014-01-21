@@ -155,6 +155,7 @@ else if (Program.platformName.match(/6614/)) {
     */
 }
 else if (Program.platformName.match(/simKepler/) ||
+        Program.cpu.deviceName.match(/^TMS320C66AK2E05$/) ||
         Program.cpu.deviceName.match(/^TMS320TCI663(0K2L|6|8)$/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
     var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
@@ -163,6 +164,11 @@ else if (Program.platformName.match(/simKepler/) ||
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
 
     switch (Program.cpu.deviceName) {
+        case "TMS320C66AK2E05":
+            MultiProc.setConfig(null,
+                    ["HOST", "CORE0"]);
+            break;
+
         case "TMS320TCI6630K2L":
             MultiProc.setConfig(null,
                     ["HOST", "CORE0", "CORE1", "CORE2", "CORE3"]);

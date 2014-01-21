@@ -59,6 +59,7 @@ function close()
             break;
 
         case "Kepler":
+        case "TMS320C66AK2E05":
         case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":
@@ -126,6 +127,7 @@ function getLibs(prog)
             break;
 
         case "Kepler":
+        case "TMS320C66AK2E05":
         case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":

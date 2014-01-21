@@ -190,6 +190,10 @@ for (arg = 0; arg < arguments.length; arg++) {
 
     if (targetName.match(/elf\.C66$/)) {
         switch (platform) {
+            case 'C66AK2E':
+                target.platforms.$add("ti.platforms.evmC66AK2E");
+                break;
+
             case 'TCI6630':
                 target.platforms.$add("ti.platforms.evmTCI6630K2L");
                 break;

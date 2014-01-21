@@ -461,6 +461,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
+              (platform.match(/^ti.platforms.evmC66AK2E/)) ||
               (platform.match(/^ti.platforms.evmTCI6630K2L/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti.platforms.evmTCI6636K2H/)) ||
