@@ -86,6 +86,10 @@ if CMEM
   bin_PROGRAMS += nano_test
 endif
 else
+if C66AK2E
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+else
 if TCI6614
 # Add platform specific bin application's here
   bin_PROGRAMS +=
@@ -109,6 +113,7 @@ endif
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

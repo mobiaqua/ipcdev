@@ -52,6 +52,9 @@ else
 if OMAPL138
   bin_PROGRAMS += lad_omapl138
 else
+if C66AK2E
+  bin_PROGRAMS += lad_c66ak2e
+else
 if TCI6614
   bin_PROGRAMS += lad_tci6614
 else
@@ -64,7 +67,8 @@ else
 if TCI6638
   bin_PROGRAMS += lad_tci6638
 else
-  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_c66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+endif
 endif
 endif
 endif
@@ -98,6 +102,7 @@ common_sources = \
 lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
 lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
 lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
+lad_c66ak2e_SOURCES = $(common_sources) MultiProcCfg_c66ak2e.c
 lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6630_SOURCES = $(common_sources) MultiProcCfg_tci6630.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
@@ -112,6 +117,8 @@ lad_omap54xx_smp_LDADD = $(common_libraries) \
 lad_dra7xx_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 lad_omapl138_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+lad_c66ak2e_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 lad_tci6614_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
