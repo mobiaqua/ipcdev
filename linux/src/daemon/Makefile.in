@@ -36,18 +36,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@DRA7XX_TRUE@am__append_1 = -DGATEMP_SUPPORT
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9)
-@OMAP54XX_SMP_TRUE@am__append_1 = lad_omap54xx_smp
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_2 = lad_dra7xx
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_3 = lad_omapl138
-@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_4 = lad_c66ak2e
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_5 = lad_tci6614
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_6 = lad_tci6630
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_7 = lad_tci6636
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_8 = lad_tci6638
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_9 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_c66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+@OMAP54XX_SMP_TRUE@am__append_2 = lad_omap54xx_smp
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 = lad_dra7xx
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_4 = lad_omapl138
+@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_5 = lad_c66ak2e
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_6 = lad_tci6614
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_7 = lad_tci6630
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_8 = lad_tci6636
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 = lad_tci6638
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_c66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+@DRA7XX_TRUE@am__append_11 = \
+@DRA7XX_TRUE@                GateMP_daemon.c \
+@DRA7XX_TRUE@		GateHWSpinlock.c \
+@DRA7XX_TRUE@		GateHWSpinlock_daemon.c \
+@DRA7XX_TRUE@		GateHWSpinlockCfg_dra7xx.c \
+@DRA7XX_TRUE@		$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+@DRA7XX_TRUE@		$(top_srcdir)/linux/include/_GateMP.h \
+@DRA7XX_TRUE@                $(top_srcdir)/linux/include/_GateMP_daemon.h \
+@DRA7XX_TRUE@                $(top_srcdir)/linux/include/IGateProvider.h \
+@DRA7XX_TRUE@                $(top_srcdir)/linux/include/GateHWSpinlock.h \
+@DRA7XX_TRUE@                $(top_srcdir)/linux/include/GateMutex.h \
+@DRA7XX_TRUE@                $(top_srcdir)/linux/include/GateMP_config.h \
+@DRA7XX_TRUE@                $(top_srcdir)/packages/ti/ipc/GateMP.h
+
 subdir = linux/src/daemon
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -75,41 +90,192 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__objects_1 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
-	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT)
-am_lad_c66ak2e_OBJECTS = $(am__objects_1) \
+am__lad_c66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_c66ak2e.c
+@DRA7XX_TRUE@am__objects_1 = GateMP_daemon.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlock.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
+@DRA7XX_TRUE@	GateMutex.$(OBJEXT)
+am__objects_2 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
+	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT) \
+	$(am__objects_1)
+am_lad_c66ak2e_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_c66ak2e.$(OBJEXT)
 lad_c66ak2e_OBJECTS = $(am_lad_c66ak2e_OBJECTS)
 am__DEPENDENCIES_1 =  \
 	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 am__DEPENDENCIES_2 =
 lad_c66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_lad_dra7xx_OBJECTS = $(am__objects_1) MultiProcCfg_dra7xx.$(OBJEXT)
+am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_dra7xx.c
+am_lad_dra7xx_OBJECTS = $(am__objects_2) MultiProcCfg_dra7xx.$(OBJEXT)
 lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
 lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_lad_omap54xx_smp_OBJECTS = $(am__objects_1) \
+am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	MultiProcCfg_omap54xx_smp.c
+am_lad_omap54xx_smp_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_omap54xx_smp.$(OBJEXT)
 lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am_lad_omapl138_OBJECTS = $(am__objects_1) \
+am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_omapl138.c
+am_lad_omapl138_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_omapl138.$(OBJEXT)
 lad_omapl138_OBJECTS = $(am_lad_omapl138_OBJECTS)
 lad_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am_lad_tci6614_OBJECTS = $(am__objects_1) \
+am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6614.c
+am_lad_tci6614_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6614.$(OBJEXT)
 lad_tci6614_OBJECTS = $(am_lad_tci6614_OBJECTS)
 lad_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_lad_tci6630_OBJECTS = $(am__objects_1) \
+am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6630.c
+am_lad_tci6630_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6630.$(OBJEXT)
 lad_tci6630_OBJECTS = $(am_lad_tci6630_OBJECTS)
 lad_tci6630_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_lad_tci6636_OBJECTS = $(am__objects_1) \
+am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6638.c
+am_lad_tci6636_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6636_OBJECTS = $(am_lad_tci6636_OBJECTS)
 lad_tci6636_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_lad_tci6638_OBJECTS = $(am__objects_1) \
+am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6638.c
+am_lad_tci6638_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6638_OBJECTS = $(am_lad_tci6638_OBJECTS)
 lad_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
@@ -128,10 +294,14 @@ SOURCES = $(lad_c66ak2e_SOURCES) $(lad_dra7xx_SOURCES) \
 	$(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
 	$(lad_tci6614_SOURCES) $(lad_tci6630_SOURCES) \
 	$(lad_tci6636_SOURCES) $(lad_tci6638_SOURCES)
-DIST_SOURCES = $(lad_c66ak2e_SOURCES) $(lad_dra7xx_SOURCES) \
-	$(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
-	$(lad_tci6614_SOURCES) $(lad_tci6630_SOURCES) \
-	$(lad_tci6636_SOURCES) $(lad_tci6638_SOURCES)
+DIST_SOURCES = $(am__lad_c66ak2e_SOURCES_DIST) \
+	$(am__lad_dra7xx_SOURCES_DIST) \
+	$(am__lad_omap54xx_smp_SOURCES_DIST) \
+	$(am__lad_omapl138_SOURCES_DIST) \
+	$(am__lad_tci6614_SOURCES_DIST) \
+	$(am__lad_tci6630_SOURCES_DIST) \
+	$(am__lad_tci6636_SOURCES_DIST) \
+	$(am__lad_tci6638_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -141,10 +311,10 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(KERNEL_INSTALL_DIR)/include/generated/uapi\
-        -D_GNU_SOURCE -Wall @AM_CFLAGS@
-
+AM_CFLAGS = -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
+	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
+	-Wall @AM_CFLAGS@ $(am__append_1)
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -264,24 +434,13 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-common_sources = \
-                lad.c \
-                MessageQ_daemon.c \
-                MultiProc_daemon.c \
-                NameServer_daemon.c \
-                $(top_srcdir)/linux/include/ti/ipc/Std.h \
-                $(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
-                $(top_srcdir)/hlos_common/include/_MessageQ.h \
-                $(top_srcdir)/hlos_common/include/_NameServer.h \
-                $(top_srcdir)/linux/include/_MultiProc.h \
-                $(top_srcdir)/linux/include/_lad.h \
-                $(top_srcdir)/linux/include/SocketFxns.h \
-                $(top_srcdir)/linux/include/ladclient.h \
-                $(top_srcdir)/linux/include/net/rpmsg.h \
-                $(top_srcdir)/packages/ti/ipc/MessageQ.h \
-                $(top_srcdir)/packages/ti/ipc/NameServer.h \
-                $(top_srcdir)/packages/ti/ipc/MultiProc.h
-
+common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h $(am__append_11)
 
 # list of sources for the 'lad' binary and to add to the source distribution
 #
@@ -416,6 +575,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_c66ak2e.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
@@ -448,6 +612,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+GateMutex.o: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.o -MD -MP -MF "$(DEPDIR)/GateMutex.Tpo" -c -o GateMutex.o `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMutex.Tpo" "$(DEPDIR)/GateMutex.Po"; else rm -f "$(DEPDIR)/GateMutex.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.o `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+
+GateMutex.obj: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.obj -MD -MP -MF "$(DEPDIR)/GateMutex.Tpo" -c -o GateMutex.obj `if test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/api/gates/GateMutex.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMutex.Tpo" "$(DEPDIR)/GateMutex.Po"; else rm -f "$(DEPDIR)/GateMutex.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.obj `if test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/api/gates/GateMutex.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

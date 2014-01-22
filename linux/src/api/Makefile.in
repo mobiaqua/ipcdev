@@ -37,6 +37,17 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@DRA7XX_TRUE@am__append_1 = -DGATEMP_SUPPORT
+@DRA7XX_TRUE@am__append_2 = $(top_srcdir)/linux/include/IGateProvider.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateHWSpinlock.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateMutex.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateMP_config.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/include/_GateMP.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/packages/ti/ipc/GateMP.h \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/src/api/gates/GateMP.c \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/src/api/gates/GateMutex.c \
+@DRA7XX_TRUE@                        $(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
+
 subdir = linux/src/api
 DIST_COMMON = $(libtiipc_la_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -56,9 +67,33 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libtiipc_ladir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libtiipc_la_LIBADD =
+am__libtiipc_la_SOURCES_DIST =  \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/Ipc.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h MessageQ.c \
+	MultiProc.c NameServer.c Ipc.c \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	$(top_srcdir)/linux/src/api/gates/GateMP.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
 am__objects_1 =
+@DRA7XX_TRUE@am__objects_2 = GateMP.lo GateMutex.lo GateHWSpinlock.lo
 am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo MultiProc.lo \
-	NameServer.lo Ipc.lo
+	NameServer.lo Ipc.lo $(am__objects_2)
 libtiipc_la_OBJECTS = $(am_libtiipc_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
@@ -72,7 +107,7 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libtiipc_la_SOURCES)
-DIST_SOURCES = $(libtiipc_la_SOURCES)
+DIST_SOURCES = $(am__libtiipc_la_SOURCES_DIST)
 libtiipc_laHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libtiipc_la_HEADERS)
 ETAGS = etags
@@ -84,10 +119,10 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(KERNEL_INSTALL_DIR)/include/generated/uapi\
-        -D_GNU_SOURCE -Wall @AM_CFLAGS@
-
+AM_CFLAGS = -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
+	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
+	-Wall @AM_CFLAGS@ $(am__append_1)
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -222,25 +257,20 @@ libtiipc_ladir = $(includedir)/ti/ipc
 libtiipc_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
 
 # the sources to add to the library and to add to the source distribution
-libtiipc_la_SOURCES = \
-                        $(libtiipc_la_HEADERS) \
-                        $(top_srcdir)/linux/include/_MultiProc.h \
-                        $(top_srcdir)/hlos_common/include/_MessageQ.h \
-                        $(top_srcdir)/hlos_common/include/_NameServer.h \
-                        $(top_srcdir)/linux/include/ladclient.h \
-                        $(top_srcdir)/linux/include/_lad.h \
-                        $(top_srcdir)/linux/include/SocketFxns.h \
-                        $(top_srcdir)/linux/include/net/rpmsg.h \
-                        $(top_srcdir)/packages/ti/ipc/Ipc.h \
-                        $(top_srcdir)/packages/ti/ipc/NameServer.h \
-                        $(top_srcdir)/packages/ti/ipc/MultiProc.h \
-                        $(top_srcdir)/packages/ti/ipc/MessageQ.h \
-                        $(top_srcdir)/linux/include/ti/ipc/Std.h \
-                        MessageQ.c \
-                        MultiProc.c \
-                        NameServer.c \
-                        Ipc.c
-
+libtiipc_la_SOURCES = $(libtiipc_la_HEADERS) \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/Ipc.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h MessageQ.c \
+	MultiProc.c NameServer.c Ipc.c $(am__append_2)
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0
@@ -313,6 +343,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProc.Plo@am__quote@
@@ -338,6 +371,27 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+GateMP.lo: $(top_srcdir)/linux/src/api/gates/GateMP.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMP.lo -MD -MP -MF "$(DEPDIR)/GateMP.Tpo" -c -o GateMP.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMP.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMP.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMP.Tpo" "$(DEPDIR)/GateMP.Plo"; else rm -f "$(DEPDIR)/GateMP.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateMP.c' object='GateMP.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMP.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMP.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMP.c
+
+GateMutex.lo: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.lo -MD -MP -MF "$(DEPDIR)/GateMutex.Tpo" -c -o GateMutex.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMutex.Tpo" "$(DEPDIR)/GateMutex.Plo"; else rm -f "$(DEPDIR)/GateMutex.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+
+GateHWSpinlock.lo: $(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlock.lo -MD -MP -MF "$(DEPDIR)/GateHWSpinlock.Tpo" -c -o GateHWSpinlock.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateHWSpinlock.Tpo" "$(DEPDIR)/GateHWSpinlock.Plo"; else rm -f "$(DEPDIR)/GateHWSpinlock.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' object='GateHWSpinlock.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlock.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

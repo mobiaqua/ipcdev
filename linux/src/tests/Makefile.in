@@ -46,16 +46,16 @@ host_triplet = @host@
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
 	NameServerApp$(EXEEXT) Msgq100$(EXEEXT) $(am__EXEEXT_1) \
-	$(am__EXEEXT_2) $(am__EXEEXT_1) $(am__EXEEXT_3) \
-	$(am__EXEEXT_1) $(am__EXEEXT_4) $(am__EXEEXT_1) \
+	$(am__EXEEXT_2) $(am__EXEEXT_3) $(am__EXEEXT_4) \
+	$(am__EXEEXT_1) $(am__EXEEXT_5) $(am__EXEEXT_1) \
 	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_1) \
-	$(am__EXEEXT_1) $(am__EXEEXT_5) $(am__EXEEXT_6)
+	$(am__EXEEXT_1) $(am__EXEEXT_6) $(am__EXEEXT_7)
 
 # Add platform specific bin application's here
 @OMAP54XX_SMP_TRUE@am__append_3 = 
 @DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_4 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_5 = 
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_5 = GateMPApp
 @DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_6 = mmrpc_test
 # Add platform specific bin application's here
 @DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_7 = 
@@ -84,19 +84,26 @@ CONFIG_CLEAN_FILES =
 am__EXEEXT_1 =
 @DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__EXEEXT_2 =  \
 @DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@	mmrpc_test$(EXEEXT)
-@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__EXEEXT_3 = mmrpc_test$(EXEEXT)
-@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_4 = nano_test$(EXEEXT)
-@C66AK2E_FALSE@@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_5 = nano_test$(EXEEXT)
-@C66AK2E_FALSE@@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_6 = mmrpc_test$(EXEEXT)
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__EXEEXT_3 = GateMPApp$(EXEEXT)
+@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__EXEEXT_4 = mmrpc_test$(EXEEXT)
+@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_5 = nano_test$(EXEEXT)
+@C66AK2E_FALSE@@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_6 = nano_test$(EXEEXT)
+@C66AK2E_FALSE@@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_7 = mmrpc_test$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am_MessageQApp_OBJECTS = $(am__objects_1) MessageQApp.$(OBJEXT)
-MessageQApp_OBJECTS = $(am_MessageQApp_OBJECTS)
+am_GateMPApp_OBJECTS = $(am__objects_1) main_host.$(OBJEXT) \
+	GateMPApp.$(OBJEXT)
+GateMPApp_OBJECTS = $(am_GateMPApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la
 am__DEPENDENCIES_2 =
+GateMPApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
+	$(am__DEPENDENCIES_2)
+am_MessageQApp_OBJECTS = $(am__objects_1) MessageQApp.$(OBJEXT)
+MessageQApp_OBJECTS = $(am_MessageQApp_OBJECTS)
 MessageQApp_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am_MessageQBench_OBJECTS = $(am__objects_1) MessageQBench.$(OBJEXT)
 MessageQBench_OBJECTS = $(am_MessageQBench_OBJECTS)
@@ -139,14 +146,16 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
-	$(MessageQMulti_SOURCES) $(Msgq100_SOURCES) \
-	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
-DIST_SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
-	$(MessageQMulti_SOURCES) $(Msgq100_SOURCES) \
-	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
+SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
+	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
+	$(Msgq100_SOURCES) $(NameServerApp_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
+DIST_SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
+	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
+	$(Msgq100_SOURCES) $(NameServerApp_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -319,6 +328,15 @@ nano_test_SOURCES = $(common_sources) nano_test.c
 
 # list of sources for the 'Msgq100' binary
 Msgq100_SOURCES = $(common_sources) Msgq100.c
+
+# list of sources for the 'GateMPApp' binary
+GateMPApp_SOURCES = $(common_sources) \
+                $(top_srcdir)/linux/src/tests/main_host.c \
+                $(top_srcdir)/linux/src/tests/GateMPApp.c \
+                $(top_srcdir)/linux/src/tests/GateMPApp.h \
+                $(top_srcdir)/packages/ti/ipc/GateMP.h \
+                $(top_srcdir)/packages/ti/ipc/tests/GateMPAppCommon.h
+
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
@@ -361,6 +379,12 @@ nano_test_LDADD = $(common_libraries) \
 
 # the additional libraries needed to link Msgq100
 Msgq100_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+
+
+# the additional libraries needed to link GateMPApp
+GateMPApp_LDADD = $(common_libraries) \
+                $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
                 $(AM_LDFLAGS)
 
 all: all-am
@@ -424,6 +448,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
+GateMPApp$(EXEEXT): $(GateMPApp_OBJECTS) $(GateMPApp_DEPENDENCIES) 
+	@rm -f GateMPApp$(EXEEXT)
+	$(LINK) $(GateMPApp_LDFLAGS) $(GateMPApp_OBJECTS) $(GateMPApp_LDADD) $(LIBS)
 MessageQApp$(EXEEXT): $(MessageQApp_OBJECTS) $(MessageQApp_DEPENDENCIES) 
 	@rm -f MessageQApp$(EXEEXT)
 	$(LINK) $(MessageQApp_LDFLAGS) $(MessageQApp_OBJECTS) $(MessageQApp_LDADD) $(LIBS)
@@ -455,12 +482,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMPApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQBench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Msgq100.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main_host.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmrpc_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nano_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ping_rpmsg.Po@am__quote@
@@ -485,6 +514,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+main_host.o: $(top_srcdir)/linux/src/tests/main_host.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main_host.o -MD -MP -MF "$(DEPDIR)/main_host.Tpo" -c -o main_host.o `test -f '$(top_srcdir)/linux/src/tests/main_host.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/main_host.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/main_host.Tpo" "$(DEPDIR)/main_host.Po"; else rm -f "$(DEPDIR)/main_host.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/tests/main_host.c' object='main_host.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main_host.o `test -f '$(top_srcdir)/linux/src/tests/main_host.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/main_host.c
+
+main_host.obj: $(top_srcdir)/linux/src/tests/main_host.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main_host.obj -MD -MP -MF "$(DEPDIR)/main_host.Tpo" -c -o main_host.obj `if test -f '$(top_srcdir)/linux/src/tests/main_host.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/main_host.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/main_host.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/main_host.Tpo" "$(DEPDIR)/main_host.Po"; else rm -f "$(DEPDIR)/main_host.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/tests/main_host.c' object='main_host.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main_host.obj `if test -f '$(top_srcdir)/linux/src/tests/main_host.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/main_host.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/main_host.c'; fi`
+
+GateMPApp.o: $(top_srcdir)/linux/src/tests/GateMPApp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMPApp.o -MD -MP -MF "$(DEPDIR)/GateMPApp.Tpo" -c -o GateMPApp.o `test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/GateMPApp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMPApp.Tpo" "$(DEPDIR)/GateMPApp.Po"; else rm -f "$(DEPDIR)/GateMPApp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/tests/GateMPApp.c' object='GateMPApp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMPApp.o `test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/GateMPApp.c
+
+GateMPApp.obj: $(top_srcdir)/linux/src/tests/GateMPApp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMPApp.obj -MD -MP -MF "$(DEPDIR)/GateMPApp.Tpo" -c -o GateMPApp.obj `if test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/GateMPApp.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/GateMPApp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMPApp.Tpo" "$(DEPDIR)/GateMPApp.Po"; else rm -f "$(DEPDIR)/GateMPApp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/tests/GateMPApp.c' object='GateMPApp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMPApp.obj `if test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/GateMPApp.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/GateMPApp.c'; fi`
 
 Mx.o: $(top_srcdir)/packages/ti/ipc/tests/Mx.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Mx.o -MD -MP -MF "$(DEPDIR)/Mx.Tpo" -c -o Mx.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/Mx.c; \
