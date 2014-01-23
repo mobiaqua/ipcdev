@@ -72,7 +72,10 @@ endif
 else
 if DRA7XX
 # Add platform specific bin application's here
+  bin_PROGRAMS +=
+if CMEM
   bin_PROGRAMS += GateMPApp
+endif
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
