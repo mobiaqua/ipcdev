@@ -97,7 +97,13 @@ am__lad_c66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -130,7 +136,13 @@ am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -151,7 +163,13 @@ am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -175,7 +193,13 @@ am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -198,7 +222,13 @@ am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -220,7 +250,13 @@ am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -242,7 +278,13 @@ am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -264,7 +306,13 @@ am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h GateMP_daemon.c \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
 	GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
@@ -440,7 +488,13 @@ common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h $(am__append_11)
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h $(am__append_11)
 
 # list of sources for the 'lad' binary and to add to the source distribution
 #
