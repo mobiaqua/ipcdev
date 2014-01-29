@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,7 +137,7 @@ Void MessageQ_Params2_init(MessageQ_Params2 *params)
  *  of the fields in the header at set via other APIs or in the
  *  MessageQ_put function.
  */
-MessageQ_Msg MessageQ_alloc(UInt16 heapId, Uint32 size)
+MessageQ_Msg MessageQ_alloc(UInt16 heapId, UInt32 size)
 {
     MessageQ_Msg msg;
     Error_Block eb;
@@ -595,7 +595,7 @@ Void MessageQ_setReplyQueue(MessageQ_Handle handle, MessageQ_Msg msg)
 /*
  *  ======== MessageQ_staticMsgInit ========
  */
-Void MessageQ_staticMsgInit(MessageQ_Msg msg, Uint32 size)
+Void MessageQ_staticMsgInit(MessageQ_Msg msg, UInt32 size)
 {
     Assert_isTrue((msg != NULL), ti_sdo_ipc_MessageQ_A_invalidMsg);
 

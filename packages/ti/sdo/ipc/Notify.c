@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -594,7 +594,7 @@ Int Notify_unregisterEventSingle(UInt16 procId, UInt16 lineId, UInt32 eventId)
          *  unregisterEvent.
          */
         obj->callbacks[strippedEventId].fnNotifyCbck = NULL;
-        obj->callbacks[strippedEventId].cbckArg = NULL;
+        obj->callbacks[strippedEventId].cbckArg = 0;
 
         status = Notify_S_SUCCESS;
     }

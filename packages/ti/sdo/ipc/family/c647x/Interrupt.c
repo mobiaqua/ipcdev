@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,7 +187,7 @@ Void Interrupt_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
                        UArg arg)
 {
     UInt32 val;
-    extern volatile cregister Uns DNUM;
+    extern volatile cregister UInt DNUM;
     volatile UInt32 *ipcgr = (volatile UInt32 *)Interrupt_IPCGR0;
 
     /*
@@ -209,7 +209,7 @@ Void Interrupt_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
                        UArg arg)
 {
     UInt32 val;
-    extern volatile cregister Uns DNUM;
+    extern volatile cregister UInt DNUM;
     volatile UInt32 *ipcgr = (volatile UInt32 *)Interrupt_IPCGR0;
 
     /*
@@ -231,7 +231,7 @@ Void Interrupt_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
  */
 UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
-    extern volatile cregister Uns DNUM;
+    extern volatile cregister UInt DNUM;
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
 
     ipcar[DNUM] =  (1 << (MultiProcSetup_procMap[remoteProcId] +
@@ -252,7 +252,7 @@ UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 Void Interrupt_intShmStub(UArg arg)
 {
     Int i;
-    extern volatile cregister Uns DNUM;
+    extern volatile cregister UInt DNUM;
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
     UInt32 ipcarVal = ipcar[DNUM];
 

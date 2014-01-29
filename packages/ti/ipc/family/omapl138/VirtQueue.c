@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -372,7 +372,7 @@ Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
     while (InterruptDsp_isIntSet(remoteProcId, &intInfo) == FALSE);
     InterruptDsp_intClear(remoteProcId, &intInfo);
 
-    InterruptDsp_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
+    InterruptDsp_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, 0);
     Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -285,7 +285,7 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
 
     table = &(InterruptDsp_module->fxnTable[index]);
     table->func = NULL;
-    table->arg  = NULL;
+    table->arg  = 0;
 }
 
 /*

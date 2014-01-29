@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@
 #define SLAVE_MESSAGEQNAME "SLAVE"
 #define MessageQ_payload(m) ((void *)((char *)(m) + sizeof(MessageQ_MsgHeader)))
 
-extern volatile cregister Uns DNUM;
+extern volatile cregister UInt DNUM;
 
 /*
  *  ======== hostMsgqFxn ========
@@ -93,7 +93,7 @@ Void hostMsgqFxn(UArg arg0, UArg arg1)
     UInt16 msgId;
     UInt32 start;
     UInt32 end;
-    Uint32 numLoops;
+    UInt32 numLoops;
     UInt32 print;
     UInt32 *params;
 

@@ -1,5 +1,5 @@
-/* 
- * Copyright (c) 2013 Texas Instruments Incorporated
+/*
+ * Copyright (c) 2013-2014 Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */ 
+ */
 /*
  *  ======== GatePetersonN.c ========
  */
@@ -76,35 +76,35 @@ Int GatePetersonN_Instance_init(GatePetersonN_Object *obj,
     }
 
     Assert_isTrue(params->sharedAddr != NULL, ti_sdo_ipc_Ipc_A_invParam);
-    Assert_isTrue(GatePetersonN_numInstances != NULL,ti_sdo_ipc_Ipc_A_invParam);
+    Assert_isTrue(GatePetersonN_numInstances != 0, ti_sdo_ipc_Ipc_A_invParam);
 
     obj->localGate      = localGate;
     obj->cacheEnabled   = SharedRegion_isCacheEnabled(params->regionId);
     obj->cacheLineSize  = SharedRegion_getCacheLineSize(params->regionId);
     obj->nested  = 0;
-    
+
     /* This is not cluster aware:
      * obj->numProcessors  = MultiProc_getNumProcessors();
      * obj->selfId         = MultiProc_self();
      */
 
-    /* Cluster aware initialization */ 
+    /* Cluster aware initialization */
     obj->numProcessors  = MultiProc_getNumProcsInCluster();
-    
+
     /* set selfId to 0-based offset within cluster. */
     obj->selfId         = MultiProc_self() - MultiProc_getBaseIdOfCluster();
-    
+
     /* Assign shared memory addresses for the protocol state variables */
-    
+
     offset = 0;
 
     for (i=0; i < obj->numProcessors; i++) {
-        obj->enteredStage[i] = (Int32 *)((UArg)(params->sharedAddr) + offset); 
+        obj->enteredStage[i] = (Int32 *)((UArg)(params->sharedAddr) + offset);
         offset += minAlign;
     }
 
     for (i=0; i < obj->numProcessors - 1; i++) {
-	obj->lastProcEnteringStage[i] = (Int32 *)((UArg)(params->sharedAddr) 
+	obj->lastProcEnteringStage[i] = (Int32 *)((UArg)(params->sharedAddr)
                                                    + offset);
         offset += minAlign;
     }
@@ -155,12 +155,12 @@ IArg GatePetersonN_enter(GatePetersonN_Object *obj)
 
         *(obj->enteredStage[myProcId]) = curStage;
         *(obj->lastProcEnteringStage[curStage]) = myProcId;
-        
+
 	if (obj->cacheEnabled) {
 
             Cache_wbInv((Ptr)obj->enteredStage[myProcId], obj->cacheLineSize,
                     Cache_Type_ALL, FALSE);
-            Cache_wbInv((Ptr)obj->lastProcEnteringStage[curStage], 
+            Cache_wbInv((Ptr)obj->lastProcEnteringStage[curStage],
                     obj->cacheLineSize, Cache_Type_ALL, TRUE);
         }
 
@@ -170,9 +170,9 @@ IArg GatePetersonN_enter(GatePetersonN_Object *obj)
 
 	        if (obj->cacheEnabled) {
 
-                    Cache_inv((Ptr)obj->enteredStage[proc], 
+                    Cache_inv((Ptr)obj->enteredStage[proc],
                             obj->cacheLineSize, Cache_Type_ALL, FALSE);
-                    Cache_inv((Ptr)obj->lastProcEnteringStage[curStage], 
+                    Cache_inv((Ptr)obj->lastProcEnteringStage[curStage],
                             obj->cacheLineSize, Cache_Type_ALL, TRUE);
 		}
 
@@ -182,9 +182,9 @@ IArg GatePetersonN_enter(GatePetersonN_Object *obj)
                     /* wait till 'proc' leaves or another 'proc' enters stage */
 	            if (obj->cacheEnabled) {
 
-                        Cache_inv((Ptr)obj->enteredStage[proc], 
+                        Cache_inv((Ptr)obj->enteredStage[proc],
                                 obj->cacheLineSize, Cache_Type_ALL, FALSE);
-                        Cache_inv((Ptr)obj->lastProcEnteringStage[curStage], 
+                        Cache_inv((Ptr)obj->lastProcEnteringStage[curStage],
                                 obj->cacheLineSize, Cache_Type_ALL, TRUE);
                     }
                 }
@@ -222,7 +222,7 @@ Void GatePetersonN_leave(GatePetersonN_Object *obj, IArg key)
  *                       Module functions
  *************************************************************************
  */
- 
+
 /*
  *  ======== GatePetersonN_getReservedMask ========
  */
@@ -244,12 +244,12 @@ SizeT GatePetersonN_sharedMemReq(const IGateMPSupport_Params *params)
     if (SharedRegion_getCacheLineSize(params->regionId) > minAlign) {
             minAlign = SharedRegion_getCacheLineSize(params->regionId);
     }
-    
+
     /*  Allocate aligned memory for shared state variables used in protocol
      *      enteredStage[NUM_PROCESSORS]
-     *	    lastProcEnteringStage[NUM_STAGES] 
+     *	    lastProcEnteringStage[NUM_STAGES]
      */
-    memReq = ((2 * numProcessors) - 1) * 
+    memReq = ((2 * numProcessors) - 1) *
               SharedRegion_getCacheLineSize(params->regionId);
 
     return(memReq);
@@ -306,13 +306,12 @@ Void GatePetersonN_postInit(GatePetersonN_Object *obj)
     }
 
     /*
-     * Write everything back to shared memory. 
+     * Write everything back to shared memory.
      */
     if (obj->cacheEnabled) {
-        Cache_wbInv((Ptr)(obj->enteredStage[0]), obj->cacheLineSize * 
+        Cache_wbInv((Ptr)(obj->enteredStage[0]), obj->cacheLineSize *
                 obj->numProcessors, Cache_Type_ALL, FALSE);
-        Cache_wbInv((Ptr)(obj->lastProcEnteringStage[0]), obj->cacheLineSize * 
+        Cache_wbInv((Ptr)(obj->lastProcEnteringStage[0]), obj->cacheLineSize *
                 obj->numProcessors-1, Cache_Type_ALL, TRUE);
     }
 }
-

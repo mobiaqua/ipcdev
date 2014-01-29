@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@
  *  There is an optimization for small values (e.g. <= sizeof(UInt32).
  *  In this case, there is no values block allocated. Instead the value
  *  field is used directly.  This optimization occurs and is managed when
- *  obj->maxValueLen <= sizeof(Uint32).
+ *  obj->maxValueLen <= sizeof(UInt32).
  *
  *  The static create is a little different. The static entries point directly
  *  to a name string (and value). Since it points directly to static items,
@@ -218,7 +218,7 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr value,
 
                 tableEntry->value = (UArg)Memory_alloc(obj->tableHeap,
                         obj->maxValueLen, 0, &eb);
-                if (tableEntry->value == NULL) {
+                if (tableEntry->value == 0) {
                     Memory_free(obj->tableHeap, tableEntry,
                             sizeof(ti_sdo_utils_NameServer_TableEntry));
                     Memory_free(obj->tableHeap, tableEntry->name,

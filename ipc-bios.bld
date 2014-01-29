@@ -280,3 +280,6 @@ for (var t = 0; t < Build.targets.length; t++) {
 /* -----------------------------------------------------------------------*/
 /* make release files '.tar.gz' files (.tar is default) */
 Pkg.attrs.compress = true;
+
+/* catch inadvertant use of unsupported data types */
+Pkg.attrs.defs = "-Dxdc__strict";

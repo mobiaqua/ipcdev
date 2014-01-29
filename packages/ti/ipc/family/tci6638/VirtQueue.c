@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,7 @@
 #define ID_DSP_TO_A9      0
 #define ID_A9_TO_DSP      1
 
-extern volatile cregister Uns DNUM;
+extern volatile cregister UInt DNUM;
 
 static VirtQueue_Object *queueRegistry[NUM_QUEUES] = {NULL};
 
@@ -386,7 +386,7 @@ Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
     Log_print0(Diags_USER1, "VirtQueue_startup: Polling for host int...\n");
     while (!Interrupt_checkAndClear(remoteProcId, &intInfo));
 
-    Interrupt_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
+    Interrupt_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, 0);
 
     Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
 }

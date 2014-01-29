@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,7 +160,7 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
             break;
     }
 
-    SET_BIT(*((volatile Uint32 *)INTGENREG), (intBitPos));
+    SET_BIT(*((volatile UInt32 *)INTGENREG), (intBitPos));
 }
 
 /*!
@@ -186,7 +186,7 @@ Void InterruptDsp_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
             break;
     }
 
-    SET_BIT(*((volatile Uint32 *)INTGENREG), (intBitPos));
+    SET_BIT(*((volatile UInt32 *)INTGENREG), (intBitPos));
 }
 
 /*!
@@ -212,7 +212,7 @@ UInt InterruptDsp_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
             break;
     }
 
-    CLEAR_BIT(*((volatile Uint32 *)INTGENREG), statBitPos);
+    CLEAR_BIT(*((volatile UInt32 *)INTGENREG), statBitPos);
 
     return (0);
 }

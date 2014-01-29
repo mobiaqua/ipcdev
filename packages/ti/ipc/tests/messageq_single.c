@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
     UInt32 msgId;
     UInt32 start;
     UInt32 end;
-    Uint32 numLoops;
+    UInt32 numLoops;
     UInt32 print;
     UInt32 *params;
 

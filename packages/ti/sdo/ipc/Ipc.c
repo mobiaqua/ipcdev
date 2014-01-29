@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,7 +203,7 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->notifySRPtr = 0;
+            slave->notifySRPtr = SharedRegion_invalidSRPtr();
         }
 
         /* call attach to remote processor */
@@ -246,7 +246,7 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->nsrnSRPtr = 0;
+            slave->nsrnSRPtr = SharedRegion_invalidSRPtr();
         }
 
         /* call attach to remote processor */
@@ -289,7 +289,7 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->transportSRPtr = 0;
+            slave->transportSRPtr = SharedRegion_invalidSRPtr();
         }
 
         /* call attach to remote processor */
@@ -490,8 +490,8 @@ Int Ipc_detach(UInt16 remoteProcId)
                     ti_sdo_ipc_MessageQ_SetupTransportProxy_sharedMemReq(
                         msgqSharedAddr));
 
-                /* set pointer for MessageQ transport instance back to NULL */
-                slave->transportSRPtr = NULL;
+                /* set pointer for MessageQ transport instance to INVALID */
+                slave->transportSRPtr = SharedRegion_invalidSRPtr();
             }
         }
     }
@@ -516,8 +516,8 @@ Int Ipc_detach(UInt16 remoteProcId)
                             ti_sdo_utils_NameServer_SetupProxy_sharedMemReq(
                                 nsrnSharedAddr));
 
-                /* set pointer for NSRN instance back to NULL */
-                slave->nsrnSRPtr = NULL;
+                /* set pointer for NSRN instance to INVALID */
+                slave->nsrnSRPtr = SharedRegion_invalidSRPtr();
             }
         }
     }
@@ -541,8 +541,8 @@ Int Ipc_detach(UInt16 remoteProcId)
                             notifySharedAddr,
                             Notify_sharedMemReq(remoteProcId, notifySharedAddr));
 
-                /* set pointer for Notify instance back to NULL */
-                slave->notifySRPtr = NULL;
+                /* set pointer for Notify instance to INVALID */
+                slave->notifySRPtr = SharedRegion_invalidSRPtr();
             }
         }
     }
