@@ -83,7 +83,20 @@ static Void doDisconnect(Int clientId);
 struct LAD_CommandObj cmd;
 union LAD_ResponseObj rsp;
 
-
+#define LAD_USAGE "\
+Usage:\n\
+    lad_<platform> [options] \n\
+\n\
+Options:\n\
+    h            : print this help message\n\
+    g            : enable GateMP support \n\
+    l <logfile>  : name of logfile for LAD\n\
+\n\
+Examples:\n\
+    lad_<platform> -h\n\
+    lad_<platform> -l log.txt\n\
+    lad_<platform> -g -l log.txt\n\
+\n"
 
 /*
  *  ======== main ========
@@ -106,11 +119,6 @@ int main(int argc, char * argv[])
     pid_t sid;
 #endif
 
-    /* if more than two args: turn "ON" launch status printfs */
-    if (argc > 2) {
-        printf("\nLAD starting up...");
-    }
-
     /* change to LAD's working directory */
     if ((chdir(LAD_WORKINGDIR)) < 0) {
 
@@ -127,44 +135,44 @@ int main(int argc, char * argv[])
     }
 
     /* process command line args */
-    if (argc > 1) {
-        logPtr = fopen(argv[1], "w");
-        if (logPtr == NULL) {
-            printf("\nERROR: unable to open log file %s\n", argv[1]);
-            exit(EXIT_FAILURE);
-        }
-        else {
-            logFile = TRUE;
-            if (argc > 2) {
-                printf("\nOpened log file: %s", argv[1]);
-            }
-            /* close log file upon LAD termination */
-            flags = fcntl(fileno(logPtr), F_GETFD);
-            if (flags != -1) {
-                fcntl(fileno(logPtr), F_SETFD, flags | FD_CLOEXEC);
-            }
+    while (1) {
+        c = getopt(argc, argv, "ghl:");
+        if (c == -1) {
+            break;
         }
 
-        /* parse other options. To pass options you must provide a log file */
-        while (1) {
-            c = getopt(argc, argv, "g");
-            if (c == -1) {
-                break;
-            }
-
-            switch (c)
-            {
-                case 'g':
+        switch (c) {
+            case 'g':
 #if defined(GATEMP_SUPPORT)
-                    printf("\nGateMP support enabled on host\n");
-                    gatempEnabled = TRUE;
+                printf("\nGateMP support enabled on host\n");
+                gatempEnabled = TRUE;
 #else
-                    printf("\nGateMP is not supported for this device\n");
+                printf("\nGateMP is not supported for this device\n");
 #endif
-                    break;
-                default:
-                    fprintf (stderr, "Unrecognized argument\n");
-            }
+                break;
+            case 'h':
+                printf("%s", LAD_USAGE);
+                exit(0);
+                break;
+            case 'l':
+                logPtr = fopen(optarg, "w");
+                if (logPtr == NULL) {
+                    printf("\nERROR: unable to open log file %s\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    logFile = TRUE;
+                    printf("\nOpened log file: %s", optarg);
+                    /* close log file upon LAD termination */
+                    flags = fcntl(fileno(logPtr), F_GETFD);
+                    if (flags != -1) {
+                        fcntl(fileno(logPtr), F_SETFD, flags | FD_CLOEXEC);
+                    }
+                }
+                break;
+            default:
+                fprintf (stderr, "\nUnrecognized argument\n");
+                exit(EXIT_FAILURE);
         }
     }
 
@@ -180,9 +188,7 @@ int main(int argc, char * argv[])
 
     /* if pid > 0 this is the parent; time to die ... */
     if (pid > 0) {
-        if (argc > 2) {
-            printf("\nSpawned daemon: %s\n\n", argv[0]);
-        }
+        printf("\nSpawned daemon: %s\n\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
 
