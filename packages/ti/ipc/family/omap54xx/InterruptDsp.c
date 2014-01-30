@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@
 #include "InterruptDsp.h"
 
 /* Register access method. */
-#define REG16(A)   (*(volatile UInt16 *) (A))
 #define REG32(A)   (*(volatile UInt32 *) (A))
 
 #define HOSTINT                 26
@@ -60,7 +59,6 @@
 #define M3_TO_HOST_MBX          1 /* Tx to Host from M3 */
 #define DSP_TO_HOST_MBX         2 /* Tx to Host from DSP */
 #define HOST_TO_DSP_MBX         3 /* Rx on DSP from Host */
-#define SYSM3_TO_APPM3_MBX      4 /* Rx on AppM3 from Host/SysM3 */
 
 #define MAILBOX_BASEADDR    (0x4A0F4000)
 
@@ -146,8 +144,6 @@ Void InterruptDsp_intRegister(Hwi_FuncPtr fxn)
 Void InterruptDsp_intSend(UInt16 remoteProcId, UArg arg)
 {
     static Bool configured = FALSE;
-    static UInt16 sysm3ProcId = MultiProc_INVALIDID;
-    static UInt16 appm3ProcId = MultiProc_INVALIDID;
     static UInt16 hostProcId = MultiProc_INVALIDID;
     static UInt16 dspProcId = MultiProc_INVALIDID;
     static UInt16 ipuProcId = MultiProc_INVALIDID;
@@ -155,22 +151,14 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, UArg arg)
     if (!configured) {
         hostProcId  = MultiProc_getId("HOST");
         dspProcId   = MultiProc_getId("DSP");
-        sysm3ProcId = MultiProc_getId("CORE0");
-        appm3ProcId = MultiProc_getId("CORE1");
         ipuProcId   = MultiProc_getId("IPU");
         configured  = TRUE;
     }
 
-    /* We currently do not support interrupts from DSP to IPU in SMP mode */
+    /* We currently do not support interrupts from DSP to IPU */
     Assert_isTrue(remoteProcId != ipuProcId, NULL);
 
-    if (remoteProcId == sysm3ProcId) {
-        REG32(MAILBOX_MESSAGE(HOST_TO_SYSM3_MBX)) = arg;
-    }
-    else if (remoteProcId == appm3ProcId) {
-        REG32(MAILBOX_MESSAGE(SYSM3_TO_APPM3_MBX)) = arg;
-    }
-    else if (remoteProcId == hostProcId) {
+    if (remoteProcId == hostProcId) {
         REG32(MAILBOX_MESSAGE(DSP_TO_HOST_MBX)) = arg;
     }
     else if (remoteProcId == dspProcId) {

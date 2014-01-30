@@ -95,12 +95,6 @@ extern "C" {
 #endif
 
 /*!
- *  @brief  VirtQueue Ids for the basic IPC transport rings.
- */
-#define ID_SELF_TO_A9      0
-#define ID_A9_TO_SELF      1
-
-/*!
  *  @brief  a queue to register buffers for sending or receiving.
  */
 typedef struct VirtQueue_Object *VirtQueue_Handle;
