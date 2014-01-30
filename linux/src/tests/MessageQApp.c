@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -206,8 +206,9 @@ int main (int argc, char ** argv)
 
     status = Ipc_start();
 
-    if (procId >= MultiProc_getNumProcessors()) {
-        printf("ProcId must be less than %d\n", MultiProc_getNumProcessors());
+    if ((procId == 0) || (procId >= MultiProc_getNumProcessors())) {
+        printf("ProcId (%d) must be nonzero and less than %d\n",
+                procId, MultiProc_getNumProcessors());
         Ipc_stop();
         exit(0);
     }
