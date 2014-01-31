@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -39,13 +39,16 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
                      $(LOCAL_PATH)/$(IPC_ROOT)/packages \
                      $(LOCAL_PATH)/$(IPC_ROOT)/hlos_common/include
 
-LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/api/MultiProc.c \
                   $(IPC_ROOT)/linux/src/api/NameServer.c \
                   $(IPC_ROOT)/linux/src/api/Ipc.c \
-                  $(IPC_ROOT)/linux/src/api/MessageQ.c
+                  $(IPC_ROOT)/linux/src/api/MessageQ.c \
+                  $(IPC_ROOT)/linux/src/api/gates/GateMP.c \
+                  $(IPC_ROOT)/linux/src/api/gates/GateMutex.c \
+                  $(IPC_ROOT)/linux/src/api/gates/GateHWSpinlock.c
 
 LOCAL_SHARED_LIBRARIES := \
     liblog libtiipcutils

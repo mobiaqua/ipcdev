@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -39,14 +39,19 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
                      $(LOCAL_PATH)/$(IPC_ROOT)/packages \
                      $(LOCAL_PATH)/$(IPC_ROOT)/hlos_common/include
 
-LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/daemon/lad.c \
                   $(IPC_ROOT)/linux/src/daemon/MessageQ_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/MultiProc_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/NameServer_daemon.c \
-                  $(IPC_ROOT)/linux/src/daemon/MultiProcCfg_dra7xx.c
+                  $(IPC_ROOT)/linux/src/daemon/MultiProcCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/daemon/GateMP_daemon.c \
+                  $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock.c \
+                  $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock_daemon.c \
+                  $(IPC_ROOT)/linux/src/daemon/GateHWSpinlockCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/api/gates/GateMutex.c
 
 LOCAL_SHARED_LIBRARIES := \
     liblog libtiipcutils_lad libtiipc
