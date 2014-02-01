@@ -301,9 +301,9 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     index = MBX_TABLE_IDX(MultiProc_self(), remoteProcId);
 
     /*
-     *  Before writing to a mailbox, check whehter it already contains a message
-     *  If so, then don't write to the mailbox since we want one and only one
-     *  message per interrupt.  Disable interrupts between reading
+     *  Before writing to a mailbox, check whether it already contains a
+     *  message.  If so, don't write to the mailbox since we want one and only
+     *  one message per interrupt.  Disable interrupts between reading
      *  the MSGSTATUS_X register and writing to the mailbox to protect from
      *  another thread doing an intSend at the same time
      *
