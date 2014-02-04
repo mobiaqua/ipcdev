@@ -16987,7 +16987,11 @@ fi
 
           ac_config_files="$ac_config_files linux/src/utils/Makefile"
 
+          ac_config_files="$ac_config_files linux/src/utils/libtiipcutils.pc"
+
           ac_config_files="$ac_config_files linux/src/api/Makefile"
+
+          ac_config_files="$ac_config_files linux/src/api/libtiipc.pc"
 
           ac_config_files="$ac_config_files linux/src/mm/Makefile"
 
@@ -17673,7 +17677,9 @@ do
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "linux/etc/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/etc/Makefile" ;;
   "linux/src/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/utils/Makefile" ;;
+  "linux/src/utils/libtiipcutils.pc" ) CONFIG_FILES="$CONFIG_FILES linux/src/utils/libtiipcutils.pc" ;;
   "linux/src/api/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/api/Makefile" ;;
+  "linux/src/api/libtiipc.pc" ) CONFIG_FILES="$CONFIG_FILES linux/src/api/libtiipc.pc" ;;
   "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
   "linux/src/mm/libmmrpc.pc" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/libmmrpc.pc" ;;
   "linux/src/daemon/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/daemon/Makefile" ;;
