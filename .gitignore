@@ -46,6 +46,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /linux/src/*/*.la
 /linux/src/*/.libs
 /linux/src/*/*.o
+/linux/src/*/*.pc
 /linux/src/daemon/lad_*
 /linux/src/tests/GateMPApp
 /linux/src/tests/MessageQApp

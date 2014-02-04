@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013, Texas Instruments Incorporated
+##  Copyright (c) 2013-2014, Texas Instruments Incorporated
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -81,5 +81,8 @@ libtiipcutils_lad_la_SOURCES =    \
 # Add version info to the shared library
 libtiipcutils_la_LDFLAGS = -version-info 1:0:0
 libtiipcutils_lad_la_LDFLAGS = -version-info 1:0:0
+
+pkgconfig_DATA          = libtiipcutils.pc
+pkgconfigdir            = $(libdir)/pkgconfig
 
 ###############################################################################

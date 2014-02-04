@@ -87,5 +87,8 @@ endif
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0
-						
+
+pkgconfig_DATA          = libtiipc.pc
+pkgconfigdir            = $(libdir)/pkgconfig
+
 ###############################################################################
