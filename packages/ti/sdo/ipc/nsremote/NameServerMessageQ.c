@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@
  */
 #define MAXNAMEINCHAR   (NameServerMessageQ_maxNameLen / \
                         (xdc_target__bitsPerChar / 8))
-#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
+#define NAMEARRAYSIZE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
 
 #define MESSAGEQ_INDEX 0
 
@@ -73,9 +73,9 @@ typedef struct NameServerMsg {
     Bits32  requestStatus;      /* status of request                */
     Bits32  reserved;           /* reserved field                   */
                                 /* name of NameServer instance      */
-    Bits32  instanceName[NAMEARRAYSZIE];
+    Bits32  instanceName[NAMEARRAYSIZE];
                                 /* name of NameServer entry         */
-    Bits32  name[NAMEARRAYSZIE];
+    Bits32  name[NAMEARRAYSIZE];
 } NameServerMsg;
 
 /*
