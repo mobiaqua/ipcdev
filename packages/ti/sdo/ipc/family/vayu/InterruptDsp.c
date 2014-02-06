@@ -302,25 +302,17 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 
     /*
      *  Before writing to a mailbox, check whether it already contains a
-     *  message.  If so, don't write to the mailbox since we want one and only
-     *  one message per interrupt.  Disable interrupts between reading
+     *  message. If so, wait for the message to be read since we want one
+     *  and only one message per interrupt. Disable interrupts between reading
      *  the MSGSTATUS_X register and writing to the mailbox to protect from
-     *  another thread doing an intSend at the same time
-     *
-     *  Note regarding possible race condition between local 'intSend' and
-     *  remote 'intClear':
-     *  It is possible that we we read the MAILBOX_MSGSTATUS_X register during
-     *  the remote side's intClear.  Therefore, we might choose _not_ to send
-     *  write to the mailbox even though the mailbox is about to be cleared a
-     *  few cycles later. In this case, the interrupt will be lost.
-     *  This is OK, however. intClear should always be called by the Notify
-     *  driver _before_ shared memory is read, so the event will be picked up
-     *  anyway by the previous interrupt that caused intClear to be called.
+     *  another thread doing an intSend at the same time.
      */
     key = Hwi_disable();
-    if (REG32(MAILBOX_STATUS(index)) == 0) {
-        REG32(MAILBOX_MESSAGE(index)) = arg;
+    while (REG32(MAILBOX_STATUS(index)) != 0) {
+        Hwi_restore(key);
+        key = Hwi_disable();
     }
+    REG32(MAILBOX_MESSAGE(index)) = arg;
     Hwi_restore(key);
 }
 
