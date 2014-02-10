@@ -65,7 +65,9 @@ FILE *logPtr = NULL;
 static String commandFIFOFile = LAD_COMMANDFIFO;
 static FILE *commandFIFOFilePtr = NULL;
 
+#if defined(GATEMP_SUPPORT)
 static Bool gatempEnabled = FALSE;
+#endif
 
 /* LAD client info arrays */
 static Bool clientConnected[LAD_MAXNUMCLIENTS];
@@ -112,7 +114,9 @@ int main(int argc, char * argv[])
     Int i;
     Int n;
     Int c;
+#if defined(GATEMP_SUPPORT)
     Int status;
+#endif
     String tmpString;
 #if DAEMON
     pid_t pid;
