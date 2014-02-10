@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@
 #include <ti/sysbios/hal/Hwi.h>
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/gates/GateHwi.h>
-#include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/hal/Cache.h>
 
 #include <ti/ipc/MultiProc.h>
@@ -89,30 +88,34 @@
 #include "VirtQueue.h"
 
 
+/*
+ *  The following three VIRTIO_* defines must match those in
+ *  <Linux_kernel>/include/uapi/linux/virtio_config.h
+ */
+#define VIRTIO_CONFIG_S_ACKNOWLEDGE     1
+#define VIRTIO_CONFIG_S_DRIVER          2
+#define VIRTIO_CONFIG_S_DRIVER_OK       4
+
+#define VRING_BUFS_PRIMED  (VIRTIO_CONFIG_S_ACKNOWLEDGE | \
+                            VIRTIO_CONFIG_S_DRIVER | VIRTIO_CONFIG_S_DRIVER_OK)
+
 /* Used for defining the size of the virtqueue registry */
-#define NUM_QUEUES              4
+#define NUM_QUEUES              2
 
 /* Predefined device addresses */
 #ifdef DSP
 #define IPC_MEM_VRING0          0xA0000000
 #define IPC_MEM_VRING1          0xA0004000
-#define IPC_MEM_VRING2          0xA0008000
-#define IPC_MEM_VRING3          0xA000c000
 #else
 #define IPC_MEM_VRING0          0x60000000
 #define IPC_MEM_VRING1          0x60004000
-#define IPC_MEM_VRING2          0x60008000
-#define IPC_MEM_VRING3          0x6000c000
 #endif
 
 /*
- * Sizes of the virtqueues (expressed in number of buffers supported,
+ * Size of the virtqueues (expressed in number of buffers supported,
  * and must be power of two)
  */
-#define VQ0_SIZE                256
-#define VQ1_SIZE                256
-#define VQ2_SIZE                256
-#define VQ3_SIZE                256
+#define VQ_SIZE                 256
 
 /*
  * enum - Predefined Mailbox Messages
@@ -159,7 +162,7 @@ enum {
 };
 
 #define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
-#define RP_MSG_NUM_BUFS     (VQ0_SIZE) /* must be power of two */
+#define RP_MSG_NUM_BUFS     (VQ_SIZE) /* must be power of two */
 #define RP_MSG_BUF_SIZE     (512)
 #define RP_MSG_BUFS_SPACE   (RP_MSG_NUM_BUFS * RP_MSG_BUF_SIZE * 2)
 
@@ -177,13 +180,6 @@ enum {
 
 /* The total IPC space needed to communicate with a remote processor */
 #define RPMSG_IPC_MEM   (RP_MSG_BUFS_SPACE + 2 * RP_MSG_RING_SIZE)
-
-#define ID_SYSM3_TO_A9      ID_SELF_TO_A9
-#define ID_A9_TO_SYSM3      ID_A9_TO_SELF
-#define ID_DSP_TO_A9        ID_SELF_TO_A9
-#define ID_A9_TO_DSP        ID_A9_TO_SELF
-#define ID_APPM3_TO_A9      2
-#define ID_A9_TO_APPM3      3
 
 typedef struct VirtQueue_Object {
     /* Id for this VirtQueue_Object */
@@ -217,19 +213,9 @@ Registry_Desc Registry_CURDESC;
 static struct VirtQueue_Object *queueRegistry[NUM_QUEUES] = {NULL};
 
 static UInt16 hostProcId;
-#ifndef SMP
-static UInt16 dsp1ProcId;
-static UInt16 sysm3ProcId;
-static UInt16 appm3ProcId;
-#endif
 
 #define DSPEVENTID              5
 IInterrupt_IntInfo intInfo;
-
-#if defined(M3_ONLY) && !defined(SMP)
-extern Void OffloadM3_init();
-extern Int OffloadM3_processSysM3Tasks(UArg msg);
-#endif
 
 /*!
  * ======== _VirtQueue_init ========
@@ -433,100 +419,65 @@ Void VirtQueue_isr(UArg msg)
 
     Log_print1(Diags_USER1, "VirtQueue_isr received msg = 0x%x\n", msg);
 
-#ifndef SMP
-    if (MultiProc_self() == sysm3ProcId || MultiProc_self() == dsp1ProcId) {
-#endif
-        switch(msg) {
-            case (UInt)RP_MSG_MBOX_READY:
-                return;
+    switch(msg) {
+        case (UInt)RP_MSG_MBOX_READY:
+            return;
 
-            case (UInt)RP_MBOX_ECHO_REQUEST:
-                InterruptProxy_intSend(hostProcId, NULL,
-                                       (UInt)(RP_MBOX_ECHO_REPLY));
-                return;
+        case (UInt)RP_MBOX_ECHO_REQUEST:
+            InterruptProxy_intSend(hostProcId, NULL, (UInt)(RP_MBOX_ECHO_REPLY));
+            return;
 
-            case (UInt)RP_MBOX_ABORT_REQUEST:
-                {
-                    /* Suppress Coverity Error: FORWARD_NULL: */
-                    /* coverity[assign_zero] */
-                    Fxn f = (Fxn)0x0;
-                    Log_print0(Diags_USER1, "Crash on demand ...\n");
-                    /* coverity[var_deref_op] */
-                    f();
-                }
-                return;
+        case (UInt)RP_MBOX_ABORT_REQUEST:
+            {
+                /* Suppress Coverity Error: FORWARD_NULL: */
+                /* coverity[assign_zero] */
+                Fxn f = (Fxn)0x0;
+                Log_print0(Diags_USER1, "Crash on demand ...\n");
+                /* coverity[var_deref_op] */
+                f();
+            }
+            return;
 
-            case (UInt)RP_MSG_FLUSH_CACHE:
-                Cache_wbAll();
-                return;
+        case (UInt)RP_MSG_FLUSH_CACHE:
+            Cache_wbAll();
+            return;
 
 #ifndef DSP
-            case (UInt)RP_MSG_HIBERNATION:
-                if (IpcPower_canHibernate() == FALSE) {
-                    InterruptProxy_intSend(hostProcId, NULL,
-                                           (UInt)RP_MSG_HIBERNATION_CANCEL);
-                    return;
-                }
+        case (UInt)RP_MSG_HIBERNATION:
+            if (IpcPower_canHibernate() == FALSE) {
+                InterruptProxy_intSend(hostProcId, NULL,
+                        (UInt)RP_MSG_HIBERNATION_CANCEL);
+                return;
+            }
 
             /* Fall through */
-            case (UInt)RP_MSG_HIBERNATION_FORCE:
-#ifndef SMP
-                /* Core0 should notify Core1 */
-                if (MultiProc_self() == sysm3ProcId) {
-                    InterruptProxy_intSend(appm3ProcId, NULL,
-                                           (UInt)(RP_MSG_HIBERNATION));
-                }
-#endif
-                /* Ack request */
-                InterruptProxy_intSend(hostProcId, NULL,
-                                       (UInt)RP_MSG_HIBERNATION_ACK);
-                IpcPower_suspend();
-                return;
-#endif
-            default:
-#if defined(M3_ONLY) && !defined(SMP)
-                /* Check and process any Inter-M3 Offload messages */
-                if (OffloadM3_processSysM3Tasks(msg))
-                    return;
-#endif
-
-                /*
-                 *  If the message isn't one of the above, it's either part of the
-                 *  2-message synchronization sequence or it a virtqueue message
-                 */
-                break;
-        }
-#ifndef SMP
-    }
-    else if (msg & 0xFFFF0000) {
-#ifndef DSP
-        if (msg == (UInt)RP_MSG_HIBERNATION) {
+        case (UInt)RP_MSG_HIBERNATION_FORCE:
+            /* Ack request */
+            InterruptProxy_intSend(hostProcId, NULL,
+                    (UInt)RP_MSG_HIBERNATION_ACK);
             IpcPower_suspend();
-        }
+            return;
 #endif
+        default:
+            /*
+             *  If the message isn't one of the above, it's either part of the
+             *  2-message synchronization sequence or it a virtqueue message
+             */
+            break;
+    }
+
+    /* Don't let unknown messages to pass as a virtqueue index */
+    if (msg >= NUM_QUEUES) {
+        /* Adding print here deliberately, we should never see this */
+        System_printf("VirtQueue_isr: Invalid mailbox message 0x%x "
+                "received\n", msg);
         return;
     }
 
-    if (MultiProc_self() == sysm3ProcId && (msg == ID_A9_TO_APPM3 || msg == ID_APPM3_TO_A9)) {
-        InterruptProxy_intSend(appm3ProcId, NULL, (UInt)msg);
+    vq = queueRegistry[msg];
+    if (vq) {
+        vq->callback(vq);
     }
-    else {
-#endif
-        /* Don't let unknown messages to pass as a virtqueue index */
-        if (msg >= NUM_QUEUES) {
-            /* Adding print here deliberately, we should never see this */
-            System_printf("VirtQueue_isr: Invalid mailbox message 0x%x "
-                          "received\n", msg);
-            return;
-        }
-
-        vq = queueRegistry[msg];
-        if (vq) {
-            vq->callback(vq);
-        }
-#ifndef SMP
-    }
-#endif
 }
 
 
@@ -560,14 +511,6 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     vq->procId = remoteProcId;
     vq->last_avail_idx = 0;
 
-#ifndef SMP
-    if (MultiProc_self() == appm3ProcId) {
-        /* vqindices that belong to AppM3 should be big so they don't
-         * collide with SysM3's virtqueues */
-         vq->id += 2;
-    }
-#endif
-
     switch (vq->id) {
         /* IPC transport vrings */
         case ID_SELF_TO_A9:
@@ -578,16 +521,6 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
             /* A9 -> IPU/DSP */
             vringAddr = (struct vring *) IPC_MEM_VRING1;
             break;
-#ifndef SMP
-        case ID_APPM3_TO_A9:
-            /* APPM3 -> A9 */
-            vringAddr = (struct vring *) IPC_MEM_VRING2;
-            break;
-        case ID_A9_TO_APPM3:
-            /* A9 -> APPM3 */
-            vringAddr = (struct vring *) IPC_MEM_VRING3;
-            break;
-#endif
         default:
             GateHwi_delete(&vq->gateH);
             Memory_free(NULL, vq, sizeof(VirtQueue_Object));
@@ -615,28 +548,12 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     return (vq);
 }
 
-/*
- *  The following three VIRTIO_* defines must match those in
- *  <Linux_kernel>/include/uapi/linux/virtio_config.h
- */
-#define VIRTIO_CONFIG_S_ACKNOWLEDGE     1
-#define VIRTIO_CONFIG_S_DRIVER          2
-#define VIRTIO_CONFIG_S_DRIVER_OK       4
-
-#define VRING_BUFS_PRIMED  (VIRTIO_CONFIG_S_ACKNOWLEDGE | \
-                            VIRTIO_CONFIG_S_DRIVER | VIRTIO_CONFIG_S_DRIVER_OK)
-
 /*!
  * ======== VirtQueue_startup ========
  */
 Void VirtQueue_startup()
 {
     hostProcId      = MultiProc_getId("HOST");
-#ifndef SMP
-    dsp1ProcId       = MultiProc_getId("DSP1");
-    sysm3ProcId     = MultiProc_getId("CORE0");
-    appm3ProcId     = MultiProc_getId("CORE1");
-#endif
 
 #ifdef DSP
     intInfo.intVectorId = DSPEVENTID;
