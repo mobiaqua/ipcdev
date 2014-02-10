@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,13 @@
 extern "C" {
 #endif
 
-#include <ti/sysbios/hal/Hwi.h>
+/*
+ *  Note that "v7M" matches both M3 and M4.  We prefer M4 on vayu, but
+ *  technically vayu IPUs support either.
+ */
+#if defined(xdc_target__isaCompatible_v7M)
 
-#define INVALIDPAYLOAD       (0xFFFFFFFF)
-
-#if defined(M3_ONLY) || defined(SMP)
 #include <ti/sdo/ipc/family/vayu/InterruptIpu.h>
-
 /*
  *************************************************************************
  *                      M3 Interrupt Proxy Macros
@@ -63,9 +63,13 @@ extern "C" {
 #define InterruptProxy_intSend          InterruptIpu_intSend
 
 #define InterruptProxy_intClear         InterruptIpu_intClear
-#endif
 
-#if defined(DSP)
+/*
+ *  Note that "64P" matches 64P, 674, 66 and others.  We prefer 66 on vayu,
+ *  but technically vayu DSPs support any of these.
+ */
+#elif defined (xdc_target__isaCompatible_64P)
+
 #include <ti/sdo/ipc/family/vayu/InterruptDsp.h>
 
 /*
