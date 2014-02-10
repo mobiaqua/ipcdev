@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -321,10 +321,10 @@ Void RPMessage_init(UInt16 remoteProcId)
      * Create a pair VirtQueues (one for sending, one for receiving).
      * Note: First one gets an even, second gets odd vq ID.
      */
-    vqParams.vqId = ID_SELF_TO_A9;
+    vqParams.vqId = ID_SELF_TO_HOST;
     transport.virtQueue_toHost   = (Ptr)VirtQueue_create(remoteProcId,
                                                     &vqParams, NULL);
-    vqParams.vqId = ID_A9_TO_SELF;
+    vqParams.vqId = ID_HOST_TO_SELF;
     transport.virtQueue_fromHost = (Ptr)VirtQueue_create(remoteProcId,
                                                     &vqParams, NULL);
 

@@ -120,9 +120,9 @@
 /*
  * enum - Predefined Mailbox Messages
  *
- * @RP_MSG_MBOX_READY: informs the M3's that we're up and running. will be
- * followed by another mailbox message that carries the A9's virtual address
- * of the shared buffer. This would allow the A9's drivers to send virtual
+ * @RP_MSG_MBOX_READY: informs the slave that we're up and running. will be
+ * followed by another mailbox message that carries the HOST's virtual address
+ * of the shared buffer. This would allow the HOST's drivers to send virtual
  * addresses of the buffers.
  *
  * @RP_MSG_MBOX_STATE_CHANGE: informs the receiver that there is an inbound
@@ -513,12 +513,12 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
 
     switch (vq->id) {
         /* IPC transport vrings */
-        case ID_SELF_TO_A9:
-            /* IPU/DSP -> A9 */
+        case ID_SELF_TO_HOST:
+            /* slave -> HOST */
             vringAddr = (struct vring *) IPC_MEM_VRING0;
             break;
-        case ID_A9_TO_SELF:
-            /* A9 -> IPU/DSP */
+        case ID_HOST_TO_SELF:
+            /* HOST -> slave */
             vringAddr = (struct vring *) IPC_MEM_VRING1;
             break;
         default:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,8 @@ extern "C" {
 /*!
  *  @brief  VirtQueue Ids for the basic IPC transport rings.
  */
-#define ID_SELF_TO_A9      0
-#define ID_A9_TO_SELF      1
+#define ID_SELF_TO_HOST    0
+#define ID_HOST_TO_SELF    1
 
 /*!
  *  @brief  Size of buffer being exchanged in the VirtQueue rings.
