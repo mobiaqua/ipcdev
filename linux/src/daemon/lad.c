@@ -829,6 +829,9 @@ static Int connectToLAD(String clientName, Int pid, String clientProto, Int *cli
 
 openResponseFIFO:
 
+    /* if response FIFO exists from previous LAD session delete it now */
+    unlink(clientName);
+
     /* create the dedicated response FIFO to the client */
     statusIO = mkfifo(clientName, 0777);
     if (statusIO != 0) {
