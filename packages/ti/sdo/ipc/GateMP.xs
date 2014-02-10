@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,8 +126,8 @@ function module$static$init(mod, params)
          *  Need 6 words for info entry, which is larger than other entries
          */
         GateMP.nameSrvPrms.maxValueLen = 6 * target.stdTypes["t_Int32"].size;
-        if (params.maxNameLen < 16) {
-            GateMP.nameSrvPrms.maxNameLen = 16; /* min 16 chars for def gate */
+        if (params.maxNameLen < 32) {
+            GateMP.nameSrvPrms.maxNameLen = 32; /* min 32 chars for def gate */
         }
 	mod.hostSupport = true;
     }
