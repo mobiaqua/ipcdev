@@ -80,8 +80,8 @@ extern FILE *logPtr;
 
 /* LAD commmand FIFO strings: */
 #if defined (IPC_BUILDOS_ANDROID)
-#define LAD_COMMANDFIFO         "/data/local/tmp/LAD/LADCMDS"
-#define LAD_WORKINGDIR          "/data/local/tmp/LAD/"
+#define LAD_COMMANDFIFO         "/data/lad/LAD/LADCMDS"
+#define LAD_WORKINGDIR          "/data/lad/LAD/"
 #else
 #define LAD_COMMANDFIFO         "/tmp/LAD/LADCMDS"
 #define LAD_WORKINGDIR          "/tmp/LAD/"
