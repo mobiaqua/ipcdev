@@ -43,12 +43,12 @@ bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @OMAP54XX_SMP_TRUE@am__append_2 = lad_omap54xx_smp
 @DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 = lad_dra7xx
 @DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_4 = lad_omapl138
-@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_5 = lad_c66ak2e
+@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_5 = lad_66ak2e
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_6 = lad_tci6614
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_7 = lad_tci6630
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_8 = lad_tci6636
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 = lad_tci6638
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_c66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
 @DRA7XX_TRUE@am__append_11 = \
 @DRA7XX_TRUE@                GateMP_daemon.c \
 @DRA7XX_TRUE@		GateHWSpinlock.c \
@@ -74,7 +74,7 @@ CONFIG_CLEAN_FILES =
 @OMAP54XX_SMP_TRUE@am__EXEEXT_1 = lad_omap54xx_smp$(EXEEXT)
 @DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__EXEEXT_2 = lad_dra7xx$(EXEEXT)
 @DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = lad_omapl138$(EXEEXT)
-@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__EXEEXT_4 = lad_c66ak2e$(EXEEXT)
+@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__EXEEXT_4 = lad_66ak2e$(EXEEXT)
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_5 = lad_tci6614$(EXEEXT)
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__EXEEXT_6 = lad_tci6630$(EXEEXT)
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__EXEEXT_7 = lad_tci6636$(EXEEXT)
@@ -82,7 +82,7 @@ CONFIG_CLEAN_FILES =
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_9 = lad_omap54xx_smp$(EXEEXT) \
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_dra7xx$(EXEEXT) \
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_omapl138$(EXEEXT) \
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_c66ak2e$(EXEEXT) \
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_66ak2e$(EXEEXT) \
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6614$(EXEEXT) \
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6630$(EXEEXT) \
 @C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6636$(EXEEXT) \
@@ -90,7 +90,7 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__lad_c66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
+am__lad_66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
@@ -113,7 +113,7 @@ am__lad_c66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_c66ak2e.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_66ak2e.c
 @DRA7XX_TRUE@am__objects_1 = GateMP_daemon.$(OBJEXT) \
 @DRA7XX_TRUE@	GateHWSpinlock.$(OBJEXT) \
 @DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
@@ -122,13 +122,12 @@ am__lad_c66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 am__objects_2 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
 	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT) \
 	$(am__objects_1)
-am_lad_c66ak2e_OBJECTS = $(am__objects_2) \
-	MultiProcCfg_c66ak2e.$(OBJEXT)
-lad_c66ak2e_OBJECTS = $(am_lad_c66ak2e_OBJECTS)
+am_lad_66ak2e_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2e.$(OBJEXT)
+lad_66ak2e_OBJECTS = $(am_lad_66ak2e_OBJECTS)
 am__DEPENDENCIES_1 =  \
 	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 am__DEPENDENCIES_2 =
-lad_c66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+lad_66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
@@ -338,11 +337,11 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(lad_c66ak2e_SOURCES) $(lad_dra7xx_SOURCES) \
+SOURCES = $(lad_66ak2e_SOURCES) $(lad_dra7xx_SOURCES) \
 	$(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
 	$(lad_tci6614_SOURCES) $(lad_tci6630_SOURCES) \
 	$(lad_tci6636_SOURCES) $(lad_tci6638_SOURCES)
-DIST_SOURCES = $(am__lad_c66ak2e_SOURCES_DIST) \
+DIST_SOURCES = $(am__lad_66ak2e_SOURCES_DIST) \
 	$(am__lad_dra7xx_SOURCES_DIST) \
 	$(am__lad_omap54xx_smp_SOURCES_DIST) \
 	$(am__lad_omapl138_SOURCES_DIST) \
@@ -503,7 +502,7 @@ common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
 lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
 lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
 lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
-lad_c66ak2e_SOURCES = $(common_sources) MultiProcCfg_c66ak2e.c
+lad_66ak2e_SOURCES = $(common_sources) MultiProcCfg_66ak2e.c
 lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6630_SOURCES = $(common_sources) MultiProcCfg_tci6630.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
@@ -522,7 +521,7 @@ lad_dra7xx_LDADD = $(common_libraries) \
 lad_omapl138_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
-lad_c66ak2e_LDADD = $(common_libraries) \
+lad_66ak2e_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 lad_tci6614_LDADD = $(common_libraries) \
@@ -598,9 +597,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-lad_c66ak2e$(EXEEXT): $(lad_c66ak2e_OBJECTS) $(lad_c66ak2e_DEPENDENCIES) 
-	@rm -f lad_c66ak2e$(EXEEXT)
-	$(LINK) $(lad_c66ak2e_LDFLAGS) $(lad_c66ak2e_OBJECTS) $(lad_c66ak2e_LDADD) $(LIBS)
+lad_66ak2e$(EXEEXT): $(lad_66ak2e_OBJECTS) $(lad_66ak2e_DEPENDENCIES) 
+	@rm -f lad_66ak2e$(EXEEXT)
+	$(LINK) $(lad_66ak2e_LDFLAGS) $(lad_66ak2e_OBJECTS) $(lad_66ak2e_LDADD) $(LIBS)
 lad_dra7xx$(EXEEXT): $(lad_dra7xx_OBJECTS) $(lad_dra7xx_DEPENDENCIES) 
 	@rm -f lad_dra7xx$(EXEEXT)
 	$(LINK) $(lad_dra7xx_LDFLAGS) $(lad_dra7xx_OBJECTS) $(lad_dra7xx_LDADD) $(LIBS)
@@ -635,7 +634,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_c66ak2e.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_66ak2e.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omapl138.Po@am__quote@

@@ -1063,7 +1063,7 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
-  PLATFORM    Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'C66AK2E'
+  PLATFORM    Platform to build. Options are: 'OMAPL138' 'OMAP54XX' '66AK2E'
               'TCI6630' 'TCI6636' 'TCI6638' and 'DRA7XX'. If not defined all
               platforms will be built.
   CMEM_INSTALL_DIR
@@ -16786,7 +16786,7 @@ if test "x$PLATFORM" = "xOMAPL138"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xC66AK2E"; then
+  if test "x$PLATFORM" = "x66AK2E"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
@@ -16881,7 +16881,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xC66AK2E"; then
+if test "x$PLATFORM" = "x66AK2E"; then
   C66AK2E_TRUE=
   C66AK2E_FALSE='#'
 else
