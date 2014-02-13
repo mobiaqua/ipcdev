@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: libtiipc
 Description: TI IPC library
 Version: @VERSION@
-Requires.private: tiipcutils
+Requires.private: libtiipcutils
 Libs: -L${libdir} -ltiipc
 Cflags: -I${includedir}
