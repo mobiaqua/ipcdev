@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1124,6 +1124,7 @@ static Int transportPut(MessageQ_Msg msg, UInt16 dstId, UInt16 dstProcId)
         printf ("transportPut: send failed: %d, %s\n",
                   errno, strerror(errno));
         status = MessageQ_E_FAIL;
+        goto exit;
     }
 
     /*
@@ -1132,5 +1133,6 @@ static Int transportPut(MessageQ_Msg msg, UInt16 dstId, UInt16 dstProcId)
      */
     MessageQ_free (msg);
 
+exit:
     return (status);
 }
