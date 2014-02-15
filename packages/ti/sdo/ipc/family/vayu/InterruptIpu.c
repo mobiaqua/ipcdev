@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -467,9 +467,11 @@ Void InterruptIpu_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
         else {
             index = MBX_TABLE_IDX(MultiProc_self(), remoteProcId);
             key = Hwi_disable();
-            if (REG32(MAILBOX_STATUS(index)) == 0) {
-                REG32(MAILBOX_MESSAGE(index)) = arg;
+            while (REG32(MAILBOX_STATUS(index)) != 0) {
+                Hwi_restore(key);
+                key = Hwi_disable();
             }
+            REG32(MAILBOX_MESSAGE(index)) = arg;
             Hwi_restore(key);
         }
     }
@@ -488,9 +490,11 @@ Void InterruptIpu_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
         else {
             index = MBX_TABLE_IDX(MultiProc_self(), remoteProcId);
             key = Hwi_disable();
-            if (REG32(MAILBOX_STATUS(index)) == 0) {
-                REG32(MAILBOX_MESSAGE(index)) = arg;
+            while (REG32(MAILBOX_STATUS(index)) != 0) {
+                Hwi_restore(key);
+                key = Hwi_disable();
             }
+            REG32(MAILBOX_MESSAGE(index)) = arg;
             Hwi_restore(key);
         }
     }
