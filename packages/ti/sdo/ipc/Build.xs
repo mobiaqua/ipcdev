@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -397,6 +397,7 @@ var C66Sources   = "ipc/gates/GateHWSem.c " +
                    "ipc/family/tci663x/NotifyCircSetup.c " +
                    "ipc/family/tci663x/NotifySetup.c " +
                    "ipc/family/vayu/InterruptDsp.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var C674Sources  =
@@ -515,6 +516,7 @@ var ARP32Sources   =
                    "ipc/family/c6a8149/NotifyCircSetup.c " +
                    "ipc/family/c6a8149/InterruptEve.c " +
                    "ipc/family/vayu/InterruptArp32.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var cList = {

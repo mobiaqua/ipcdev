@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,10 @@ requires ti.sdo.ipc;
 /*!
  *  ======== ti.sdo.ipc.family.vayu ========
  */
-package ti.sdo.ipc.family.vayu [1,0,0,0] {
+package ti.sdo.ipc.family.vayu [1,0,1] {
     module    TableInit;
     module    NotifySetup;
+    module    NotifyDriverMbx;
     module    InterruptArp32;
     module    InterruptDsp;
     module    InterruptIpu;

@@ -31,9 +31,9 @@
  */
 
 /*
- *  ======== NotifySetup.xs ========
+ *  ======== NotifyDriverMbx.xs ================
  */
-var MultiProc = null;
+var NotifyDriverMbx = null;
 var Core = null;
 var isaChain = "";
 
@@ -44,18 +44,20 @@ function module$use()
 {
     /* load modules needed in meta domain and in target domain */
     var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
-    MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    var MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+    NotifyDriverMbx = this;
     xdc.useModule('xdc.runtime.Assert');
     xdc.useModule('xdc.runtime.Error');
     xdc.useModule('xdc.runtime.Startup');
+    xdc.useModule("ti.sysbios.BIOS");
 
     /* concatinate isa chain into single string for easier matching */
     isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";
 
     if (isaChain.match(/#64P#/)) {
-        xdc.useModule('ti.sysbios.family.c64p.EventCombiner');
-        xdc.useModule('ti.sysbios.family.c64p.Hwi');
-        xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
+        xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
+        xdc.useModule("ti.sysbios.family.c64p.Hwi");
+        xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     }
     else if (isaChain.match(/#arp32#/)) {
         xdc.useModule('ti.sysbios.family.arp32.Hwi');
@@ -65,12 +67,14 @@ function module$use()
     }
 
     xdc.useModule('ti.sdo.ipc.Ipc');
-    xdc.useModule('ti.sdo.ipc.Notify');
+    xdc.useModule("ti.sdo.ipc.Notify");
+    xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+    xdc.useModule('ti.sdo.ipc.interfaces.INotifyDriver');
 
     /* initialize procIdTable */
     TableInit.initProcId(this);
 
-    /* initialize mailboxTable */
+    /* Initialize mailboxTable */
     TableInit.generateTable(this);
 
     if (isaChain.match(/#64P#|#v7M#|#v7A#/)) {
@@ -127,33 +131,8 @@ function module$use()
     else {
         throw("Invalid target: " + Program.build.target.$name);
     }
-
-    /* determine which notify drivers to include */
-    this.$private.driverMask = 0;
-
-    /* for unspecfied connections, the default is shared memory */
-    if (this.connections.length < (MultiProc.numProcessors - 1)) {
-        this.$private.driverMask |= this.Driver_SHAREDMEMORY;
-    }
-
-    /* remember which notify drivers have been specified */
-    for (var i = 0; i < this.connections.length; i++) {
-        if (this.connections[i].driver == this.Driver_SHAREDMEMORY) {
-            this.$private.driverMask |= this.Driver_SHAREDMEMORY;
-        }
-        if (this.connections[i].driver == this.Driver_MAILBOX) {
-            this.$private.driverMask |= this.Driver_MAILBOX;
-        }
-    }
-
-    /* load notify drivers into configuration model */
-    if (this.$private.driverMask & this.Driver_SHAREDMEMORY) {
-        xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverShm');
-    }
-    if (this.$private.driverMask & this.Driver_MAILBOX) {
-        xdc.useModule('ti.sdo.ipc.family.vayu.NotifyDriverMbx');
-    }
 }
+
 
 /*
  *  ======== module$static$init ========
@@ -161,22 +140,12 @@ function module$use()
  */
 function module$static$init(state, mod)
 {
-    var procId;
 
-    /* Initialize the state connAry from the config params. Translate
-     * processor names into IDs for better runtime performance.
-     */
-    state.connAry.length = mod.connections.length;
-
-    for (var i = 0; i < mod.connections.length; i++) {
-        procId = MultiProc.getIdMeta(mod.connections[i].procName);
-        state.connAry[i].procId = procId;
-        state.connAry[i].driver = mod.connections[i].driver;
+    for (var i = 0; i < state.drvHandles.length; i++) {
+        state.drvHandles[i] = null;
     }
 
     if (isaChain.match(/#64P#/)) {
-        state.numPlugged.length = 1;
-
         /* interrupt event IDs used by this processor */
         state.interruptTable[0] = 55; /* EVE1 -> DSP1 or DSP2 */
         state.interruptTable[1] = 56; /* EVE2 -> DSP1 or DSP2 */
@@ -193,8 +162,6 @@ function module$static$init(state, mod)
         state.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
     }
     else if (isaChain.match(/#arp32#/)) {
-        state.numPlugged.length = this.NUM_EVE_MBX / this.NUM_EVES;
-
         /* interrupt event IDs used by this processor */
         state.interruptTable[0] = 60; /* EVE1 - Group1/INTC1 */
         state.interruptTable[1] = 60; /* EVE2 - Group1/INTC1 */
@@ -209,8 +176,6 @@ function module$static$init(state, mod)
         state.interruptTable[10] = 30; /* IPU2-1 */
     }
     else if (isaChain.match(/#v7M#/)) {
-        state.numPlugged.length = 1;
-
         /* TODO */
 //      if (Core.id == 0) {
 //          Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
@@ -218,29 +183,127 @@ function module$static$init(state, mod)
 //      else {
 //          Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
 //      }
-
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
-        }
     }
     else if (isaChain.match(/#v7A#/)) {
-        state.numPlugged.length = 1;
-
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
-        }
-
         /* TODO */
-        // Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
+//      Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);
     }
+}
 
-    /* initialize the driver table */
-    for (var i = 0; i < state.isrDispatchTable.length; i++) {
-        state.isrDispatchTable[i] = null;
+/*
+ *************************************************************************
+ *                       ROV View functions
+ *************************************************************************
+ */
+
+/*
+ *  ======== viewInitBasic ========
+ *  Initizalize the 'Basic' ROV view. Called once per instance.
+ *
+ *  view = instance of 'struct NotifyDriverMbx.BasicView'
+ */
+function viewInitBasic(view, obj)
+{
+    var Program = xdc.useModule('xdc.rov.Program');
+    var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+
+    /* view.remoteProc */
+    try {
+        view.remoteProc = MultiProc.getName$view(obj.remoteProcId);
     }
+    catch (e) {
+        Program.displayError(view, 'remoteProc',
+                "Problem retrieving proc name: " + e);
+    }
+}
+
+/*
+ *  ======== viewInitMailbox ========
+ *  Initizalize the 'Mailbox' ROV view. Called once per instance.
+ *
+ *  view = instance of 'struct xdc.rov.Program.InstDataView'
+ */
+function viewInitMailbox(view, obj)
+{
+    var Program = xdc.useModule('xdc.rov.Program');
+    var ScalarStructs = xdc.useModule('xdc.rov.support.ScalarStructs');
+    var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    var modCfg = Program.getModuleConfig(
+            'ti.sdo.ipc.family.vayu.NotifyDriverMbx');
+
+    /* view.label (use remote processor name) */
+    try {
+        view.label = MultiProc.getName$view(obj.remoteProcId);
+    }
+    catch (e) {
+        Program.displayError(view, 'remoteProcId',
+                "Problem retrieving proc name: " + e);
+    }
+
+    /* create an array to hold the instance data table */
+    var dataTable = new Array();
+    var mailbox = ["Inbound", "Outbound"];
+
+    for (var i = 0; i < mailbox.length; i++) {
+
+        /* create the view element */
+        var elem = Program.newViewStruct(
+                'ti.sdo.ipc.family.vayu.NotifyDriverMbx', 'Mailbox');
+
+        /* elem.direction (make a descriptive label) */
+        if (mailbox[i] == "Inbound") {
+            elem.direction = mailbox[i] + " (from " + view.label + ")";
+        }
+        else if (mailbox[i] == "Outbound") {
+            elem.direction = mailbox[i] + " (to " + view.label + ")";
+        }
+        else {
+            throw new Error("invalid mailbox type");
+        }
+
+        /* elem.mailboxAddr */
+        var selfVirtId = modCfg.procIdTable[MultiProc.self$view()];
+        var idx;
+
+        if (mailbox[i] == "Inbound") {
+            idx = (obj.remoteVirtId * modCfg.NUM_CORES) + selfVirtId;
+        }
+        else if (mailbox[i] == "Outbound") {
+            idx = (selfVirtId * modCfg.NUM_CORES) + obj.remoteVirtId;
+        }
+        else {
+            throw new Error("invalid mailbox type");
+        }
+
+        var baseAddrIdx = (modCfg.mailboxTable[idx] >> 16) & 0xFFFF;
+        var mailboxAddr = modCfg.mailboxBaseAddr[baseAddrIdx];
+        elem.mailboxAddr = "0x" + Number(mailboxAddr).toString(16);
+
+        /* elem.subMbxId */
+        elem.subMbxId = modCfg.mailboxTable[idx] & 0xFF;
+
+        /* elem.msgCount */
+        try {
+            var MAILBOX_STATUS_IN = Program.fetchStruct(
+                    ScalarStructs.S_Bits32$fetchDesc,
+                    mailboxAddr + 0xC0 + (0x4 * elem.subMbxId), false);
+            elem.msgCount = MAILBOX_STATUS_IN.elem;
+        }
+        catch (e) {
+            Program.displayError(view, 'msgCount',
+                    "Problem retrieving messsage count: " + e);
+        }
+
+        /* elem.mbxInterrupt */
+        elem.mbxInterrupt = (modCfg.mailboxTable[idx] >> 8) & 0xFF;
+
+        /* add the element to the instance data table */
+        dataTable.push(elem);
+    }
+
+    /* view.elements */
+    view.elements = dataTable;
 }
