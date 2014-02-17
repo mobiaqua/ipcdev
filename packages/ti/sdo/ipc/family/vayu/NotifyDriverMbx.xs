@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,11 @@
  */
 
 /*
- *  ======== NotifySetup.xs ========
- *
+ *  ======== NotifyDriverMbx.xs ================
  */
-var MultiProc = null;
+
+var NotifyDriverMbx = null;
+var Core = null;
 
 /*
  *  ======== module$use ========
@@ -43,16 +44,23 @@ function module$use()
 {
     var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
-    /* load modules needed in meta domain and in target domain */
-    MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    NotifyDriverMbx = this;
 
-    xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
+    xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
+    xdc.useModule("ti.sysbios.family.c64p.Hwi");
+    xdc.useModule("ti.sdo.ipc.Notify");
+    xdc.useModule("ti.sdo.utils.MultiProc");
+
+    if (Program.build.target.$name.match(/M3/)) {
+        Core = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+    }
 
     /* initialize procIdTable */
-    TableInit.initProcId(this);
+    TableInit.initProcId(NotifyDriverMbx);
 
-    /* initialize mailboxTable */
-    TableInit.generateTable(this);
+    /* Initialize mailboxTable */
+    TableInit.generateTable(NotifyDriverMbx);
 
     /* Initialize mailbox base address table */
     this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
@@ -71,33 +79,8 @@ function module$use()
     this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
     this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
     this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
-
-    /* determine which notify drivers to include */
-    this.$private.driverMask = 0;
-
-    /* for unspecfied connections, the default is shared memory */
-    if (this.connections.length < (MultiProc.numProcessors - 1)) {
-        this.$private.driverMask |= this.Driver_SHAREDMEMORY;
-    }
-
-    /* remember which notify drivers have been specified */
-    for (var i = 0; i < this.connections.length; i++) {
-        if (this.connections[i].driver == this.Driver_SHAREDMEMORY) {
-            this.$private.driverMask |= this.Driver_SHAREDMEMORY;
-        }
-        if (this.connections[i].driver == this.Driver_MAILBOX) {
-            this.$private.driverMask |= this.Driver_MAILBOX;
-        }
-    }
-
-    /* load notify drivers into configuration model */
-    if (this.$private.driverMask & this.Driver_SHAREDMEMORY) {
-        xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverShm');
-    }
-    if (this.$private.driverMask & this.Driver_MAILBOX) {
-        xdc.useModule('ti.sdo.ipc.family.vayu.NotifyDriverMbx');
-    }
 }
+
 
 /*
  *  ======== module$static$init ========
@@ -105,40 +88,24 @@ function module$use()
  */
 function module$static$init(state, mod)
 {
-    var procId;
 
-    state.numPlugged = 0;
-
-    /* Initialize the state connAry from the config params. Translate
-     * processor names into IDs for better runtime performance.
-     */
-    state.connAry.length = mod.connections.length;
-
-    for (var i = 0; i < mod.connections.length; i++) {
-        procId = MultiProc.getIdMeta(mod.connections[i].procName);
-        state.connAry[i].procId = procId;
-        state.connAry[i].driver = mod.connections[i].driver;
+    for (var i = 0; i < state.drvHandles.length; i++) {
+        state.drvHandles[i] = null;
     }
 
-    /* finish initializing the interrupt table */
-    if (Program.build.target.isa == "v7M4") {
-//      TODO
-//      if (Core.id == 0) {
-//          Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
-//      }
-//      else {
-//          Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
-//      }
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
+    /* TODO this code is specific to the DSP, need to add other processors */
+
+
+    if (Program.build.target.$name.match(/M3/)) {
+/* TODO */
+if (0) {
+        if (Core.id == 0) {
+            Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
         }
-    }
-    else if (Program.build.target.isa == "arp32") {
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
+        else {
+            Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
         }
+}
     }
     else if (Program.build.target.isa == "66") {
         /* interrupt event IDs used by this processor */
@@ -156,21 +123,71 @@ function module$static$init(state, mod)
         state.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
         state.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
     }
-    else if (Program.build.target.isa == "v7A15") {
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
-        }
-
-        /* TODO */
-        // Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
+    else if (Program.build.target.$name.match(/A8/)) {
+/* TODO */
+if (0) {
+        Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
+}
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);
     }
+}
 
-    /* initialize the driver table */
-    for (var i = 0; i < state.isrDispatchTable.length; i++) {
-        state.isrDispatchTable[i] = null;
+/*
+ *************************************************************************
+ *                       ROV View functions
+ *************************************************************************
+ */
+
+/*
+ *  ======== viewInitBasic ========
+ */
+function viewInitBasic(view, obj)
+{
+    var Program = xdc.useModule('xdc.rov.Program');
+    var ScalarStructs = xdc.useModule('xdc.rov.support.ScalarStructs');
+    var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    var modCfg = Program.getModuleConfig(
+            'ti.sdo.ipc.family.vayu.NotifyDriverMbx');
+
+    /* translate the virtual id to a processor id */
+    var remoteProcId = -1;
+
+    for (var i = 0; i < modCfg.procIdTable.length; i++) {
+        if (obj.remoteVirtId == modCfg.procIdTable[i]) {
+            remoteProcId = i;
+            break;
+        }
+    }
+
+    /* view.remoteProc */
+    try {
+        view.remoteProc = MultiProc.getName$view(remoteProcId);
+    }
+    catch (e) {
+        Program.displayError(view, 'remoteProc',
+                "Problem retrieving proc name: " + e);
+    }
+
+    /* view.mailboxAddr */
+    var selfVirtId = modCfg.procIdTable[MultiProc.self$view()];
+    var idx = (obj.remoteVirtId * modCfg.NUM_CORES) + selfVirtId;
+    var baseAddrIdx = (modCfg.mailboxTable[idx] >> 16) & 0xFFFF;
+    var mailboxAddr = modCfg.mailboxBaseAddr[baseAddrIdx];
+    view.mailboxAddr = "0x" + Number(mailboxAddr).toString(16);
+
+    /* view.subMbxId */
+    view.subMbxId = modCfg.mailboxTable[idx] & 0xFF;
+
+    /* view.count */
+    try {
+        var MAILBOX_STATUS_IN = Program.fetchStruct(
+                ScalarStructs.S_Bits32$fetchDesc,
+                mailboxAddr + 0xC0 + (0x4 * view.subMbxId), false);
+        view.count = MAILBOX_STATUS_IN.elem;
+    }
+    catch (e) {
+        throw(e);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,19 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== InterruptDsp.xdc ========
  */
+package ti.sdo.ipc.family.vayu;
 
 import ti.sdo.utils.MultiProc;
+import xdc.rov.ViewInfo;
 
 /*!
  *  ======== InterruptDsp ========
  *  Vayu/DSP interrupt manager
  */
-
 @ModuleStartup
 
 module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
@@ -54,19 +56,19 @@ module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
     };
 
     /*! @_nodoc */
-    @Facet
-    metaonly config xdc.rov.ViewInfo.Instance rovViewInfo =
-        xdc.rov.ViewInfo.create({
-            viewMap: [
-                ['IncomingInterrupts',
-                    {
-                        type: xdc.rov.ViewInfo.MODULE_DATA,
-                        viewInitFxn: 'viewInitInterrupt',
-                        structName: 'InterruptDataView'
-                    }
-                ],
-            ]
-        });
+//  @Facet
+//  metaonly config xdc.rov.ViewInfo.Instance rovViewInfo =
+//      xdc.rov.ViewInfo.create({
+//          viewMap: [
+//              ['IncomingInterrupts',
+//                  {
+//                      type: xdc.rov.ViewInfo.MODULE_DATA,
+//                      viewInitFxn: 'viewInitInterrupt',
+//                      structName: 'InterruptDataView'
+//                  }
+//              ],
+//          ]
+//      });
 
     /* Total number of cores on Vayu SoC */
     const UInt8 NUM_CORES = 11;
@@ -119,7 +121,7 @@ internal:
      *  ======== intShmStub ========
      *  Stub to be plugged
      */
-    Void intShmStub(UArg arg);
+    Void intShmStub(UInt16 idx);
 
     struct Module_State {
         /*
@@ -129,12 +131,8 @@ internal:
         FxnTable   fxnTable[NUM_CORES];
 
         /*
-         * Number of numPlugged counters is equal to the number of combined
-         * events used by the mailbox interrupts.
-         */
-        UInt16 numPlugged;  /* # of times the interrupt was registered */
-
-        /* table of interrupt event ids use to communicate with this proc */
+         * Interrupt event IDs used to communicate with this processor.
+         * Table is indexed by virtual processor ID. */
         UInt16 interruptTable[NUM_CORES];
     };
 }
