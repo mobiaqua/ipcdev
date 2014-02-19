@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -397,6 +397,7 @@ var C66Sources   = "ipc/gates/GateHWSem.c " +
                    "ipc/family/tci663x/NotifyCircSetup.c " +
                    "ipc/family/tci663x/NotifySetup.c " +
                    "ipc/family/vayu/InterruptDsp.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var C674Sources  =
@@ -460,6 +461,7 @@ var M3Sources    =
 var M4Sources    =
                    "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/vayu/InterruptIpu.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var Arm9Sources  = "ipc/family/dm6446/NotifySetup.c " +
@@ -503,6 +505,7 @@ var A8gSources  =
 
 
 var A15gSources  = "ipc/family/vayu/InterruptHost.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c " +
                    "ipc/gates/GateHWSpinlock.c ";
 
@@ -515,6 +518,7 @@ var ARP32Sources   =
                    "ipc/family/c6a8149/NotifyCircSetup.c " +
                    "ipc/family/c6a8149/InterruptEve.c " +
                    "ipc/family/vayu/InterruptArp32.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var cList = {
