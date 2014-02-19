@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,15 +125,20 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
     msg = MessageQ_alloc(HEAPID, sizeof(SyncMsg) + payloadSize);
     if (msg == NULL) {
         printf("Error in MessageQ_alloc\n");
-        MessageQ_close(&queueId);
-        goto cleanup;
+        goto close_cleanup;
     }
 
     /* handshake with remote to set the number of loops */
     MessageQ_setReplyQueue(msgqHandle, msg);
     ((SyncMsg *)msg)->numLoops = numLoops;
     ((SyncMsg *)msg)->print = FALSE;
-    MessageQ_put(queueId, msg);
+
+    status = MessageQ_put(queueId, msg);
+    if (status < 0) {
+        printf("MessageQ_put handshake failed [%d]\n", status);
+        goto free_cleanup;
+     }
+
     MessageQ_get(msgqHandle, &msg, MessageQ_FOREVER);
 
     printf("Exchanging %d messages with remote processor %s...\n",
@@ -180,7 +185,9 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
                MultiProc_getName(procId), elapsed / numLoops);
     }
 
+free_cleanup:
     MessageQ_free(msg);
+close_cleanup:
     MessageQ_close(&queueId);
 
 cleanup:
