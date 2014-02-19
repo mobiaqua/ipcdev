@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -97,14 +97,24 @@ extern "C" {
  */
 #define AddrTable_SIZE 32
 
+/* Number of IPUs supported */
+#define NUM_IPUS 2
+
+/* Convert procId to IPU # */
+#define PROCID_TO_IPU(procId) (procId == VAYUIPUCORE1PROC_state.ipu1ProcId ?\
+    0 : 1)
+
 #define PARAMS_MAX_NAMELENGTH 64
 /* Config param for L2MMU. This is not a typo, we are using the
  * same name (IPU1) because both Benelli M4 processors use the
- * same L2MMU. The docs expose IPU2 but not the IPU2 Core1 processor.
+ * same L2MMU. The docs expose IPUx but not the IPUx Core1 processor.
  */
-#define PARAMS_mmuEnable "ProcMgr.proc[IPU2].mmuEnable="
-#define PARAMS_carveoutAddr "ProcMgr.proc[IPU2].carveoutAddr"
-#define PARAMS_carveoutSize "ProcMgr.proc[IPU2].carveoutSize"
+#define PARAMS_mmuEnable1 "ProcMgr.proc[IPU1].mmuEnable="
+#define PARAMS_carveoutAddr1 "ProcMgr.proc[IPU1].carveoutAddr"
+#define PARAMS_carveoutSize1 "ProcMgr.proc[IPU1].carveoutSize"
+#define PARAMS_mmuEnable2 "ProcMgr.proc[IPU2].mmuEnable="
+#define PARAMS_carveoutAddr2 "ProcMgr.proc[IPU2].carveoutAddr"
+#define PARAMS_carveoutSize2 "ProcMgr.proc[IPU2].carveoutSize"
 
 
 /*!
@@ -125,30 +135,58 @@ typedef struct VAYUIPUCORE1PROC_ModuleObject_tag {
     /*!< Processor handle array. */
     IGateProvider_Handle             gateHandle;
     /*!< Handle of gate to be used for local thread safety */
+    UInt16                     ipu1ProcId;
+    /*!< MultiProc id of IPU1 (to avoid multiple lookups) */
 } VAYUIPUCORE1PROC_ModuleObject;
 
-/* Default memory regions */
-static UInt32 AddrTable_count = AddrTable_STATIC_COUNT;
+/* Memory region counters */
+static UInt32 AddrTable_count[NUM_IPUS] = {
+    AddrTable_STATIC_COUNT,
+    AddrTable_STATIC_COUNT,
+};
 
 /* static memory regions
  * CAUTION: AddrTable_STATIC_COUNT must match number of entries below.
  */
-static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE] =
+static ProcMgr_AddrInfo AddrTable_IPU1[AddrTable_SIZE] =
+{
+    /* L2 RAM */
     {
-        /* L2 RAM */
-        {
-            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
-            .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
-            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
-            .size = 0x10000u,
-            .isCached = FALSE,
-            .mapMask = ProcMgr_SLAVEVIRT,
-            .isMapped = TRUE,   /* Internal memory is always 'mapped' on the slave */
-            .refCount = 0u      /* refCount set to 0 for static entry */
-        },
-    };
+        .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+        .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+        .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
+        .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
+        .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+        .size = 0x10000u,
+        .isCached = FALSE,
+        .mapMask = ProcMgr_SLAVEVIRT,
+        .isMapped = TRUE,
+        .refCount = 0u      /* refCount set to 0 for static entry */
+    },
+};
+
+static ProcMgr_AddrInfo AddrTable_IPU2[AddrTable_SIZE] =
+{
+    /* L2 RAM */
+    {
+        .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+        .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+        .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
+        .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
+        .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+        .size = 0x10000u,
+        .isCached = FALSE,
+        .mapMask = ProcMgr_SLAVEVIRT,
+        .isMapped = TRUE,
+        .refCount = 0u      /* refCount set to 0 for static entry */
+    },
+};
+
+static ProcMgr_AddrInfo * AddrTable[NUM_IPUS] =
+{
+    AddrTable_IPU1,
+    AddrTable_IPU2
+};
 
 /* =============================================================================
  *  Globals
@@ -169,7 +207,7 @@ VAYUIPUCORE1PROC_ModuleObject VAYUIPUCORE1PROC_state =
     .configSize = sizeof (VAYUIPUCORE1PROC_Config),
     .gateHandle = NULL,
     .defInstParams.mmuEnable = FALSE,
-    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT
+    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
 };
 
 /* config override specified in SysLinkCfg.c, defined in ProcMgr.c */
@@ -285,6 +323,8 @@ VAYUIPUCORE1PROC_setup (VAYUIPUCORE1PROC_Config * cfg)
         Memory_set (&VAYUIPUCORE1PROC_state.procHandles,
                     0,
                     (sizeof (VAYUIPUCORE1PROC_Handle) * MultiProc_MAXPROCESSORS));
+
+        VAYUIPUCORE1PROC_state.ipu1ProcId = MultiProc_getId("IPU1");
         VAYUIPUCORE1PROC_state.isSetup = TRUE;
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -353,8 +393,6 @@ VAYUIPUCORE1PROC_Params_init(
         VAYUIPUCORE1PROC_Params *  params)
 {
     VAYUIPUCORE1PROC_Object * procObject = (VAYUIPUCORE1PROC_Object *) handle;
-    Int i                                 = 0;
-    ProcMgr_AddrInfo *     ai         = NULL;
 
     GT_2trace(curTrace, GT_ENTER, "VAYUIPUCORE1PROC_Params_init",
               handle, params);
@@ -373,32 +411,9 @@ VAYUIPUCORE1PROC_Params_init(
 #endif
         if (handle == NULL) {
 
-            /* check for instance params override */
-            Cfg_propBool(PARAMS_mmuEnable, ProcMgr_sysLinkCfgParams,
-                &(VAYUIPUCORE1PROC_state.defInstParams.mmuEnable));
-
             Memory_copy(params, &(VAYUIPUCORE1PROC_state.defInstParams),
                 sizeof(VAYUIPUCORE1PROC_Params));
 
-            /* initialize the translation table */
-            for (i = AddrTable_count; i < AddrTable_SIZE; i++) {
-                ai = &AddrTable[i];
-                ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
-                ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                ai->size = 0u;
-                ai->isCached = FALSE;
-                ai->mapMask = 0u;
-                ai->isMapped = FALSE;
-            }
-
-            /* initialize refCount for all entries - both static and dynamic */
-            for (i = 0; i < AddrTable_SIZE; i++) {
-                AddrTable[i].refCount = 0u;
-            }
-            Memory_copy((Ptr)params->memEntries, AddrTable, sizeof(AddrTable));
         }
         else {
             /* return updated VAYUIPUCORE1PROC instance specific parameters */
@@ -427,6 +442,8 @@ VAYUIPUCORE1PROC_create (      UInt16                procId,
     Int                   status    = PROCESSOR_SUCCESS;
     Processor_Object *    handle    = NULL;
     VAYUIPUCORE1PROC_Object * object    = NULL;
+    Int i                            = 0;
+    ProcMgr_AddrInfo *ai             = NULL;
     IArg                  key;
     List_Params           listParams;
 
@@ -509,11 +526,39 @@ VAYUIPUCORE1PROC_create (      UInt16                procId,
                 else {
                     handle->procId = procId;
                     object = (VAYUIPUCORE1PROC_Object *) handle->object;
+                    object->procHandle = (Processor_Handle)handle;
                     object->halObject = NULL;
                     /* Copy params into instance object. */
                     Memory_copy (&(object->params),
                                  (Ptr) params,
                                  sizeof (VAYUIPUCORE1PROC_Params));
+
+                    /* initialize the translation table */
+                    for (i = AddrTable_count[PROCID_TO_IPU(procId)];
+                        i < AddrTable_SIZE; i++) {
+                        ai = &AddrTable[PROCID_TO_IPU(procId)][i];
+                        ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
+                        ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+                        ai->size = 0u;
+                        ai->isCached = FALSE;
+                        ai->mapMask = 0u;
+                        ai->isMapped = FALSE;
+                    }
+
+                    /*
+                     * initialize refCount for all entries
+                     * both static and dynamic
+                     */
+                    for (i = 0; i < AddrTable_SIZE; i++) {
+                        AddrTable[PROCID_TO_IPU(procId)][i].refCount = 0u;
+                    }
+                    Memory_copy((Ptr)(object->params.memEntries),
+                        AddrTable[PROCID_TO_IPU(procId)],
+                        (procId == VAYUIPUCORE1PROC_state.ipu1ProcId ?
+                        sizeof(AddrTable_IPU1) : sizeof(AddrTable_IPU2)));
 
                     /* Set the handle in the state object. */
                     VAYUIPUCORE1PROC_state.procHandles [procId] =
@@ -851,6 +896,7 @@ VAYUIPUCORE1PROC_attach(
     Char                        configProp[PARAMS_MAX_NAMELENGTH];
     UInt32                      numCarveouts = 0;
     VAYUIPU_HalMmuCtrlArgs_Enable mmuEnableArgs;
+    VAYUIPU_HalParams           halParams;
 
     GT_2trace(curTrace, GT_ENTER,
               "VAYUIPUCORE1PROC_attach", handle, params);
@@ -885,17 +931,33 @@ VAYUIPUCORE1PROC_attach(
         params->procArch = Processor_ProcArch_M4;
 
         /* check for instance params override */
-        Cfg_propBool(PARAMS_mmuEnable, ProcMgr_sysLinkCfgParams,
-            &(object->params.mmuEnable));
+        if (VAYUIPUCORE1PROC_state.ipu1ProcId == procHandle->procId) {
+            Cfg_propBool(PARAMS_mmuEnable1, ProcMgr_sysLinkCfgParams,
+                &(object->params.mmuEnable));
+        }
+        else {
+            Cfg_propBool(PARAMS_mmuEnable2, ProcMgr_sysLinkCfgParams,
+                &(object->params.mmuEnable));
+        }
 
         /* check for carveout params override */
         for (i = 0; i < ProcMgr_MAX_MEMORY_REGIONS; i++) {
-            snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr"%d", i);
+            if (VAYUIPUCORE1PROC_state.ipu1ProcId == procHandle->procId) {
+                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr1"%d", i);
+            }
+            else {
+                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr2"%d", i);
+            }
             strcat(prop, "=");
             if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
                 break;
             object->params.carveoutAddr[i] = strtoul(configProp, 0, 16);
-            snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize"%d", i);
+            if (VAYUIPUCORE1PROC_state.ipu1ProcId == procHandle->procId) {
+                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize1"%d", i);
+            }
+            else {
+                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize2"%d", i);
+            }
             strcat(prop, "=");
             if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
                 break;
@@ -945,8 +1007,10 @@ VAYUIPUCORE1PROC_attach(
 
             if (entry->map == FALSE) {
                 /* update table with entries which don't require mapping */
-                if (AddrTable_count != AddrTable_SIZE) {
-                    me = &AddrTable[AddrTable_count];
+                if (AddrTable_count[PROCID_TO_IPU(procHandle->procId)] !=
+                   AddrTable_SIZE) {
+                    me = &AddrTable[PROCID_TO_IPU(procHandle->procId)][
+                        AddrTable_count[PROCID_TO_IPU(procHandle->procId)]];
 
                     me->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
@@ -958,7 +1022,7 @@ VAYUIPUCORE1PROC_attach(
                     me->isCached = entry->isCached;
                     me->mapMask = entry->mapMask;
 
-                    AddrTable_count++;
+                    AddrTable_count[PROCID_TO_IPU(procHandle->procId)]++;
                 }
                 else {
                     status = PROCESSOR_E_FAIL;
@@ -1007,7 +1071,8 @@ VAYUIPUCORE1PROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            status = VAYUIPU_halInit (&(object->halObject), NULL);
+            halParams.procId = procHandle->procId;
+            status = VAYUIPU_halInit(&(object->halObject), &halParams);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined(SYSLINK_BUILD_HLOS)
             if (status < 0) {
@@ -1152,8 +1217,9 @@ VAYUIPUCORE1PROC_detach (Processor_Handle handle)
             }
 
             /* delete all dynamically added entries */
-            for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
-                ai = &AddrTable[i];
+            for (i = AddrTable_STATIC_COUNT; i <
+                AddrTable_count[PROCID_TO_IPU(procHandle->procId)]; i++) {
+                ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][i];
                 ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                 ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
                 ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
@@ -1166,7 +1232,8 @@ VAYUIPUCORE1PROC_detach (Processor_Handle handle)
                 ai->refCount = 0u;
             }
             object->params.numMemEntries = AddrTable_STATIC_COUNT;
-            AddrTable_count = AddrTable_STATIC_COUNT;
+            AddrTable_count[PROCID_TO_IPU(procHandle->procId)] =
+                AddrTable_STATIC_COUNT;
 
             //No need to reset.. that will be done in STOP
             /*tmpStatus = VAYUIPUCORE1_halResetCtrl(object->halObject,
@@ -1692,8 +1759,9 @@ VAYUIPUCORE1PROC_translate(
         *dstAddr = -1u;
 
         /* search all entries AddrTable */
-        for (i = 0; i < AddrTable_count; i++) {
-            ai = &AddrTable[i];
+        for (i = 0; i < AddrTable_count[PROCID_TO_IPU(procHandle->procId)];
+            i++) {
+            ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][i];
             startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
             endAddr = startAddr + ai->size;
 
@@ -1808,7 +1876,7 @@ VAYUIPUCORE1PROC_map(
 
             /* check in static entries first */
             for (j = 0; j < AddrTable_STATIC_COUNT; j++) {
-                ai = &AddrTable[j];
+                ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][j];
                 startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
                 endAddr = startAddr + ai->size;
 
@@ -1843,9 +1911,11 @@ VAYUIPUCORE1PROC_map(
              */
             if (!found) {
                 if (object->params.mmuEnable) {
-                if (AddrTable_count != AddrTable_SIZE) {
-                        ai = &AddrTable[AddrTable_count];
-
+                    if (AddrTable_count[PROCID_TO_IPU(procHandle->procId)] !=
+                        AddrTable_SIZE) {
+                        ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)]
+                            [AddrTable_count[PROCID_TO_IPU
+                            (procHandle->procId)]];
                         ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                         ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
                         ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
@@ -1855,7 +1925,7 @@ VAYUIPUCORE1PROC_map(
                         ai->isCached = sglist[i].isCached;
                         ai->refCount++;
 
-                        AddrTable_count++;
+                        AddrTable_count[PROCID_TO_IPU(procHandle->procId)]++;
                     }
                     else {
                         status = PROCESSOR_E_FAIL;
@@ -1974,8 +2044,9 @@ VAYUIPUCORE1PROC_unmap(
         /* Delete dynamically added non-default entries from translation
          * table only in last unmap called on that entry
          */
-        for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
-            ai = &AddrTable[i];
+        for (i = AddrTable_STATIC_COUNT;
+            i < AddrTable_count[PROCID_TO_IPU(procHandle->procId)]; i++) {
+            ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][i];
 
             if (!ai->isMapped) {
                 continue;

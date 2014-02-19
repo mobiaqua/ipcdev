@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -72,6 +72,7 @@
 #include <ti/syslink/inc/knl/VAYUIpuPwr.h>
 #include <ti/syslink/inc/knl/_VAYUIpuPwr.h>
 #include <ti/syslink/inc/knl/Qnx/VAYUIpuMmu.h>
+#include <ti/syslink/inc/knl/VAYUIpuPhyShmem.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -86,16 +87,6 @@ extern "C" {
  *  @brief  VAYUIPU module and mmr addresses (physical)
  */
 
-#define VAYUIPU_PRCM_BASE_ADDR      0x48180000
-#define VAYUIPU_PRCM_SIZE           0x00002FFF
-
-/* Ipu MMU base */
-#define IPU_MMU_CFG                 0x55080000
-#define IPU_MMU_CFG_SIZE            0x00000FFF
-
-
-#define IPU_BASE_ADDR               0x55020000
-#define IPU_BASE_ADDR_SIZE          0x00000008
 
 #define MAX_WAIT_COUNT              0x50000
 
@@ -790,7 +781,8 @@ VAYUIPUPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
 
     Int status                            = PWRMGR_SUCCESS;
     PwrMgr_Object *          pwrMgrHandle = (PwrMgr_Object *) handle;
-    VAYUIPUPWR_Object * object       = NULL;
+    VAYUIPUPWR_Object *      object       = NULL;
+    UInt16                   ipu1ProcId   = MultiProc_getId("IPU1");
     Memory_MapInfo           mapInfo;
     /* Mapping for prcm base is done in VAYUIPUCORE1_phyShmemInit */
 
@@ -821,9 +813,14 @@ VAYUIPUPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined(SYSLINK_BUILD_HLOS) */
         object = (VAYUIPUPWR_Object *) pwrMgrHandle->object;
         GT_assert (curTrace, (object != NULL));
-        /* Map and get the virtual address for system control module */
-        mapInfo.src      = VAYUIPU_PRCM_BASE_ADDR;
-        mapInfo.size     = VAYUIPU_PRCM_SIZE;
+        /* Map and get the virtual address for PRCM registers */
+        if (handle->procId == ipu1ProcId) {
+            mapInfo.src      = IPU1_PRCM_BASE_ADDR;
+        }
+        else {
+            mapInfo.src      = IPU2_PRCM_BASE_ADDR;
+        }
+        mapInfo.size     = PRCM_SIZE;
         mapInfo.isCached = FALSE;
         status = Memory_map (&mapInfo);
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
@@ -838,9 +835,14 @@ VAYUIPUPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
         else {
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined(SYSLINK_BUILD_HLOS) */
             object->prcmVA = mapInfo.dst;
-            /* Map and get the virtual address for system control module */
-            mapInfo.src      = IPU_MMU_CFG;
-            mapInfo.size     = IPU_MMU_CFG_SIZE;
+            /* Map and get the virtual address for MMU registers */
+            if (handle->procId == ipu1ProcId) {
+                mapInfo.src      = IPU1_MMU_BASE;
+            }
+            else {
+                mapInfo.src      = IPU2_MMU_BASE;
+            }
+            mapInfo.size     = MMU_SIZE;
             mapInfo.isCached = FALSE;
             status = Memory_map (&mapInfo);
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
@@ -855,9 +857,14 @@ VAYUIPUPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
             else {
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined(SYSLINK_BUILD_HLOS) */
                 object->ipuMmuVA = mapInfo.dst;
-                /* Map and get the virtual address for system control module */
-                mapInfo.src      = IPU_BASE_ADDR;
-                mapInfo.size     = IPU_BASE_ADDR_SIZE;
+                /* Map and get the virtual address for the control module */
+                if (handle->procId == ipu1ProcId) {
+                    mapInfo.src      = IPU1_CM_BASE_ADDR;
+                }
+                else {
+                    mapInfo.src      = IPU2_CM_BASE_ADDR;
+                }
+                mapInfo.size     = CM_SIZE;
                 mapInfo.isCached = FALSE;
                 status = Memory_map (&mapInfo);
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
@@ -929,7 +936,7 @@ VAYUIPUPWR_detach (PwrMgr_Handle handle)
 
         /* Unmap the virtual address for prcm module */
         unmapInfo.addr = object->prcmVA;
-        unmapInfo.size = VAYUIPU_PRCM_SIZE;
+        unmapInfo.size = PRCM_SIZE;
         unmapInfo.isCached = FALSE;
         if (unmapInfo.addr != 0) {
             status = Memory_unmap (&unmapInfo);
@@ -946,7 +953,7 @@ VAYUIPUPWR_detach (PwrMgr_Handle handle)
         }
         /* Unmap the virtual address for mmu base*/
         unmapInfo.addr = object->ipuMmuVA;
-        unmapInfo.size = IPU_MMU_CFG_SIZE;
+        unmapInfo.size = MMU_SIZE;
         unmapInfo.isCached = FALSE;
         if (unmapInfo.addr != 0) {
             status = Memory_unmap (&unmapInfo);
@@ -964,7 +971,7 @@ VAYUIPUPWR_detach (PwrMgr_Handle handle)
 
         /* Unmap the virtual address for ipu control base */
         unmapInfo.addr = object->ipubaseVA;
-        unmapInfo.size = IPU_BASE_ADDR_SIZE;
+        unmapInfo.size = CM_SIZE;
         unmapInfo.isCached = FALSE;
         if (unmapInfo.addr != 0) {
             status = Memory_unmap (&unmapInfo);

@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -59,6 +59,7 @@
 #include <ti/syslink/utils/Trace.h>
 #include <ti/syslink/utils/OsalPrint.h>
 #include <ti/syslink/utils/Memory.h>
+#include <ti/ipc/MultiProc.h>
 #include <Bitops.h>
 
 /* Module level headers */
@@ -87,6 +88,12 @@ extern "C" {
 #define MMU_RAM_DEFAULT         0
 
 #define MPU_INT_OFFSET               32
+
+/*!
+ *  @brief  Interrupt Id for IPU1 MMU faults
+ */
+#define MMU_FAULT_INTERRUPT_IPU1     100
+#define MMU_XBAR_INTERRUPT_IPU1      395
 
 /*!
  *  @brief  Interrupt Id for IPU2 MMU faults
@@ -481,9 +488,10 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
                        ProcMgr_AddrInfo *  memTable)
 {
     Int                           status    = PROCESSOR_SUCCESS;
-    VAYUIPU_HalMmuObject *   mmuObj;
+    VAYUIPU_HalMmuObject *        mmuObj;
     OsalIsr_Params                isrParams;
-    UInt32 reg = 0;
+    UInt32                        reg = 0;
+    UInt16                        ipu1ProcId = MultiProc_getId("IPU1");
 
     GT_3trace (curTrace, GT_ENTER, "_VAYUIPU_halMmuEnable",
                halObject, numMemEntries, memTable);
@@ -500,21 +508,42 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
     REG32(halObject->ctrlModBase + CTRL_MODULE_MMR_OFFSET) = 0xF757FDC0;
 
     /* Program the IntXbar */
-    reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2));
-    if ((MMU_FAULT_INTERRUPT_IPU2 - CTRL_MODULE_INT_BASE) % 2) {
-        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
-            (reg & 0x0000FFFF) | (MMU_XBAR_INTERRUPT_IPU2 << 16);
+    if (halObject->procId == ipu1ProcId) {
+        reg = REG32(halObject->ctrlModBase +
+            CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU1));
+        if ((MMU_FAULT_INTERRUPT_IPU1 - CTRL_MODULE_INT_BASE) % 2) {
+            REG32(halObject->ctrlModBase +
+                CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU1)) =
+                (reg & 0x0000FFFF) | (MMU_XBAR_INTERRUPT_IPU1 << 16);
+        }
+        else {
+            REG32(halObject->ctrlModBase +
+                CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU1)) =
+                (reg & 0xFFFF0000) | (MMU_XBAR_INTERRUPT_IPU1);
+        }
     }
     else {
-        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
-            (reg & 0xFFFF0000) | (MMU_XBAR_INTERRUPT_IPU2);
+        reg = REG32(halObject->ctrlModBase +
+            CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2));
+        if ((MMU_FAULT_INTERRUPT_IPU2 - CTRL_MODULE_INT_BASE) % 2) {
+            REG32(halObject->ctrlModBase +
+                CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
+                (reg & 0x0000FFFF) | (MMU_XBAR_INTERRUPT_IPU2 << 16);
+        }
+        else {
+            REG32(halObject->ctrlModBase +
+                CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
+                (reg & 0xFFFF0000) | (MMU_XBAR_INTERRUPT_IPU2);
+        }
     }
 
     /* Create the ISR to listen for MMU Faults */
     isrParams.sharedInt        = FALSE;
     isrParams.checkAndClearFxn = &_VAYUIPU_halMmuCheckAndClearFunc;
     isrParams.fxnArgs          = halObject;
-    isrParams.intId            = MMU_FAULT_INTERRUPT_IPU2 + MPU_INT_OFFSET;
+    isrParams.intId            = (ipu1ProcId == halObject->procId ?
+        MMU_FAULT_INTERRUPT_IPU1 + MPU_INT_OFFSET : MMU_FAULT_INTERRUPT_IPU2 +
+        MPU_INT_OFFSET);
     mmuObj->isrHandle = OsalIsr_create (&_VAYUIPU_halMmuInt_isr,
                                         halObject,
                                         &isrParams);

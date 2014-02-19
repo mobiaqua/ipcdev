@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -83,6 +83,24 @@ extern "C" {
 #define CM_IPU_CLKSTCTRL_OFFSET      0x200
 #define CM_IPU_IPU_CLKCTRL_OFFSET    0x220
 
+/*
+ * empirically determined delay that is necessary between when the IPU
+ * clock is enabled and when the status bit is set
+ */
+#define DELAY                        100
+
+/*
+ * IPU1 functional clock selection
+ * 0: DPLL_ABE_X2_CLK
+ * 1: CORE_IPU_ISS_BOOST_CLK
+ */
+#define USE_CORE_IPU_ISS_BOOST_CLK   1
+
+#if USE_CORE_IPU_ISS_BOOST_CLK
+#define IPU1_CLKSEL                  0x1000000
+#else
+#define IPU1_CLKSEL                  0x0
+#endif
 
 /* =============================================================================
  * APIs called by VAYUIPUCORE0PROC module
@@ -105,7 +123,7 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
     UInt32              cmBase;
     UInt32              prmBase;
     UInt32              reg       = 0;
-    UInt32              counter   = 10;
+    UInt32              counter   = DELAY;
 
     GT_2trace (curTrace, GT_ENTER, "VAYUIPUCORE0_halResetCtrl", halObj, cmd);
 
@@ -155,7 +173,13 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                 Osal_printf("VAYUIPUCORE0_halResetCtrl: reset state reset!\n");
             }
             /* Module is managed automatically by HW */
-            OUTREG32(cmBase + CM_IPU_IPU_CLKCTRL_OFFSET, 0x1);
+            if (halObject->procId == MultiProc_getId("IPU1")) {
+                /* For IPU1, select CORE_IPU_ISS_BOOST_CLK as functional clk */
+                OUTREG32(cmBase + CM_IPU_IPU_CLKCTRL_OFFSET, 0x1 | IPU1_CLKSEL);
+            }
+            else {
+                OUTREG32(cmBase + CM_IPU_IPU_CLKCTRL_OFFSET, 0x1);
+            }
             /* Enable the IPU clock */
             OUTREG32(cmBase + CM_IPU_CLKSTCTRL_OFFSET, 0x2);
 

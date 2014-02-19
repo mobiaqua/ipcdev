@@ -8,7 +8,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -199,9 +199,9 @@ struct VAYUIPUPWR_Object_tag {
     UInt32                prcmVA;
     /*!< Virtual address for prcm module */
     UInt32                ipuMmuVA;
-    /*!< Virtual address for prcm module */
+    /*!< Virtual address for mmu module */
     UInt32                ipubaseVA;
-    /*!< Virtual address for prcm module */
+    /*!< Virtual address for control module */
     ClockOps_Handle       clockHandle;
     /*!< Pointer to the Clock object. */
 

@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -61,13 +61,6 @@
 #include <ti/syslink/inc/Bitops.h>
 
 #define REG(x)              *((volatile UInt32 *) (x))
-
-
-#define RM_DEFAULT_RSTCTRL     0x00000B10
-#define RM_DEFAULT_RSTST       0x00000B14
-#define CM_DEFAULT_IPU_CLKSTCTRL 0x00000518
-#define CM_DEFAULT_IPU_CLKCTRL   0x00000574
-
 
 #if defined (__cplusplus)
 extern "C" {

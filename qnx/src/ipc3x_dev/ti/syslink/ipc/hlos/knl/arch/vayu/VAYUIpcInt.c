@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -109,20 +109,25 @@ extern "C" {
  *  @def    VAYU_VAYU_NUMPROCS
  *  @brief  Number of processors supported on this platform
  */
-#define VAYU_NUMPROCS 9
+#define VAYU_NUMPROCS 5
 /*!
- *  @def    VAYU_VAYU_INDEX_DSP
- *  @brief  Dsp index.
+ *  @def    VAYU_INDEX_DSP1
+ *  @brief  Dsp1 index.
  */
-#define VAYU_INDEX_DSP1 6
+#define VAYU_INDEX_DSP1 4
 /*!
- *  @def    VAYU_INDEX_VIDEOM4
- *  @brief  M4Video index.
+ *  @def    VAYU_INDEX_DSP2
+ *  @brief  Dsp2 index.
  */
-#define VAYU_INDEX_VIDEOM4 1
+#define VAYU_INDEX_DSP2 3
+/*!
+ *  @def    VAYU_INDEX_IPU1
+ *  @brief  IPU1 index.
+ */
+#define VAYU_INDEX_IPU1 2
 /*!
  *  @def    VAYU_INDEX_IPU2
- *  @brief  M4Dss index.
+ *  @brief  IPU2 index.
  */
 #define VAYU_INDEX_IPU2 1
 /*!
@@ -132,20 +137,38 @@ extern "C" {
 #define VAYU_INDEX_HOST 0
 
 /*!
+ *  @def    VAYU_HOST_IPU1_MBOX
+ *  @brief  Mailbox used for HOST<->IPU1 communication.
+ */
+#define VAYU_HOST_IPU1_MBOX 5
+
+/*!
  *  @def    VAYU_HOST_IPU2_MBOX
  *  @brief  Mailbox used for HOST<->IPU2 communication.
  */
 #define VAYU_HOST_IPU2_MBOX 6
 
 /*!
+ *  @def    IPU1_HOST_SUB_MBOX
+ *  @brief  Sub-Mailbox used for IPU1->HOST communication.
+ */
+#define IPU1_HOST_SUB_MBOX  4
+
+/*!
+ *  @def    HOST_IPU1_SUB_MBOX
+ *  @brief  Sub-Mailbox used for HOST->IPU1 communication.
+ */
+#define HOST_IPU1_SUB_MBOX  6
+
+/*!
  *  @def    IPU2_HOST_SUB_MBOX
- *  @brief  Sub-Mailbox used for HOST->IPU2 communication.
+ *  @brief  Sub-Mailbox used for IPU2->HOST communication.
  */
 #define IPU2_HOST_SUB_MBOX  4
 
 /*!
  *  @def    HOST_IPU2_SUB_MBOX
- *  @brief  Sub-Mailbox used for IPU2->HOST communication.
+ *  @brief  Sub-Mailbox used for HOST->IPU2 communication.
  */
 #define HOST_IPU2_SUB_MBOX  6
 
@@ -172,6 +195,12 @@ extern "C" {
  *  @brief  User ID of HOST.
  */
 #define VAYU_HOST_USER_ID 2
+
+/*!
+ *  @def    VAYU_IPU1_USER_ID
+ *  @brief  User ID of IPU2.
+ */
+#define VAYU_IPU1_USER_ID 1
 
 /*!
  *  @def    VAYU_IPU2_USER_ID
@@ -266,6 +295,12 @@ extern "C" {
  *  @brief  irq xbar num for dsp1.
  */
 #define IRQ_XBAR_DSP1                    IRQ_XBAR_MBOX_5_USR_2
+
+/*!
+ *  @def    IRQ_XBAR_IPU1
+ *  @brief  irq xbar num for ipu1.
+ */
+#define IRQ_XBAR_IPU1                    IRQ_XBAR_MBOX_5_USR_2
 
 /*!
  *  @def    IRQ_XBAR_IPU2
@@ -449,7 +484,8 @@ ArchIpcInt_FxnTable VAYUIpcInt_fxnTable = {
     VAYUIpcInt_clearInterrupt,
 };
 
-int mailbox_5_context[MAILBOX_SIZE];
+int mailbox_5_context_ipu1[MAILBOX_SIZE];
+int mailbox_5_context_ipu2[MAILBOX_SIZE];
 int mailbox_6_context[MAILBOX_SIZE];
 
 /* =============================================================================
@@ -627,6 +663,8 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
              */
             VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1] =
                                                        MultiProc_getId ("DSP1");
+            VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1] =
+                                                       MultiProc_getId ("IPU1");
             VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2] =
                                                     MultiProc_getId ("IPU2");
             VAYUIpcInt_state.maxProcessors = MultiProc_getNumProcessors();
@@ -703,7 +741,7 @@ VAYUIpcInt_destroy (Void)
         unmapInfo.size = CTRL_MODULE_SIZE;
         unmapInfo.isCached = FALSE;
         Memory_unmap (&unmapInfo);
-        VAYUIpcInt_state.archCoreCmBase = (UInt32) NULL;
+        VAYUIpcInt_state.controlModuleBase = (UInt32) NULL;
     }
 
     GT_0trace (curTrace, GT_ENTER, "VAYUIpcInt_destroy");
@@ -795,6 +833,9 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
         if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
             mboxId = IRQ_XBAR_DSP1;
         }
+        else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]){
+            mboxId = IRQ_XBAR_IPU1;
+        }
         else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]){
             mboxId = IRQ_XBAR_IPU2;
         }
@@ -874,115 +915,6 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
     return status;
 }
 
-/*!
- *  @brief      Function to Save context.
- *
- *  @param      procId  The procId associated with the mailbox context being
- *                      saved.
- *
- *  @sa         VAYUIpcInt_mbxRestoreCtxt
- */
-
-Int32
-VAYUIpcInt_mboxSaveCtxt (UInt16 procId)
-{
-    Int32 status = VAYUIPCINT_SUCCESS;
-    UInt32 i = 0;
-
-    if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2] &&
-        VAYUIpcInt_state.mailbox5Base == NULL) {
-        status = VAYUIPCINT_E_MEMORY;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUIpcInt_mboxSaveCtxt",
-                             status,
-                             "Unable to map the Mailbox memory in SaveCtxt");
-    }
-    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1] &&
-        VAYUIpcInt_state.mailbox6Base == NULL) {
-        status = VAYUIPCINT_E_MEMORY;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUIpcInt_mboxSaveCtxt",
-                             status,
-                             "Unable to map the Mailbox memory in SaveCtxt");
-    }
-    else {
-        if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
-            for (i = 0; i < 4; i++) {
-                mailbox_5_context[i] = REG32(VAYUIpcInt_state.mailbox5Base + \
-                                             VAYU_MAILBOX_IRQENABLE(i));
-            }
-        }
-        else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
-            for (i = 0; i < 4; i++) {
-                mailbox_6_context[i] = REG32(VAYUIpcInt_state.mailbox6Base + \
-                                             VAYU_MAILBOX_IRQENABLE(i));
-            }
-        }
-        VAYUIpcInt_interruptDisable(procId, VAYUIpcInt_state.intId);
-    }
-    return status;
-}
-
-/*!
- *  @brief      Function to Restore context.
- *
- *  @param      procId  The procId associated with the mailbox context being
- *                      restored.
- *
- *  @sa         VAYUIpcInt_mbxSaveCtxt
- */
-
-Int32
-VAYUIpcInt_mboxRestoreCtxt (UInt16 procId)
-{
-    Int32 status = VAYUIPCINT_SUCCESS;
-    UInt32 i = 0;
-
-    if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2] &&
-        VAYUIpcInt_state.mailbox5Base == NULL) {
-        status = VAYUIPCINT_E_MEMORY;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUIpcInt_mboxRestoreCtxt",
-                             status,
-                             "Unable to map the Mailbox memory in RestoreCtxt");
-    }
-    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1] &&
-        VAYUIpcInt_state.mailbox6Base == NULL) {
-        status = VAYUIPCINT_E_MEMORY;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUIpcInt_mboxRestoreCtxt",
-                             status,
-                             "Unable to map the Mailbox memory in RestoreCtxt");
-    }
-    else {
-        if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
-            /* Set to Smart Idle mode*/
-            REG(VAYUIpcInt_state.mailbox5Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
-
-            for (i = 0; i < 4; i++) {
-                REG32(VAYUIpcInt_state.mailbox5Base + \
-                              VAYU_MAILBOX_IRQENABLE(i)) = mailbox_5_context[i];
-            }
-        }
-        else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
-            /* Set to Smart Idle mode*/
-            REG(VAYUIpcInt_state.mailbox6Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
-
-            for (i = 0; i < 4; i++) {
-                REG32(VAYUIpcInt_state.mailbox6Base + \
-                              VAYU_MAILBOX_IRQENABLE(i)) = mailbox_6_context[i];
-            }
-        }
-
-        VAYUIpcInt_interruptEnable(procId, VAYUIpcInt_state.intId);
-    }
-
-    return status;
-}
 
 
 /*!
@@ -1102,6 +1034,14 @@ VAYUIpcInt_interruptEnable (UInt16 procId, UInt32 intId)
                     VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
                 ( (DSP1_HOST_SUB_MBOX) << 1));
     }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
+        /*
+         * Mailbox 5 is used for HOST<->IPU1 communication
+         */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
+                    VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
+                ( (IPU1_HOST_SUB_MBOX) << 1));
+    }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
          * Mailbox 6 is used for HOST<->IPU2 communication
@@ -1148,6 +1088,14 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
         SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
                     MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
                 ( (DSP1_HOST_SUB_MBOX) << 1));
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
+        /*
+         * Mailbox 5 is used for HOST<->IPU1 communication
+         */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
+                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
+                ( (IPU1_HOST_SUB_MBOX) << 1));
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
@@ -1196,8 +1144,14 @@ VAYUIpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
                         + MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX)))
                 & 0x3F ));
     }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
+        /* Wait for M4 to clear the previous interrupt */
+        while( (  REG32((VAYUIpcInt_state.mailbox5Base
+                      + MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU1_SUB_MBOX)))
+                & 0x3F ));
+    }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
-        /* Wait for VIDEOM4 to clear the previous interrupt */
+        /* Wait for M4 to clear the previous interrupt */
         while( (  REG32((VAYUIpcInt_state.mailbox6Base
                       + MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX)))
                 & 0x3F ));
@@ -1248,9 +1202,17 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
          */
         REG32(VAYUIpcInt_state.mailbox5Base + \
                   MAILBOX_MESSAGE_m_OFFSET(HOST_DSP1_SUB_MBOX)) = value;
-    } else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*
-         * Mailbox 6 is used for HOST<->DSP1 communication
+         * Mailbox 5 is used for HOST<->IPU1 communication
+         */
+        REG32(VAYUIpcInt_state.mailbox5Base + \
+              MAILBOX_MESSAGE_m_OFFSET(HOST_IPU1_SUB_MBOX)) = value;
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
+        /*
+         * Mailbox 6 is used for HOST<->IPU2 communication
          */
         REG32(VAYUIpcInt_state.mailbox6Base + \
               MAILBOX_MESSAGE_m_OFFSET(HOST_IPU2_SUB_MBOX)) = value;
@@ -1386,7 +1348,7 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
 
     GT_1trace (curTrace, GT_ENTER, "_VAYUIpcInt_checkAndClearFunc", arg);
 
-    if( REG32(  VAYUIpcInt_state.mailbox6Base
+    if (REG32(VAYUIpcInt_state.mailbox6Base
               + MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX)) != 0 ){
         procId = VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2];
         msg = VAYUIpcInt_clearInterrupt (procId, IPU2_HOST_SUB_MBOX);
@@ -1400,7 +1362,21 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
             List_put(VAYUIpcInt_state.isrLists[procId], (List_Elem *)elem);
         }
     }
-    if( REG32(  VAYUIpcInt_state.mailbox5Base
+    if (REG32(VAYUIpcInt_state.mailbox5Base
+              + MAILBOX_MSGSTATUS_m_OFFSET(IPU1_HOST_SUB_MBOX)) != 0 ){
+        procId = VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1];
+        msg = VAYUIpcInt_clearInterrupt (procId, IPU1_HOST_SUB_MBOX);
+
+        GT_1trace (curTrace, GT_1CLASS, "Got msg [0x%08x] from IPU1", msg);
+
+        /* This is a message from IPU1, put the message in IPU1's list */
+        elem = get_msg();
+        if (elem) {
+            elem->msg = msg;
+            List_put(VAYUIpcInt_state.isrLists[procId], (List_Elem *)elem);
+        }
+    }
+    if (REG32(VAYUIpcInt_state.mailbox5Base
               + MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX)) != 0 ){
         procId = VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1];
         msg = VAYUIpcInt_clearInterrupt (procId, DSP1_HOST_SUB_MBOX);

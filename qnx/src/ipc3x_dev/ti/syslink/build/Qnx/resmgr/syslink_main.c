@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -645,6 +645,12 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto ipcattach_fail;
             }
 
+            status = ProcMgr_registerNotify(procH[procId], syslink_error_cb, (Ptr)dev,
+                                            -1, errStates);
+            if (status < 0) {
+                goto procmgrreg_fail;
+            }
+
             status = ProcMgr_start(procH[procId], NULL);
             if (status < 0) {
                 GT_setFailureReason (curTrace,
@@ -655,16 +661,12 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto procmgrstart_fail;
             }
 
-            status = ProcMgr_registerNotify(procH[procId], syslink_error_cb, (Ptr)dev,
-                                            -1, errStates);
-            if (status < 0)
-                goto procmgrreg_fail;
-
             continue;
 
-procmgrreg_fail:
-            ProcMgr_stop(procH[procId]);
 procmgrstart_fail:
+            ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
+                                (Ptr)dev, errStates);
+procmgrreg_fail:
             Ipc_detach(procId);
 ipcattach_fail:
             if (syslink_firmware[i].firmware)

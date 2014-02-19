@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -62,7 +62,7 @@
 /* Module headers */
 #include <_ProcDefs.h>
 #include <Processor.h>
-
+#include <_MultiProc.h>
 
 /* Hardware Abstraction Layer headers */
 #include <VAYUIpuHal.h>
@@ -100,6 +100,7 @@ VAYUIPU_phyShmemInit (Ptr halObj)
     Int                 status    = PROCESSOR_SUCCESS;
     VAYUIPU_HalObject * halObject = NULL;
     Memory_MapInfo      mapInfo;
+    UInt16              ipu1ProcId = MultiProc_getId("IPU1");
 
     GT_1trace (curTrace, GT_ENTER, "VAYUIPU_phyShmemInit", halObj);
 
@@ -107,7 +108,13 @@ VAYUIPU_phyShmemInit (Ptr halObj)
 
     halObject = (VAYUIPU_HalObject *) halObj;
 
-    mapInfo.src      = CM_BASE_ADDR;
+    if (halObject->procId == ipu1ProcId) {
+        mapInfo.src      = IPU1_CM_BASE_ADDR;
+    }
+    else {
+        mapInfo.src      = IPU2_CM_BASE_ADDR;
+    }
+
     mapInfo.size     = CM_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -123,7 +130,12 @@ VAYUIPU_phyShmemInit (Ptr halObj)
         halObject->cmBase = mapInfo.dst;
     }
 
-    mapInfo.src      = PRCM_BASE_ADDR;
+    if (halObject->procId == ipu1ProcId) {
+        mapInfo.src      = IPU1_PRCM_BASE_ADDR;
+    }
+    else {
+        mapInfo.src      = IPU2_PRCM_BASE_ADDR;
+    }
     mapInfo.size     = PRCM_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -139,7 +151,13 @@ VAYUIPU_phyShmemInit (Ptr halObj)
         halObject->prmBase = mapInfo.dst;
     }
 
-    mapInfo.src      = MMU_BASE;
+    if (halObject->procId == ipu1ProcId) {
+        mapInfo.src      = IPU1_MMU_BASE;
+    }
+    else {
+        mapInfo.src      = IPU2_MMU_BASE;
+    }
+
     mapInfo.size     = MMU_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);

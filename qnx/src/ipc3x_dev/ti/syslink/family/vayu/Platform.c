@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -145,7 +145,7 @@ typedef struct Platform_Object {
             /*!< Handle to the PwrMgr instance used */
             ElfLoader_Handle        ldrHandle;
             /*!< Handle to the Loader instance used */
-        } ipu1;
+        } ipu;
     } sHandles;
     /*!< Slave specific handles */
 } Platform_Object, *Platform_Handle;
@@ -188,6 +188,9 @@ extern String ProcMgr_sysLinkCfgParams;
 String Syslink_Override_Params = "ProcMgr.proc[DSP1].mmuEnable=TRUE;"
                                  "ProcMgr.proc[DSP1].carveoutAddr0=0xBA300000;"
                                  "ProcMgr.proc[DSP1].carveoutSize0=0x5A00000;"
+                                 "ProcMgr.proc[IPU1].mmuEnable=TRUE;"
+                                 "ProcMgr.proc[IPU1].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[IPU1].carveoutSize0=0x5A00000;"
                                  "ProcMgr.proc[IPU2].mmuEnable=TRUE;"
                                  "ProcMgr.proc[IPU2].carveoutAddr0=0xBA300000;"
                                  "ProcMgr.proc[IPU2].carveoutSize0=0x5A00000;";
@@ -307,6 +310,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 
         /* Override the MESSAGEQCOPY default config */
         config->MQCopyConfig.intId[1] = 173; // 141 + 32
+        config->MQCopyConfig.intId[2] = 168; // 136 + 32
         config->MQCopyConfig.intId[4] = 168; // 136 + 32
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -674,17 +678,13 @@ Platform_destroy (void)
 typedef union _Platform_setup_Local {
     ProcMgr_Params          params;
     VAYUDSPPROC_Config      dspProcConfig;
-    VAYUIPUCORE1PROC_Config videoProcConfig;
-    VAYUIPUCORE0PROC_Config vpssProcConfig;
+    VAYUIPUCORE0PROC_Config ipuProcConfig;
     VAYUDSPPWR_Config       dspPwrConfig;
-    VAYUIPUPWR_Config       videoPwrConfig;
-    VAYUIPUPWR_Config       vpssPwrConfig;
+    VAYUIPUPWR_Config       ipuPwrConfig;
     VAYUDSPPROC_Params      dspProcParams;
-    VAYUIPUCORE1PROC_Params videoProcParams;
-    VAYUIPUCORE0PROC_Params vpssProcParams;
+    VAYUIPUCORE0PROC_Params ipuProcParams;
     VAYUDSPPWR_Params       dspPwrParams;
-    VAYUIPUPWR_Params       videoPwrParams;
-    VAYUIPUPWR_Params       vpssPwrParams;
+    VAYUIPUPWR_Params       ipuPwrParams;
     ElfLoader_Params        elfLoaderParams;
 } _Platform_setup_Local;
 
@@ -715,11 +715,11 @@ _Platform_setup (Ipc_Config * cfg)
     }
     if (status >= 0) {
         /* Get MultiProc ID by name. */
-        procId = MultiProc_getId ("IPU2");
+        procId = MultiProc_getId ("IPU1");
 
         handle = &Platform_objects [procId];
-        VAYUIPUCORE0PROC_getConfig (&lv->vpssProcConfig);
-        status = VAYUIPUCORE0PROC_setup (&lv->vpssProcConfig);
+        VAYUIPUCORE0PROC_getConfig (&lv->ipuProcConfig);
+        status = VAYUIPUCORE0PROC_setup (&lv->ipuProcConfig);
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -728,8 +728,8 @@ _Platform_setup (Ipc_Config * cfg)
                                  "VAYUIPUCORE0PROC_setup failed!");
         }
         else {
-            VAYUIPUPWR_getConfig (&lv->vpssPwrConfig);
-            status = VAYUIPUPWR_setup (&lv->vpssPwrConfig);
+            VAYUIPUPWR_getConfig (&lv->ipuPwrConfig);
+            status = VAYUIPUPWR_setup (&lv->ipuPwrConfig);
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -742,22 +742,22 @@ _Platform_setup (Ipc_Config * cfg)
         if (status >= 0) {
             /* Create an instance of the Processor object for
              * VAYUIPUCORE0 */
-            VAYUIPUCORE0PROC_Params_init (NULL, &lv->vpssProcParams);
-            handle->sHandles.ipu1.pHandle = VAYUIPUCORE0PROC_create (procId,
-                                                         &lv->vpssProcParams);
+            VAYUIPUCORE0PROC_Params_init (NULL, &lv->ipuProcParams);
+            handle->sHandles.ipu.pHandle = VAYUIPUCORE0PROC_create (procId,
+                                                         &lv->ipuProcParams);
 
             /* Create an instance of the ELF Loader object */
             ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
-            handle->sHandles.ipu1.ldrHandle = ElfLoader_create (procId,
+            handle->sHandles.ipu.ldrHandle = ElfLoader_create (procId,
                                                         &lv->elfLoaderParams);
 
             /* Create an instance of the PwrMgr object for VAYUIPUCORE0 */
-            VAYUIPUPWR_Params_init (&lv->vpssPwrParams);
-            handle->sHandles.ipu1.pwrHandle = VAYUIPUPWR_create (
+            VAYUIPUPWR_Params_init (&lv->ipuPwrParams);
+            handle->sHandles.ipu.pwrHandle = VAYUIPUPWR_create (
                                                            procId,
-                                                           &lv->vpssPwrParams);
+                                                           &lv->ipuPwrParams);
 
-            if (handle->sHandles.ipu1.pHandle == NULL) {
+            if (handle->sHandles.ipu.pHandle == NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -765,7 +765,7 @@ _Platform_setup (Ipc_Config * cfg)
                                      status,
                                      "VAYUIPUCORE0PROC_create failed!");
             }
-            else if (handle->sHandles.ipu1.ldrHandle ==  NULL) {
+            else if (handle->sHandles.ipu.ldrHandle ==  NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -773,7 +773,7 @@ _Platform_setup (Ipc_Config * cfg)
                                      status,
                                      "Failed to create loader instance!");
             }
-            else if (handle->sHandles.ipu1.pwrHandle ==  NULL) {
+            else if (handle->sHandles.ipu.pwrHandle ==  NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -784,9 +784,76 @@ _Platform_setup (Ipc_Config * cfg)
             else {
                 /* Initialize parameters */
                 ProcMgr_Params_init (NULL, &lv->params);
-                lv->params.procHandle = handle->sHandles.ipu1.pHandle;
-                lv->params.loaderHandle = handle->sHandles.ipu1.ldrHandle;
-                lv->params.pwrHandle = handle->sHandles.ipu1.pwrHandle;
+                lv->params.procHandle = handle->sHandles.ipu.pHandle;
+                lv->params.loaderHandle = handle->sHandles.ipu.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.ipu.pwrHandle;
+                handle->pmHandle = ProcMgr_create (procId, &lv->params);
+                if (handle->pmHandle == NULL) {
+                    status = Platform_E_FAIL;
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "_Platform_setup",
+                                         status,
+                                         "ProcMgr_create failed!");
+                }
+            }
+        }
+    }
+
+    if (status >= 0) {
+        /* Get MultiProc ID by name. */
+        procId = MultiProc_getId ("IPU2");
+
+        handle = &Platform_objects [procId];
+
+        if (status >= 0) {
+            /* Create an instance of the Processor object for
+             * VAYUIPUCORE0 */
+            VAYUIPUCORE0PROC_Params_init (NULL, &lv->ipuProcParams);
+            handle->sHandles.ipu.pHandle = VAYUIPUCORE0PROC_create (procId,
+                                                         &lv->ipuProcParams);
+
+            /* Create an instance of the ELF Loader object */
+            ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
+            handle->sHandles.ipu.ldrHandle = ElfLoader_create (procId,
+                                                        &lv->elfLoaderParams);
+
+            /* Create an instance of the PwrMgr object for VAYUIPUCORE0 */
+            VAYUIPUPWR_Params_init (&lv->ipuPwrParams);
+            handle->sHandles.ipu.pwrHandle = VAYUIPUPWR_create (
+                                                           procId,
+                                                           &lv->ipuPwrParams);
+
+            if (handle->sHandles.ipu.pHandle == NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUIPUCORE0PROC_create failed!");
+            }
+            else if (handle->sHandles.ipu.ldrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "Failed to create loader instance!");
+            }
+            else if (handle->sHandles.ipu.pwrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUIPUPWR_create failed!");
+            }
+            else {
+                /* Initialize parameters */
+                ProcMgr_Params_init (NULL, &lv->params);
+                lv->params.procHandle = handle->sHandles.ipu.pHandle;
+                lv->params.loaderHandle = handle->sHandles.ipu.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.ipu.pwrHandle;
                 handle->pmHandle = ProcMgr_create (procId, &lv->params);
                 if (handle->pmHandle == NULL) {
                     status = Platform_E_FAIL;
@@ -998,6 +1065,69 @@ _Platform_destroy (void)
     }
 
     /* ------------------------- IPU1 cleanup ------------------------------- */
+    handle = &Platform_objects [MultiProc_getId ("IPU1")];
+    if (handle->pmHandle != NULL) {
+        tmpStatus = ProcMgr_delete (&handle->pmHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "ProcMgr_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    /* Delete the Processor, Loader and PwrMgr instances */
+    if (handle->sHandles.ipu.pwrHandle != NULL) {
+        tmpStatus = VAYUIPUPWR_delete (&handle->sHandles.ipu.pwrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUIPUPWR_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.ipu.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.ipu.ldrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "Failed to delete loader instance!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.ipu.pHandle != NULL) {
+        tmpStatus = VAYUIPUCORE0PROC_delete (&handle->sHandles.ipu.pHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUIPUCORE0PROC_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    /* ------------------------- IPU2 cleanup ------------------------------- */
     handle = &Platform_objects [MultiProc_getId ("IPU2")];
     if (handle->pmHandle != NULL) {
         tmpStatus = ProcMgr_delete (&handle->pmHandle);
@@ -1015,8 +1145,8 @@ _Platform_destroy (void)
     }
 
     /* Delete the Processor, Loader and PwrMgr instances */
-    if (handle->sHandles.ipu1.pwrHandle != NULL) {
-        tmpStatus = VAYUIPUPWR_delete (&handle->sHandles.ipu1.pwrHandle);
+    if (handle->sHandles.ipu.pwrHandle != NULL) {
+        tmpStatus = VAYUIPUPWR_delete (&handle->sHandles.ipu.pwrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -1030,8 +1160,8 @@ _Platform_destroy (void)
         }
     }
 
-    if (handle->sHandles.ipu1.ldrHandle != NULL) {
-        tmpStatus = ElfLoader_delete (&handle->sHandles.ipu1.ldrHandle);
+    if (handle->sHandles.ipu.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.ipu.ldrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -1045,8 +1175,8 @@ _Platform_destroy (void)
         }
     }
 
-    if (handle->sHandles.ipu1.pHandle != NULL) {
-        tmpStatus = VAYUIPUCORE0PROC_delete (&handle->sHandles.ipu1.pHandle);
+    if (handle->sHandles.ipu.pHandle != NULL) {
+        tmpStatus = VAYUIPUCORE0PROC_delete (&handle->sHandles.ipu.pHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;

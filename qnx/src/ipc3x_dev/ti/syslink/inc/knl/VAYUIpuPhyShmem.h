@@ -12,7 +12,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -71,29 +71,27 @@ extern "C" {
  * =============================================================================
  */
 /*!
- *  @brief  Base addresses of PRCM module.
+ *  @brief  Base addresses and size of PRCM module.
  */
-#define PRCM_BASE_ADDR             0x4AE06700
-/*!
- *  @brief  Base addresses of different peripherals.
- */
+#define IPU1_PRCM_BASE_ADDR             0x4AE06300
+#define IPU2_PRCM_BASE_ADDR             0x4AE06700
 
 #define PRCM_SIZE                  0x00002000
 
 /*!
- *  @brief  Base addresses of PRCM module.
+ *  @brief  Base addresses and size of control module.
  */
-#define CM_BASE_ADDR               0x4A008700
-/*!
- *  @brief  Base addresses of different peripherals.
- */
+#define IPU1_CM_BASE_ADDR          0x4A005300
+#define IPU2_CM_BASE_ADDR          0x4A008700
 
 #define CM_SIZE                    0x00002000
 
-#define MMU_BASE                   0x55082000
 /*!
- *  @brief  size to be ioremapped.
+ *  @brief  Base addresses and size of MMU registers.
  */
+#define IPU1_MMU_BASE              0x58882000
+#define IPU2_MMU_BASE              0x55082000
+
 #define MMU_SIZE                   0x1000
 
 /*!
