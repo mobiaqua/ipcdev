@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -70,9 +70,11 @@ extern "C" {
 
 #define TRACE_BUFFER_SIZE               0x8000
 
-#define TIMEOUT_SECS                    1
+/* Default polling interval */
+#define TIMEOUT_USECS                   500000
 
 static char traceBuffer[TRACE_BUFFER_SIZE];
+static useconds_t timeout = TIMEOUT_USECS;
 
 static FILE *log;
 sem_t        semPrint; /* Semaphore to allow only one thread to print at once */
@@ -115,7 +117,7 @@ void printTraces (void *arg)
             perror ("\nError reading from ipc-trace");
             break;
         }
-        sleep (TIMEOUT_SECS);
+        usleep(timeout);
     } while(1);
 
     close(fd);
@@ -128,10 +130,12 @@ EXIT:
 /** print usage and exit */
 static void printUsageExit (char * app)
 {
-    printf ("%s: [-h] [-l logfile] [-f]\n", app);
+    printf ("%s: [-h] [-l logfile] [-f] [-t interval]\n", app);
     printf ("  -h   show this help message\n");
     printf ("  -l   select file to log to (default stdout)\n");
     printf ("  -f   run in foreground (do not fork daemon process)\n");
+    printf ("  -t   polling interval in microseconds (default %d)\n",
+        TIMEOUT_USECS);
 
     exit (EXIT_SUCCESS);
 }
@@ -142,19 +146,48 @@ int main (int argc, char * argv [])
     char      * log_file    = NULL;
     bool        daemon      = true;
     int         i;
-    struct stat          sbuf;
+    struct stat sbuf;
     char        names[MultiProc_MAXPROCESSORS][_POSIX_PATH_MAX];
+    int         c;
 
     /* parse cmd-line args */
-    for (i = 1; i < argc; i++) {
-        if (!strcmp ("-l", argv[i])) {
-            if (++i >= argc)
+    while (1) {
+        c = getopt(argc, argv, "l:fht:");
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+            case 'l':
+                log_file = optarg;
+                break;
+
+            case 'f':
+                daemon = false;
+                break;
+
+            case 'h':
                 printUsageExit (argv[0]);
-            log_file = argv[i];
-        } else if (!strcmp ("-f", argv[i])) {
-            daemon = false;
-        } else if (!strcmp ("-h", argv[i])) {
-            printUsageExit (argv[0]);
+                break;
+
+            case 't':
+                timeout = atoi(optarg);
+                printf("Using polling interval of %d us\n", timeout);
+                break;
+
+            default:
+                fprintf (stderr, "Unrecognized argument\n");
+        }
+    }
+
+    if (!log_file) {
+        log = stdout;
+    }
+    else {
+        log = fopen (log_file, "a+");
+        if (log == NULL) {
+            printf("Bad filename specified for log file\n");
+            printUsageExit(argv[0]);
         }
     }
 
@@ -163,12 +196,6 @@ int main (int argc, char * argv [])
     /* background the process, if requested */
     if (daemon) {
         procmgr_daemon(0, PROCMGR_DAEMON_NOCLOSE|PROCMGR_DAEMON_NODEVNULL);
-    }
-
-    if (!log_file) {
-        log = stdout;
-    } else {
-        log = fopen (log_file, "a+");
     }
 
     sem_init(&semPrint, 0, 1);
