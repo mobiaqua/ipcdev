@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== InterruptDsp.c ========
  *  Mailbox based interrupt manager
@@ -36,10 +37,9 @@
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Startup.h>
-#include <xdc/runtime/System.h>
 
-#include <ti/sysbios/family/c64p/Hwi.h>
 #include <ti/sysbios/family/c64p/EventCombiner.h>
+#include <ti/sysbios/family/c64p/Hwi.h>
 #include <ti/sysbios/family/shared/vayu/IntXbar.h>
 
 #include <ti/sdo/ipc/_Ipc.h>
@@ -242,7 +242,7 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
 
     index = PROCID(remoteProcId);
 
-    /* Disable the mailbox interrupt source */
+    /* disable the mailbox interrupt source */
     InterruptDsp_intDisable(remoteProcId, intInfo);
 
     /* unplug isr and unprogram the event dispatcher */

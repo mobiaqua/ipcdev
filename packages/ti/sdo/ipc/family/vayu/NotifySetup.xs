@@ -32,21 +32,40 @@
 
 /*
  *  ======== NotifySetup.xs ========
- *
  */
 var MultiProc = null;
+var Core = null;
+var isaChain = "";
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
-
     /* load modules needed in meta domain and in target domain */
+    var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
     MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
-
     xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule('xdc.runtime.Error');
+    xdc.useModule('xdc.runtime.Startup');
+
+    /* concatinate isa chain into single string for easier matching */
+    isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";
+
+    if (isaChain.match(/#64P#/)) {
+        xdc.useModule('ti.sysbios.family.c64p.EventCombiner');
+        xdc.useModule('ti.sysbios.family.c64p.Hwi');
+        xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
+    }
+    else if (isaChain.match(/#arp32#/)) {
+        xdc.useModule('ti.sysbios.family.arp32.Hwi');
+    }
+    else if (isaChain.match(/#v7M#/)) {
+        Core = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+    }
+
+    xdc.useModule('ti.sdo.ipc.Ipc');
+    xdc.useModule('ti.sdo.ipc.Notify');
 
     /* initialize procIdTable */
     TableInit.initProcId(this);
@@ -54,23 +73,60 @@ function module$use()
     /* initialize mailboxTable */
     TableInit.generateTable(this);
 
-    /* Initialize mailbox base address table */
-    this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
-    this.mailboxBaseAddr[1]  = 0x4208C000;  /* EVE1 Internal Mailbox 1 */
-    this.mailboxBaseAddr[2]  = 0x4208D000;  /* EVE1 Internal Mailbox 2 */
-    this.mailboxBaseAddr[3]  = 0x4218B000;  /* EVE2 Internal Mailbox 0 */
-    this.mailboxBaseAddr[4]  = 0x4218C000;  /* EVE2 Internal Mailbox 1 */
-    this.mailboxBaseAddr[5]  = 0x4218D000;  /* EVE2 Internal Mailbox 2 */
-    this.mailboxBaseAddr[6]  = 0x4228B000;  /* EVE3 Internal Mailbox 0 */
-    this.mailboxBaseAddr[7]  = 0x4228C000;  /* EVE3 Internal Mailbox 1 */
-    this.mailboxBaseAddr[8]  = 0x4228D000;  /* EVE3 Internal Mailbox 2 */
-    this.mailboxBaseAddr[9]  = 0x4238B000;  /* EVE4 Internal Mailbox 0 */
-    this.mailboxBaseAddr[10] = 0x4238C000;  /* EVE4 Internal Mailbox 1 */
-    this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
-    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
-    this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
-    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
-    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
+    if (isaChain.match(/#64P#|#v7M#|#v7A#/)) {
+        /* initialize mailbox base address table */
+        this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
+        this.mailboxBaseAddr[1]  = 0x4208C000;  /* EVE1 Internal Mailbox 1 */
+        this.mailboxBaseAddr[2]  = 0x4208D000;  /* EVE1 Internal Mailbox 2 */
+        this.mailboxBaseAddr[3]  = 0x4218B000;  /* EVE2 Internal Mailbox 0 */
+        this.mailboxBaseAddr[4]  = 0x4218C000;  /* EVE2 Internal Mailbox 1 */
+        this.mailboxBaseAddr[5]  = 0x4218D000;  /* EVE2 Internal Mailbox 2 */
+        this.mailboxBaseAddr[6]  = 0x4228B000;  /* EVE3 Internal Mailbox 0 */
+        this.mailboxBaseAddr[7]  = 0x4228C000;  /* EVE3 Internal Mailbox 1 */
+        this.mailboxBaseAddr[8]  = 0x4228D000;  /* EVE3 Internal Mailbox 2 */
+        this.mailboxBaseAddr[9]  = 0x4238B000;  /* EVE4 Internal Mailbox 0 */
+        this.mailboxBaseAddr[10] = 0x4238C000;  /* EVE4 Internal Mailbox 1 */
+        this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
+        this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
+        this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
+        this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+        this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
+    }
+    else if (isaChain.match(/#arp32#/)) {
+        this.mailboxBaseAddr[0]  = 0x4008B000;  /* EVE1 Internal Mailbox 0 */
+        this.mailboxBaseAddr[1]  = 0x4008C000;  /* EVE1 Internal Mailbox 1 */
+        this.mailboxBaseAddr[2]  = 0x4208D000;  /* EVE1 Internal Mailbox 2 */
+        this.mailboxBaseAddr[3]  = 0x4008B000;  /* EVE2 Internal Mailbox 0 */
+        this.mailboxBaseAddr[4]  = 0x4008C000;  /* EVE2 Internal Mailbox 1 */
+        this.mailboxBaseAddr[5]  = 0x4218D000;  /* EVE2 Internal Mailbox 2 */
+        this.mailboxBaseAddr[6]  = 0x4008B000;  /* EVE3 Internal Mailbox 0 */
+        this.mailboxBaseAddr[7]  = 0x4008C000;  /* EVE3 Internal Mailbox 1 */
+        this.mailboxBaseAddr[8]  = 0x4228D000;  /* EVE3 Internal Mailbox 2 */
+        this.mailboxBaseAddr[9]  = 0x4008B000;  /* EVE4 Internal Mailbox 0 */
+        this.mailboxBaseAddr[10] = 0x4008C000;  /* EVE4 Internal Mailbox 1 */
+        this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
+        this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
+        this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
+        this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+        this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
+
+        /* each EVE receives its message using the local mailbox address */
+        if (MultiProc.id == this.eve1ProcId) {
+            this.mailboxBaseAddr[2] = 0x4008D000;
+        }
+        else if (MultiProc.id == this.eve2ProcId) {
+            this.mailboxBaseAddr[5] = 0x4008D000;
+        }
+        else if (MultiProc.id == this.eve3ProcId) {
+            this.mailboxBaseAddr[8] = 0x4008D000;
+        }
+        else if (MultiProc.id == this.eve4ProcId) {
+            this.mailboxBaseAddr[11] = 0x4008D000;
+        }
+    }
+    else {
+        throw("Invalid target: " + Program.build.target.$name);
+    }
 
     /* determine which notify drivers to include */
     this.$private.driverMask = 0;
@@ -107,8 +163,6 @@ function module$static$init(state, mod)
 {
     var procId;
 
-    state.numPlugged = 0;
-
     /* Initialize the state connAry from the config params. Translate
      * processor names into IDs for better runtime performance.
      */
@@ -120,27 +174,9 @@ function module$static$init(state, mod)
         state.connAry[i].driver = mod.connections[i].driver;
     }
 
-    /* finish initializing the interrupt table */
-    if (Program.build.target.isa == "v7M4") {
-//      TODO
-//      if (Core.id == 0) {
-//          Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
-//      }
-//      else {
-//          Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
-//      }
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
-        }
-    }
-    else if (Program.build.target.isa == "arp32") {
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
-        }
-    }
-    else if (Program.build.target.isa == "66") {
+    if (isaChain.match(/#64P#/)) {
+        state.numPlugged.length = 1;
+
         /* interrupt event IDs used by this processor */
         state.interruptTable[0] = 55; /* EVE1 -> DSP1 or DSP2 */
         state.interruptTable[1] = 56; /* EVE2 -> DSP1 or DSP2 */
@@ -156,7 +192,41 @@ function module$static$init(state, mod)
         state.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
         state.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
     }
-    else if (Program.build.target.isa == "v7A15") {
+    else if (isaChain.match(/#arp32#/)) {
+        state.numPlugged.length = this.NUM_EVE_MBX / this.NUM_EVES;
+
+        /* interrupt event IDs used by this processor */
+        state.interruptTable[0] = 60; /* EVE1 - Group1/INTC1 */
+        state.interruptTable[1] = 60; /* EVE2 - Group1/INTC1 */
+        state.interruptTable[2] = 60; /* EVE3 - Group1/INTC1 */
+        state.interruptTable[3] = 60; /* EVE4 - Group1/INTC1 */
+        state.interruptTable[4] = 29; /* DSP1 - Group0/INTC0 */
+        state.interruptTable[5] = 30; /* DSP2 - Group0/INTC0 */
+        state.interruptTable[6] = 29; /* IPU1-0 */
+        state.interruptTable[7] = 30; /* IPU2-0 */
+        state.interruptTable[8] = 29; /* HOST */
+        state.interruptTable[9] = 30; /* IPU1-1 */
+        state.interruptTable[10] = 30; /* IPU2-1 */
+    }
+    else if (isaChain.match(/#v7M#/)) {
+        state.numPlugged.length = 1;
+
+        /* TODO */
+//      if (Core.id == 0) {
+//          Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
+//      }
+//      else {
+//          Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
+//      }
+
+        /* interrupt event IDs used by this processor */
+        for (var i = 0; i < state.interruptTable.length; i++) {
+            state.interruptTable[i] = 0xFFFF; /* TODO */
+        }
+    }
+    else if (isaChain.match(/#v7A#/)) {
+        state.numPlugged.length = 1;
+
         /* interrupt event IDs used by this processor */
         for (var i = 0; i < state.interruptTable.length; i++) {
             state.interruptTable[i] = 0xFFFF; /* TODO */
