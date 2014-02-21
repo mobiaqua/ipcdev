@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== HeapMemMP.c ========
  */
@@ -866,6 +867,11 @@ Void ti_sdo_ipc_heaps_HeapMemMP_free(ti_sdo_ipc_heaps_HeapMemMP_Object *obj,
          */
         Cache_wbInv(newHeader, sizeof(ti_sdo_ipc_heaps_HeapMemMP_Header),
              Cache_Type_ALL, TRUE);  /* B2 */
+       /*
+        *  Invalidate entire buffer being freed to ensure that stale cache
+        *  data in block isn't evicted later
+        */
+        Cache_inv(newHeader, size, Cache_Type_ALL, TRUE);  /* B2 */
     }
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
