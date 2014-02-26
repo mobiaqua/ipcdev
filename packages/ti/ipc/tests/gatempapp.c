@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -184,8 +184,6 @@ Int Server_exec()
     /* translate the physical address to slave virtual addr */
     intPtr = (volatile UInt32 *)(physAddr - PHYSICAL_OFFSET + VIRTUAL_OFFSET);
 
-    /* process the message */
-    //Log_print1(Diags_INFO, "Server_exec: processed cmd=0x%x", msg->cmd);
     /* send message back */
     queId = MessageQ_getReplyQueue(msg); /* type-cast not needed */
     msg->cmd = GATEMPAPP_CMD_SPTR_ADDR_ACK;
@@ -294,9 +292,11 @@ Int Server_exec()
     }
 
 leave:
+    /* close host GateMP */
     if (Module.hostGateMPHandle) {
         GateMP_close(&Module.hostGateMPHandle);
     }
+    Log_print0(Diags_ENTRY, "Server_exec: host GateMP closed");
 
     Log_print1(Diags_EXIT, "<-- Server_exec: %d", (IArg)status);
     return(status);
@@ -325,10 +325,6 @@ Int Server_delete()
         status = GATEMPAPP_E_UNEXPECTEDMSG;
         goto leave;
     }
-
-    /* close host GateMP */
-    GateMP_close(&Module.hostGateMPHandle);
-    Log_print0(Diags_ENTRY, "Server_delete: host GateMP closed");
 
     /* send message back to say that GateMP has been cleaned up */
     queId = MessageQ_getReplyQueue(msg); /* type-cast not needed */
