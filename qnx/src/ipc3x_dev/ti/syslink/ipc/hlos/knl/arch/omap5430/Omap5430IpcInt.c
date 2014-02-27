@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -1227,9 +1227,8 @@ Omap5430IpcInt_clearInterrupt (UInt16 mboxNum)
         /* Clear the IRQ status.
          * If there are more in the mailbox FIFO, it will re-assert.
          */
-        SET_BIT(REG((Omap5430IpcInt_state.mailboxBase
-                    + MAILBOX_IRQSTATUS_CLEAR_OFFSET)),
-                    (mboxNum<<1));
+        REG32(Omap5430IpcInt_state.mailboxBase
+            + MAILBOX_IRQSTATUS_CLEAR_OFFSET) = 0x1 << (mboxNum << 1);
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {

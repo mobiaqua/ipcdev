@@ -1267,9 +1267,8 @@ VAYUIpcInt_clearInterrupt (UInt16 procId, UInt16 mboxNum)
         /* Clear the IRQ status.
          * If there are more in the mailbox FIFO, it will re-assert.
          */
-        SET_BIT(REG(mailboxBase + MAILBOX_IRQSTATUS_CLEAR_OFFSET + \
-                    (0x10 * VAYU_HOST_USER_ID)),
-                    (mboxNum<<1));
+        REG32(mailboxBase + MAILBOX_IRQSTATUS_CLEAR_OFFSET + \
+                (0x10 * VAYU_HOST_USER_ID)) = 0x1 << (mboxNum << 1);
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {
