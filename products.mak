@@ -32,12 +32,12 @@
 #
 
 # Note that these variables can be explicitly set here or on the command line.
-# The ?= assignment used through gives the command line precedence over
-# settings in this file.
+# If you want to use variables in the environment, see the GNU make manual's
+# -e option:  http://www.gnu.org/software/make/manual/make.html#Environment
 
 # Optional: recommended to install all dependent components in one folder.
 #
-DEPOT ?= _your_depot_folder_
+DEPOT = _your_depot_folder_
 
 # Platform to build for
 #   Supported platforms (choose one):
@@ -45,46 +45,46 @@ DEPOT ?= _your_depot_folder_
 #
 # Note, this is used for Linux, QNX and BIOS builds
 #
-PLATFORM ?=
+PLATFORM =
 
 
 #################### IPC Linux ####################
 
 # Set up required cross compiler path for IPC Linux configuration and build
 #
-TOOLCHAIN_LONGNAME ?= arm-none-linux-gnueabi
-TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
-TOOLCHAIN_PREFIX ?= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
+TOOLCHAIN_LONGNAME = arm-none-linux-gnueabi
+TOOLCHAIN_INSTALL_DIR = $(DEPOT)/_your_arm_code_gen_install_
+TOOLCHAIN_PREFIX = $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
 
 # Path to Linux Kernel - needed to build the IPC user libraries
 #
-KERNEL_INSTALL_DIR ?=
+KERNEL_INSTALL_DIR =
 
 # Optional: Path to DRM Library
 #
-DRM_PREFIX ?=
+DRM_PREFIX =
 
 # Optional: Path to TI Linux Utils product
 #
-CMEM_INSTALL_DIR ?=
+CMEM_INSTALL_DIR =
 
 
 #################### IPC QNX ####################
 
 # Path to QNX tools installation
 #
-QNX_INSTALL_DIR ?=
+QNX_INSTALL_DIR =
 
 # Destination for target binaries
 #
-DESTDIR ?=
+DESTDIR =
 
 #################### IPC Bios ####################
 
 # Path to required dependencies for IPC BIOS builds
 #
-XDC_INSTALL_DIR ?= $(DEPOT)/_your_xdctools_install_
-BIOS_INSTALL_DIR ?= $(DEPOT)/_your_bios_install_
+XDC_INSTALL_DIR = $(DEPOT)/_your_xdctools_install_
+BIOS_INSTALL_DIR = $(DEPOT)/_your_bios_install_
 
 # Do you want to build SMP-enabled libraries (if supported for your target)?
 # Set to either 0 (disabled) or 1 (enabled)
@@ -93,25 +93,25 @@ BIOS_SMPENABLED=1
 
 # Path to various cgtools
 #
-ti.targets.C28_large ?=
-ti.targets.C28_float ?=
+ti.targets.C28_large =
+ti.targets.C28_float =
 
-ti.targets.elf.C64P ?=
-ti.targets.elf.C64P_big_endian ?=
-ti.targets.elf.C64T ?=
-ti.targets.elf.C66 ?=
-ti.targets.elf.C66_big_endian ?=
-ti.targets.elf.C674 ?=
+ti.targets.elf.C64P =
+ti.targets.elf.C64P_big_endian =
+ti.targets.elf.C64T =
+ti.targets.elf.C66 =
+ti.targets.elf.C66_big_endian =
+ti.targets.elf.C674 =
 
-ti.targets.arm.elf.Arm9 ?=
-ti.targets.arm.elf.A8F ?=
-ti.targets.arm.elf.A8Fnv ?=
-ti.targets.arm.elf.M3 ?=
-ti.targets.arm.elf.M4 ?=
-ti.targets.arm.elf.M4F ?=
+ti.targets.arm.elf.Arm9 =
+ti.targets.arm.elf.A8F =
+ti.targets.arm.elf.A8Fnv =
+ti.targets.arm.elf.M3 =
+ti.targets.arm.elf.M4 =
+ti.targets.arm.elf.M4F =
 
-ti.targets.arp32.elf.ARP32 ?=
-ti.targets.arp32.elf.ARP32_far ?=
+ti.targets.arp32.elf.ARP32 =
+ti.targets.arp32.elf.ARP32_far =
 
-gnu.targets.arm.A8F ?=
-gnu.targets.arm.A15F ?=
+gnu.targets.arm.A8F =
+gnu.targets.arm.A15F =
