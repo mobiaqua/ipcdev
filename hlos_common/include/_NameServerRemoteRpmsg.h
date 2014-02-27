@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
 #define MAXVALUELEN   75
 
-#define NAMESERVER_GET_TIMEOUT  20000 /* microseconds */
+#define NAMESERVER_GET_TIMEOUT  40000 /* microseconds */
 
 #define NAMESERVER_MSG_TOKEN   0x5678abcd
 
