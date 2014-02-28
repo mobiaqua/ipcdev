@@ -38,33 +38,15 @@
 #include <xdc/runtime/Error.h>
 #include <xdc/runtime/Startup.h>
 
-#include <ti/sdo/ipc/Ipc.h>
 #include <ti/sdo/ipc/_Notify.h>
+#include <ti/sdo/ipc/Ipc.h>
 #include <ti/sdo/ipc/family/vayu/NotifyDriverMbx.h>
 #include <ti/sdo/ipc/notifyDrivers/NotifyDriverShm.h>
 #include <ti/sdo/utils/_MultiProc.h>
 
-#if defined(xdc_target__isaCompatible_64P)
-
 #include <ti/sysbios/family/c64p/EventCombiner.h>
 #include <ti/sysbios/family/c64p/Hwi.h>
 #include <ti/sysbios/family/shared/vayu/IntXbar.h>
-
-#elif defined(xdc_target__isaCompatible_arp32)
-
-#include <ti/sysbios/family/arp32/Hwi.h>
-
-#elif defined(xdc_target__isaCompatible_v7M)
-
-#include <ti/sysbios/family/arm/m3/Hwi.h>
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-#include <ti/sysbios/family/arm/gic/Hwi.h>
-
-#else
-#error Invalid target
-#endif
 
 #include "package/internal/NotifySetup.xdc.h"
 
@@ -113,7 +95,7 @@
  */
 Int NotifySetup_Module_startup(Int phase)
 {
-#if defined(xdc_target__isaCompatible_64P)
+#if defined(xdc_target__isa_66)
 
     extern cregister volatile UInt DNUM;
 
@@ -165,17 +147,17 @@ Int NotifySetup_Module_startup(Int phase)
 
     return (Startup_NOTDONE);
 
-#elif defined(xdc_target__isaCompatible_arp32)
-
-    /* nothing to do on this processor */
-    return (Startup_DONE);
-
-#elif defined(xdc_target__isaCompatible_v7M)
+#elif defined(xdc_target__isa_arp32)
 
     /* TODO */
     return (Startup_DONE);
 
-#elif defined(xdc_target__isaCompatible_v7A)
+#elif defined(xdc_target__isa_v7M4)
+
+    /* TODO */
+    return (Startup_DONE);
+
+#elif defined(xdc_target__isa_v7A15)
 
     /* TODO */
     return (Startup_DONE);
@@ -237,18 +219,11 @@ NotifySetup_Driver NotifySetup_driverType(UInt16 remoteProcId)
 Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
         NotifySetup_DriverIsr isr)
 {
-    Error_Block eb;
     UInt        key;
     Hwi_Params  hwiParams;
     UInt16      virtId;
     Int         eventId;
-#if defined(xdc_target__isaCompatible_64P)
     UInt        combinedEventId;
-#elif defined(xdc_target__isaCompatible_arp32)
-    UInt        mbxIdx;
-#endif
-
-    Error_init(&eb);
 
     /* disable global interrupts (TODO: should be a gated module) */
     key = Hwi_disable();
@@ -259,16 +234,14 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     /* save driver isr in dispatch table */
     NotifySetup_module->isrDispatchTable[virtId] = isr;
 
-#if defined(xdc_target__isaCompatible_64P)
-
     /* program the event dispatcher */
     eventId = NotifySetup_module->interruptTable[virtId];
     EventCombiner_dispatchPlug(eventId, NotifySetup_dispatchIsr, eventId, TRUE);
 
     /* make sure the interrupt is plugged only once */
-    NotifySetup_module->numPlugged[0]++;
+    NotifySetup_module->numPlugged++;
 
-    if (NotifySetup_module->numPlugged[0] == 1) {
+    if (NotifySetup_module->numPlugged == 1) {
         combinedEventId = eventId / EVENT_GROUP_SIZE;
 
         Hwi_Params_init(&hwiParams);
@@ -278,58 +251,10 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 
         Hwi_create(cpuIntrNum,
                 &ti_sysbios_family_c64p_EventCombiner_dispatch,
-                &hwiParams, &eb);
-        /* TODO: add error handling */
+                &hwiParams, NULL);
 
         Hwi_enableInterrupt(cpuIntrNum);
     }
-
-#elif defined(xdc_target__isaCompatible_arp32)
-
-    if ((remoteProcId == NotifySetup_dsp1ProcId) ||
-        (remoteProcId == NotifySetup_ipu1_0ProcId) ||
-        (remoteProcId == NotifySetup_hostProcId)) {
-
-        mbxIdx = 0;
-    }
-    else if ((remoteProcId == NotifySetup_dsp2ProcId) ||
-        (remoteProcId == NotifySetup_ipu2_0ProcId) ||
-        (remoteProcId == NotifySetup_ipu1_1ProcId) ||
-        (remoteProcId == NotifySetup_ipu2_1ProcId)) {
-
-        mbxIdx = 1;
-    }
-    else {
-        mbxIdx = 2; /* remote processor must be EVEx */
-    }
-
-    /* make sure the interrupt is plugged only once */
-    NotifySetup_module->numPlugged[mbxIdx]++;
-
-    if (NotifySetup_module->numPlugged[mbxIdx] == 1) {
-        eventId = NotifySetup_module->interruptTable[virtId];
-
-        Hwi_Params_init(&hwiParams);
-        hwiParams.arg = eventId;
-        hwiParams.vectorNum = cpuIntrNum;
-
-        Hwi_create(eventId, NotifySetup_dispatchIsr, &hwiParams, &eb);
-        /* TODO: add error handling */
-
-        Hwi_enableInterrupt(NotifySetup_module->interruptTable[virtId]);
-    }
-
-#elif defined(xdc_target__isaCompatible_v7M)
-
-    /* TODO */
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-
-#else
-#error Invalid target
-#endif
 
     /* restore global interrupts */
     Hwi_restore(key);
@@ -342,23 +267,17 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
 {
     UInt        key;
     Hwi_Handle  hwi;
-#if defined(xdc_target__isaCompatible_64P)
     UInt16      virtId;
     Int         eventId;
-#elif defined(xdc_target__isaCompatible_arp32)
-    UInt        mbxIdx;
-#endif
 
     /* disable global interrupts (TODO: should be a gated module) */
     key = Hwi_disable();
 
-#if defined(xdc_target__isaCompatible_64P)
-
     /* unplug interrupt if last user */
-    NotifySetup_module->numPlugged[0]--;
+    NotifySetup_module->numPlugged--;
 
-    if (NotifySetup_module->numPlugged[0] == 0) {
-        hwi = Hwi_getHandle(cpuIntrNum);
+    if (NotifySetup_module->numPlugged == 0) {
+        hwi= Hwi_getHandle(cpuIntrNum);
         Hwi_delete(&hwi);
     }
 
@@ -366,45 +285,6 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
     virtId = VIRTID(remoteProcId);
     eventId = NotifySetup_module->interruptTable[virtId];
     EventCombiner_disableEvent(eventId);
-
-#elif defined(xdc_target__isaCompatible_arp32)
-
-    if ((remoteProcId == NotifySetup_dsp1ProcId) ||
-        (remoteProcId == NotifySetup_ipu1_0ProcId) ||
-        (remoteProcId == NotifySetup_hostProcId)) {
-
-        mbxIdx = 0;
-    }
-    else if ((remoteProcId == NotifySetup_dsp2ProcId) ||
-        (remoteProcId == NotifySetup_ipu2_0ProcId) ||
-        (remoteProcId == NotifySetup_ipu1_1ProcId) ||
-        (remoteProcId == NotifySetup_ipu2_1ProcId)) {
-
-        mbxIdx = 1;
-    }
-    else {
-        mbxIdx = 2; /* remote processor must be EVEx */
-    }
-
-    /* unplug interrupt if last user */
-    NotifySetup_module->numPlugged[mbxIdx]--;
-
-    if (NotifySetup_module->numPlugged[0] == 0) {
-        hwi = Hwi_getHandle(cpuIntrNum);
-        Hwi_delete(&hwi);
-    }
-
-#elif defined(xdc_target__isaCompatible_v7M)
-
-    /* TODO */
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-
-#else
-#error Invalid target
-#endif
 
     /* restore global interrupts */
     Hwi_restore(key);

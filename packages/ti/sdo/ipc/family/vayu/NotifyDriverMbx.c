@@ -33,6 +33,7 @@
 /*
  *  ======== NotifyDriverMbx.c ========
  */
+
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Startup.h>
@@ -114,8 +115,7 @@
  */
 Int NotifyDriverMbx_Module_startup(Int phase)
 {
-#if defined(xdc_target__isaCompatible_64P)
-
+#if defined(xdc_target__isaCompatible_64)
     extern cregister volatile UInt DNUM;
 
     if (IntXbar_Module_startupDone()) {
@@ -180,27 +180,12 @@ Int NotifyDriverMbx_Module_startup(Int phase)
         }
         return (Startup_DONE);
     }
-
-    return (Startup_NOTDONE);
-
-#elif defined(xdc_target__isaCompatible_arp32)
-
-    /* nothing to do on this processor */
-    return (Startup_DONE);
-
 #elif defined(xdc_target__isaCompatible_v7M)
 
-    /* TODO */
-    return (Startup_DONE);
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-    return (Startup_DONE);
-
 #else
-#error Invalid target
+
 #endif
+    return (Startup_NOTDONE);
 }
 
 /*
@@ -219,11 +204,14 @@ Void NotifyDriverMbx_Instance_init(NotifyDriverMbx_Object *obj,
     UInt16      selfVirtId;
     UInt16      index;
 
+    /*
+     * Check whether remote proc ID has been set and isn't the same as the
+     * local proc ID
+     */
     Assert_isTrue((params->remoteProcId != MultiProc_INVALIDID) &&
             (params->remoteProcId != MultiProc_self()),
             ti_sdo_ipc_Ipc_A_invParam);
 
-    /* TODO: this check is weak */
     if (params->remoteProcId >= MultiProc_getNumProcessors() ||
         params->remoteProcId == MultiProc_INVALIDID) {
         return;    /* keep Coverity happy */
@@ -241,7 +229,7 @@ Void NotifyDriverMbx_Instance_init(NotifyDriverMbx_Object *obj,
     /* clear mailbox of any old messages */
     selfVirtId = PROCID(MultiProc_self());
     index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
-    MAILBOX_INIT(index);
+    MAILBOX_INIT(index)
 
     /* must use processor virtual ID to store driver handle in table */
     NotifyDriverMbx_module->drvHandles[obj->remoteVirtId] = obj;
@@ -253,7 +241,7 @@ Void NotifyDriverMbx_Instance_init(NotifyDriverMbx_Object *obj,
     /* enable the mailbox interrupt from the remote core */
     NotifyDriverMbx_enable(obj);
 
-    /* restore global interrupts */
+    /* Restore global interrupts */
     Hwi_restore(key);
 }
 
@@ -370,51 +358,53 @@ Int NotifyDriverMbx_sendEvent(NotifyDriverMbx_Object *obj, UInt32 eventId,
         numMsgs = 2;
     }
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
-
+#if defined(xdc_target__isaCompatible_64)
     index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
     PUT_NOTIFICATION(index);
 
 #elif defined(xdc_target__isaCompatible_v7M)
 
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          PUT_NOTIFICATION(VPSS_TO_DSP)
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          PUT_NOTIFICATION(VPSS_TO_HOST)
-//      }
-//      else {
-//          PUT_NOTIFICATION(VPSS_TO_VIDEO)
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          PUT_NOTIFICATION(VIDEO_TO_DSP)
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          PUT_NOTIFICATION(VIDEO_TO_HOST)
-//      }
-//      else {
-//          PUT_NOTIFICATION(VIDEO_TO_VPSS)
-//      }
-//  }
+#if 0
+    if (!(BIOS_smpEnabled) && (Core_getId())) {
+        if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            PUT_NOTIFICATION(VPSS_TO_DSP)
+        }
+        else if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            PUT_NOTIFICATION(VPSS_TO_HOST)
+        }
+        else {
+            PUT_NOTIFICATION(VPSS_TO_VIDEO)
+        }
+    }
+    else {
+        if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            PUT_NOTIFICATION(VIDEO_TO_DSP)
+        }
+        else if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            PUT_NOTIFICATION(VIDEO_TO_HOST)
+        }
+        else {
+            PUT_NOTIFICATION(VIDEO_TO_VPSS)
+        }
+    }
 
-#elif defined(xdc_target__isaCompatible_v7A)
-
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      PUT_NOTIFICATION(HOST_TO_DSP)
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      PUT_NOTIFICATION(HOST_TO_VIDEO)
-//  }
-//  else {
-//      PUT_NOTIFICATION(HOST_TO_VPSS)
-//  }
+#endif
 
 #else
-#error Invalid target
+
+#if 0
+    if (remoteProcId == NotifyDriverMbx_dspProcId) {
+        PUT_NOTIFICATION(HOST_TO_DSP)
+    }
+    else if (remoteProcId == NotifyDriverMbx_videoProcId) {
+        PUT_NOTIFICATION(HOST_TO_VIDEO)
+    }
+    else {
+        PUT_NOTIFICATION(HOST_TO_VPSS)
+    }
+
+#endif
+
 #endif
 
     return (Notify_S_SUCCESS);
@@ -428,51 +418,51 @@ Void NotifyDriverMbx_disable(NotifyDriverMbx_Object *obj)
     UInt16 selfVirtId = PROCID(MultiProc_self());
     UInt16 index;
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
-
+#if defined(xdc_target__isaCompatible_64)
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
 #elif defined(xdc_target__isaCompatible_v7M)
 
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
-//      }
-//  }
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
-//  }
-//  else {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
-//  }
+#if 0
+    if (!(BIOS_smpEnabled) && (Core_getId())) {
+        if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
+        }
+        else if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
+        }
+        else {
+            REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
+        }
+    }
+    else {
+        if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
+        }
+        else if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
+        }
+        else {
+            REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
+        }
+    }
+#endif
 
 #else
-#error Invalid target
+
+#if 0
+    if (remoteProcId == NotifyDriverMbx_dspProcId) {
+        REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
+    }
+    else if (remoteProcId == NotifyDriverMbx_videoProcId) {
+        REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
+    }
+    else {
+        REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
+    }
+#endif
+
 #endif
 }
 
@@ -484,51 +474,51 @@ Void NotifyDriverMbx_enable(NotifyDriverMbx_Object *obj)
     UInt16 selfVirtId = PROCID(MultiProc_self());
     UInt16 index;
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
-
+#if defined(xdc_target__isaCompatible_64)
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
 #elif defined(xdc_target__isaCompatible_v7M)
 
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
-//      }
-//  }
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
-//  }
-//  else {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
-//  }
+#if 0
+    if (!(BIOS_smpEnabled) && (Core_getId())) {
+        if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
+        }
+        else if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
+        }
+        else {
+            REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
+        }
+    }
+    else {
+        if (remoteProcId == NotifyDriverMbx_hostProcId) {
+            REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
+        }
+        else if (remoteProcId == NotifyDriverMbx_dspProcId) {
+            REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
+        }
+        else {
+            REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
+        }
+    }
+#endif
 
 #else
-#error Invalid target
+
+#if 0
+    if (remoteProcId == NotifyDriverMbx_dspProcId) {
+        REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
+    }
+    else if (remoteProcId == NotifyDriverMbx_videoProcId) {
+        REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
+    }
+    else {
+        REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
+    }
+#endif
+
 #endif
 }
 
@@ -592,9 +582,7 @@ Void NotifyDriverMbx_isr(UInt16 idx)
     UInt32 msg, payload;
     UInt16 eventId;
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
-
+#if defined(xdc_target__isaCompatible_64)
     UInt16 srcVirtId;
 
     srcVirtId = idx / NotifyDriverMbx_NUM_CORES;
@@ -602,33 +590,35 @@ Void NotifyDriverMbx_isr(UInt16 idx)
 
 #elif defined(xdc_target__isaCompatible_v7M)
 
-//  do {
-//      numProcessed = 0;
-//      if (!(BIOS_smpEnabled) && (Core_getId())) {
-//          GET_NOTIFICATION(VPSS, HOST)
-//          GET_NOTIFICATION(VPSS, DSP)
-//          GET_NOTIFICATION(VPSS, VIDEO)
-//      }
-//      else {
-//          GET_NOTIFICATION(VIDEO, HOST)
-//          GET_NOTIFICATION(VIDEO, DSP)
-//          GET_NOTIFICATION(VIDEO, VPSS)
-//      }
-//  }
-//  while (numProcessed != 0);
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-//  do {
-//      numProcessed = 0;
-//      GET_NOTIFICATION(HOST, DSP)
-//      GET_NOTIFICATION(HOST, VPSS)
-//      GET_NOTIFICATION(HOST, VIDEO)
-//  }
-//  while (numProcessed != 0);
+#if 0
+    do {
+        numProcessed = 0;
+        if (!(BIOS_smpEnabled) && (Core_getId())) {
+            GET_NOTIFICATION(VPSS, HOST)
+            GET_NOTIFICATION(VPSS, DSP)
+            GET_NOTIFICATION(VPSS, VIDEO)
+        }
+        else {
+            GET_NOTIFICATION(VIDEO, HOST)
+            GET_NOTIFICATION(VIDEO, DSP)
+            GET_NOTIFICATION(VIDEO, VPSS)
+        }
+    }
+    while (numProcessed != 0);
+#endif
 
 #else
-#error Invalid target
+
+#if 0
+    do {
+        numProcessed = 0;
+        GET_NOTIFICATION(HOST, DSP)
+        GET_NOTIFICATION(HOST, VPSS)
+        GET_NOTIFICATION(HOST, VIDEO)
+    }
+    while (numProcessed != 0);
+#endif
+
 #endif
 }
 

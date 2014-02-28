@@ -33,6 +33,7 @@
 /*
  *  ======== InterruptDsp.xs ========
  */
+
 var InterruptDsp = null;
 
 /*
@@ -40,18 +41,12 @@ var InterruptDsp = null;
  */
 function module$use()
 {
-    /* load modules needed in meta domain and in target domain */
     var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
     InterruptDsp = this;
-    xdc.useModule('xdc.runtime.Assert');
-    xdc.useModule('xdc.runtime.Startup');
-    xdc.useModule('ti.sysbios.family.c64p.EventCombiner');
-    xdc.useModule('ti.sysbios.family.c64p.Hwi');
-    xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
-    xdc.useModule('ti.sdo.ipc.Ipc');
-    xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
-    xdc.useModule('ti.sdo.ipc.notifyDrivers.IInterrupt');
-    xdc.useModule('ti.sdo.utils.MultiProc');
+    xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
+    xdc.useModule("ti.sysbios.family.c64p.Hwi");
+    xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
+    xdc.useModule("ti.sdo.ipc.Ipc");
 
     /* Initialize procIdTable */
     TableInit.initProcId(InterruptDsp);

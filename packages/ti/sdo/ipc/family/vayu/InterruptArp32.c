@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,20 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
  *  ======== InterruptArp32.c ========
  *  ARP32 mailbox based interrupt manager
  */
+
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Error.h>
 
 #include <ti/sysbios/family/arp32/Hwi.h>
 
-#include <ti/sdo/ipc/_Ipc.h>
-#include <ti/sdo/ipc/family/vayu/NotifySetup.h>
-#include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/sdo/utils/_MultiProc.h>
+#include <ti/sdo/ipc/_Ipc.h>
+#include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 
 #include "package/internal/InterruptArp32.xdc.h"
 
@@ -114,7 +113,8 @@ Void InterruptArp32_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *  ======== InterruptArp32_intDisable ========
  *  Disables remote processor interrupt
  */
-Void InterruptArp32_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
+Void InterruptArp32_intDisable(UInt16 remoteProcId,
+                                IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
 
@@ -127,10 +127,13 @@ Void InterruptArp32_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *  ======== InterruptArp32_intRegister ========
  */
 Void InterruptArp32_intRegister(UInt16 remoteProcId,
-        IInterrupt_IntInfo *intInfo, Fxn func, UArg arg)
+                                 IInterrupt_IntInfo *intInfo,
+                                 Fxn func, UArg arg)
 {
     UInt        key;
     UInt16      index;
+    UInt        mbxIdx;
+    Hwi_Params  hwiAttrs;
     Error_Block eb;
     InterruptArp32_FxnTable *table;
 
@@ -158,9 +161,31 @@ Void InterruptArp32_intRegister(UInt16 remoteProcId,
 
     InterruptArp32_intClear(remoteProcId, intInfo);
 
-    /* plug the cpu interrupt */
-    NotifySetup_plugHwi(remoteProcId, intInfo->intVectorId,
-            InterruptArp32_intShmStub);
+    if ((index == DSP1_ID) || (index == IPU1_ID) || (index == HOST_ID)) {
+        mbxIdx = 0;
+    }
+    else if ((index == DSP2_ID) || (index == IPU2_ID) ||
+             (index == IPU1_1_ID) || (index == IPU2_1_ID)) {
+        mbxIdx = 1;
+    }
+    else if (index < InterruptArp32_NUM_EVES) {
+        mbxIdx = 2;
+    }
+
+    /* Make sure the interrupt only gets plugged once */
+    InterruptArp32_module->numPlugged[mbxIdx]++;
+    if (InterruptArp32_module->numPlugged[mbxIdx] == 1) {
+        /* Register interrupt to remote processor */
+        Hwi_Params_init(&hwiAttrs);
+        hwiAttrs.arg = arg;
+        hwiAttrs.vectorNum = intInfo->intVectorId;
+
+        Hwi_create(InterruptArp32_eveInterruptTable[index],
+                  (Hwi_FuncPtr)InterruptArp32_intShmStub,
+                   &hwiAttrs,
+                   &eb);
+        Hwi_enableInterrupt(InterruptArp32_eveInterruptTable[index]);
+    }
 
     /* enable the mailbox and Hwi */
     InterruptArp32_intEnable(remoteProcId, intInfo);
@@ -176,21 +201,40 @@ Void InterruptArp32_intUnregister(UInt16 remoteProcId,
                                    IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    UInt   mbxIdx;
+    Hwi_Handle  hwiHandle;
     InterruptArp32_FxnTable *table;
 
     index = PROCID(remoteProcId);
 
-    /* disable the mailbox interrupt source */
+    if ((remoteProcId == DSP1_ID) || (remoteProcId == IPU1_ID) ||
+        (remoteProcId == HOST_ID)) {
+        mbxIdx = 0;
+    }
+    else if ((remoteProcId == DSP2_ID) || (remoteProcId == IPU2_ID) ||
+        (remoteProcId == IPU1_1_ID) || (remoteProcId == IPU2_1_ID)) {
+        mbxIdx = 1;
+    }
+    else if (remoteProcId < InterruptArp32_NUM_EVES) {
+        mbxIdx = 2;
+    }
+
+    /* Disable the mailbox interrupt source */
     InterruptArp32_intDisable(remoteProcId, intInfo);
 
-    /* unplug isr */
-    NotifySetup_unplugHwi(remoteProcId, intInfo->intVectorId);
+    InterruptArp32_module->numPlugged[mbxIdx]--;
+    if (InterruptArp32_module->numPlugged[mbxIdx] == 0) {
+        /* Delete the Hwi */
+        hwiHandle = Hwi_getHandle(InterruptArp32_eveInterruptTable[index]);
+        Hwi_delete(&hwiHandle);
+    }
 
     /* Clear the FxnTable entry for the remote processor */
     table = &(InterruptArp32_module->fxnTable[index]);
     table->func = NULL;
-    table->arg = 0;
+    table->arg  = 0;
 }
+
 
 /*
  *  ======== InterruptArp32_intSend ========
@@ -215,6 +259,7 @@ Void InterruptArp32_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     /* restore interrupts */
     Hwi_restore(key);
 }
+
 
 /*
  *  ======== InterruptArp32_intPost ========
@@ -271,12 +316,29 @@ UInt InterruptArp32_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 /*
  *  ======== InterruptArp32_intShmStub ========
  */
-Void InterruptArp32_intShmStub(UInt16 idx)
+Void InterruptArp32_intShmStub(UArg arg)
 {
-    UInt16 srcVirtId;
+    UInt16 index;
+    UInt16 selfIdx;
+    UInt16 loopIdx;
     InterruptArp32_FxnTable *table;
 
-    srcVirtId = idx / InterruptArp32_NUM_CORES;
-    table = &(InterruptArp32_module->fxnTable[srcVirtId]);
-    (table->func)(table->arg);
+    selfIdx = MultiProc_self();
+
+    for (loopIdx = 0; loopIdx < MultiProc_getNumProcsInCluster(); loopIdx++) {
+
+        if (loopIdx == selfIdx) {
+            continue;
+        }
+
+        index = MBX_TABLE_IDX(loopIdx, selfIdx);
+
+        if ((REG32(MAILBOX_STATUS(index)) != 0) &&
+            (REG32(MAILBOX_IRQENABLE_SET(index)) &
+             MAILBOX_REG_VAL(SUBMBX_IDX(index)))) {
+            /* call function with arg */
+            table = &(InterruptArp32_module->fxnTable[PROCID(loopIdx)]);
+            (table->func)(table->arg);
+        }
+    }
 }

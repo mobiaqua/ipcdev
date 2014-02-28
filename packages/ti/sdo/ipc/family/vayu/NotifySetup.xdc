@@ -192,11 +192,8 @@ internal:
      *  ======== Module_State ========
      */
     struct Module_State {
-        /* interrupt plug counter */
-        UInt16 numPlugged[];
-
-        /* connection array */
-        DrvBind connAry[length];
+        UInt16      numPlugged;         /*! interrupt plug counter */
+        DrvBind     connAry[length];
 
         /*  Interrupt event IDs used to communicate with this processor.
          *  This table is indexed by virtual processor ID.

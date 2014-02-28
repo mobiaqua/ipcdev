@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,26 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
  *  ======== InterruptArp32.xs ========
+ *
  */
-var InterruptArp32 = null;
+
+var Hwi         = null;
+var Core        = null;
+var MultiProc   = null;
+var InterruptArp32       = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
-    var MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
-    InterruptArp32 = this;
-
-    xdc.useModule('xdc.runtime.Assert');
-    xdc.useModule('xdc.runtime.Error');
-    xdc.useModule("ti.sysbios.family.arp32.Hwi");
-    xdc.useModule("ti.sdo.ipc.Ipc");
-    xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
-    xdc.useModule('ti.sdo.ipc.notifyDrivers.IInterrupt');
+    Hwi              = xdc.useModule("ti.sysbios.family.arp32.Hwi");
+    MultiProc        = xdc.useModule("ti.sdo.utils.MultiProc");
+    Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
+    InterruptArp32   = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptArp32");
+    TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     /* Initialize procIdTable */
     TableInit.initProcId(InterruptArp32);
@@ -105,7 +104,7 @@ function module$use()
     /*
      * In case of a spec change, follow the process shown below:
      * 1. Update the mailboxBaseAddr Table.
-     * 2. Update the eveInterruptTable.
+     * 2. Update the dspInterruptTable.
      * 3. Update Virtual Index assignment.
      * 4. Update NUMCORES, NUMEVES and EVEMBX2BASEIDX variables
      *    in order to correctly intialize the mailboxTable.
@@ -116,16 +115,17 @@ function module$use()
  *  ======== module$static$init ========
  *  Initialize module values.
  */
-function module$static$init(state, mod)
+function module$static$init(mod, params)
 {
-    var i;
+    var idx;
+    var remoteProcId;
 
-    for (i = 0; i < mod.procIdTable.length; i++) {
-        state.fxnTable[i].func  = null;
-        state.fxnTable[i].arg   = 0;
+    for (remoteProcId=0; remoteProcId < InterruptArp32.procIdTable.length; remoteProcId++) {
+        mod.fxnTable[remoteProcId].func  = null;
+        mod.fxnTable[remoteProcId].arg   = 0;
     }
 
-    for (i = 0; i < (mod.NUM_EVE_MBX/mod.NUM_EVES); i++) {
-        state.numPlugged[i] = 0;
+    for (idx = 0; idx < (InterruptArp32.NUM_EVE_MBX/InterruptArp32.NUM_EVES); idx++) {
+        mod.numPlugged[idx] = 0;
     }
 }

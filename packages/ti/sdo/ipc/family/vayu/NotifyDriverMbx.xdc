@@ -81,15 +81,9 @@ module NotifyDriverMbx inherits ti.sdo.ipc.interfaces.INotifyDriver
     /*! @_nodoc */
     metaonly struct BasicView {
         String      remoteProc;
-    }
-
-    /*! @_nodoc */
-    metaonly struct MailboxView {
-        String      direction;
         String      mailboxAddr;
         Int         subMbxId;
-        Int         msgCount;
-        Int         mbxInterrupt;
+        Int         count;
     }
 
     /*!  @_nodoc */
@@ -110,13 +104,6 @@ module NotifyDriverMbx inherits ti.sdo.ipc.interfaces.INotifyDriver
                         type: ViewInfo.INSTANCE,
                         viewInitFxn: 'viewInitBasic',
                         structName: 'BasicView'
-                    }
-                ],
-                ['Mailbox',
-                    {
-                        type: ViewInfo.INSTANCE_DATA,
-                        viewInitFxn: 'viewInitMailbox',
-                        structName: 'MailboxView'
                     }
                 ]
 //              ['Module',

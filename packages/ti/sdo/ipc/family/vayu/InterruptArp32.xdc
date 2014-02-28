@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
  *  ======== InterruptArp32.xdc ========
+ *
  */
-package ti.sdo.ipc.family.vayu;
 
 import ti.sdo.utils.MultiProc;
 
@@ -41,6 +40,7 @@ import ti.sdo.utils.MultiProc;
  *  ======== InterruptArp32 ========
  *  ARP32 based interrupt manager
  */
+
 module InterruptArp32 inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
     /* Total number of cores on Vayu SoC */
@@ -58,8 +58,6 @@ module InterruptArp32 inherits ti.sdo.ipc.notifyDrivers.IInterrupt
     /* Base address for the Mailbox subsystem */
     config UInt32 mailboxBaseAddr[NUM_EVE_MBX + NUM_SYS_MBX];
 
-internal:
-
     /*
      * Mailbox table for storing encoded Base Address, mailbox user Id,
      * and sub-mailbox index.
@@ -69,6 +67,8 @@ internal:
     config UInt32 eveInterruptTable[NUM_CORES];
 
     config UInt32 procIdTable[NUM_CORES];
+
+internal:
 
     /*! Statically retrieve procIds to avoid doing this at runtime */
     config UInt eve1ProcId     = MultiProc.INVALIDID;
@@ -90,14 +90,14 @@ internal:
     }
 
     /*! Stub to be plugged for dsp-arp32 interrupts */
-    Void intShmStub(UInt16 idx);
+    Void intShmStub(UArg arg);
 
     struct Module_State {
-
-        /*  Interrupt isr dispatch table. This table is indexed
-         *  by virtual processor ID.
+        /*
+         * Create a function table of length 8 (Total number of cores in the
+         * System) for each EVE core.
          */
-        FxnTable fxnTable[NUM_CORES];
+        FxnTable   fxnTable[NUM_CORES];
 
         /*
          * numPlugged is used to track number of times the interrupt was
