@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,84 +63,73 @@ var hostVirtId    = 8;
 var ipu1_1VirtId  = 9;
 var ipu2_1VirtId  = 10;
 
-
 /*
- *  ======== initProcId ========
- *  Assign MultiProc ids and virtual processor ids.
+ * Function to initialize coreIds.
  */
-function initProcId(mod)
+function initProcId(InterruptCore)
 {
-    var MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+    var MultiProc        = xdc.useModule("ti.sdo.utils.MultiProc");
 
-    for (var i = 0; i < mod.procIdTable.length; i++) {
-        mod.procIdTable[i] = -1;
-    }
-
-    mod.eve1ProcId   = MultiProc.getIdMeta("EVE1");
-    mod.eve2ProcId   = MultiProc.getIdMeta("EVE2");
-    mod.eve3ProcId   = MultiProc.getIdMeta("EVE3");
-    mod.eve4ProcId   = MultiProc.getIdMeta("EVE4");
-    mod.dsp1ProcId   = MultiProc.getIdMeta("DSP1");
-    mod.dsp2ProcId   = MultiProc.getIdMeta("DSP2");
-    mod.ipu1_0ProcId = MultiProc.getIdMeta("IPU1");  /* assume smp */
-    mod.ipu1_1ProcId = MultiProc.getIdMeta("IPU1-1");
-    mod.ipu2_0ProcId = MultiProc.getIdMeta("IPU2");  /* assume smp */
-    mod.ipu2_1ProcId = MultiProc.getIdMeta("IPU2-1");
-    mod.hostProcId   = MultiProc.getIdMeta("HOST");
-
-    if (mod.eve1ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.eve1ProcId] = eve1VirtId;
-    }
-    if (mod.eve2ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.eve2ProcId] = eve2VirtId;
-    }
-    if (mod.eve3ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.eve3ProcId] = eve3VirtId;
-    }
-    if (mod.eve4ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.eve4ProcId] = eve4VirtId;
-    }
-    if (mod.dsp1ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.dsp1ProcId] = dsp1VirtId;
-    }
-    if (mod.dsp2ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.dsp2ProcId] = dsp2VirtId;
+    for (var loopIdx=0; loopIdx<InterruptCore.procIdTable.length; loopIdx++) {
+        InterruptCore.procIdTable[loopIdx] = -1;
     }
 
-    if (mod.ipu1_0ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.ipu1_0ProcId] = ipu1_0VirtId;
+    InterruptCore.eve1ProcId     = MultiProc.getIdMeta("EVE1");
+    InterruptCore.eve2ProcId     = MultiProc.getIdMeta("EVE2");
+    InterruptCore.eve3ProcId     = MultiProc.getIdMeta("EVE3");
+    InterruptCore.eve4ProcId     = MultiProc.getIdMeta("EVE4");
+    InterruptCore.dsp1ProcId     = MultiProc.getIdMeta("DSP1");
+    InterruptCore.dsp2ProcId     = MultiProc.getIdMeta("DSP2");
+    InterruptCore.ipu1_0ProcId   = MultiProc.getIdMeta("IPU1");
+    InterruptCore.ipu2_0ProcId   = MultiProc.getIdMeta("IPU2");
+    InterruptCore.hostProcId     = MultiProc.getIdMeta("HOST");
+    InterruptCore.ipu1_1ProcId   = MultiProc.getIdMeta("IPU1-1");
+    InterruptCore.ipu2_1ProcId   = MultiProc.getIdMeta("IPU2-1");
+
+    if (InterruptCore.eve1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.eve1ProcId] = eve1VirtId;
+    }
+    if (InterruptCore.eve2ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.eve2ProcId] = eve2VirtId;
+    }
+    if (InterruptCore.eve3ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.eve3ProcId] = eve3VirtId;
+    }
+    if (InterruptCore.eve4ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.eve4ProcId] = eve4VirtId;
+    }
+    if (InterruptCore.dsp1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.dsp1ProcId] = dsp1VirtId;
+    }
+    if (InterruptCore.dsp2ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.dsp2ProcId] = dsp2VirtId;
+    }
+    if (InterruptCore.ipu1_0ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu1_0ProcId] = ipu1_0VirtId;
     }
     else {
-        /* IPU1 not smp */
-        mod.ipu1_0ProcId = MultiProc.getIdMeta("IPU1-0");
-
-        if (mod.ipu1_0ProcId != MultiProc.INVALIDID) {
-            mod.procIdTable[mod.ipu1_0ProcId] = ipu1_0VirtId;
+        InterruptCore.ipu1_0ProcId = MultiProc.getIdMeta("IPU1-0");
+        if (InterruptCore.ipu1_0ProcId != MultiProc.INVALIDID) {
+            InterruptCore.procIdTable[InterruptCore.ipu1_0ProcId] = ipu1_0VirtId;
         }
     }
-
-    if (mod.ipu1_1ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.ipu1_1ProcId] = ipu1_1VirtId;
-    }
-
-    if (mod.ipu2_0ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.ipu2_0ProcId] = ipu2_0VirtId;
+    if (InterruptCore.ipu2_0ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu2_0ProcId] = ipu2_0VirtId;
     }
     else {
-        /* IPU2 not smp */
-        mod.ipu2_0ProcId = MultiProc.getIdMeta("IPU2-0");
-
-        if (mod.ipu2_0ProcId != MultiProc.INVALIDID) {
-            mod.procIdTable[mod.ipu2_0ProcId] = ipu2_0VirtId;
+        InterruptCore.ipu2_0ProcId = MultiProc.getIdMeta("IPU2-0");
+        if (InterruptCore.ipu2_0ProcId != MultiProc.INVALIDID) {
+            InterruptCore.procIdTable[InterruptCore.ipu2_0ProcId] = ipu2_0VirtId;
         }
     }
-
-    if (mod.ipu2_1ProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.ipu2_1ProcId] = ipu2_1VirtId;
+    if (InterruptCore.hostProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.hostProcId] = hostVirtId;
     }
-
-    if (mod.hostProcId != MultiProc.INVALIDID) {
-        mod.procIdTable[mod.hostProcId] = hostVirtId;
+    if (InterruptCore.ipu1_1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu1_1ProcId] = ipu1_1VirtId;
+    }
+    if (InterruptCore.ipu2_1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu2_1ProcId] = ipu2_1VirtId;
     }
 }
 

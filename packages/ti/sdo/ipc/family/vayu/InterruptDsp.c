@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,19 @@
  *  Mailbox based interrupt manager
  */
 #include <xdc/std.h>
-#include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Startup.h>
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
+
+#include <ti/sysbios/family/shared/vayu/IntXbar.h>
 
 #include <ti/sysbios/family/c64p/Hwi.h>
 #include <ti/sysbios/family/c64p/EventCombiner.h>
-#include <ti/sysbios/family/shared/vayu/IntXbar.h>
 
-#include <ti/sdo/ipc/_Ipc.h>
-#include <ti/sdo/ipc/family/vayu/NotifySetup.h>
-#include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/sdo/utils/_MultiProc.h>
+#include <ti/sdo/ipc/_Ipc.h>
+
+#include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 
 #include "package/internal/InterruptDsp.xdc.h"
 
@@ -197,14 +198,17 @@ Void InterruptDsp_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *  ======== InterruptDsp_intRegister ========
  */
 Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
-        Fxn func, UArg arg)
+                              Fxn func, UArg arg)
 {
     UInt        key;
+    UInt        eventId;
+    UInt        combinedEventId;
     Int         index;
+    Hwi_Params  params;
     InterruptDsp_FxnTable *table;
 
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
-            (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
+                   (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
     index = PROCID(remoteProcId);
 
@@ -217,9 +221,28 @@ Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 
     InterruptDsp_intClear(remoteProcId, intInfo);
 
-    /* plug the cpu interrupt */
-    NotifySetup_plugHwi(remoteProcId, intInfo->intVectorId,
-            InterruptDsp_intShmStub);
+    /* Make sure the interrupt only gets plugged once */
+    eventId = InterruptDsp_module->interruptTable[index];
+
+    InterruptDsp_module->numPlugged++;
+
+    if (InterruptDsp_module->numPlugged == 1) {
+        EventCombiner_dispatchPlug(eventId,
+            (Hwi_FuncPtr)InterruptDsp_intShmStub, eventId, TRUE);
+
+        Hwi_Params_init(&params);
+        combinedEventId = eventId / EVENT_GROUP_SIZE;
+        params.eventId = combinedEventId;
+        params.arg = combinedEventId;
+        params.enableInt = TRUE;
+        Hwi_create(intInfo->intVectorId, &ti_sysbios_family_c64p_EventCombiner_dispatch,
+                   &params, NULL);
+        Hwi_enableInterrupt(intInfo->intVectorId);
+    }
+    else {
+        EventCombiner_dispatchPlug(eventId,
+                (Hwi_FuncPtr)InterruptDsp_intShmStub, eventId, TRUE);
+    }
 
     /* Enable the mailbox interrupt to the DSP */
     InterruptDsp_intEnable(remoteProcId, intInfo);
@@ -234,19 +257,31 @@ Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 Void InterruptDsp_intUnregister(UInt16 remoteProcId,
                                 IInterrupt_IntInfo *intInfo)
 {
-    Int index;
+    Hwi_Handle  hwiHandle;
+    Int         index;
+    UInt        eventId;
     InterruptDsp_FxnTable *table;
 
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
-            (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
+                   (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
     index = PROCID(remoteProcId);
 
     /* Disable the mailbox interrupt source */
     InterruptDsp_intDisable(remoteProcId, intInfo);
 
-    /* unplug isr and unprogram the event dispatcher */
-    NotifySetup_unplugHwi(remoteProcId, intInfo->intVectorId);
+    /* Make sure the interrupt only gets plugged once */
+    eventId = InterruptDsp_module->interruptTable[index];
+
+    InterruptDsp_module->numPlugged--;
+
+    EventCombiner_disableEvent(eventId);
+
+    if (InterruptDsp_module->numPlugged == 0) {
+        /* Delete the Hwi */
+        hwiHandle = Hwi_getHandle(intInfo->intVectorId);
+        Hwi_delete(&hwiHandle);
+    }
 
     table = &(InterruptDsp_module->fxnTable[index]);
     table->func = NULL;
@@ -328,12 +363,32 @@ UInt InterruptDsp_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 /*
  *  ======== InterruptDsp_intShmStub ========
  */
-Void InterruptDsp_intShmStub(UInt16 idx)
+Void InterruptDsp_intShmStub(UArg arg)
 {
-    UInt16 srcVirtId;
+    UInt16 index;
+    UInt16 selfIdx;
+    UInt16 loopIdx;
     InterruptDsp_FxnTable *table;
 
-    srcVirtId = idx / InterruptDsp_NUM_CORES;
-    table = &(InterruptDsp_module->fxnTable[srcVirtId]);
-    (table->func)(table->arg);
+    selfIdx = MultiProc_self();
+
+    /*
+     * Loop through each Sub-mailbox to determine which one generated
+     * interrupt.
+     */
+    for (loopIdx = 0; loopIdx < MultiProc_getNumProcsInCluster(); loopIdx++) {
+
+        if (loopIdx == selfIdx) {
+            continue;
+        }
+
+        index = MBX_TABLE_IDX(loopIdx, selfIdx);
+
+        if ((REG32(MAILBOX_STATUS(index)) != 0) &&
+            (REG32(MAILBOX_IRQENABLE_SET_DSP(index)) &
+             MAILBOX_REG_VAL(SUBMBX_IDX(index)))) {
+            table = &(InterruptDsp_module->fxnTable[PROCID(loopIdx)]);
+            (table->func)(table->arg);
+        }
+    }
 }

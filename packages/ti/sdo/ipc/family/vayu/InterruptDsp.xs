@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,24 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
  *  ======== InterruptDsp.xs ========
  */
 
-var InterruptDsp = null;
+var Hwi             = null;
+var InterruptDsp    = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
-    InterruptDsp = this;
-    xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
-    xdc.useModule("ti.sysbios.family.c64p.Hwi");
-    xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
-    xdc.useModule("ti.sdo.ipc.Ipc");
+    Hwi              = xdc.useModule("ti.sysbios.family.c64p.Hwi");
+    EventCombiner    = xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
+    Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
+    InterruptDsp     = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptDsp");
+    Xbar             = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
+    TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     /* Initialize procIdTable */
     TableInit.initProcId(InterruptDsp);
@@ -107,4 +107,7 @@ function module$static$init(mod, params)
     mod.interruptTable[7] = 0; /* IPU2 -> DSP1 or DSP2 */
     mod.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
     mod.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
+
+    /* Intialize numPlugged */
+    mod.numPlugged = 0;
 }
