@@ -41,6 +41,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
@@ -61,6 +62,7 @@
 
 Bool logFile = FALSE;
 FILE *logPtr = NULL;
+struct timeval start_tv;
 
 static String commandFIFOFile = LAD_COMMANDFIFO;
 static FILE *commandFIFOFilePtr = NULL;
@@ -166,6 +168,7 @@ int main(int argc, char * argv[])
                 }
                 else {
                     logFile = TRUE;
+                    gettimeofday(&start_tv, NULL);
                     printf("\nOpened log file: %s", optarg);
                     /* close log file upon LAD termination */
                     flags = fcntl(fileno(logPtr), F_GETFD);

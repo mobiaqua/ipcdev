@@ -49,20 +49,50 @@ extern "C" {
 #include <ti/ipc/GateMP.h>
 #include <_GateMP.h>
 #include <GateHWSpinlock.h>
+#include <sys/time.h>
 
 extern Bool logFile;
 extern FILE *logPtr;
+extern struct timeval start_tv;
 
-/* macros for writing to log file: */
+/*
+ * Macros for writing to log file.
+ *
+ * For the timestamp prefix, subtract the start time (which is established
+ * when the logFile is opened) so that the massive "since the epoch" value
+ * is not displayed.  For this, subtract only the timeval.tv_sec (seconds)
+ * value so we don't have to worry about the "borrow" that results when
+ * start_tv.tv_usec > tv.tv_usec.
+ */
 #define LOG0(a)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a); fflush(logPtr); }
+    if (logFile == TRUE) { \
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        fprintf(logPtr, "[%d.%06d] " a, \
+                (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
+                (unsigned int)tv.tv_usec); \
+        fflush(logPtr); \
+    }
 
 #define LOG1(a, b)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a, b); fflush(logPtr); }
+    if (logFile == TRUE) { \
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        fprintf(logPtr, "[%d.%06d] " a, \
+                (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
+                (unsigned int)tv.tv_usec, b); \
+        fflush(logPtr); \
+    }
 
 #define LOG2(a, b, c)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a, b, c); fflush(logPtr); }
-
+    if (logFile == TRUE) { \
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        fprintf(logPtr, "[%d.%06d] " a, \
+                (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
+                (unsigned int)tv.tv_usec, b, c); \
+        fflush(logPtr); \
+    }
 
 /* macros for generating verbose output: */
 #define PRINTVERBOSE0(a)  \
