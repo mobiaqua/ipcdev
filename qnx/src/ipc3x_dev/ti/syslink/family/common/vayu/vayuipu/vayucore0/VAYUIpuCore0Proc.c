@@ -104,17 +104,12 @@ extern "C" {
 #define PROCID_TO_IPU(procId) (procId == VAYUIPUCORE0PROC_state.ipu1ProcId ?\
     0 : 1)
 
-#define PARAMS_MAX_NAMELENGTH 64
 /* Config param for L2MMU. This is not a typo, we are using the
  * same name (IPU1) because both Benelli M4 processors use the
  * same L2MMU. The docs expose IPUx but not the IPUx Core1 processor.
  */
 #define PARAMS_mmuEnable1 "ProcMgr.proc[IPU1].mmuEnable="
-#define PARAMS_carveoutAddr1 "ProcMgr.proc[IPU1].carveoutAddr"
-#define PARAMS_carveoutSize1 "ProcMgr.proc[IPU1].carveoutSize"
 #define PARAMS_mmuEnable2 "ProcMgr.proc[IPU2].mmuEnable="
-#define PARAMS_carveoutAddr2 "ProcMgr.proc[IPU2].carveoutAddr"
-#define PARAMS_carveoutSize2 "ProcMgr.proc[IPU2].carveoutSize"
 
 
 /*!
@@ -206,7 +201,7 @@ VAYUIPUCORE0PROC_ModuleObject VAYUIPUCORE0PROC_state =
     .isSetup = FALSE,
     .configSize = sizeof(VAYUIPUCORE0PROC_Config),
     .gateHandle = NULL,
-    .defInstParams.mmuEnable = FALSE,
+    .defInstParams.mmuEnable = TRUE,
     .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
 };
 
@@ -891,9 +886,6 @@ VAYUIPUCORE0PROC_attach(
     ProcMgr_AddrInfo *          me;
     SysLink_MemEntry *          entry;
     SysLink_MemEntry_Block      memBlock;
-    Char                        prop[PARAMS_MAX_NAMELENGTH];
-    Char                        configProp[PARAMS_MAX_NAMELENGTH];
-    UInt32                      numCarveouts = 0;
     VAYUIPU_HalMmuCtrlArgs_Enable mmuEnableArgs;
     VAYUIPU_HalParams           halParams;
 
@@ -939,40 +931,13 @@ VAYUIPUCORE0PROC_attach(
                 &(object->params.mmuEnable));
         }
 
-        /* check for carveout params override */
-        for (i = 0; i < ProcMgr_MAX_MEMORY_REGIONS; i++) {
-            if (VAYUIPUCORE0PROC_state.ipu1ProcId == procHandle->procId) {
-                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr1"%d", i);
-            }
-            else {
-                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr2"%d", i);
-            }
-            strcat(prop, "=");
-            if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
-                break;
-            object->params.carveoutAddr[i] = strtoul(configProp, 0, 16);
-            if (VAYUIPUCORE0PROC_state.ipu1ProcId == procHandle->procId) {
-                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize1"%d", i);
-            }
-            else {
-                snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize2"%d", i);
-            }
-            strcat(prop, "=");
-            if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
-                break;
-            object->params.carveoutSize[i] = strtoul(configProp, 0, 16);
-            numCarveouts++;
-        }
-
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUIPUCORE0PROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
         status = RscTable_process(procHandle->procId, object->params.mmuEnable,
-                                  numCarveouts,
-                                  (Ptr)object->params.carveoutAddr,
-                                  object->params.carveoutSize, TRUE,
+                                  TRUE,
                                   &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */

@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2012, Texas Instruments Incorporated
+ *  Copyright (c) 2012-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -84,12 +84,6 @@ typedef struct Carveout_Elem_tag {
     UInt32     size;
 } Carveout_Elem;
 
-typedef struct Carveout_Object_tag {
-    UInt32      addr;
-    UInt32      size;
-    List_Handle freeBlocks;
-} Carveout_Object;
-
 /*!
  *  @brief  RscTable Header
  */
@@ -135,10 +129,6 @@ struct RscTable_Object_tag {
     /*!< Resource table length. */
     UInt32                 rscTableDA;
     /*!< Resource table device address. */
-    Carveout_Object *      carveout[SYSLINK_MAX_MEMENTRIES];
-    /*!< Carveouts for this table. */
-    UInt32                 numCarveouts;
-    /*!< Carveouts for this table. */
     SysLink_MemEntry       memEntries[SYSLINK_MAX_MEMENTRIES];
     /*!< Memory Entries for the remote processor. */
     UInt32                 numMemEntries;
@@ -313,94 +303,6 @@ RscTable_alloc (Char * fileName, UInt16 procId)
     return (RscTable_Handle)obj;
 }
 
-/* Helper functions for processing carveout */
-Int Carveout_register (RscTable_Object *obj, UInt32 id, Ptr carveOut,
-                       UInt32 carveOutLen)
-{
-    Int status = 0;
-    Carveout_Object * cout = NULL;
-    List_Params params;
-
-    cout = Memory_alloc(NULL, sizeof(Carveout_Object), 0, NULL);
-    if (cout) {
-        cout->addr = (UInt32)carveOut;
-        cout->size = carveOutLen;
-        List_Params_init(&params);
-        cout->freeBlocks = List_create(&params);
-        if (cout->freeBlocks == NULL) {
-            status = RSCTABLE_E_MEMORY;
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Carveout_register",
-                                 status,
-                                 "Unable to create free list");
-            Memory_free(NULL, cout, sizeof(Carveout_Object));
-            cout = NULL;
-        }
-        else {
-            // Add the whole of the memory to the free list
-            Carveout_Elem * elem = Memory_alloc(NULL, sizeof(Carveout_Elem),
-                                                0, NULL);
-            if (elem) {
-                elem->addr = cout->addr;
-                elem->size = cout->size;
-                List_put(cout->freeBlocks, (List_Elem *)elem);
-            }
-            else {
-                status = RSCTABLE_E_MEMORY;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "Carveout_register",
-                                     status,
-                                     "Unable to allocate elem");
-                List_delete(&cout->freeBlocks);
-                Memory_free(NULL, cout, sizeof(Carveout_Object));
-                cout = NULL;
-            }
-        }
-    }
-    else {
-        status = RSCTABLE_E_MEMORY;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "Carveout_register",
-                             status,
-                             "Unable to allocate carveout structure");
-    }
-
-    obj->carveout[id] = cout;
-    obj->numCarveouts++;
-    return status;
-}
-
-Int Carveout_unregister (RscTable_Object *obj, UInt32 id)
-{
-    Int status = 0;
-    List_Elem * elem = NULL;
-
-    if (obj->carveout[id]) {
-        if (obj->carveout[id]->freeBlocks) {
-            while ((elem = List_get(obj->carveout[id]->freeBlocks)))
-                Memory_free(NULL, elem, sizeof(Carveout_Elem));
-            List_delete(&obj->carveout[id]->freeBlocks);
-        }
-
-        Memory_free(NULL, obj->carveout[id], sizeof(Carveout_Object));
-        obj->carveout[id] = NULL;
-        obj->numCarveouts--;
-    }
-    else {
-        status = RSCTABLE_E_INVALIDARG;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "Carveout_unregister",
-                             status,
-                             "No carveout associated with obj");
-    }
-
-    return status;
-}
-
 // allocate any addr
 Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
 {
@@ -475,162 +377,8 @@ Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
     return status;
 }
 
-// allocate any addr from a specified carveout
-Int Carveout_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
-{
-    Int status = 0;
-    Carveout_Object * cout = NULL;
-    List_Elem * elem = NULL;
-    Bool found = FALSE;
-    UInt i = 0;
-
-    if (!pa || !obj || !obj->numCarveouts) {
-        status = RSCTABLE_E_INVALIDARG;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "Carveout_allocate",
-                             status,
-                             "Invalid arg passed");
-    }
-    else {
-        for (i = 0; i < obj->numCarveouts; i++) {
-            *pa = 0;
-            cout = obj->carveout[i];
-
-            // search for a free block with sufficient size
-            List_traverse(elem, cout->freeBlocks) {
-                if (((Carveout_Elem *)elem)->size >= size) {
-                    found = TRUE;
-                    break;
-                }
-            }
-            if (found) {
-                UInt32 rem = 0;
-                UInt32 addr = 0;
-
-                // found a spot for our request
-                addr = ((Carveout_Elem *)elem)->addr;
-                rem = ((Carveout_Elem *)elem)->size - size;
-                if (rem) {
-                    ((Carveout_Elem *)elem)->addr += size;
-                    ((Carveout_Elem *)elem)->size = rem;
-                }
-                else {
-                    List_remove(cout->freeBlocks, elem);
-                    Memory_free (NULL, elem, sizeof(Carveout_Elem));
-                }
-                *pa = addr;
-                break;
-            }
-        }
-        if (i == obj->numCarveouts) {
-            status = RSCTABLE_E_MEMORY;
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Carveout_allocate",
-                                 status,
-                                 "Not enough room in carveout");
-        }
-    }
-    return status;
-}
-
-// allocate specific addr
-Int Carveout_reserve (RscTable_Object *obj, UInt32 size, UInt32 pa)
-{
-    Int status = 0;
-    Carveout_Object * cout = NULL;
-    List_Elem * elem = NULL;
-    Bool found = FALSE;
-    UInt i = 0;
-
-    if (!pa || !obj || !obj->numCarveouts) {
-        status = RSCTABLE_E_INVALIDARG;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "Carveout_reserve",
-                             status,
-                             "Invalid arg passed");
-    }
-    else {
-        for (i = 0; i < obj->numCarveouts; i++) {
-            cout = obj->carveout[i];
-
-            // search for a free block with sufficient size
-            List_traverse(elem, cout->freeBlocks) {
-                if ((((Carveout_Elem *)elem)->addr <= pa) &&
-                    ((((Carveout_Elem *)elem)->addr +
-                      ((Carveout_Elem *)elem)->size) >= (pa + size))) {
-                    found = TRUE;
-                    break;
-                }
-            }
-            if (found) {
-                UInt32 rem_start = 0;
-                UInt32 rem_end = 0;
-
-                // found a spot for our request
-                if (((Carveout_Elem *)elem)->addr < pa) {
-                    // there is free mem at the beginning of the block
-                    rem_start = pa - ((Carveout_Elem *)elem)->addr;
-                }
-                if (((Carveout_Elem *)elem)->addr + ((Carveout_Elem *)elem)->size >
-                    (pa + size)) {
-                    // there is free mem at the end of the block
-                    rem_end = ((Carveout_Elem *)elem)->addr +
-                              ((Carveout_Elem *)elem)->size - (pa + size);
-                }
-                // now carve up the block
-                if (rem_start) {
-                    ((Carveout_Elem *)elem)->size = rem_start;
-                }
-                else if (rem_end) {
-                    ((Carveout_Elem *)elem)->size = rem_end;
-                    ((Carveout_Elem *)elem)->addr = pa + size;
-                }
-                else {
-                    List_remove(cout->freeBlocks, elem);
-                    Memory_free (NULL, elem, sizeof(Carveout_Elem));
-                }
-                if (rem_start && rem_end) {
-                    Carveout_Elem * c_elem = NULL;
-                    c_elem = Memory_alloc (NULL, sizeof(Carveout_Elem), 0, NULL);
-                    if (c_elem) {
-                        c_elem->size = rem_end;
-                        c_elem->addr = pa + size;
-                        List_insert(cout->freeBlocks, (List_Elem *)&c_elem->elem,
-                                    elem->next);
-                    }
-                    else {
-                        /* add mem back to free block */
-                        ((Carveout_Elem *)elem)->size += (size + rem_end);
-                        status = RSCTABLE_E_MEMORY;
-                        GT_setFailureReason (curTrace,
-                                             GT_4CLASS,
-                                             "Carveout_reserve",
-                                             status,
-                                             "Unable to allocate elem");
-                    }
-                }
-                break;
-            }
-        }
-        if (i == obj->numCarveouts) {
-            status = RSCTABLE_E_MEMORY;
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Carveout_reserve",
-                                 status,
-                                 "Specified addr/size not available");
-
-        }
-    }
-    return status;
-}
-
 Int
-RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
-                  Ptr carveOut[], UInt32 carveOutLen[], Bool tryAlloc,
+RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                   UInt32 * numBlocks)
 {
     Int status = 0;
@@ -659,21 +407,6 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
 
     obj->numMemEntries = 0;
 
-    // Register carveout mem regions if provided
-    if (numCarveouts && carveOut && carveOutLen) {
-        for (i = 0; i < numCarveouts; i++) {
-            status = Carveout_register(obj, i, carveOut[i], carveOutLen[i]);
-            if (status < 0) {
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "RscTable_process",
-                                     status,
-                                     "Carveout_register failed");
-                return status;
-            }
-        }
-    }
-
     // TODO: Check the version
     printf("RscTable_process: RscTable version is [%d]\n", table->ver);
 
@@ -687,15 +420,14 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
                 // TODO: need to allocate this mem from carveout
                 struct fw_rsc_carveout * cout = (struct fw_rsc_carveout *)entry;
                 UInt32 pa = 0;
-                if (cout->pa == 0)
-                    if (mmuEnabled)
+                if (cout->pa == 0) {
+                    if (mmuEnabled) {
                         ret = Chunk_allocate (obj, cout->len, &pa);
+                    }
                     else {
-                        ret = Carveout_reserve (obj, cout->len, cout->da);
                         pa = cout->da;
                     }
-                else
-                    ret = Carveout_reserve (obj, cout->len, cout->pa);
+                }
                 if (!ret) {
                     cout->pa = pa;
                     if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
@@ -726,7 +458,6 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
             {
                 // only care about mem in DDR for now
                 struct fw_rsc_devmem * dmem = (struct fw_rsc_devmem *)entry;
-                UInt32 pa = 0;
                 if (dmem->pa >= DDR_MEM) {
                     // HACK: treat vring mem specially, vring is always the
                     //       first devmem entry, may change in future
@@ -760,13 +491,6 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
                         }
                         else {
                             dmem->pa = obj->vringPa;
-                        }
-                    }
-                    else {
-                        ret = Carveout_reserve (obj, dmem->len, dmem->pa);
-                        if (ret && mmuEnabled && tryAlloc) {
-                            ret = Carveout_allocate (obj, dmem->len, &pa);
-                            if (!ret) dmem->pa = pa;
                         }
                     }
                 }
@@ -835,17 +559,21 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
                     vr_size += ROUND_UP(MessageQCopy_RINGSIZE, 0x4000);
                     vr_bufs_size += (vring->num) * RPMSG_BUF_SIZE;
                 }
-                if (!ret)
+                if (!ret) {
                     // HACK: round up to multiple of 1MB, because we know this
                     //       is the size of the remote entry
-                    if (mmuEnabled)
+                    if (mmuEnabled) {
                         ret = Chunk_allocate(obj,
                                      ROUND_UP(vr_size + vr_bufs_size, 0x100000),
                                      &pa);
-                    else
-                        ret = Carveout_allocate(obj,
-                                     ROUND_UP(vr_size + vr_bufs_size, 0x100000),
-                                     &pa);
+                    }
+                    else {
+                         /*
+                          * TBD: if mmu is disabled, we need a way to specify
+                          * shared memory from which to allocate the vrings
+                          */
+                    }
+                }
                 else if (obj->vrings) {
                     Memory_free (NULL, obj->vrings,
                                  sizeof(*vring) * obj->numVrings);
@@ -896,9 +624,6 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
         obj->numMemEntries = 0;
     }
     *numBlocks = obj->numMemEntries;
-    // Can un-register the carveout now? Don't need it anymore?
-    for (i = 0; i < numCarveouts; i++)
-        Carveout_unregister(obj, i);
 
     return status;
 }

@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -216,10 +216,6 @@ typedef struct OMAP5430BENELLIPROC_Params_tag {
     ProcMgr_AddrInfo memEntries [ProcMgr_MAX_MEMORY_REGIONS];
     /*!< Array of information structures for memory regions to be configured. */
     Processor_Handle procHandle;
-    UInt32              carveoutAddr [ProcMgr_MAX_MEMORY_REGIONS];
-    /*!< The address of the carveout for shared mem */
-    UInt32              carveoutSize [ProcMgr_MAX_MEMORY_REGIONS];
-    /*!< The length of the carveout for shared mem */
 } OMAP5430BENELLIPROC_Params;
 
 /*!

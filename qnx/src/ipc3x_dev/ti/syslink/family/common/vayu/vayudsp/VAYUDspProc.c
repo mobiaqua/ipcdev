@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -98,10 +98,7 @@ extern "C" {
 #define AddrTable_SIZE 32
 
 /* config param for dsp mmu */
-#define PARAMS_MAX_NAMELENGTH 64
 #define PARAMS_mmuEnable "ProcMgr.proc[DSP1].mmuEnable="
-#define PARAMS_carveoutAddr "ProcMgr.proc[DSP1].carveoutAddr"
-#define PARAMS_carveoutSize "ProcMgr.proc[DSP1].carveoutSize"
 
 
 /*!
@@ -193,7 +190,7 @@ VAYUDSPPROC_ModuleObject VAYUDSPPROC_state =
     .isSetup = FALSE,
     .configSize = sizeof(VAYUDSPPROC_Config),
     .gateHandle = NULL,
-    .defInstParams.mmuEnable = FALSE,
+    .defInstParams.mmuEnable = TRUE,
     .defInstParams.numMemEntries = AddrTable_STATIC_COUNT
 };
 
@@ -864,15 +861,12 @@ VAYUDSPPROC_attach(
 
     Int                         status = PROCESSOR_SUCCESS;
     Processor_Object *          procHandle = (Processor_Object *)handle;
-    VAYUDSPPROC_Object *      object = NULL;
+    VAYUDSPPROC_Object *        object = NULL;
     UInt32                      i = 0;
     UInt32                      index = 0;
     ProcMgr_AddrInfo *          me;
     SysLink_MemEntry *          entry;
     SysLink_MemEntry_Block      memBlock;
-    Char                        prop[PARAMS_MAX_NAMELENGTH];
-    Char                        configProp[PARAMS_MAX_NAMELENGTH];
-    UInt32                      numCarveouts = 0;
     VAYUDSP_HalMmuCtrlArgs_Enable mmuEnableArgs;
     VAYUDSP_HalParams           halParams;
 
@@ -910,30 +904,13 @@ VAYUDSPPROC_attach(
         Cfg_propBool(PARAMS_mmuEnable, ProcMgr_sysLinkCfgParams,
             &(object->params.mmuEnable));
 
-        /* check for carveout params override */
-        for (i = 0; i < ProcMgr_MAX_MEMORY_REGIONS; i++) {
-            snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutAddr"%d", i);
-            strcat(prop, "=");
-            if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
-                break;
-            object->params.carveoutAddr[i] = strtoul(configProp, 0, 16);
-            snprintf (prop, PARAMS_MAX_NAMELENGTH, PARAMS_carveoutSize"%d", i);
-            strcat(prop, "=");
-            if (!Cfg_prop(prop, ProcMgr_sysLinkCfgParams, configProp))
-                break;
-            object->params.carveoutSize[i] = strtoul(configProp, 0, 16);
-            numCarveouts++;
-        }
-
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUDSPPROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
         status = RscTable_process(procHandle->procId, object->params.mmuEnable,
-                                  numCarveouts,
-                                  (Ptr)object->params.carveoutAddr,
-                                  object->params.carveoutSize, TRUE,
+                                  TRUE,
                                   &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */

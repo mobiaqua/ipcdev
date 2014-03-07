@@ -13,7 +13,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -110,22 +110,10 @@ extern "C" {
 /* config param for core0 mmu */
 #ifndef SYSLINK_SYSBIOS_SMP
 #define PARAMS_mmuEnable "ProcMgr.proc[CORE0].mmuEnable="
-#define PARAMS_carveoutAddr0 "ProcMgr.proc[CORE0].carveoutAddr0="
-#define PARAMS_carveoutSize0 "ProcMgr.proc[CORE0].carveoutSize0="
-#define PARAMS_carveoutAddr1 "ProcMgr.proc[CORE0].carveoutAddr1="
-#define PARAMS_carveoutSize1 "ProcMgr.proc[CORE0].carveoutSize1="
 #else
 #define PARAMS_mmuEnable "ProcMgr.proc[IPU].mmuEnable="
-#define PARAMS_carveoutAddr0 "ProcMgr.proc[IPU].carveoutAddr0="
-#define PARAMS_carveoutSize0 "ProcMgr.proc[IPU].carveoutSize0="
-#define PARAMS_carveoutAddr1 "ProcMgr.proc[IPU].carveoutAddr1="
-#define PARAMS_carveoutSize1 "ProcMgr.proc[IPU].carveoutSize1="
 #endif
 #define PARAMS_mmuEnableDSP "ProcMgr.proc[DSP].mmuEnable="
-#define PARAMS_carveoutAddr0DSP "ProcMgr.proc[DSP].carveoutAddr0="
-#define PARAMS_carveoutSize0DSP "ProcMgr.proc[DSP].carveoutSize0="
-#define PARAMS_carveoutAddr1DSP "ProcMgr.proc[DSP].carveoutAddr1="
-#define PARAMS_carveoutSize1DSP "ProcMgr.proc[DSP].carveoutSize1="
 
 
 /*!
@@ -1051,7 +1039,6 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
     UInt32                      index = 0;
     SysLink_MemEntry *          entry;
     SysLink_MemEntry_Block      memBlock;
-    Char                        configProp[SYSLINK_MAX_NAMELENGTH];
     ProcMgr_AddrInfo *          pMemRegn        = NULL;
     UInt32 *                    AddrTable_count = NULL;
 
@@ -1111,29 +1098,13 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                    GT_2CLASS,
                    "    OMAP5430BENELLIPROC_attach: Mapping memory regions");
 
-        /* check for carveout params override */
-        if (procHandle->procId == PROCTYPE_DSP) {
-            Cfg_prop(PARAMS_carveoutAddr0DSP, ProcMgr_sysLinkCfgParams, configProp);
-            object->params.carveoutAddr[0] = strtoul(configProp, 0, 16);
-            Cfg_prop(PARAMS_carveoutSize0DSP, ProcMgr_sysLinkCfgParams, configProp);
-            object->params.carveoutSize[0] = strtoul(configProp, 0, 16);
-        }
-        else {
-            Cfg_prop(PARAMS_carveoutAddr0, ProcMgr_sysLinkCfgParams, configProp);
-            object->params.carveoutAddr[0] = strtoul(configProp, 0, 16);
-            Cfg_prop(PARAMS_carveoutSize0, ProcMgr_sysLinkCfgParams, configProp);
-            object->params.carveoutSize[0] = strtoul(configProp, 0, 16);
-        }
-
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "OMAP5430BENELLIPROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId, TRUE, NumCarveouts,
-                                  (Ptr)object->params.carveoutAddr,
-                                  object->params.carveoutSize, TRUE,
-                                  &memBlock.numEntries);
+        status = RscTable_process(procHandle->procId, TRUE,
+                                  TRUE, &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
             status = PROCESSOR_E_INVALIDARG;

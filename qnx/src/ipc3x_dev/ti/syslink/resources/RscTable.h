@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2012, Texas Instruments Incorporated
+ *  Copyright (c) 2012-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -132,8 +132,7 @@ RscTable_Handle RscTable_alloc (Char * fileName, UInt16 procId);
 
 Int RscTable_free (RscTable_Handle * handle);
 
-Int RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
-                      Ptr carveOut[], UInt32 carveOutLen[], Bool tryAlloc,
+Int RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                       UInt32 * numBlocks);
 
 Int RscTable_getMemEntries (UInt16 procId, SysLink_MemEntry * memEntries,

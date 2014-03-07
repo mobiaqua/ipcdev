@@ -8,7 +8,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -200,10 +200,6 @@ typedef struct VAYUIPUCORE1PROC_Params_tag {
     /*!< Number of memory regions to be configured. */
     ProcMgr_AddrInfo    memEntries[ProcMgr_MAX_MEMORY_REGIONS];
     /*!< Array of information structures for memory regions to be configured. */
-    UInt32              carveoutAddr[ProcMgr_MAX_MEMORY_REGIONS];
-    /*!< The address of the carveout for shared mem */
-    UInt32              carveoutSize[ProcMgr_MAX_MEMORY_REGIONS];
-    /*!< The length of the carveout for shared mem */
 } VAYUIPUCORE1PROC_Params;
 
 /*!

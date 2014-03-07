@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -238,22 +238,13 @@ Int32 _Platform_destroy (void);
 extern unsigned int syslink_ipu_mem_size;
 extern unsigned int syslink_dsp_mem_size;
 
-#define MAX_SIZE_OVERRIDE_PARAMS 500
-
-/*Char Syslink_Override_Params[MAX_SIZE_OVERRIDE_PARAMS];*/
-
-#ifndef SYSLINK_SYSBIOS_SMP
-String Syslink_Override_Params = "ProcMgr.proc[CORE0].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[CORE0].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[CORE0].carveoutSize0=0x5A00000;"
-#else
-String Syslink_Override_Params = "ProcMgr.proc[IPU].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[IPU].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[IPU].carveoutSize0=0x5A00000;"
-#endif
-                                 "ProcMgr.proc[DSP].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[DSP].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[DSP].carveoutSize0=0x5A00000;";
+/*
+ * Variable used to override default parameters
+ * Use a string of form
+ * String Syslink_Override_Params = "ProcMgr.proc[DSP].mmuEnable=TRUE;"
+ *                                  "ProcMgr.proc[IPU].mmuEnable=TRUE;";
+ */
+String Syslink_Override_Params = "";
 
 
 /** ============================================================================
@@ -344,32 +335,6 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-/*
-        String_cpy(Syslink_Override_Params,
-                   "ProcMgr.proc[CORE0].mmuEnable=TRUE;");
-        String_hexToStr(hexString, cfg->pAddr);
-        String_cat(Syslink_Override_Params,
-                   "ProcMgr.proc[CORE0].carveoutAddr0=");
-        String_cat(Syslink_Override_Params, hexString);
-        String_cat(Syslink_Override_Params, ";");
-        String_hexToStr(hexString, syslink_ipu_mem_size);
-        String_cat(Syslink_Override_Params,
-                   "ProcMgr.proc[CORE0].carveoutSize0=");
-        String_cat(Syslink_Override_Params, hexString);
-        String_cat(Syslink_Override_Params, ";");
-        String_cat(Syslink_Override_Params,
-                   "ProcMgr.proc[DSP].mmuEnable=TRUE;");
-        String_hexToStr(hexString, cfg->pAddr_dsp);
-        String_cat(Syslink_Override_Params,
-                   "ProcMgr.proc[DSP].carveoutAddr0=");
-        String_cat(Syslink_Override_Params, hexString);
-        String_cat(Syslink_Override_Params, ";");
-        String_hexToStr(hexString, syslink_dsp_mem_size);
-        String_cat(Syslink_Override_Params,
-                   "ProcMgr.proc[DSP].carveoutSize0=");
-        String_cat(Syslink_Override_Params, hexString);
-        String_cat(Syslink_Override_Params, ";");
-*/
         cfg->params = Memory_alloc(NULL,
                                    String_len(Syslink_Override_Params) + 1, 0,
                                    NULL);
@@ -826,13 +791,10 @@ _Platform_setup (Ipc_Config * cfg)
     OMAP5430BENELLIPROC_Params  ipu1ProcParams;
 #endif
     OMAP5430BENELLIPROC_Params  dspProcParams;
-    ProcMgr_AddrInfo *          memEntries;
     ElfLoader_Params            elfLoaderParams;
     ElfLoader_Handle            ldrHandle;
     UInt16                      procId;
     Platform_Handle             handle;
-    UInt32                      pa, va;
-    UInt32                      i                   = 0;
     Bool                        core0Setup          = FALSE;
 #ifndef SYSLINK_SYSBIOS_SMP
     Bool                        core1Setup          = FALSE;

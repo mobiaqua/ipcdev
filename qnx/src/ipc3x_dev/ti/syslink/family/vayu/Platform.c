@@ -186,15 +186,14 @@ Int32 _Platform_destroy (void);
 
 extern String ProcMgr_sysLinkCfgParams;
 
-String Syslink_Override_Params = "ProcMgr.proc[DSP1].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[DSP1].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[DSP1].carveoutSize0=0x5A00000;"
-                                 "ProcMgr.proc[IPU1].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[IPU1].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[IPU1].carveoutSize0=0x5A00000;"
-                                 "ProcMgr.proc[IPU2].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[IPU2].carveoutAddr0=0xBA300000;"
-                                 "ProcMgr.proc[IPU2].carveoutSize0=0x5A00000;";
+/*
+ * Variable used to override default parameters
+ * Use a string of form
+ * String Syslink_Override_Params = "ProcMgr.proc[DSP1].mmuEnable=TRUE;"
+ *                                  "ProcMgr.proc[IPU1].mmuEnable=TRUE;";
+ */
+String Syslink_Override_Params = "";
+
 
 /** ============================================================================
  *  APIs.
