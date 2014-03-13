@@ -243,7 +243,8 @@ Int NameServerMessageQ_get(NameServerMessageQ_Object *obj,
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerMessageQ_A_nameIsTooLong);
 
     /* copy the name of instance into putMsg */
-    strncpy((Char *)msg->instanceName, instanceName, len);
+    strncpy((Char *)msg->instanceName, instanceName, MAXNAMEINCHAR - 1);
+    ((Char *)msg->instanceName) [MAXNAMEINCHAR - 1] = '0';
 
     /* get the length of name */
     len = strlen(name);
@@ -252,7 +253,8 @@ Int NameServerMessageQ_get(NameServerMessageQ_Object *obj,
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerMessageQ_A_nameIsTooLong);
 
     /* copy the name of nameserver entry into putMsg */
-    strncpy((Char *)msg->name, name, len);
+    strncpy((Char *)msg->name, name, MAXNAMEINCHAR - 1);
+    ((Char *)msg->name) [MAXNAMEINCHAR - 1] = '0';
 
     /* determine the queueId based upon the processor */
     queueId = MessageQ_openQueueId(MESSAGEQ_INDEX, obj->remoteProcId);
