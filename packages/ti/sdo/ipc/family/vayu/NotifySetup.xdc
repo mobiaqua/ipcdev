@@ -73,8 +73,8 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
     /*!
      *  Interrupt vector id for Vayu/EVE
      */
-    config UInt eveIntVectId_INTC0 = -1;
-    config UInt eveIntVectId_INTC1 = -1;
+    config UInt eveIntVectId_INTC0 = 4;
+    config UInt eveIntVectId_INTC1 = 8;
 
     /*!
      *  Available notify drivers.

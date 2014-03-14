@@ -246,11 +246,12 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     UInt        combinedEventId;
 #elif defined(xdc_target__isaCompatible_arp32)
     UInt        mbxIdx;
+    Bits16      mask;
 #endif
 
     Error_init(&eb);
 
-    /* disable global interrupts (TODO: should be a gated module) */
+    /* disable interrupts */
     key = Hwi_disable();
 
     /* map processor id to virtual id */
@@ -309,9 +310,15 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     if (NotifySetup_module->numPlugged[mbxIdx] == 1) {
         eventId = NotifySetup_module->interruptTable[virtId];
 
+        /* compute the hwi mask */
+        mask = (1 << NotifySetup_eveIntVectId_INTC0)
+                | (1 << NotifySetup_eveIntVectId_INTC1);
+
         Hwi_Params_init(&hwiParams);
         hwiParams.arg = eventId;
         hwiParams.vectorNum = cpuIntrNum;
+        hwiParams.maskSetting = Hwi_MaskingOption_BITMASK;
+        hwiParams.disableIerMask = mask;
 
         Hwi_create(eventId, NotifySetup_dispatchIsr, &hwiParams, &eb);
         /* TODO: add error handling */
@@ -331,7 +338,7 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 #error Invalid target
 #endif
 
-    /* restore global interrupts */
+    /* restore interrupts */
     Hwi_restore(key);
 }
 
