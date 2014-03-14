@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -268,7 +268,7 @@ Void NameServerRemoteNotify_cbFxn(UInt16 procId, UInt16 lineId, UInt32 eventId,
         UArg arg, UInt32 payload)
 {
     NameServerRemoteNotify_Object *obj;
-    Swi_Handle swiHandle;
+    Swi_Handle swiHandle = NULL;
 
     obj = (NameServerRemoteNotify_Object *)arg;
 
@@ -288,6 +288,10 @@ Void NameServerRemoteNotify_cbFxn(UInt16 procId, UInt16 lineId, UInt32 eventId,
             /* set object state (used by ROV) */
             obj->localState = NameServerRemoteNotify_RECEIVE_RESPONSE;
             break;
+
+        default:
+            /* We should never get here but assert if we do */
+            Assert_isTrue(swiHandle != NULL, Ipc_A_internal);
     }
 
     Swi_post(swiHandle);
