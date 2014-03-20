@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,7 @@
  *
  *  @brief      Multi-Media derived Remote Procedure Call
  *
- *  @note       MmRpc is currently only available for Linux and QNX.
- *
- *
+ *  @note       MmRpc is currently only available for HLOS (Linux, QNX, Android).
  */
 
 #ifndef ti_ipc_mm_MmRpc__include
@@ -215,6 +213,9 @@ typedef struct {
  *  @param[in]      ctx     Context with which to invoke the remote service
  *  @param[in, out] ret     Return value from the remotely invoked service
  *
+ *  @pre        @c handle must be a valid handle for the service instance
+ *              returned by an earlier call to MmRpc_create().
+ *
  *  @sa MmRpc_create()
  *  @sa MmRpc_delete()
  */
@@ -242,6 +243,9 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
  *
  *  @param[in]  handlePtr  MmRpc handle, obtained from MmRpc_create()
  *
+ *  @pre        @c handlePtr must be a valid handle for the service instance
+ *              returned by an earlier call to MmRpc_create()
+ *
  *  @sa MmRpc_create()
  */
 int MmRpc_delete(MmRpc_Handle *handlePtr);
@@ -253,6 +257,9 @@ int MmRpc_delete(MmRpc_Handle *handlePtr);
  *  @param[in]  type    Buffer descriptor type
  *  @param[in]  num     Number of elements in @c desc array
  *  @param[in]  desc    Pointer to array of buffer descriptors
+ *
+ *  @pre        @c handle must be a valid handle for the service instance
+ *              returned by an earlier call to MmRpc_create().
  *
  *  @remark     When the remote processor no longer needs a reference
  *              to a buffer, calling MmRpc_release() will release the
@@ -275,6 +282,9 @@ int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
  *  @param[in]  type    Buffer descriptor type
  *  @param[in]  num     Number of elements in @c desc array
  *  @param[in]  desc    Pointer to array of buffer descriptors
+ *
+ *  @pre        @c handle must be a valid handle for the service instance
+ *              returned by an earlier call to MmRpc_create().
  *
  *  @remark     When using MmRpc_call() to invoke remote function calls,
  *              any referenced buffers will be made available to the
