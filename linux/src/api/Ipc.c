@@ -76,7 +76,9 @@ Int Ipc_start (Void)
 {
     MessageQ_Config        msgqCfg;
     MultiProc_Config       mpCfg;
+#if defined(GATEMP_SUPPORT)
     GateHWSpinlock_Config  gateHWCfg;
+#endif
     Int32                  status;
     LAD_Status             ladStatus;
     UInt16                 rprocId;
@@ -92,7 +94,7 @@ Int Ipc_start (Void)
         goto exit;
     }
 
-    /* 
+    /*
      * Get MultiProc configuration from LAD and initialize local MultiProc
      * config structure.
      */
