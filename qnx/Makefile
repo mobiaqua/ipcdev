@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2014, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,10 @@ ifeq ("$(PLATFORM)","OMAP54XX")
     SYSLINK_PLATFORM=omap5430
 else ifeq ("$(PLATFORM)","DRA7XX")
     SYSLINK_PLATFORM=vayu
+else ifeq ("$(PLATFORM)","")
+    $(error Empty PLATFORM variable.  Did you forget to set in it products.mak?)
+else
+    $(error Unsupported platform: $(PLATFORM))
 endif
 
 all:  utils ipc3x_dev libs tests

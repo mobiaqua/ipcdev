@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2013, Texas Instruments Incorporated
+#   Copyright (c) 2012-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -54,15 +54,15 @@ all: .qnx
 
 .qnx,%: PATH:=$(QNX_PATH):$(PATH)
 .qnx,%:
-	@echo "building Qnx user libraries for" $(*:.qnx,=) "..."
+	@echo "building Qnx user libraries for \"$(PLATFORM)\" platform..."
 	@make -C qnx \
                 IPC_REPO=`pwd` \
-                PLATFORM=$(*:.qnx,=) \
+                PLATFORM=$(PLATFORM) \
                 BUILD_FOR_VIRTIO=false
 
 clean:
 	@echo "cleaning Qnx user libraries ..."
-	@make -C qnx clean
+	@make -C qnx PLATFORM=$(PLATFORM) clean
 
 install: .install,$(PLATFORM)
 
@@ -72,7 +72,7 @@ install: .install,$(PLATFORM)
 	@mkdir -p $(DESTDIR)
 	@make -C qnx \
                 IPC_REPO=`pwd` \
-                PLATFORM=$(*:.qnx,=) \
+                PLATFORM=$(PLATFORM) \
                 BUILD_FOR_VIRTIO=false \
 		DESTDIR=$(DESTDIR) \
 		install
