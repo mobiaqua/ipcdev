@@ -9,7 +9,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -178,34 +178,6 @@ typedef struct SysLink_MemoryMap_tag {
 } SysLink_MemoryMap;
 
 /** @endcond */
-
-/**
- *  @brief      Config params override strings.
- *
- *  This string is a list of semi-colon-delimited "assignments" that can be set
- *  by users prior to the initial call to SysLink_setup() to affect system
- *  behavior.
- *
- *  Example assignments include:
- *    - "ProcMgr.proc[DSP].mmuEnable=FALSE;"
- *    - "ProcMgr.proc[VPSS-M3].mmuEnable=TRUE;"
- *    - "SharedRegion.entry[1].cacheEnable=FALSE;"
- *    - "SharedRegion.entry[3].cacheEnable=FALSE;"
- *
- *  @remarks    Note that many users don't explicitly set this string and
- *              rebuild their app, but rather leverage the @c SL_PARAMS
- *              environment variable to set this string's value.
- *
- *  @remarks    In many systems, slaveloader (or similar) is used to load
- *              and start the slaves, and is therefore the initial app
- *              in the system.  In those systems, it's important to set
- *              this variable (or @c SL_PARAMS) prior to running slaveloader.
- *
- *  @remarks    A common mistake is to forget to terminate the string with
- *              a trailing semi-colon.
- */
-extern String SysLink_params;
-
 
 /* =============================================================================
  * APIs

@@ -194,8 +194,6 @@ typedef struct VAYUIPUCORE0PROC_Config {
  *  @brief  Configuration parameters specific to this processor.
  */
 typedef struct VAYUIPUCORE0PROC_Params_tag {
-    Bool                mmuEnable;
-    /*!< Determines if mmu should be used (enabled) */
     UInt32              numMemEntries;
     /*!< Number of memory regions to be configured. */
     ProcMgr_AddrInfo    memEntries[ProcMgr_MAX_MEMORY_REGIONS];

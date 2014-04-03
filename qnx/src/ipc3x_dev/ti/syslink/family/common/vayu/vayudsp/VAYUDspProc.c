@@ -97,9 +97,6 @@ extern "C" {
  */
 #define AddrTable_SIZE 32
 
-/* config param for dsp mmu */
-#define PARAMS_mmuEnable "ProcMgr.proc[DSP1].mmuEnable="
-
 
 /*!
  *  @brief  VAYUDSPPROC Module state object
@@ -190,7 +187,6 @@ VAYUDSPPROC_ModuleObject VAYUDSPPROC_state =
     .isSetup = FALSE,
     .configSize = sizeof(VAYUDSPPROC_Config),
     .gateHandle = NULL,
-    .defInstParams.mmuEnable = TRUE,
     .defInstParams.numMemEntries = AddrTable_STATIC_COUNT
 };
 
@@ -394,10 +390,6 @@ VAYUDSPPROC_Params_init(
     else {
 #endif
         if (handle == NULL) {
-
-            /* check for instance params override */
-            Cfg_propBool(PARAMS_mmuEnable, ProcMgr_sysLinkCfgParams,
-                &(VAYUDSPPROC_state.defInstParams.mmuEnable));
 
             Memory_copy(params, &(VAYUDSPPROC_state.defInstParams),
                 sizeof(VAYUDSPPROC_Params));
@@ -900,16 +892,12 @@ VAYUDSPPROC_attach(
 
         params->procArch = Processor_ProcArch_C66x;
 
-        /* check for instance params override */
-        Cfg_propBool(PARAMS_mmuEnable, ProcMgr_sysLinkCfgParams,
-            &(object->params.mmuEnable));
-
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUDSPPROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId, object->params.mmuEnable,
+        status = RscTable_process(procHandle->procId,
                                   TRUE,
                                   &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
@@ -1031,42 +1019,38 @@ VAYUDSPPROC_attach(
                         GT_0trace(curTrace, GT_3CLASS,
                             "VAYUDSPPROC_attach: slave is now in reset");
 
-                        if (object->params.mmuEnable) {
-                           mmuEnableArgs.numMemEntries = 0;
-                           status = VAYUDSP_halMmuCtrl(object->halObject,
-                               Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
+                        mmuEnableArgs.numMemEntries = 0;
+                        status = VAYUDSP_halMmuCtrl(object->halObject,
+                            Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                            if (status < 0) {
-                                GT_setFailureReason(curTrace, GT_4CLASS,
-                                    "VAYUDSPPROC_attach", status,
-                                    "Failed to enable the slave MMU");
-                            }
-                            else {
-#endif
-                                GT_0trace(curTrace, GT_2CLASS,
-                                    "VAYUDSPPROC_attach: Slave MMU "
-                                    "is configured!");
-
-                                /*
-                                 * Pull DSP MMU out of reset to make internal
-                                 * memory "loadable"
-                                 */
-                                status = VAYUDSP_halResetCtrl(object->halObject,
-                                    Processor_ResetCtrlCmd_MMU_Release);
-                                if (status < 0) {
-                                    /*! @retval status */
-                                    GT_setFailureReason(curTrace,
-                                        GT_4CLASS,
-                                        "VAYUDSP_halResetCtrl",
-                                        status,
-                                        "Reset MMU_Release failed");
-                                }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-                            }
-#endif
+                        if (status < 0) {
+                            GT_setFailureReason(curTrace, GT_4CLASS,
+                                "VAYUDSPPROC_attach", status,
+                                "Failed to enable the slave MMU");
                         }
+                        else {
+#endif
+                            GT_0trace(curTrace, GT_2CLASS,
+                                "VAYUDSPPROC_attach: Slave MMU "
+                                "is configured!");
+
+                            /*
+                             * Pull DSP MMU out of reset to make internal
+                             * memory "loadable"
+                             */
+                            status = VAYUDSP_halResetCtrl(object->halObject,
+                                Processor_ResetCtrlCmd_MMU_Release);
+                            if (status < 0) {
+                                /*! @retval status */
+                                GT_setFailureReason(curTrace,
+                                    GT_4CLASS,
+                                    "VAYUDSP_halResetCtrl",
+                                        status,
+                                    "Reset MMU_Release failed");
+                            }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
+                         }
                     }
 #endif
                 }
@@ -1125,34 +1109,32 @@ VAYUDSPPROC_detach (Processor_Handle handle)
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
-            if (object->params.mmuEnable) {
-                GT_0trace(curTrace, GT_2CLASS,
-                    "VAYUDSPPROC_detach: Disabling Slave MMU ...");
+            GT_0trace(curTrace, GT_2CLASS,
+                "VAYUDSPPROC_detach: Disabling Slave MMU ...");
 
-                status = VAYUDSP_halResetCtrl(object->halObject,
-                    Processor_ResetCtrlCmd_MMU_Reset);
+            status = VAYUDSP_halResetCtrl(object->halObject,
+                Processor_ResetCtrlCmd_MMU_Reset);
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
-                if (status < 0) {
-                    /*! @retval status */
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "VAYUDSP_halResetCtrl",
-                                         status,
-                                         "Reset MMU failed");
-                }
+            if (status < 0) {
+                /*! @retval status */
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "VAYUDSP_halResetCtrl",
+                                     status,
+                                     "Reset MMU failed");
+            }
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
 
-               status = VAYUDSP_halMmuCtrl(object->halObject,
-                   Processor_MmuCtrlCmd_Disable, NULL);
+            status = VAYUDSP_halMmuCtrl(object->halObject,
+                Processor_MmuCtrlCmd_Disable, NULL);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
-                if (status < 0) {
-                    GT_setFailureReason(curTrace, GT_4CLASS,
-                        "VAYUDSPPROC_detach", status,
-                        "Failed to disable the slave MMU");
-                }
-#endif
+            if (status < 0) {
+                GT_setFailureReason(curTrace, GT_4CLASS,
+                    "VAYUDSPPROC_detach", status,
+                    "Failed to disable the slave MMU");
             }
+#endif
 
             /* delete all dynamically added entries */
             for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
@@ -1281,18 +1263,16 @@ VAYUDSPPROC_start (Processor_Handle        handle,
             }
             else {
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
-                if (object->params.mmuEnable) {
-                        status = rproc_dsp_setup(object->halObject,
-                                                 object->params.memEntries,
-                                                 object->params.numMemEntries);
-                        if (status < 0) {
-                            /*! @retval status */
-                            GT_setFailureReason (curTrace,
-                                                 GT_4CLASS,
-                                                 "VAYUDSP_halResetCtrl",
-                                                 status,
-                                                 "rproc_dsp_setup failed");
-                        }
+                status = rproc_dsp_setup(object->halObject,
+                                         object->params.memEntries,
+                                         object->params.numMemEntries);
+                if (status < 0) {
+                    /*! @retval status */
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "VAYUDSP_halResetCtrl",
+                                         status,
+                                         "rproc_dsp_setup failed");
                 }
                 /* release the slave cpu from reset */
                 if (status >= 0) {
@@ -1390,9 +1370,7 @@ VAYUDSPPROC_stop (Processor_Handle handle)
                                      "Failed to place slave in reset");
             }
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
-            if (object->params.mmuEnable) {
-                rproc_dsp_destroy(object->halObject);
-            }
+            rproc_dsp_destroy(object->halObject);
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -1719,17 +1697,11 @@ VAYUDSPPROC_translate(
         }
 
         if (*dstAddr == -1u) {
-            if (!object->params.mmuEnable) {
-                /* default to direct mapping (i.e. v=p) */
-                *dstAddr = srcAddr;
-            }
-            else {
-                /* srcAddr not found in slave address space */
-                status = PROCESSOR_E_INVALIDARG;
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUDSPPROC_translate", status,
-                    "srcAddr not found in slave address space");
-            }
+            /* srcAddr not found in slave address space */
+            status = PROCESSOR_E_INVALIDARG;
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUDSPPROC_translate", status,
+                "srcAddr not found in slave address space");
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -1850,31 +1822,25 @@ VAYUDSPPROC_map(
 
             /* if not found and mmu is enabled, add new entry to table */
             if (!found) {
-                if (object->params.mmuEnable) {
-                    if (AddrTable_count != AddrTable_SIZE) {
-                        ai = &AddrTable[AddrTable_count];
+                if (AddrTable_count != AddrTable_SIZE) {
+                    ai = &AddrTable[AddrTable_count];
 
-                        ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                        ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                        ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
-                        ai->addr[ProcMgr_AddrType_SlaveVirt] = *dstAddr;
-                        ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                        ai->size = sglist[i].size;
-                        ai->isCached = sglist[i].isCached;
-                        ai->refCount++;
+                    ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
+                    ai->addr[ProcMgr_AddrType_SlaveVirt] = *dstAddr;
+                    ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+                    ai->size = sglist[i].size;
+                    ai->isCached = sglist[i].isCached;
+                    ai->refCount++;
 
-                        AddrTable_count++;
-                    }
-                    else {
-                        status = PROCESSOR_E_FAIL;
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUDSPPROC_map", status,
-                            "AddrTable_SIZE reached!");
-                    }
+                    AddrTable_count++;
                 }
                 else {
-                    /* if mmu disabled, AddrTable not updated */
-                    ai = NULL;
+                    status = PROCESSOR_E_FAIL;
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUDSPPROC_map", status,
+                        "AddrTable_SIZE reached!");
                 }
             }
 
@@ -1882,27 +1848,25 @@ VAYUDSPPROC_map(
             if ((ai != NULL) && (ai->refCount == 1) && (status >= 0)) {
                 ai->isMapped = TRUE;
 
-                if (object->params.mmuEnable) {
-                    /* Add entry to Dsp mmu */
-                    addEntryArgs.masterPhyAddr = sglist [i].paddr;
-                    addEntryArgs.size          = sglist [i].size;
-                    addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
-                    /* TBD: elementSize, endianism, mixedSized are
-                     * hard coded now, must be configurable later
-                     */
-                    addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-                    addEntryArgs.endianism     = LITTLE_ENDIAN;
-                    addEntryArgs.mixedSize     = MMU_TLBES;
-                    status = VAYUDSP_halMmuCtrl(object->halObject,
-                        Processor_MmuCtrlCmd_AddEntry, &addEntryArgs);
+                /* Add entry to Dsp mmu */
+                addEntryArgs.masterPhyAddr = sglist [i].paddr;
+                addEntryArgs.size          = sglist [i].size;
+                addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
+                /* TBD: elementSize, endianism, mixedSized are
+                 * hard coded now, must be configurable later
+                 */
+                addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
+                addEntryArgs.endianism     = LITTLE_ENDIAN;
+                addEntryArgs.mixedSize     = MMU_TLBES;
+                status = VAYUDSP_halMmuCtrl(object->halObject,
+                    Processor_MmuCtrlCmd_AddEntry, &addEntryArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                    if (status < 0) {
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUDSPPROC_map", status,
-                            "Processor_MmuCtrlCmd_AddEntry failed");
-                    }
-#endif
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUDSPPROC_map", status,
+                        "Processor_MmuCtrlCmd_AddEntry failed");
                 }
+#endif
             }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             if (status < 0) {
@@ -2004,27 +1968,25 @@ VAYUDSPPROC_unmap(
                     ai->mapMask = 0u;
                     ai->isMapped = FALSE;
 
-                    if (object->params.mmuEnable) {
-                        /* Remove the entry from the DSP MMU also */
-                        deleteEntryArgs.size          = size;
-                        deleteEntryArgs.slaveVirtAddr = addr;
-                        /* TBD: elementSize, endianism, mixedSized are
-                         * hard coded now, must be configurable later
-                         */
-                        deleteEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-                        deleteEntryArgs.endianism     = LITTLE_ENDIAN;
-                        deleteEntryArgs.mixedSize     = MMU_TLBES;
+                    /* Remove the entry from the DSP MMU also */
+                    deleteEntryArgs.size          = size;
+                    deleteEntryArgs.slaveVirtAddr = addr;
+                    /* TBD: elementSize, endianism, mixedSized are
+                     * hard coded now, must be configurable later
+                     */
+                    deleteEntryArgs.elementSize   = ELEM_SIZE_16BIT;
+                    deleteEntryArgs.endianism     = LITTLE_ENDIAN;
+                    deleteEntryArgs.mixedSize     = MMU_TLBES;
 
-                        status = VAYUDSP_halMmuCtrl(object->halObject,
-                            Processor_MmuCtrlCmd_DeleteEntry, &deleteEntryArgs);
+                    status = VAYUDSP_halMmuCtrl(object->halObject,
+                        Processor_MmuCtrlCmd_DeleteEntry, &deleteEntryArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                        if (status < 0) {
-                            GT_setFailureReason(curTrace, GT_4CLASS,
-                                "VAYUDSPPROC_unmap", status,
-                                "DSP MMU configuration failed");
-                        }
-#endif
+                    if (status < 0) {
+                        GT_setFailureReason(curTrace, GT_4CLASS,
+                            "VAYUDSPPROC_unmap", status,
+                            "DSP MMU configuration failed");
                     }
+#endif
                 }
             }
         }

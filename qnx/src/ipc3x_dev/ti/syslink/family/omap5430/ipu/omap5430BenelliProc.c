@@ -107,14 +107,6 @@ extern "C" {
 /* number of carveouts */
 #define NumCarveouts 1
 
-/* config param for core0 mmu */
-#ifndef SYSLINK_SYSBIOS_SMP
-#define PARAMS_mmuEnable "ProcMgr.proc[CORE0].mmuEnable="
-#else
-#define PARAMS_mmuEnable "ProcMgr.proc[IPU].mmuEnable="
-#endif
-#define PARAMS_mmuEnableDSP "ProcMgr.proc[DSP].mmuEnable="
-
 
 /*!
  *  @brief  OMAP5430BENELLIPROC Module state object
@@ -1103,7 +1095,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
             "OMAP5430BENELLIPROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId, TRUE,
+        status = RscTable_process(procHandle->procId,
                                   TRUE, &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */

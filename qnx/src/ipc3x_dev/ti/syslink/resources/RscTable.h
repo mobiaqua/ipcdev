@@ -132,8 +132,7 @@ RscTable_Handle RscTable_alloc (Char * fileName, UInt16 procId);
 
 Int RscTable_free (RscTable_Handle * handle);
 
-Int RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
-                      UInt32 * numBlocks);
+Int RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks);
 
 Int RscTable_getMemEntries (UInt16 procId, SysLink_MemEntry * memEntries,
                             UInt32 * numMemEntries);

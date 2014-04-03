@@ -238,14 +238,6 @@ Int32 _Platform_destroy (void);
 extern unsigned int syslink_ipu_mem_size;
 extern unsigned int syslink_dsp_mem_size;
 
-/*
- * Variable used to override default parameters
- * Use a string of form
- * String Syslink_Override_Params = "ProcMgr.proc[DSP].mmuEnable=TRUE;"
- *                                  "ProcMgr.proc[IPU].mmuEnable=TRUE;";
- */
-String Syslink_Override_Params = "";
-
 
 /** ============================================================================
  *  APIs.
@@ -335,14 +327,6 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        cfg->params = Memory_alloc(NULL,
-                                   String_len(Syslink_Override_Params) + 1, 0,
-                                   NULL);
-        if (cfg->params) {
-            String_cpy(cfg->params, Syslink_Override_Params);
-        }
-
-        _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
 
         /* Set the MultiProc config as defined in SystemCfg.c */
         config->multiProcConfig = _MultiProc_cfg;

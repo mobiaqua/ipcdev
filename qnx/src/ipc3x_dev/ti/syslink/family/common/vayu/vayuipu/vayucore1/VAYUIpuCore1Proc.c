@@ -104,12 +104,6 @@ extern "C" {
 #define PROCID_TO_IPU(procId) (procId == VAYUIPUCORE1PROC_state.ipu1ProcId ?\
     0 : 1)
 
-/* Config param for L2MMU. This is not a typo, we are using the
- * same name (IPU1) because both Benelli M4 processors use the
- * same L2MMU. The docs expose IPUx but not the IPUx Core1 processor.
- */
-#define PARAMS_mmuEnable1 "ProcMgr.proc[IPU1].mmuEnable="
-#define PARAMS_mmuEnable2 "ProcMgr.proc[IPU2].mmuEnable="
 
 
 /*!
@@ -201,7 +195,6 @@ VAYUIPUCORE1PROC_ModuleObject VAYUIPUCORE1PROC_state =
     .isSetup = FALSE,
     .configSize = sizeof (VAYUIPUCORE1PROC_Config),
     .gateHandle = NULL,
-    .defInstParams.mmuEnable = TRUE,
     .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
 };
 
@@ -922,22 +915,12 @@ VAYUIPUCORE1PROC_attach(
         /* Added for Netra Benelli core0 is cortex M4 */
         params->procArch = Processor_ProcArch_M4;
 
-        /* check for instance params override */
-        if (VAYUIPUCORE1PROC_state.ipu1ProcId == procHandle->procId) {
-            Cfg_propBool(PARAMS_mmuEnable1, ProcMgr_sysLinkCfgParams,
-                &(object->params.mmuEnable));
-        }
-        else {
-            Cfg_propBool(PARAMS_mmuEnable2, ProcMgr_sysLinkCfgParams,
-                &(object->params.mmuEnable));
-        }
-
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUIPUCORE1PROC_attach: Mapping memory regions");
 
         /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId, object->params.mmuEnable,
+        status = RscTable_process(procHandle->procId,
                                   TRUE,
                                   &memBlock.numEntries);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
@@ -1061,41 +1044,37 @@ VAYUIPUCORE1PROC_attach(
                         GT_0trace(curTrace, GT_1CLASS,
                             "VAYUIPUCORE1PROC_attach: slave is now in reset");
 
-                        if (object->params.mmuEnable) {
-                            mmuEnableArgs.numMemEntries = 0;
-                            status = VAYUIPU_halMmuCtrl(object->halObject,
-                                Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
+                        mmuEnableArgs.numMemEntries = 0;
+                        status = VAYUIPU_halMmuCtrl(object->halObject,
+                            Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                            if (status < 0) {
-                                GT_setFailureReason(curTrace, GT_4CLASS,
-                                    "VAYUIPUCORE1PROC_attach", status,
-                                    "Failed to enable the slave MMU");
-                            }
-                            else {
-#endif
-                                GT_0trace(curTrace, GT_2CLASS,
-                                    "VAYUIPUCORE1PROC_attach: Slave MMU "
-                                    "is configured!");
-                                /*
-                                 * Pull IPU MMU out of reset to make internal
-                                 * memory "loadable"
-                                 */
-                                status = VAYUIPUCORE1_halResetCtrl(
-                                    object->halObject,
-                                    Processor_ResetCtrlCmd_MMU_Release);
-                                if (status < 0) {
-                                    /*! @retval status */
-                                    GT_setFailureReason(curTrace,
-                                        GT_4CLASS,
-                                        "VAYUIPUCORE1_halResetCtrl",
-                                        status,
-                                        "Reset MMU_Release failed");
-                                }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-                             }
-#endif
+                        if (status < 0) {
+                            GT_setFailureReason(curTrace, GT_4CLASS,
+                                "VAYUIPUCORE1PROC_attach", status,
+                                "Failed to enable the slave MMU");
                         }
+                        else {
+#endif
+                            GT_0trace(curTrace, GT_2CLASS,
+                                "VAYUIPUCORE1PROC_attach: Slave MMU "
+                                "is configured!");
+                            /*
+                             * Pull IPU MMU out of reset to make internal
+                             * memory "loadable"
+                             */
+                            status = VAYUIPUCORE1_halResetCtrl(
+                                object->halObject,
+                                Processor_ResetCtrlCmd_MMU_Release);
+                            if (status < 0) {
+                                /*! @retval status */
+                                GT_setFailureReason(curTrace,
+                                    GT_4CLASS,
+                                    "VAYUIPUCORE1_halResetCtrl",
+                                    status,
+                                    "Reset MMU_Release failed");
+                            }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
+                        }
                     }
 #endif
                 }
@@ -1153,33 +1132,31 @@ VAYUIPUCORE1PROC_detach (Processor_Handle handle)
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
-            if (object->params.mmuEnable) {
-                GT_0trace(curTrace, GT_2CLASS,
-                    "VAYUIPUCORE1PROC_detach: Disabling Slave MMU ...");
+            GT_0trace(curTrace, GT_2CLASS,
+                "VAYUIPUCORE1PROC_detach: Disabling Slave MMU ...");
 
-                status = VAYUIPUCORE1_halResetCtrl(object->halObject,
-                    Processor_ResetCtrlCmd_MMU_Reset);
+            status = VAYUIPUCORE1_halResetCtrl(object->halObject,
+                Processor_ResetCtrlCmd_MMU_Reset);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                if (status < 0) {
-                    /*! @retval status */
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "VAYUIPUCORE1_halResetCtrl",
-                                         status,
-                                         "Reset MMU failed");
-                }
+            if (status < 0) {
+                /*! @retval status */
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "VAYUIPUCORE1_halResetCtrl",
+                                     status,
+                                     "Reset MMU failed");
+            }
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
-                status = VAYUIPU_halMmuCtrl(object->halObject,
-                    Processor_MmuCtrlCmd_Disable, NULL);
+            status = VAYUIPU_halMmuCtrl(object->halObject,
+                Processor_MmuCtrlCmd_Disable, NULL);
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
-                if (status < 0) {
-                    GT_setFailureReason(curTrace, GT_4CLASS,
-                        "VAYUIPUCORE1PROC_detach", status,
-                        "Failed to disable the slave MMU");
-                }
-#endif
+            if (status < 0) {
+                GT_setFailureReason(curTrace, GT_4CLASS,
+                    "VAYUIPUCORE1PROC_detach", status,
+                    "Failed to disable the slave MMU");
             }
+#endif
 
             /* delete all dynamically added entries */
             for (i = AddrTable_STATIC_COUNT; i <
@@ -1741,20 +1718,11 @@ VAYUIPUCORE1PROC_translate(
         }
 
         if (*dstAddr == -1u) {
-            if (!object->params.mmuEnable) {
-                /* default to direct mapping (i.e. v=p) */
-                *dstAddr = srcAddr;
-                GT_2trace(curTrace, GT_1CLASS, "VAYUIPUCORE1PROC_translate: "
-                    "(default) srcAddr=0x%x --> dstAddr=0x%x",
-                    srcAddr, *dstAddr);
-            }
-            else {
-                /* srcAddr not found in slave address space */
-                status = PROCESSOR_E_INVALIDARG;
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUIPUCORE1PROC_translate", status,
-                    "srcAddr not found in slave address space");
-            }
+            /* srcAddr not found in slave address space */
+            status = PROCESSOR_E_INVALIDARG;
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUIPUCORE1PROC_translate", status,
+                "srcAddr not found in slave address space");
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -1876,33 +1844,27 @@ VAYUIPUCORE1PROC_map(
              * the assumption is that the ammu will be used.
              */
             if (!found) {
-                if (object->params.mmuEnable) {
-                    if (AddrTable_count[PROCID_TO_IPU(procHandle->procId)] !=
-                        AddrTable_SIZE) {
-                        ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)]
-                            [AddrTable_count[PROCID_TO_IPU
-                            (procHandle->procId)]];
-                        ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                        ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                        ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
-                        ai->addr[ProcMgr_AddrType_SlaveVirt] = *dstAddr;
-                        ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                        ai->size = sglist[i].size;
-                        ai->isCached = sglist[i].isCached;
-                        ai->refCount++;
+                if (AddrTable_count[PROCID_TO_IPU(procHandle->procId)] !=
+                    AddrTable_SIZE) {
+                    ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)]
+                        [AddrTable_count[PROCID_TO_IPU
+                        (procHandle->procId)]];
+                    ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
+                    ai->addr[ProcMgr_AddrType_SlaveVirt] = *dstAddr;
+                    ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+                    ai->size = sglist[i].size;
+                    ai->isCached = sglist[i].isCached;
+                    ai->refCount++;
 
-                        AddrTable_count[PROCID_TO_IPU(procHandle->procId)]++;
-                    }
-                    else {
-                        status = PROCESSOR_E_FAIL;
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUIPUCORE1PROC_map", status,
-                            "AddrTable_SIZE reached!");
-                    }
+                    AddrTable_count[PROCID_TO_IPU(procHandle->procId)]++;
                 }
                 else {
-                    /* if mmu disabled, AddrTable not updated */
-                    ai = NULL;
+                    status = PROCESSOR_E_FAIL;
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUIPUCORE1PROC_map", status,
+                        "AddrTable_SIZE reached!");
                 }
             }
 
@@ -1910,29 +1872,27 @@ VAYUIPUCORE1PROC_map(
             if ((ai != NULL) && (ai->refCount == 1) && (status >= 0)) {
                 ai->isMapped = TRUE;
 
-                if (object->params.mmuEnable) {
-                    /* add entry to L2 MMU */
-                    addEntryArgs.masterPhyAddr = sglist [i].paddr;
-                    addEntryArgs.size          = sglist [i].size;
-                    addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
-                    /* TBD: elementSize, endianism, mixedSized are
-                     * hard coded now, must be configurable later
-                     */
-                    addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-                    addEntryArgs.endianism     = LITTLE_ENDIAN;
-                    addEntryArgs.mixedSize     = MMU_TLBES;
+                /* add entry to L2 MMU */
+                addEntryArgs.masterPhyAddr = sglist [i].paddr;
+                addEntryArgs.size          = sglist [i].size;
+                addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
+                /* TBD: elementSize, endianism, mixedSized are
+                 * hard coded now, must be configurable later
+                 */
+                addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
+                addEntryArgs.endianism     = LITTLE_ENDIAN;
+                addEntryArgs.mixedSize     = MMU_TLBES;
 
-                    status = VAYUIPU_halMmuCtrl(object->halObject,
-                        Processor_MmuCtrlCmd_AddEntry, &addEntryArgs);
+                status = VAYUIPU_halMmuCtrl(object->halObject,
+                    Processor_MmuCtrlCmd_AddEntry, &addEntryArgs);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                    if (status < 0) {
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUIPUCORE1PROC_map", status,
-                            "Processor_MmuCtrlCmd_AddEntry failed");
-                    }
-#endif
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUIPUCORE1PROC_map", status,
+                        "Processor_MmuCtrlCmd_AddEntry failed");
                 }
+#endif
             }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             if (status < 0) {
@@ -2035,27 +1995,25 @@ VAYUIPUCORE1PROC_unmap(
                     ai->mapMask = 0u;
                     ai->isMapped = FALSE;
 
-                    if (object->params.mmuEnable) {
-                        /* Remove the entry from the IPUCORE1 MMU also */
-                        deleteEntryArgs.size          = size;
-                        deleteEntryArgs.slaveVirtAddr = addr;
-                        /* TBD: elementSize, endianism, mixedSized are
-                         * hard coded now, must be configurable later
-                         */
-                        deleteEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-                        deleteEntryArgs.endianism     = LITTLE_ENDIAN;
-                        deleteEntryArgs.mixedSize     = MMU_TLBES;
+                    /* Remove the entry from the IPUCORE1 MMU also */
+                    deleteEntryArgs.size          = size;
+                    deleteEntryArgs.slaveVirtAddr = addr;
+                    /* TBD: elementSize, endianism, mixedSized are
+                     * hard coded now, must be configurable later
+                     */
+                    deleteEntryArgs.elementSize   = ELEM_SIZE_16BIT;
+                    deleteEntryArgs.endianism     = LITTLE_ENDIAN;
+                    deleteEntryArgs.mixedSize     = MMU_TLBES;
 
-                        status = VAYUIPU_halMmuCtrl(object->halObject,
-                            Processor_MmuCtrlCmd_DeleteEntry, &deleteEntryArgs);
+                    status = VAYUIPU_halMmuCtrl(object->halObject,
+                        Processor_MmuCtrlCmd_DeleteEntry, &deleteEntryArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                        if (status < 0) {
-                            GT_setFailureReason(curTrace, GT_4CLASS,
-                                "VAYUIPUCORE1PROC_unmap", status,
-                                "IPUCORE1 MMU configuration failed");
-                        }
-#endif
+                    if (status < 0) {
+                        GT_setFailureReason(curTrace, GT_4CLASS,
+                            "VAYUIPUCORE1PROC_unmap", status,
+                            "IPUCORE1 MMU configuration failed");
                     }
+#endif
                 }
             }
         }

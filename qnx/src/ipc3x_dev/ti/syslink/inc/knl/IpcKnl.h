@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -74,8 +74,6 @@ typedef struct Ipc_Config {
     UInt32       vAddr_dsp;
     UInt32       pAddr_dsp;
     String       fileName_dsp;
-    String       params;
-    /*!< instance params override */
 } Ipc_Config;
 
 

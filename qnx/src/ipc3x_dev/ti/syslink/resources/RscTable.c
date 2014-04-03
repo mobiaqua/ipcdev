@@ -378,8 +378,7 @@ Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
 }
 
 Int
-RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
-                  UInt32 * numBlocks)
+RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
 {
     Int status = 0;
     Int ret = 0;
@@ -421,12 +420,7 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                 struct fw_rsc_carveout * cout = (struct fw_rsc_carveout *)entry;
                 UInt32 pa = 0;
                 if (cout->pa == 0) {
-                    if (mmuEnabled) {
-                        ret = Chunk_allocate (obj, cout->len, &pa);
-                    }
-                    else {
-                        pa = cout->da;
-                    }
+                    ret = Chunk_allocate (obj, cout->len, &pa);
                 }
                 if (!ret) {
                     cout->pa = pa;
@@ -439,13 +433,9 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                         obj->memEntries[obj->numMemEntries].masterPhysAddr =
                                 cout->pa;
                         obj->memEntries[obj->numMemEntries].size = cout->len;
-                        //if (mmuEnabled) {
-                            obj->memEntries[obj->numMemEntries].map = TRUE;
-                            obj->memEntries[obj->numMemEntries].mapMask =
-                                ProcMgr_SLAVEVIRT;
-                        //}
-                        //else
-                        //    obj->memEntries[obj->numMemEntries].map = FALSE;
+                        obj->memEntries[obj->numMemEntries].map = TRUE;
+                        obj->memEntries[obj->numMemEntries].mapMask =
+                            ProcMgr_SLAVEVIRT;
                         obj->memEntries[obj->numMemEntries].isCached = FALSE;
                         obj->memEntries[obj->numMemEntries].isValid = TRUE;
                         obj->numMemEntries++;
@@ -473,8 +463,7 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
 
                             ret = -1;
                         }
-                        else if (obj->vringPa != dmem->pa &&
-                                 (!tryAlloc || !mmuEnabled)) {
+                        else if (obj->vringPa != dmem->pa && (!tryAlloc)) {
                             // defined pa does not match allocated pa, and
                             // either the mmu is disabled or the platform has
                             // not given permission to allocate on our own
@@ -504,13 +493,9 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                         obj->memEntries[obj->numMemEntries].masterPhysAddr =
                                 dmem->pa;
                         obj->memEntries[obj->numMemEntries].size = dmem->len;
-                        //if (mmuEnabled) {
-                            obj->memEntries[obj->numMemEntries].map = TRUE;
-                            obj->memEntries[obj->numMemEntries].mapMask =
-                                ProcMgr_SLAVEVIRT;
-                        //}
-                        //else
-                        //    obj->memEntries[obj->numMemEntries].map = FALSE;
+                        obj->memEntries[obj->numMemEntries].map = TRUE;
+                        obj->memEntries[obj->numMemEntries].mapMask =
+                            ProcMgr_SLAVEVIRT;
                         obj->memEntries[obj->numMemEntries].isCached = FALSE;
                         obj->memEntries[obj->numMemEntries].isValid = TRUE;
                         obj->numMemEntries++;
@@ -562,17 +547,9 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, Bool tryAlloc,
                 if (!ret) {
                     // HACK: round up to multiple of 1MB, because we know this
                     //       is the size of the remote entry
-                    if (mmuEnabled) {
-                        ret = Chunk_allocate(obj,
-                                     ROUND_UP(vr_size + vr_bufs_size, 0x100000),
-                                     &pa);
-                    }
-                    else {
-                         /*
-                          * TBD: if mmu is disabled, we need a way to specify
-                          * shared memory from which to allocate the vrings
-                          */
-                    }
+                    ret = Chunk_allocate(obj,
+                                 ROUND_UP(vr_size + vr_bufs_size, 0x100000),
+                                 &pa);
                 }
                 else if (obj->vrings) {
                     Memory_free (NULL, obj->vrings,

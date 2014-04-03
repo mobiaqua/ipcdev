@@ -184,16 +184,6 @@ static Platform_Module_State * Platform_module = &Platform_Module_state;
 Int32 _Platform_setup  (Ipc_Config * cfg);
 Int32 _Platform_destroy (void);
 
-extern String ProcMgr_sysLinkCfgParams;
-
-/*
- * Variable used to override default parameters
- * Use a string of form
- * String Syslink_Override_Params = "ProcMgr.proc[DSP1].mmuEnable=TRUE;"
- *                                  "ProcMgr.proc[IPU1].mmuEnable=TRUE;";
- */
-String Syslink_Override_Params = "";
-
 
 /** ============================================================================
  *  APIs.
@@ -263,7 +253,6 @@ Int32
 Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 {
     Int32  status = Platform_S_SUCCESS;
-    char * pSL_PARAMS;
 
     GT_1trace (curTrace, GT_ENTER, "Platform_overrideConfig", config);
 
@@ -283,27 +272,6 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-
-        /* assign config->params - overriding with SL_PARAMS env var, if set */
-        pSL_PARAMS = getenv("SL_PARAMS");
-        if (pSL_PARAMS != NULL) {
-            GT_2trace(curTrace, GT_1CLASS, "Overriding SysLink_params \"%s\""
-                    " with SL_PARAMS \"%s\"\n", Syslink_Override_Params, pSL_PARAMS);
-            cfg->params = Memory_alloc(NULL, String_len(pSL_PARAMS), 0, NULL);
-            if (cfg->params) {
-                String_cpy(cfg->params, pSL_PARAMS);
-            }
-        }
-        else {
-            cfg->params = Memory_alloc(NULL,
-                                       String_len(Syslink_Override_Params) + 1, 0,
-                                       NULL);
-            if (cfg->params) {
-                String_cpy(cfg->params, Syslink_Override_Params);
-            }
-        }
-
-        _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
 
         /* Set the MultiProc config as defined in SystemCfg.c */
         config->multiProcConfig = _MultiProc_cfg;
