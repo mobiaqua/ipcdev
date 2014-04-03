@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -38,18 +38,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
-
-
 
 #if defined(SYSLINK_BUILD_RTOS)
 #include <xdc/std.h>
@@ -174,7 +163,7 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
             /* Enable the DSP clock */
             addr = cmBase + CM_DSP_CLKSTCTRL;
             OUTREG32(addr, 0x02);
-#ifndef VAYU_VIRTIO
+
             do {
                 val = INREG32(addr);
                 if (val & 0x100) {
@@ -187,7 +176,7 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
                 status = -1;
                 break;
             }
-#endif
+
             /* Check that releasing resets would indeed be effective */
             addr = prmBase + RM_DSP_RSTCTRL;
             val =  INREG32(addr);
@@ -195,21 +184,20 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
                 Osal_printf("DSP Resets in not proper state! [0x%x]\n", val);
                 OUTREG32(addr, 0x3);
                 counter = 1000;
-#ifndef VAYU_VIRTIO
+
                 while ((--counter)&&((INREG32(addr) & 0x3) != 0x3));
                 if (counter == 0) {
                     Osal_printf("RESET bits not set in DSP reset Ctrl!\n");
                     status = -1;
                     break;
                 }
-#endif
             }
             /* De-assert RST2, and clear the Reset status */
             OUTREG32(addr, 0x1);
             addr = prmBase + RM_DSP_RSTST;
-#ifndef VAYU_VIRTIO
+
             while (!((INREG32(addr))& 0x2));
-#endif
+
             Osal_printf("DSP:RST2 released!\n");
             OUTREG32(addr, 0x2);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, Texas Instruments Incorporated
+ * Copyright (c) 2010-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,7 +158,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     SETBITREG32(IPURstCtrl, RM_IPU_RST1_BIT);
                     /* Read back the reset control register */
                     reg = INREG32(IPURstCtrl);
-#ifndef OMAP5430_VIRTIO // skip this for now, not using gptimers
+
                     /* Disable the GPT3 clock, which is used by CORE0 */
                     ret = ipu_pm_gpt_stop(GPTIMER_3);
                     if (ret != EOK) {
@@ -176,13 +176,12 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                              status,
                                              "Failed to disable gpt 3");
                     }
-#endif
                     break;
 #ifndef SYSLINK_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
                     /* Put IPU core 1 into reset */
                     SETBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
-#ifndef OMAP5430_VIRTIO // skip this check, reset status not modeled properly
+
                     /* Disable the GPT4 clock, which is used by CORE1 */
                     ret = ipu_pm_gpt_stop(GPTIMER_4);
                     if (ret != EOK) {
@@ -200,7 +199,6 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                              status,
                                              "Failed to disable gpt 4");
                     }
-#endif
                     break;
 #endif
                 case PROCTYPE_DSP:
@@ -294,12 +292,10 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                             }
                         } while (--counter);
 
-#ifndef OMAP5430_VIRTIO // skip this check
                         if (counter == 0) {
                             Osal_printf("FAILED TO ENABLE IPU CLOCK !");
                             return PROCESSOR_E_OSFAILURE;
                         }
-#endif
 
                         /* Check that releasing resets would indeed be
                          * effective */
@@ -330,7 +326,6 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                             Osal_printf("De-assert RST3");
                             CLRBITREG32(IPURstCtrl, RM_IPU_RST3_BIT);
 
-#ifndef OMAP5430_VIRTIO // skip this check, reset status not modeled properly
                             counter = 10;
                             do {
                                 if (INREG32(IPURstSt) & RM_IPU_RST3ST)
@@ -348,7 +343,6 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                 SETBITREG32(IPURstSt, RM_IPU_RST3ST_BIT);
                             }
                         }
-#endif
                         break;
 #ifndef SYSLINK_SYSBIOS_SMP
                     case PROCTYPE_IPU1:
@@ -481,7 +475,6 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
         {
             switch (halObject->procId) {
                 case PROCTYPE_IPU0:
-#ifndef OMAP5430_VIRTIO // skip this for now, not using gptimers
                     /* Enable the GPT3 clock, which is used by CORE0 */
                     ret = ipu_pm_gpt_enable(GPTIMER_3);
                     if (ret != EOK) {
@@ -502,12 +495,10 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                                  "Failed to start gpt 3");
                         }
                         else {
-#endif // ifndef OMAP5430_VIRTIO
                             /* De-assert RST1, and clear the Reset status */
                             Osal_printf("De-assert RST1");
                             CLRBITREG32(IPURstCtrl, RM_IPU_RST1_BIT);
 
-#ifndef OMAP5430_VIRTIO // skip this check for now
                             counter = 10;
                             do {
                                 if (INREG32(IPURstSt) & RM_IPU_RST1)
@@ -521,7 +512,6 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                                   "Failed to release RST1");
                             }
                             else {
-#endif // ifndef OMAP5430_VIRTIO
                                 Osal_printf("RST1 released!");
                                 SETBITREG32(IPURstSt, RM_IPU_RST1ST_BIT);
 
@@ -533,7 +523,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
 #ifdef SYSLINK_SYSBIOS_SMP
                                 /* De-assert RST2, and clear the Reset status */
                                 CLRBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
-#ifndef OMAP5430_VIRTIO // skip this check for now
+
                                 counter = 10;
                                 do {
                                     if (INREG32(IPURstSt) & RM_IPU_RST2)
@@ -547,22 +537,16 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                                          "Failed to release RST2");
                                 }
                                 else {
-#endif // ifndef OMAP5430_VIRTIO
                                     Osal_printf("RST2 released!");
                                     SETBITREG32(IPURstSt, RM_IPU_RST2ST_BIT);
-#ifndef OMAP5430_VIRTIO // skip this check for now
                                 }
-#endif // ifndef OMAP5430_VIRTIO
 #endif // ifdef SYSLINK_SYSBIOS_SMP
-#ifndef OMAP5430_VIRTIO // skip this check for now
                             }
                         }
                     }
-#endif // ifndef OMAP5430_VIRTIO
                     break;
 #ifndef SYSLINK_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
-#ifndef OMAP5430_VIRTIO // skip this for now, not using gptimers
                     /* Enable the GPT4 clock, which is used by CORE1 */
                     ret = ipu_pm_gpt_enable(GPTIMER_4);
                     if (ret != EOK) {
@@ -575,12 +559,10 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     else {
                         restore_gpt_context(GPTIMER_4);
                         ipu_pm_gpt_start(GPTIMER_4);
-#endif
 
                         /* De-assert RST2, and clear the Reset status */
                         CLRBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
 
-#ifndef OMAP5430_VIRTIO // skip this check for now
                         counter = 10;
                         do {
                             if (INREG32(IPURstSt) & RM_IPU_RST2)
@@ -596,13 +578,11 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                         else {
                             Osal_printf("RST2 released!");
                             SETBITREG32(IPURstSt, RM_IPU_RST2ST_BIT);
-#endif
+
                             /* Wait until benelli is in idle */
                             //while(TESTBITREG32(IPUClkStCtrl,
                             //               CM_IPU_CLKSTCTRL_CLKACTIVITY_BIT));
-#ifndef OMAP5430_VIRTIO // skip this check for now
                         }
-#endif
                     }
                     break;
 #endif

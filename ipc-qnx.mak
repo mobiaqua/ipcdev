@@ -57,8 +57,7 @@ all: .qnx
 	@echo "building Qnx user libraries for \"$(PLATFORM)\" platform..."
 	@make -C qnx \
                 IPC_REPO=`pwd` \
-                PLATFORM=$(PLATFORM) \
-                BUILD_FOR_VIRTIO=false
+                PLATFORM=$(PLATFORM)
 
 clean:
 	@echo "cleaning Qnx user libraries ..."
@@ -73,6 +72,5 @@ install: .install,$(PLATFORM)
 	@make -C qnx \
                 IPC_REPO=`pwd` \
                 PLATFORM=$(PLATFORM) \
-                BUILD_FOR_VIRTIO=false \
 		DESTDIR=$(DESTDIR) \
 		install

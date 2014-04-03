@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -43,17 +43,12 @@ NAME=ipc
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX -DSYSLINK_BUILD_DEBUG -DSYSLINK_BUILD_HLOS
 
-# TODO: Is this macro used anymore?  If not, remove it.
-USE_MEMMGR=false
 ifeq ("$(SYSLINK_DEBUG)", "1")
 #enable debug build
 CCOPTS += -g -O0
 endif # ifeq ("$(SYSLINK_DEBUG)", "1")
 
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
-ifeq ("$(VIRTIO)", "true")
-CCOPTS += -DOMAP5430_VIRTIO
-endif # ifeq ("$(VIRTIO)", "true")
 ifeq ("$(SMP)", "1")
 CCOPTS += -DSYSLINK_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")
@@ -61,9 +56,6 @@ CCOPTS += -DSYSLINK_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IP
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 
 ifeq ("$(SYSLINK_PLATFORM)", "vayu")
-ifeq ("$(VIRTIO)", "true")
-CCOPTS += -DVAYU_VIRTIO
-endif # ifeq ("$(VIRTIO)", "true")
 ifeq ("$(SMP)", "1")
 CCOPTS += -DSYSLINK_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")

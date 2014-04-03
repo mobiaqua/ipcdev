@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -38,18 +38,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
-
-
 
 #include <ti/syslink/Std.h>
 
@@ -145,11 +134,9 @@ VAYUIPUCORE1_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
             Osal_printf("De-assert RST2\n");
             CLRBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 1);
 
-#ifndef VAYU_VIRTIO // skip this check for now
             while (!(INREG32(prmBase + RM_IPU_RSTST_OFFSET) & 0x2));
             Osal_printf("RST2 released!");
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 1);
-#endif
 
             /* Setting to HW_AUTO Mode */
             reg = INREG32(cmBase + CM_IPU_CLKSTCTRL_OFFSET);

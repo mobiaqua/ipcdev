@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -1138,7 +1138,6 @@ int ipu_pm_ivahd_disable()
         /* Ensure that the wake up mode is set to SW_WAKEUP */
         out32(cm_base + cm_iva_clkstctrl_offset, 0x00000002);
 
-#ifndef OMAP5_VIRTIO
         /* Check the standby status */
         do {
             if (((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00040000) != 0x0))
@@ -1147,11 +1146,10 @@ int ipu_pm_ivahd_disable()
         if (max_tries == 0) {
             GT_0trace(curTrace, GT_4CLASS," ** Error in IVAHD standby status");
         }
-#endif
 
         // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
         out32(cm_base + cm_iva_iva_clkctrl_offset, 0x00000000);
-#ifndef OMAP5_VIRTIO
+
         max_tries = 100;
         do {
             if((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00030000) == 0x30000)
@@ -1160,11 +1158,10 @@ int ipu_pm_ivahd_disable()
         if (max_tries == 0) {
            GT_0trace(curTrace, GT_4CLASS," ** Error in IVAHD standby status");
         }
-#endif
 
         // IVAHD_CM2:CM_IVAHD_SL2_CLKCTRL
         out32(cm_base + cm_iva_sl2_clkctrl_offset, 0x00000000);
-#ifndef OMAP5_VIRTIO
+
         max_tries = 100;
         do {
             if((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x00030000) == 0x30000);
@@ -1173,18 +1170,16 @@ int ipu_pm_ivahd_disable()
         if (max_tries == 0) {
             GT_0trace(curTrace, GT_4CLASS," ** Error in SL2 CLKCTRL");
         }
-#endif
 
         /* put IVA into HW Auto mode */
         out32(cm_base + cm_iva_clkstctrl_offset, 0x00000003);
 
         max_tries = 100;
         /* Check CLK ACTIVITY bit */
-#ifndef OMAP5_VIRTIO
+
         while(((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) != 0x0) && --max_tries);
         if (max_tries == 0)
             GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_disable: WARNING - CLK ACTIVITY bit did not go off");
-#endif
 
         // IVA sub-system resets - Assert reset for IVA logic and SL2
         out32(pm_base + rm_iva_rstctrl_offset, 0x00000004);
@@ -1274,12 +1269,10 @@ int ipu_pm_ivahd_enable()
         /* Ensure that the wake up mode is set to SW_WAKEUP */
         out32(cm_base + cm_iva_clkstctrl_offset, 0x00000002);
 
-#ifndef OMAP5_VIRTIO
         max_tries = 100;
         while(((in32(pm_base + pm_iva_pwrstst_offset) & 0x00100000) != 0) && --max_tries);
         if (max_tries == 0)
             GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - PwrSt did not transition");
-#endif
 
         // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
         out32(cm_base + cm_iva_iva_clkctrl_offset, 0x00000001);
@@ -1288,18 +1281,16 @@ int ipu_pm_ivahd_enable()
         out32(cm_base + cm_iva_sl2_clkctrl_offset, 0x00000001);
 
         /* Wait until the CLK_ACTIVITY bit is set */
-#ifndef OMAP5_VIRTIO
         max_tries = 100;
         while (((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) == 0x0) && --max_tries);
         if (max_tries == 0)
             GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - Clk_ACTIVITY bit is not set");
-#endif
 
         /* Release ICONT1 and SL2/IVAHD first, wait for few usec  then release ICONT2 */
         reg = in32(pm_base + rm_iva_rstctrl_offset);
         reg &= 0xFFFFFFFB;
         out32(pm_base + rm_iva_rstctrl_offset, reg);
-#ifndef OMAP5_VIRTIO
+
         max_tries = 100;
         usleep(100);
         do {
@@ -1351,7 +1342,6 @@ int ipu_pm_ivahd_enable()
             GT_0trace(curTrace, GT_4CLASS," ** SL2 is not functional");
             return -EIO;
         }
-#endif
     } else {
         GT_0trace(curTrace, GT_3CLASS, "ivahd already acquired");
     }

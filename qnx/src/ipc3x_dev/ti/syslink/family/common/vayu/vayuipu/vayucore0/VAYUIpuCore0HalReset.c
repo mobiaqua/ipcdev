@@ -38,18 +38,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
-
-
 
 #include <ti/syslink/Std.h>
 
@@ -193,12 +182,10 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                 }
             } while (--counter);
 
-#ifndef VAYU_VIRTIO // skip this check
             if (counter == 0) {
                 Osal_printf("FAILED TO ENABLE IPU CLOCK !\n");
                 return PROCESSOR_E_OSFAILURE;
             }
-#endif
 
             /* Check that releasing resets would indeed be effective */
             reg =  INREG32(prmBase + RM_IPU_RSTCTRL_OFFSET);
@@ -214,11 +201,9 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
             Osal_printf("De-assert RST3\n");
             CLRBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 2);
 
-#ifndef VAYU_VIRTIO // skip this check, reset status not modeled properly
             while (!(INREG32(prmBase + RM_IPU_RSTST_OFFSET) & 0x4));
             Osal_printf("RST3 released!\n");
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 2);
-#endif
         }
         break;
 
@@ -232,23 +217,19 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
             Osal_printf("De-assert RST2\n");
             CLRBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 1);
 
-#ifndef VAYU_VIRTIO // skip this check for now
             while (!(INREG32(prmBase + RM_IPU_RSTST_OFFSET) & 0x3));
             Osal_printf("RST1 & RST2 released!");
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 0);
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 1);
-#endif
 #else
             /*Bring ONLY Benelli M4_0 out of Reset*/
             /* De-assert RST1, and clear the Reset status */
             Osal_printf("De-assert RST1\n");
             CLRBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 0);
 
-#ifndef VAYU_VIRTIO // skip this check for now
             while (!(INREG32(prmBase + RM_IPU_RSTST_OFFSET) & 0x1));
             Osal_printf("RST1 released!");
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 0);
-#endif
 #endif
 
             /* Setting to HW_AUTO Mode */
