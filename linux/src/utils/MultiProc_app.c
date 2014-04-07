@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <ti/ipc/Std.h>
 
 #include <_MultiProc.h>
+#include <string.h>
 
 MultiProc_Config _MultiProc_cfg;
 

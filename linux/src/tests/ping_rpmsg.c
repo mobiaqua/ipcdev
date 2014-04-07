@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ long diff(struct timespec start, struct timespec end)
 
 int main (int argc, char ** argv)
 {
-    int status = 0;
     unsigned int numLoops = NUM_LOOPS_DFLT;
     short coreId = CORE_ID_DFLT;
     int sock, err;
