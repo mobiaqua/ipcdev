@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,7 @@
  *
  *  Many IPC modules require the ability to uniquely specify and identify
  *  processors in a multi-processor environment. The MultiProc module
- *  centralizes processor id management into one module.  Since this
- *  configuration is almost always universally required, most IPC applications
- *  require supplying configuration of this module.
+ *  centralizes processor id management.
  *
  *  Each processor in the MultiProc module may be uniquely identified by
  *  either a name string or an integer ranging from 0 to NUMPROCESSORS - 1.
@@ -50,6 +48,22 @@
  *  @code
  *  #include <ti/ipc/MultiProc.h>
  *  @endcode
+ *
+ *  Configuration
+ *  -------------
+ *  It is critical that every core contains a consistent MultiProc
+ *  configuration.  Failure to do so will lead to unknown behavior,
+ *  including failures to attach, messages being sent to the wrong
+ *  cores, etc.
+ *
+ *  With few exceptions (e.g. MultiProc_setLocalId()), the MultiProc
+ *  configuration is done outside of the runtime APIs, and the actual
+ *  setup is unique to each OS:
+ *     - SYS/BIOS - see the ti.sdo.ipc.MultiProc module config settings.
+ *     - Linux/Android - see LAD's MultiProcCfg_<device>.c file,
+ *                       which must also correctly map the remoteproc id
+ *                       in the kernel to a given MultiProc id/name.
+ *     - QNX - see the SystemCfg_<device>.c file.
  */
 
 #ifndef ti_ipc_MultiProc__include
@@ -209,6 +223,15 @@ UInt16 MultiProc_self(Void);
  *  @brief      Sets executing processor's MultiProc id
  *
  *  @param      id  MultiProc id
+ *
+ *  @remarks    Many users don't require this function.  A typical use case
+ *              for this function is on a homogenous multicore device where
+ *              the exact same image is loaded onto all cores and the
+ *              'current' processor id is determined/set at runtime by reading
+ *              a GPIO pin or interesting register like C6000's DNUM.
+ *
+ *  @remarks    To succeed, the currently configured id must be
+ *              MultiProc_INVALIDID.
  *
  *  @return     MultiProc status:
  *              - #MultiProc_S_SUCCESS: MultiProc id successfully set
