@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2013, Texas Instruments Incorporated
+#   Copyright (c) 2012-2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -46,10 +46,20 @@ include products.mak
 #
 #            CFLAGS="-DAF_RPMSG=42"
 
+# If the user set DESTDIR (e.g. in products.mak), pass that value via
+# --prefix= option.  If DESTDIR is not set, --prefix is not thrown and
+# configure's defaults are used.
+
+ifeq ($(DESTDIR),)
+PREFIX_OPTION=
+else
+PREFIX_OPTION=--prefix=$(DESTDIR)
+endif
 
 config:
 	@echo "Configuring Linux Ipc ..."
 	./configure --host=$(TOOLCHAIN_LONGNAME) \
+            $(PREFIX_OPTION) \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
@@ -60,6 +70,7 @@ config:
 config-static:
 	@echo "Configuring Linux Ipc static only libaries ..."
 	./configure --host=$(TOOLCHAIN_LONGNAME) --disable-shared \
+            $(PREFIX_OPTION) \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
@@ -70,6 +81,7 @@ config-static:
 config-shared:
 	@echo "Configuring Linux Ipc shared (dynamic) only libaries ..."
 	./configure --host=$(TOOLCHAIN_LONGNAME) --disable-static \
+            $(PREFIX_OPTION) \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \

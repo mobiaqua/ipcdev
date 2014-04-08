@@ -47,6 +47,13 @@ DEPOT = _your_depot_folder_
 #
 PLATFORM =
 
+# Destination when installing the built binaries
+#
+# Note, this is used for Linux (if you use ipc-linux.mak to run the
+# configure command), QNX and BIOS.
+#
+DESTDIR =
+
 
 #################### IPC Linux ####################
 
@@ -75,9 +82,6 @@ CMEM_INSTALL_DIR =
 #
 QNX_INSTALL_DIR =
 
-# Destination for target binaries
-#
-DESTDIR =
 
 #################### IPC Bios ####################
 
