@@ -191,19 +191,19 @@ for (arg = 0; arg < arguments.length; arg++) {
     if (targetName.match(/elf\.C66$/)) {
         switch (platform) {
             case '66AK2E':
-                target.platforms.$add("ti.platforms.evmC66AK2E");
+                target.platforms.$add("ti.platforms.evmC66AK2E:core0");
                 break;
 
             case 'TCI6630':
-                target.platforms.$add("ti.platforms.evmTCI6630K2L");
+                target.platforms.$add("ti.platforms.evmTCI6630K2L:core0");
                 break;
 
             case 'TCI6636':
-                target.platforms.$add("ti.platforms.evmTCI6636K2H");
+                target.platforms.$add("ti.platforms.evmTCI6636K2H:core0");
                 break;
 
             case 'TCI6638':
-                target.platforms.$add("ti.platforms.evmTCI6638K2K");
+                target.platforms.$add("ti.platforms.evmTCI6638K2K:core0");
                 break;
 
             case 'DRA7XX':

@@ -443,6 +443,33 @@ Build.platformTable["ti.platforms.evmDRA7XX:ipu1"] = {
     stackMemory: "EXT_DATA",
 };
 
+/*
+ * Create Keystone platform instances without any external memory.
+ * The main reason for this is to prevent SYS/BIOS from tagging
+ * any of the external memory address space as "cacheable" in MAR
+ * register settings.
+ *
+ * All the tests currently build just one Keystone DSP executable
+ * that is used for all cores.  One could create a separate platform
+ * instance for each core on a given Keystone part, and then use that
+ * particular core's platform instance when building for that core.
+ */
+Build.platformTable["ti.platforms.evmC66AK2E:core0"] = {
+    externalMemoryMap: [ ]
+};
+
+Build.platformTable["ti.platforms.evmTCI6630K2L:core0"] = {
+    externalMemoryMap: [ ]
+};
+
+Build.platformTable["ti.platforms.evmTCI6636K2H:core0"] = {
+    externalMemoryMap: [ ]
+};
+
+Build.platformTable["ti.platforms.evmTCI6638K2K:core0"] = {
+    externalMemoryMap: [ ]
+};
+
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
 
