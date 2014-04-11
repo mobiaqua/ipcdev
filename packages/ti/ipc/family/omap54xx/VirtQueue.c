@@ -71,6 +71,7 @@
 #include <ti/sysbios/gates/GateHwi.h>
 #include <ti/sysbios/hal/Cache.h>
 
+#include <ti/ipc/remoteproc/Resource.h>
 #include <ti/ipc/MultiProc.h>
 
 #include <ti/ipc/rpmsg/virtio_ring.h>
@@ -98,10 +99,6 @@
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES              2
-
-/* Predefined device addresses */
-#define IPC_MEM_VRING0          0xA0000000
-#define IPC_MEM_VRING1          0xA0004000
 
 /*
  * Size of the virtqueues (expressed in number of buffers supported,
@@ -194,6 +191,12 @@ typedef struct VirtQueue_Object {
 
     /* Gate to protect from multiple threads */
     GateHwi_Handle       gateH;
+
+    /* Base phys addr - used for quick pa/va translations */
+    UInt32               basePa;
+
+    /* Base virt addr - used for quick pa/va translations */
+    UInt32               baseVa;
 } VirtQueue_Object;
 
 /* module diags mask */
@@ -226,9 +229,9 @@ static Void _VirtQueue_init()
     }
 }
 
-static inline Void * mapPAtoVA(UInt pa)
+static inline Void * _VirtQueue_getVA(VirtQueue_Handle vq, UInt32 pa)
 {
-    return (Void *)((pa & 0x000fffffU) | IPC_MEM_VRING0);
+    return (Void *)(pa - vq->basePa + vq->baseVa);
 }
 
 /*!
@@ -310,7 +313,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
          */
         head = vq->vring.avail->ring[vq->last_avail_idx++ % vq->vring.num];
 
-        *buf = mapPAtoVA(vq->vring.desc[head].addr);
+        *buf = _VirtQueue_getVA(vq, vq->vring.desc[head].addr);
         *len = vq->vring.desc[head].len;
     }
     GateHwi_leave(vq->gateH, key);
@@ -417,6 +420,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
 {
     VirtQueue_Object *vq;
     Void *vringAddr;
+    Int result;
 
     /* Perform initialization we can't do in Instance_init (being non-XDC): */
     _VirtQueue_init();
@@ -442,12 +446,14 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     switch (vq->id) {
         /* IPC transport vrings */
         case ID_SELF_TO_HOST:
-            /* slave -> HOST */
-            vringAddr = (struct vring *) IPC_MEM_VRING0;
-            break;
         case ID_HOST_TO_SELF:
-            /* HOST -> slave */
-            vringAddr = (struct vring *) IPC_MEM_VRING1;
+            vq->basePa = (UInt32)Resource_getVringDA(vq->id);
+            Assert_isTrue(vq->basePa != NULL, NULL);
+
+            result = Resource_physToVirt(vq->basePa, &(vq->baseVa));
+            Assert_isTrue(result == Resource_S_SUCCESS, (Assert_Id)NULL);
+
+            vringAddr = (Void *)vq->baseVa;
             break;
         default:
             GateHwi_delete(&vq->gateH);
