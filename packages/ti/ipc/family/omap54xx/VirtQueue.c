@@ -189,9 +189,6 @@ typedef struct VirtQueue_Object {
     /* Last available index; updated by VirtQueue_getAvailBuf */
     UInt16                  last_avail_idx;
 
-    /* Last available index; updated by VirtQueue_addUsedBuf */
-    UInt16                  last_used_idx;
-
     /* Will eventually be used to kick remote processor */
     UInt16                  procId;
 
@@ -232,11 +229,6 @@ static Void _VirtQueue_init()
 static inline Void * mapPAtoVA(UInt pa)
 {
     return (Void *)((pa & 0x000fffffU) | IPC_MEM_VRING0);
-}
-
-static inline UInt mapVAtoPA(Void * va)
-{
-    return ((UInt)va & 0x000fffffU) | 0x9cf00000U;
 }
 
 /*!
@@ -283,56 +275,6 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
     GateHwi_leave(vq->gateH, key);
 
     return (0);
-}
-
-/*!
- * ======== VirtQueue_addAvailBuf ========
- */
-Int VirtQueue_addAvailBuf(VirtQueue_Object *vq, Void *buf)
-{
-    UInt16 avail;
-    IArg key;
-
-    if (vq->num_free == 0) {
-        /* There's no more space */
-        Error_raise(NULL, Error_E_generic, 0, 0);
-    }
-
-    vq->num_free--;
-
-    key = GateHwi_enter(vq->gateH);
-    avail =  vq->vring.avail->idx++ % vq->vring.num;
-
-    vq->vring.desc[avail].addr = mapVAtoPA(buf);
-    vq->vring.desc[avail].len = RP_MSG_BUF_SIZE;
-    GateHwi_leave(vq->gateH, key);
-
-    return (vq->num_free);
-}
-
-/*!
- * ======== VirtQueue_getUsedBuf ========
- */
-Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
-{
-    UInt16 head;
-    Void *buf;
-    IArg key;
-
-    key = GateHwi_enter(vq->gateH);
-    /* There's nothing available? */
-    if (vq->last_used_idx == vq->vring.used->idx) {
-        buf = NULL;
-    }
-    else {
-        head = vq->vring.used->ring[vq->last_used_idx % vq->vring.num].id;
-        vq->last_used_idx++;
-
-        buf = mapPAtoVA(vq->vring.desc[head].addr);
-    }
-    GateHwi_leave(vq->gateH, key);
-
-    return (buf);
 }
 
 /*!
