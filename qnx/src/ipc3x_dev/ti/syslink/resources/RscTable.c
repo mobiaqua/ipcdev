@@ -532,6 +532,11 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
                     vring = (struct fw_rsc_vdev_vring *)
                                 ((UInt32)vdev + sizeof(*vdev) +
                                  (sizeof(*vring) * j));
+                    /*
+                     * Making a copy of original vring, given obj->vrings[j].da
+                     * is used as slave virtual address in RscTable_getInfo(),
+                     * and that is what the original vring definition contains.
+                     */
                     Memory_copy (&obj->vrings[j], vring, sizeof (*vring));
                     printf ("RscTable_process: vring [%d] @ [0x%08x]\n",
                             vring->num, vring->da);
@@ -576,6 +581,19 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
 
                     obj->vringPa = pa;
                     obj->vringBufsPa = pa + vr_size;
+
+                    /*
+                     * Override the vring 'da' field in resource table.
+                     * This allows the slave to look it up when creating
+                     * the VirtQueues
+                     */
+                    for (j = 0; j < vdev->num_of_vrings; j++) {
+                        vring = (struct fw_rsc_vdev_vring *)
+                                ((UInt32)vdev + sizeof(*vdev) +
+                                 (sizeof(*vring) * j));
+                        vring->da = obj->vringPa + (j *
+                            vr_size / vdev->num_of_vrings);
+                    }
                 }
                 break;
             }
