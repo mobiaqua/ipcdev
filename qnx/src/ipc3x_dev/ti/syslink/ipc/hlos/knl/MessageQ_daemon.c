@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -198,6 +198,8 @@ typedef struct MessageQ_Object {
     /*! Instance specific creation parameters */
     MessageQ_QueueId        queue;
     /* Unique id */
+    MessageQ_QueueIndex     queueIndex;
+    /* 16-bit index into the queues array */
     Ptr                     nsKey;
     /* NameServer key */
     Int                     ownerPid;
@@ -357,10 +359,13 @@ Void MessageQ_Params_init(MessageQ_Params * params)
     return;
 }
 
+
+
 /*
  *   Function to create a MessageQ object for receiving.
  */
-MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
+MessageQ_Handle MessageQ_createWithQueueId(String name, const MessageQ_Params * params,
+    UInt32 queueId)
 {
     Int                 status    = MessageQ_S_SUCCESS;
     MessageQ_Object   * obj    = NULL;
@@ -403,8 +408,9 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
     }
 
     procId = MultiProc_self();
-    /* create globally unique messageQ ID: */
-    obj->queue = (MessageQ_QueueId)(((UInt32)procId << 16) | queueIndex);
+    obj->queueIndex = queueIndex;
+    /* create globally unique messageQ ID */
+    obj->queue = (MessageQ_QueueId)(((UInt32)procId << 16) | queueId);
     obj->ownerPid = 0;
 
     if (name != NULL) {
@@ -422,6 +428,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
     return ((MessageQ_Handle)obj);
 }
 
+
 /*
  * Function to delete a MessageQ object for a specific slave processor.
  */
@@ -435,9 +442,9 @@ Int MessageQ_delete(MessageQ_Handle * handlePtr)
 
     LOG1("MessageQ_delete: deleting %p\n", obj)
 
-    queue = MessageQ_module->queues[(MessageQ_QueueIndex)(obj->queue)];
+    queue = MessageQ_module->queues[obj->queueIndex];
     if (queue != obj) {
-        LOG1("    ERROR: obj != MessageQ_module->queues[%d]\n", (MessageQ_QueueIndex)(obj->queue))
+        LOG1("    ERROR: obj != MessageQ_module->queues[%d]\n", (MessageQ_QueueIndex)(obj->queueIndex))
     }
 
     if (obj->nsKey != NULL) {
@@ -456,7 +463,7 @@ Int MessageQ_delete(MessageQ_Handle * handlePtr)
     pthread_mutex_lock(&(MessageQ_module->gate));
 
     /* Clear the MessageQ obj from array. */
-    MessageQ_module->queues[(MessageQ_QueueIndex)(obj->queue)] = NULL;
+    MessageQ_module->queues[(MessageQ_QueueIndex)obj->queueIndex] = NULL;
 
     /* Release the local lock */
     pthread_mutex_unlock(&(MessageQ_module->gate));

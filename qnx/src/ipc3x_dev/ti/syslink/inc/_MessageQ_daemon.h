@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,5 +30,31 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-extern int Connect(int fd, UInt16 procId, int dst);
-extern int BindAddr(int fd, UInt32 * localAddr);
+/*
+ *  ======== _MessageQ_daemon.h ========
+ *
+ *  Internal header
+ *
+ */
+
+#ifndef _MESSAGEQ_DAEMON_H
+#define _MESSAGEQ_DAEMON_H
+
+#include <ti/ipc/MessageQ.h>
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+/*!
+ * Internal MessageQ_create function that accepts a local queueId assignment
+ * (i.e. bottom 16-bit of its queueId)
+ */
+MessageQ_Handle MessageQ_createWithQueueId(String name, const
+    MessageQ_Params * params, UInt32 localQueueId);
+
+#if defined (__cplusplus)
+}
+#endif /* defined (__cplusplus) */
+
+#endif /* _MESSAGEQ_DAEMON_H */

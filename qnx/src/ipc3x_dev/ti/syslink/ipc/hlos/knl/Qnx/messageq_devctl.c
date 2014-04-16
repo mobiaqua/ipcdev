@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -61,6 +61,7 @@
 /* Module specific header files */
 #include <ti/ipc/MessageQ.h>
 #include <ti/syslink/inc/MessageQDrvDefs.h>
+#include <ti/syslink/inc/_MessageQ_daemon.h>
 
 /* Function prototypes */
 int syslink_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
@@ -154,6 +155,8 @@ int syslink_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
         (_DEVCTL_DATA (msg->o));
     MessageQ_Params *local_createparams = NULL;
     String local_createname = NULL;
+    UInt32 local_queueId;
+
     out->apiStatus = MessageQ_S_SUCCESS;
 
     if (cargs->args.create.params) {
@@ -166,8 +169,11 @@ int syslink_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
             local_createname = (String)(cargs+1);
     }
 
-    out->args.create.handle = MessageQ_create (local_createname,
-        local_createparams);
+    local_queueId = cargs->args.create.queueId;
+
+    /* Force MessageQ to use the id passed in as the bottom 16-bit of its queue id */
+    out->args.create.handle = MessageQ_createWithQueueId(local_createname,
+        local_createparams, local_queueId);
     GT_assert (curTrace, (out->args.create.handle != NULL));
 
     /* Set failure status if create has failed. */

@@ -167,8 +167,11 @@
 
 /* More magic rpmsg port numbers: */
 #define MESSAGEQ_RPMSG_PORT       61
-#define MESSAGEQ_RPMSG_MAXSIZE   512
+#define MESSAGEQ_RPMSG_MAXSIZE    512
 #define RPMSG_RESERVED_ADDRESSES  (1024)
+
+/* MessageQ needs local address bound to be a 16-bit value */
+#define MAX_LOCAL_ADDR            0x10000
 
 /* Trace flag settings: */
 #define TRACESHIFT    12
@@ -238,7 +241,7 @@ MessageQ_ModuleObject * MessageQ_module = &MessageQ_state;
  */
 
 /* This is a helper function to initialize a message. */
-static Int transportCreateEndpoint(int * fd, UInt16 queueIndex);
+static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex);
 static Int transportCloseEndpoint(int fd);
 static Int transportGet(int fd, MessageQ_Msg * retMsg);
 static Int transportPut(MessageQ_Msg msg, UInt16 dstId, UInt16 dstProcId);
@@ -349,15 +352,33 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
         cmdArgs.args.create.nameLen = 0;
     }
 
+    /* Create the generic obj */
+    obj = (MessageQ_Object *)calloc(1, sizeof (MessageQ_Object));
+    if (obj == NULL) {
+        PRINTVERBOSE0("MessageQ_create: memory allocation failed\n")
+        return NULL;
+    }
+
+    PRINTVERBOSE2("MessageQ_create: creating endpoint for: %s, \
+       queueIndex: %d\n", name, queueIndex)
+    status = transportCreateEndpoint(&obj->ipcFd, &queueIndex);
+    if (status < 0) {
+        goto cleanup;
+    }
+
+    /*
+     * We expect the endpoint creation to return a port number from
+     * the MessageQCopy layer. This port number will be greater than
+     * 1024 and less than 0x10000. Use this number as the queueIndex.
+     */
+    cmdArgs.args.create.queueId = queueIndex;
+
     status = MessageQDrv_ioctl (CMD_MESSAGEQ_CREATE, &cmdArgs);
     if (status < 0) {
         PRINTVERBOSE1("MessageQ_create: API (through IOCTL) failed, \
             status=%d\n", status)
-        return NULL;
+        goto cleanup;
     }
-
-    /* Create the generic obj */
-    obj = (MessageQ_Object *)calloc(1, sizeof (MessageQ_Object));
 
     if (params != NULL) {
        /* Populate the params member */
@@ -365,16 +386,8 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
     }
 
     procId = MultiProc_self();
-    queueIndex = (MessageQ_QueueIndex)cmdArgs.args.create.queueId;
     obj->queue = cmdArgs.args.create.queueId;
     obj->serverHandle = cmdArgs.args.create.handle;
-
-    PRINTVERBOSE2("MessageQ_create: creating endpoint for: %s, \
-       queueIndex: %d\n", name, queueIndex)
-    status = transportCreateEndpoint(&obj->ipcFd, queueIndex);
-    if (status < 0) {
-       goto cleanup;
-    }
 
     /*
      * Now, to support MessageQ_unblock() functionality, create an event object.
@@ -384,9 +397,12 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
         printf ("MessageQ_create: pipe creation failed: %d, %s\n",
                    errno, strerror(errno));
         status = MessageQ_E_FAIL;
+        obj->unblockFdW = obj->unblockFdR = -1;
     }
-    obj->unblockFdW = fildes[1];
-    obj->unblockFdR = fildes[0];
+    else {
+        obj->unblockFdW = fildes[1];
+        obj->unblockFdR = fildes[0];
+    }
 
 cleanup:
     /* Cleanup if fail: */
@@ -408,21 +424,31 @@ Int MessageQ_delete (MessageQ_Handle * handlePtr)
     MessageQ_Object * obj       = NULL;
     MessageQDrv_CmdArgs cmdArgs;
 
+    assert(handlePtr != NULL);
     obj = (MessageQ_Object *) (*handlePtr);
+    assert(obj != NULL);
 
-    cmdArgs.args.deleteMessageQ.handle = obj->serverHandle;
-    status = MessageQDrv_ioctl (CMD_MESSAGEQ_DELETE, &cmdArgs);
-    if (status < 0) {
-        PRINTVERBOSE1("MessageQ_delete: API (through IOCTL) failed, \
-            status=%d\n", status)
+    if (obj->serverHandle != NULL) {
+        cmdArgs.args.deleteMessageQ.handle = obj->serverHandle;
+        status = MessageQDrv_ioctl (CMD_MESSAGEQ_DELETE, &cmdArgs);
+        if (status < 0) {
+            PRINTVERBOSE1("MessageQ_delete: API (through IOCTL) failed, \
+                status=%d\n", status)
+        }
     }
 
     /* Close the fds used for MessageQ_unblock(): */
-    close(obj->unblockFdW);
-    close(obj->unblockFdR);
+    if (obj->unblockFdW >= 0) {
+        close(obj->unblockFdW);
+    }
+    if (obj->unblockFdR >= 0) {
+        close(obj->unblockFdR);
+    }
 
     /* Close the communication endpoint: */
-    status = transportCloseEndpoint(obj->ipcFd);
+    if (obj->ipcFd >= 0) {
+        transportCloseEndpoint(obj->ipcFd);
+    }
 
     /* Now free the obj */
     free (obj);
@@ -721,6 +747,7 @@ SizeT MessageQ_sharedMemReq (Ptr sharedAddr)
 Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
 {
     Int     status = MessageQ_S_SUCCESS;
+    UInt32  localAddr;
     int     ipcFd;
     int     err;
 
@@ -751,7 +778,7 @@ Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
              * local endpoint
              */
             Connect(ipcFd, remoteProcId, MESSAGEQ_RPMSG_PORT);
-            err = BindAddr(ipcFd, TIIPC_ADDRANY);
+            err = BindAddr(ipcFd, &localAddr);
             if (err < 0) {
                 status = MessageQ_E_FAIL;
                 printf ("MessageQ_attach: bind failed: %d, %s\n",
@@ -829,10 +856,11 @@ Void MessageQ_msgInit (MessageQ_Msg msg)
  *
  * Create a communication endpoint to receive messages.
  */
-static Int transportCreateEndpoint(int * fd, UInt16 queueIndex)
+static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex)
 {
     Int          status    = MessageQ_S_SUCCESS;
     int          err;
+    UInt32       localAddr;
 
     /* Create a fd to the ti-ipc to receive messages for this messageQ */
     *fd= open("/dev/tiipc", O_RDWR);
@@ -846,12 +874,26 @@ static Int transportCreateEndpoint(int * fd, UInt16 queueIndex)
 
     PRINTVERBOSE1("transportCreateEndpoint: opened fd: %d\n", *fd)
 
-    err = BindAddr(*fd, (UInt32)queueIndex);
+    err = BindAddr(*fd, &localAddr);
     if (err < 0) {
         status = MessageQ_E_FAIL;
-        printf ("transportCreateEndpoint: bind failed: %d, %s\n",
+        printf("transportCreateEndpoint: bind failed: %d, %s\n",
                   errno, strerror(errno));
+
+        close(*fd);
+        goto exit;
     }
+
+    if (localAddr >= MAX_LOCAL_ADDR) {
+        status = MessageQ_E_FAIL;
+        printf("transportCreateEndpoint: local address returned is"
+            "by BindAddr is greater than max supported\n");
+
+        close(*fd);
+        goto exit;
+    }
+
+    *queueIndex = localAddr;
 
 exit:
     return (status);
