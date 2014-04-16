@@ -560,10 +560,24 @@ for (var i = 0; i < Build.targets.length; i++) {
         }).addObjects(["messageq_multi.c"]);
 
         /* messageq_single */
-        Pkg.addExecutable(name + "/messageq_single", targ, platform, {
-            cfgScript: "rpmsg_transport",
-            defs: "-D BENCHMARK " + extraDefs
-        }).addObjects(["messageq_single.c"]);
+        if (platform.match(/^ti\.platforms\.sdp5430/) &&
+                (targ.isa == "64T")) {
+		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+		    cfgScript: "rpmsg_transport",
+		    defs: "-D BENCHMARK -D DSP" + extraDefs
+		}).addObjects(["messageq_single.c"]);
+	} else if (platform.match(/^ti\.platforms\.sdp5430/) &&
+                (targ.isa == "M4")) {
+		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+		    cfgScript: "rpmsg_transport",
+		    defs: "-D BENCHMARK -D IPU" + extraDefs
+		}).addObjects(["messageq_single.c"]);
+	} else {
+		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+		    cfgScript: "rpmsg_transport",
+		    defs: "-D BENCHMARK " + extraDefs
+		}).addObjects(["messageq_single.c"]);
+	}
 
         /* NameServerApp */
         Pkg.addExecutable(name + "/NameServerApp", targ, platform, {

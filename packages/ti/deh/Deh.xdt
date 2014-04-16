@@ -1,3 +1,4 @@
+%%{
 /*
  * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
@@ -28,15 +29,11 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+%%}
+%var Deh = xdc.module("ti.deh.Deh");
+%if (Deh.bufSize != 0) {
 
-/*
- *  ======== package.xdc ========
- *
- */
+#pragma DATA_SECTION(ti_deh_Deh_Module_State_0_outbuf__A, ".errorbuf");
 
-package ti.trace [0,0,0] {
-    module SysMin;
-    module StackDbg;
-};
+%} /* bufSize != 0 */

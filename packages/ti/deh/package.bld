@@ -40,75 +40,65 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 /* clean lib folder */
 Pkg.generatedFiles.$add("lib/");
+Pkg.libDir = "package/";
 
 /* add custom files to all releases */
 Pkg.attrs.exportSrc = true;
-Pkg.otherFiles = ["package.bld", "SysMin.h", "StackDbg.h"];
+Pkg.attrs.exportCfg = true;
+Pkg.otherFiles = [
+    "Deh.h",
+    "Watchdog.h",
+];
 
-/* list of libraries to build */
-var libArray = new Array();
+var myCopts = "";
+var SRCS_IPU = ["Deh.c", "Watchdog.c"]
+var SRCS_DSP = ["DehDsp.c", "Watchdog.c"]
 
-/* trace library for IPU SMP target */
-libArray.push(
-    {
-        name: "ti.trace_smp",
-        sources: [
-            "SysMin.c",
-            "StackDbg.c",
-        ],
-        libAttrs: {
-            defs: " -DSMP"
-        },
-        isas: [ "v7M", "v7M4" ],
+for (var i = 0; i < Build.targets.length; i++) {
+    var targ = Build.targets[i];
+    var name = Pkg.name;
+
+    if (targ.$name.match(/^ti\.targets\.*/)) {
+        myCopts = "--gcc";  /* Rpmsg.h requires gcc-isms */
+    } else {
+        myCopts = "";
     }
-);
 
-/* trace library for regular targets */
-libArray.push(
-    {
-        name: "ti.trace",
-        sources: [
-            "SysMin.c",
-            "StackDbg.c",
-        ],
+    if (targ.isa == "674") {
+        continue;
     }
-);
 
-/* ==== loop over array of libraries ==== */
-for (var i = 0; i < libArray.length; i++) {
-    var lib = libArray[i];
+    /* Build for all profiles */
+    for (var profile in targ.profiles) {
 
-    /* ==== loop over all targets in build array ==== */
-    for (var j = 0; j < Build.targets.length; j++) {
-        var targ = Build.targets[j];
+        /* Build a platform-specific library */
+        if (targ.isa == "66") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_vayu", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DVAYU -DDSP"
+            }).addObjects(SRCS_DSP);
+        } else if (targ.isa.match(/^v7M(|4)$/)) {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP5 -DSMP -DIPU -DHAS_AMMU"
+            }).addObjects(SRCS_IPU);
 
-        /* skip target if it does not generate code for the given isa */
-        if ("isas" in lib) {
-            var skipTarget = true;
-            var list = "/" + lib.isas.join("/") + "/";
-            if (list.match("/" + targ.isa + "/")) {
-                skipTarget = false;
-            }
-            if (skipTarget) continue;
-        }
-
-        /* ==== loop over all profiles ==== */
-        for (var profile in targ.profiles) {
-
-            /* name = lib/profile/name.a+suffix */
-            var name = "lib/" + profile + "/" + lib.name;
-
-            /* pass along library attributes specified in library array */
-            var libAttrs = "libAttrs" in lib ? lib.libAttrs : {};
-
-            /* must set profile explicitly */
-            libAttrs.profile = profile;
-
-            /* build the library */
-            var library = Pkg.addLibrary(name, targ, libAttrs);
-
-            /* add the source files */
-            library.addObjects(lib.sources);
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_vayu_smp", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DVAYU -DSMP -DIPU -DHAS_AMMU"
+            }).addObjects(SRCS_IPU);
+        } else if (targ.isa == "64T") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP5 -DDSP -DHAS_AMMU"
+            }).addObjects(SRCS_DSP);
+        } else {
+            continue;
         }
     }
 }
+

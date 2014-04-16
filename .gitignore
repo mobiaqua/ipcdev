@@ -17,6 +17,7 @@ packages/ti/sdo/ipc/*.h
 packages/ti/sdo/ipc/*/*.h
 packages/ti/sdo/ipc/*/*/*.h
 packages/ti/sdo/utils/*.h
+packages/ti/deh/*.h
 packages/ti/ipc/family/omapl138/VirtQueue.h
 packages/ti/ipc/family/tci6614/Interrupt.h
 packages/ti/ipc/family/tci6614/NotifySetup.h
