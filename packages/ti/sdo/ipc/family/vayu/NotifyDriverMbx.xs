@@ -51,7 +51,7 @@ function module$use()
     xdc.useModule('xdc.runtime.Startup');
     xdc.useModule("ti.sysbios.BIOS");
 
-    /* concatinate isa chain into single string for easier matching */
+    /* concatenate isa chain into single string for easier matching */
     isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";
 
     if (isaChain.match(/#64P#/)) {
