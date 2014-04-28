@@ -319,6 +319,7 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
         hwiParams.vectorNum = cpuIntrNum;
         hwiParams.maskSetting = Hwi_MaskingOption_BITMASK;
         hwiParams.disableIerMask = mask;
+        hwiParams.restoreIerMask = mask;
 
         Hwi_create(eventId, NotifySetup_dispatchIsr, &hwiParams, &eb);
         /* TODO: add error handling */
