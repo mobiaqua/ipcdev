@@ -95,10 +95,12 @@ Options:\n\
     h            : print this help message\n\
     g            : enable GateMP support \n\
     l <logfile>  : name of logfile for LAD\n\
+    p <oct value>: set LAD's directory permissions\n\
 \n\
 Examples:\n\
     lad_<platform> -h\n\
     lad_<platform> -l log.txt\n\
+    lad_<platform> -l log.txt -p 777\n\
     lad_<platform> -g -l log.txt\n\
 \n"
 
@@ -125,6 +127,15 @@ int main(int argc, char * argv[])
     pid_t sid;
 #endif
 
+    /* change to LAD's root directory */
+    if ((chdir(LAD_ROOTDIR)) < 0) {
+        /* if can't change directory assume it needs to be created, do it */
+        if ((mkdir(LAD_ROOTDIR, 0666)) < 0) {
+            printf("\nERROR: Failed to create LAD's root directory!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     /* change to LAD's working directory */
     if ((chdir(LAD_WORKINGDIR)) < 0) {
 
@@ -142,7 +153,7 @@ int main(int argc, char * argv[])
 
     /* process command line args */
     while (1) {
-        c = getopt(argc, argv, "ghl:");
+        c = getopt(argc, argv, "ghl:p:");
         if (c == -1) {
             break;
         }
@@ -169,13 +180,18 @@ int main(int argc, char * argv[])
                 else {
                     logFile = TRUE;
                     gettimeofday(&start_tv, NULL);
-                    printf("\nOpened log file: %s", optarg);
+                    printf("\nOpened log file: %s\n", optarg);
                     /* close log file upon LAD termination */
                     flags = fcntl(fileno(logPtr), F_GETFD);
                     if (flags != -1) {
                         fcntl(fileno(logPtr), F_SETFD, flags | FD_CLOEXEC);
                     }
                 }
+                break;
+            case 'p':
+                printf("\nSet LAD's directory permissions to '%s'\n", optarg);
+                chmod(LAD_ROOTDIR, strtol(optarg, NULL, 8));
+                chmod(LAD_WORKINGDIR, strtol(optarg, NULL, 8));
                 break;
             default:
                 fprintf (stderr, "\nUnrecognized argument\n");

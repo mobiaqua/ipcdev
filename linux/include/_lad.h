@@ -111,9 +111,11 @@ extern struct timeval start_tv;
 /* LAD commmand FIFO strings: */
 #if defined (IPC_BUILDOS_ANDROID)
 #define LAD_COMMANDFIFO         "/data/lad/LAD/LADCMDS"
+#define LAD_ROOTDIR             "/data/lad/"
 #define LAD_WORKINGDIR          "/data/lad/LAD/"
 #else
 #define LAD_COMMANDFIFO         "/tmp/LAD/LADCMDS"
+#define LAD_ROOTDIR             "/tmp/"
 #define LAD_WORKINGDIR          "/tmp/LAD/"
 #endif
 
