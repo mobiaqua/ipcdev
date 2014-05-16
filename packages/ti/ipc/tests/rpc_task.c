@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -307,6 +307,8 @@ Int32 fxnFault(UInt32 size, UInt32 *data)
 {
     MmType_Param *payload = (MmType_Param *)data;
     Int a;
+    typedef Int (*MyCode)();
+    MyCode fxn = (MyCode)0x96000000;
 
     a = (UInt32)payload[0].data;
 
@@ -318,6 +320,10 @@ Int32 fxnFault(UInt32 size, UInt32 *data)
         case 2:
             System_printf("Generating write MMU Fault...\n");
             *(volatile int *)(0x96000000) = 0x1;
+            break;
+        case 3:
+            System_printf("Generating program MMU Fault...\n");
+            fxn();
             break;
         default:
             System_printf("Invalid fxnFault test\n");

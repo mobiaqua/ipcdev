@@ -22,8 +22,9 @@ Syntax:
     -l <num>        For test 2, the number of threads communicating with the
                     remote OMX ServiceMgr. Default is 1.
     -s <sub_test>   For test 4, sub_test Ids can be:
-                    1: MMU Fault (read access) (default)
-                    2: MMU Fault (write access)
+                    1: MMU Fault (data read access) (default)
+                    2: MMU Fault (data write access)
+                    3: MMU Fault (program access)
 
 Examples:
   rpmsg-rpc-stress -t 1                 Runs the Multi-SrvMgr test with 1
