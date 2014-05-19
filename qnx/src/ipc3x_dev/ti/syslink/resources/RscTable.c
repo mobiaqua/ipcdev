@@ -444,6 +444,32 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
                 printf ("RscTable_process: carveout [%s] @ da [0x%08x] pa [0x%08x] len [0x%x]\n", cout->name, cout->da, cout->pa, cout->len);
                 break;
             }
+            case TYPE_INTMEM :
+            {
+                struct fw_rsc_carveout * cout = (struct fw_rsc_carveout *)entry;
+
+                if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
+                    ret = -1;
+                }
+                else {
+                    obj->memEntries[obj->numMemEntries].slaveVirtAddr =
+                            cout->da;
+                    obj->memEntries[obj->numMemEntries].masterPhysAddr =
+                            cout->pa;
+                    obj->memEntries[obj->numMemEntries].size = cout->len;
+                    /* do not map to slave MMU */
+                    obj->memEntries[obj->numMemEntries].map = FALSE;
+                    obj->memEntries[obj->numMemEntries].mapMask =
+                        ProcMgr_SLAVEVIRT;
+                    obj->memEntries[obj->numMemEntries].isCached = FALSE;
+                    obj->memEntries[obj->numMemEntries].isValid = TRUE;
+                    obj->numMemEntries++;
+                }
+                printf ("RscTable_process: intmem [%s] @ da [0x%08x]"
+                    " pa [0x%08x] len [0x%x]\n", cout->name, cout->da,
+                    cout->pa, cout->len);
+                break;
+            }
             case TYPE_DEVMEM :
             {
                 // only care about mem in DDR for now
@@ -597,9 +623,6 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
                 }
                 break;
             }
-            case TYPE_CRASHDUMP :
-                // what to do with this?
-                break;
             default :
                 break;
         }

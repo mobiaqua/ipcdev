@@ -87,10 +87,6 @@ extern "C" {
  * =============================================================================
  */
 
-/*!
- *  @brief  Number of static entries in address translation table.
- */
-#define AddrTable_STATIC_COUNT 3
 
 /*!
  *  @brief  Max entries in address translation table.
@@ -119,55 +115,12 @@ typedef struct VAYUDSPPROC_ModuleObject_tag {
 } VAYUDSPPROC_ModuleObject;
 
 /* Default memory regions */
-static UInt32 AddrTable_count = AddrTable_STATIC_COUNT;
+static UInt32 AddrTable_count = 0;
 
-/* static memory regions
- * CAUTION: AddrTable_STATIC_COUNT must match number of entries below.
+/*
+ * Address translation table
  */
-static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE] =
-    {
-        /* L2 RAM */
-        {
-            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterPhys] = 0x40800000u,
-            .addr[ProcMgr_AddrType_SlaveVirt] = 0x800000u,
-            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
-            .size = 0x40000u,
-            .isCached = FALSE,
-            .mapMask = ProcMgr_SLAVEVIRT,
-            .isMapped = TRUE,
-            .refCount = 0u      /* refCount set to 0 for static entry */
-        },
-
-        /* L1P RAM */
-        {
-            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterPhys] = 0x40E00000u,
-            .addr[ProcMgr_AddrType_SlaveVirt] = 0xE00000u,
-            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
-            .size = 0x8000u,
-            .isCached = FALSE,
-            .mapMask = ProcMgr_SLAVEVIRT,
-            .isMapped = TRUE,
-            .refCount = 0u      /* refCount set to 0 for static entry */
-        },
-
-        /* L1D RAM */
-        {
-            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterPhys] = 0x40F00000u,
-            .addr[ProcMgr_AddrType_SlaveVirt] = 0xF00000u,
-            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
-            .size = 0x8000u,
-            .isCached = FALSE,
-            .mapMask = ProcMgr_SLAVEVIRT,
-            .isMapped = TRUE,
-            .refCount = 0u      /* refCount set to 0 for static entry */
-        },
-    };
+static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE];
 
 /* =============================================================================
  *  Globals
@@ -187,7 +140,7 @@ VAYUDSPPROC_ModuleObject VAYUDSPPROC_state =
     .isSetup = FALSE,
     .configSize = sizeof(VAYUDSPPROC_Config),
     .gateHandle = NULL,
-    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT
+    .defInstParams.numMemEntries = 0
 };
 
 /* config override specified in SysLinkCfg.c, defined in ProcMgr.c */
@@ -408,7 +361,7 @@ VAYUDSPPROC_Params_init(
                 ai->isMapped = FALSE;
             }
 
-            /* initialize refCount for all entries - both static and dynamic */
+            /* initialize refCount for all entries */
             for(i = 0; i < AddrTable_SIZE; i++) {
                 AddrTable[i].refCount = 0u;
             }
@@ -1137,7 +1090,7 @@ VAYUDSPPROC_detach (Processor_Handle handle)
 #endif
 
             /* delete all dynamically added entries */
-            for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
+            for (i = 0; i < AddrTable_count; i++) {
                 ai = &AddrTable[i];
                 ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                 ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
@@ -1150,8 +1103,8 @@ VAYUDSPPROC_detach (Processor_Handle handle)
                 ai->isMapped = FALSE;
                 ai->refCount = 0u;
             }
-            object->params.numMemEntries = AddrTable_STATIC_COUNT;
-            AddrTable_count = AddrTable_STATIC_COUNT;
+            object->params.numMemEntries = 0;
+            AddrTable_count = 0;
 
             //No need to reset.. that will be done in STOP
             /*tmpStatus = VAYUDSP_halResetCtrl(object->halObject,
@@ -1738,7 +1691,6 @@ VAYUDSPPROC_map(
     UInt32                      i;
     UInt32                      j;
     ProcMgr_AddrInfo *          ai = NULL;
-    VAYUDSP_HalMmuCtrlArgs_AddEntry addEntryArgs;
 
     GT_4trace (curTrace, GT_ENTER, "VAYUDSPPROC_map",
                handle, dstAddr, nSegs, sglist);
@@ -1785,37 +1737,18 @@ VAYUDSPPROC_map(
              * is required. Add the entry only if the range does not exist
              * in the translation table.
              */
-
-            /* check in static entries first */
-            for (j = 0; j < AddrTable_STATIC_COUNT; j++) {
+            for (j = 0; j < AddrTable_count; j++) {
                 ai = &AddrTable [j];
-                startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
-                endAddr = startAddr + ai->size;
 
-                if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)) {
-                    found = TRUE;
+                if (ai->isMapped == TRUE) {
+                    startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
+                    endAddr = startAddr + ai->size;
 
-                    /* refCount does not need to be incremented for static entries */
-
-                    break;
-                 }
-            }
-
-            /* if not found in static entries, check in dynamic entries */
-            if (!found) {
-                for (j = AddrTable_STATIC_COUNT; j < AddrTable_count; j++) {
-                    ai = &AddrTable [j];
-
-                    if (ai->isMapped == TRUE) {
-                        startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
-                        endAddr = startAddr + ai->size;
-
-                        if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)
-                            && ((*dstAddr + sglist[i].size) <= endAddr)) {
-                            found = TRUE;
-                            ai->refCount++;
-                            break;
-                        }
+                    if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)
+                        && ((*dstAddr + sglist[i].size) <= endAddr)) {
+                        found = TRUE;
+                        ai->refCount++;
+                        break;
                     }
                 }
             }
@@ -1833,6 +1766,7 @@ VAYUDSPPROC_map(
                     ai->size = sglist[i].size;
                     ai->isCached = sglist[i].isCached;
                     ai->refCount++;
+                    ai->isMapped = TRUE;
 
                     AddrTable_count++;
                 }
@@ -1843,38 +1777,6 @@ VAYUDSPPROC_map(
                         "AddrTable_SIZE reached!");
                 }
             }
-
-            /* if new entry, map into dsp mmu */
-            if ((ai != NULL) && (ai->refCount == 1) && (status >= 0)) {
-                ai->isMapped = TRUE;
-
-                /* Add entry to Dsp mmu */
-                addEntryArgs.masterPhyAddr = sglist [i].paddr;
-                addEntryArgs.size          = sglist [i].size;
-                addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
-                /* TBD: elementSize, endianism, mixedSized are
-                 * hard coded now, must be configurable later
-                 */
-                addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-                addEntryArgs.endianism     = LITTLE_ENDIAN;
-                addEntryArgs.mixedSize     = MMU_TLBES;
-                status = VAYUDSP_halMmuCtrl(object->halObject,
-                    Processor_MmuCtrlCmd_AddEntry, &addEntryArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-                if (status < 0) {
-                    GT_setFailureReason(curTrace, GT_4CLASS,
-                        "VAYUDSPPROC_map", status,
-                        "Processor_MmuCtrlCmd_AddEntry failed");
-                }
-#endif
-            }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-            if (status < 0) {
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUDSPPROC_map", status,
-                    "DSP MMU configuration failed");
-            }
-#endif
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -1941,10 +1843,10 @@ VAYUDSPPROC_unmap(
         object = (VAYUDSPPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
-        /* Delete dynamically added non-default entries from translation
+        /* Delete entries from translation
          * table only in last unmap called on that entry
          */
-        for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
+        for (i = 0; i < AddrTable_count; i++) {
             ai = &AddrTable[i];
 
             if (!ai->isMapped) {

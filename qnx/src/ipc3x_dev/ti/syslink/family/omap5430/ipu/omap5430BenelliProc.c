@@ -94,12 +94,6 @@ extern "C" {
 
 
 /*!
- *  @brief  Number of static entries in address translation table.
- */
-#define AddrTable_IPU_STATIC_COUNT 1
-#define AddrTable_DSP_STATIC_COUNT 0
-
-/*!
  *  @brief  max entries in translation table.
  */
 #define AddrTable_SIZE 32
@@ -149,32 +143,15 @@ typedef struct OMAP5430TESLAPROC_module_object_tag {
 }OMAP5430TESLAPROC_ModuleObject;
 
 
-/* Default memory regions */
-static UInt32 AddrTable_IPU_count = AddrTable_IPU_STATIC_COUNT;
-static UInt32 AddrTable_DSP_count = AddrTable_DSP_STATIC_COUNT;
+/* Number of  memory regions */
+static UInt32 AddrTable_IPU_count = 0;
+static UInt32 AddrTable_DSP_count = 0;
 
-/* Default memory regions */
-static ProcMgr_AddrInfo OMAP5430BENELLIPROC_defaultMemRegions [AddrTable_SIZE] =
-{
-        /* L2 RAM */
-        {
-            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
-            .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
-            .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
-            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
-            .size = 0x10000u,
-            .isCached = FALSE,
-            .mapMask = ProcMgr_SLAVEVIRT,
-            .isMapped = TRUE,
-            .refCount = 0u      /* refCount set to 0 for static entry */
-        },
-};
+/* Address translation table for IPU */
+static ProcMgr_AddrInfo OMAP5430BENELLIPROC_addrTable[AddrTable_SIZE];
 
-/* Default memory regions for DSP */
-static ProcMgr_AddrInfo OMAP5430TESLAPROC_defaultMemRegions [AddrTable_SIZE] =
-{
-};
+/* Address translation table for DSP */
+static ProcMgr_AddrInfo OMAP5430TESLAPROC_addrTable[AddrTable_SIZE];
 
 /* =============================================================================
  *  Globals
@@ -191,7 +168,7 @@ static
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU0PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_IPU_STATIC_COUNT,
+    .defInstParams.numMemEntries = 0,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -204,7 +181,7 @@ static
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU1PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_IPU_STATIC_COUNT,
+    .defInstParams.numMemEntries = 0,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -217,7 +194,7 @@ static
 OMAP5430TESLAPROC_ModuleObject OMAP5430DSPPROC_state =
 {
     .config_size = sizeof (OMAP5430TESLAPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_DSP_STATIC_COUNT,
+    .defInstParams.numMemEntries = 0,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -479,17 +456,17 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
     switch(ProcType)
     {
         case PROCTYPE_IPU0:
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             numMemEntries = AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             numMemEntries = AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
-            pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
+            pMemRegn = OMAP5430TESLAPROC_addrTable;
             numMemEntries = AddrTable_DSP_count;
             break;
     }
@@ -1043,19 +1020,19 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
     {
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
             pState = (OMAP5430BENELLIPROC_ModuleObject *)&OMAP5430DSPPROC_state;
-            pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
+            pMemRegn = OMAP5430TESLAPROC_addrTable;
             AddrTable_count = &AddrTable_DSP_count;
             break;
     }
@@ -1293,7 +1270,6 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
     Int i                              = 0;
     ProcMgr_AddrInfo *    ai;
     ProcMgr_AddrInfo *          pMemRegn        = NULL;
-    UInt32                    staticCount = 0;
     UInt32 *                  AddrTable_count = NULL;
 
     GT_1trace (curTrace, GT_ENTER, "OMAP5430BENELLIPROC_detach", handle);
@@ -1303,20 +1279,17 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
     switch(procHandle->procId)
     {
         case PROCTYPE_IPU0:
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
-            staticCount = AddrTable_IPU_STATIC_COUNT;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
-            pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
-            staticCount = AddrTable_IPU_STATIC_COUNT;
+            pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
-            pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
-            staticCount = AddrTable_DSP_STATIC_COUNT;
+            pMemRegn = OMAP5430TESLAPROC_addrTable;
             AddrTable_count = &AddrTable_DSP_count;
             break;
     }
@@ -1390,7 +1363,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
             }
 
             /* delete all dynamically added entries */
-            for (i = staticCount; i < *AddrTable_count; i++) {
+            for (i = 0; i < *AddrTable_count; i++) {
                 ai = &pMemRegn[i];
                 ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                 ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
@@ -1403,8 +1376,8 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                 ai->isMapped = FALSE;
                 ai->refCount = 0u;
             }
-            object->params.numMemEntries = staticCount;
-            *AddrTable_count = staticCount;
+            object->params.numMemEntries = 0;
+            *AddrTable_count = 0;
 
             //No need to reset.. that will be done in STOP
            /* tmpStatus = OMAP5430BENELLI_halResetCtrl (object->halObject,
@@ -2053,8 +2026,24 @@ OMAP5430BENELLIPROC_translate (Processor_Handle handle,
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
-        pMemRegn = object->params.memEntries;
-        nRegions = object->params.numMemEntries;
+        switch(procHandle->procId)
+        {
+            case PROCTYPE_IPU0:
+                pMemRegn = OMAP5430BENELLIPROC_addrTable;
+                nRegions = AddrTable_IPU_count;
+                break;
+#ifndef SYSLINK_SYSBIOS_SMP
+            case PROCTYPE_IPU1:
+                pMemRegn = OMAP5430BENELLIPROC_addrTable;
+                nRegions = AddrTable_IPU_count;
+                break;
+#endif
+            case PROCTYPE_DSP:
+                pMemRegn = OMAP5430TESLAPROC_addrTable;
+                nRegions = AddrTable_DSP_count;
+                break;
+        }
+
 
         *dstAddr = -1u;
         for (i = 0;i < nRegions;i++)
@@ -2112,8 +2101,13 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
     Int                          status       = PROCESSOR_SUCCESS ;
     Processor_Object *           procHandle   = (Processor_Object *) handle;
     OMAP5430BENELLIPROC_Object * object       = NULL;
-    UInt32                       i;
-    OMAP5430BENELLI_HalMmuCtrlArgs_AddEntry addEntryArgs;
+    UInt32                       i, j;
+    UInt32                      startAddr;
+    UInt32                      endAddr;
+    Bool                        found         = FALSE;
+    ProcMgr_AddrInfo *          pMemRegn      = NULL;
+    UInt32 *                    pNumRegions   = NULL;
+    ProcMgr_AddrInfo *          ai            = NULL;
 
     GT_4trace (curTrace, GT_ENTER, "OMAP5430BENELLIPROC_map",
                handle, dstAddr, nSegs, sglist);
@@ -2154,36 +2148,78 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
+
+        switch(procHandle->procId)
+        {
+            case PROCTYPE_IPU0:
+                pMemRegn = OMAP5430BENELLIPROC_addrTable;
+                pNumRegions = &AddrTable_IPU_count;
+                break;
+#ifndef SYSLINK_SYSBIOS_SMP
+            case PROCTYPE_IPU1:
+                pMemRegn = OMAP5430BENELLIPROC_addrTable;
+                pNumRegions = &ddrTable_IPU_count;
+                break;
+#endif
+            case PROCTYPE_DSP:
+                pMemRegn = OMAP5430TESLAPROC_addrTable;
+                pNumRegions = &AddrTable_DSP_count;
+                break;
+        }
+
         /* Program the mmu with the sglist */
         /* Program the DSP MMU also */
         for (i = 0; (i < nSegs) && (status >= 0); i++)
         {
-            addEntryArgs.masterPhyAddr = sglist [i].paddr;
-            addEntryArgs.size          = sglist [i].size;
-            addEntryArgs.slaveVirtAddr = (UInt32)*dstAddr;
-            /*TBD : elementSize, endianism, mixedSized are hard coded now,
-             *      must be configurable later*/
-            addEntryArgs.elementSize   = ELEM_SIZE_16BIT;
-            addEntryArgs.endianism     = LITTLE_ENDIAN;
-            addEntryArgs.mixedSize     = MMU_TLBES;
-            addEntryArgs.slaveVirtAddr = get_BenelliVirtAdd(object->halObject,
-                                                    addEntryArgs.masterPhyAddr);
-            *(dstAddr) = addEntryArgs.slaveVirtAddr;
-            if(addEntryArgs.slaveVirtAddr == 0) {
-                status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
-                                                  Processor_MmuCtrlCmd_AddEntry,
-                                                  &addEntryArgs);
+            /* Update the translation table with entries for which mapping
+             * is required. Add the entry only if the range does not exist
+             * in the translation table.
+             */
+            for (j = 0;
+                j < *pNumRegions; j++) {
+                ai = &pMemRegn[j];
 
+                if (ai->isMapped == TRUE) {
+                    startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
+                    endAddr = startAddr + ai->size;
+
+                    if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)
+                        && ((*dstAddr + sglist[i].size) <= endAddr)) {
+                        found = TRUE;
+                        ai->refCount++;
+                        break;
+                    }
+                }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-            if (status < 0) {
-                GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "OMAP5430BENELLIPROC_map",
-                                 status,
-                                 "DSP MMU configuration failed");
+
+            /* If not found, add new entry to table. If mmu is disabled,
+             * the assumption is that the ammu will be used.
+             */
+            if (!found) {
+                if (*pNumRegions != AddrTable_SIZE) {
+                    ai = &pMemRegn[*pNumRegions];
+                    ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+                    ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
+                    ai->addr[ProcMgr_AddrType_SlaveVirt] = *dstAddr;
+                    ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+                    ai->size = sglist[i].size;
+                    ai->isCached = sglist[i].isCached;
+                    ai->refCount++;
+                    ai->isMapped = TRUE;
+
+                    (*pNumRegions)++;
+                }
+                else {
+                    status = PROCESSOR_E_FAIL;
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "OMAP5430BENELLIPROC_map", status,
+                        "AddrTable_SIZE reached!");
+                }
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
+            *(dstAddr) = get_BenelliVirtAdd(object->halObject,
+                sglist[i].paddr);
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
