@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@
 
 #define  NUM_LOOPS_DFLT   1000
 #define  NUM_THREADS_DFLT 10
-#define  MAX_NUM_THREADS  50
+#define  MAX_NUM_THREADS  55
 #define  ONE_PROCESS_ONLY (-1)
 
 /** ============================================================================
@@ -215,11 +215,19 @@ int main (int argc, char ** argv)
            break;
         default:
            printf("Usage: %s [<numThreads>] [<numLoops>] [<Process #]>\n",
-                   argv[0]);
-           printf("\tDefaults: numThreads: 10, numLoops: 100\n");
-           printf("\tMax Threads: 100\n");
+               argv[0]);
+           printf("\tDefaults: numThreads: %d, numLoops: %d\n",
+               NUM_THREADS_DFLT, NUM_LOOPS_DFLT);
+           printf("\tMax Threads: %d\n", MAX_NUM_THREADS);
            exit(0);
     }
+
+    if (numThreads > MAX_NUM_THREADS) {
+        printf("Error: Maximum number of threads supported is %d\n",
+            MAX_NUM_THREADS);
+        exit(EXIT_FAILURE);
+    }
+
     printf("Using numThreads: %d, numLoops: %d\n", numThreads, numLoops);
     if (procNum != ONE_PROCESS_ONLY) {
         printf("ProcNum: %d\n", procNum);
@@ -248,11 +256,13 @@ int main (int argc, char ** argv)
     for (i = 0; i < numThreads; i++) {
         ret = pthread_join(threads[i].thread_id, &res);
         if (ret != 0) {
-            printf("MessageQMulti: failed to join thread: %d, %s\n",
-                    i, strerror(ret));
+            printf("MessageQMulti: failed to join thread #%d, %s\n",
+                    threads[i].thread_num, strerror(ret));
         }
-        printf("MessageQMulti: Joined with thread %d; returned value was %p\n",
-                threads[i].thread_num, res);
+        else {
+            printf("MessageQMulti: Joined with thread %d; "
+                "returned value was %p\n", threads[i].thread_num, res);
+        }
         free(res);      /* Free memory allocated by thread */
     }
 

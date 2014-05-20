@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@
 
 #define SLAVE_MESSAGEQNAME "SLAVE"
 #define HOST_MESSAGEQNAME "HOST"
-#define NUMTHREADS 10
+#define NUMTHREADS 55
 #define NUMLOOPS 1000
 
 static int numTests = 0;
