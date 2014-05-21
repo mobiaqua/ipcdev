@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,41 +227,6 @@ Int VirtQueue_addAvailBuf(VirtQueue_Handle vq, Void *buf, UInt32 len, Int16 head
  */
 Int16 VirtQueue_getUsedBuf(VirtQueue_Handle vq, Void **buf);
 
-/*
- *  ============================================================================
- *  Slave Only Functions:
- *  ============================================================================
- */
-
-/*!
- *  @brief      Get the next available buffer.
- *              Only used by Slave.
- *
- *  @param[in]  vq        the VirtQueue.
- *  @param[out] buf       Pointer to location of available buffer;
- *
- *  @return     Returns a token used to identify the available buffer, to be
- *              passed back into VirtQueue_addUsedBuf();
- *              token is negative if failure to find an available buffer.
- *
- *  @sa         VirtQueue_addUsedBuf
- */
-Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf);
-
-/*!
- *  @brief      Add used buffer to virtqueue's used buffer list.
- *              Only used by Slave.
- *
- *  @param[in]  vq        the VirtQueue.
- *  @param[in]  token     token of the buffer to be added to vring used list.
- *  @param[in]  len       length of the message in the buffer being added.
- *
- *  @return     Remaining capacity of queue or a negative error.
- *
- *  @sa         VirtQueue_getAvailBuf
- */
-Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 token, UInt32 len);
-
 /*!
  *  @brief      Add used buffer address to virtqueue's used buffer list.
  *              Only used by Host.
@@ -271,8 +236,6 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 token, UInt32 len);
  *  @param[in]  len       length of the message in the buffer being added.
  *
  *  @return     Remaining capacity of queue or a negative error.
- *
- *  @sa         VirtQueue_getAvailBuf
  */
 Int VirtQueue_addUsedBufAddr(VirtQueue_Handle vq, Void *buf, UInt32 len);
 

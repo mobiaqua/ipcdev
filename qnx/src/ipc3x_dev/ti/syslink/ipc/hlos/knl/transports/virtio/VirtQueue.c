@@ -57,12 +57,6 @@
 #include <ti/syslink/utils/Memory.h>
 #include <ti/syslink/utils/Trace.h>
 
-//#include <ti/sysbios/hal/Hwi.h>
-//#include <ti/sysbios/knl/Semaphore.h>
-//#include <ti/sysbios/knl/Clock.h>
-//#include <ti/sysbios/BIOS.h>
-//#include <ti/sysbios/hal/Cache.h>
-
 #include <_ArchIpcInt.h>
 #include <ArchIpcInt.h>
 #include "VirtQueue.h"
@@ -92,10 +86,7 @@ typedef struct VirtQueue_Object {
     /* Number of free buffers */
     UInt16                  num_free;
 
-    /* Last available index; updated by VirtQueue_getAvailBuf */
-    UInt16                  last_avail_idx;
-
-    /* Last available index; updated by VirtQueue_addUsedBuf */
+    /* Last available index; updated by VirtQueue_getUsedBuf */
     UInt16                  last_used_idx;
 
     /* Will eventually be used to kick remote processor */
@@ -162,37 +153,6 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
     ipu_pm_restore_ctx(vq->procId);
 #endif
     ArchIpcInt_sendInterrupt(vq->procId, vq->intId, vq->id);
-}
-
-/*!
- * ======== VirtQueue_addUsedBuf ========
- */
-Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, UInt32 len)
-{
-    struct vring_used_elem *used;
-    Int status = 0;
-
-    if ((head > vq->vring.num) || (head < 0)) {
-        status = -1;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VirtQueue_addUsedBuf",
-                             status,
-                             "head is invalid!");
-    }
-    else {
-        /*
-         * The virtqueue contains a ring of used buffers.  Get a pointer to the
-         * next entry in that used ring.
-         */
-        used = &vq->vring.used->ring[vq->vring.used->idx % vq->vring.num];
-        used->id = head;
-        used->len = len;
-
-        vq->vring.used->idx++;
-    }
-
-    return status;
 }
 
 /*!
@@ -284,42 +244,6 @@ Int16 VirtQueue_getUsedBuf(VirtQueue_Object *vq, Void **buf)
     head = vq->vring.used->ring[vq->last_used_idx % vq->vring.num].id;
     vq->last_used_idx++;
     vq->num_free++;
-
-    *buf = mapPAtoVA(vq, vq->vring.desc[head].addr);
-
-    return (head);
-}
-
-/*!
- * ======== VirtQueue_getAvailBuf ========
- */
-Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
-{
-    UInt16 head;
-
-    GT_6trace(curTrace, GT_2CLASS, "getAvailBuf vq: 0x%x %d %d %d 0x%x 0x%x",
-        (IArg)vq, vq->last_avail_idx, vq->vring.avail->idx, vq->vring.num,
-        (IArg)&vq->vring.avail, (IArg)vq->vring.avail);
-
-    /*  Clear flag here to avoid race condition with remote processor.
-     *  This is a negative flag, clearing it means that we want to
-     *  receive an interrupt when a buffer has been added to the pool.
-     */
-    vq->vring.used->flags &= ~VRING_USED_F_NO_NOTIFY;
-    /* There's nothing available? */
-    if (vq->last_avail_idx == vq->vring.avail->idx) {
-        /* We need to know about added buffers */
-        return (-1);
-    }
-
-    /* No need to know be kicked about added buffers anymore */
-    vq->vring.used->flags |= VRING_USED_F_NO_NOTIFY;
-
-    /*
-     * Grab the next descriptor number they're advertising, and increment
-     * the index we've seen.
-     */
-    head = vq->vring.avail->ring[vq->last_avail_idx++ % vq->vring.num];
 
     *buf = mapPAtoVA(vq, vq->vring.desc[head].addr);
 
@@ -435,7 +359,6 @@ VirtQueue_Handle VirtQueue_create (VirtQueue_callback callback, UInt16 procId,
     numQueues++;
     vq->procId = procId;
     vq->intId = coreIntId[procId];
-    vq->last_avail_idx = 0;
     vq->arg = arg;
 
     /* init the vring */
