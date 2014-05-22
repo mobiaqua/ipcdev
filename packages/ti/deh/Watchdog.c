@@ -213,7 +213,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
 #endif
     }
 
-#if defined(OMAP5)
+#if defined(OMAP5) || defined(IPU)
     /* Register callback function */
     if (!IpcPower_registerCallback(IpcPower_Event_RESUME, Watchdog_restore,
                                     NULL)) {

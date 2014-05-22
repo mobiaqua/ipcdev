@@ -62,7 +62,7 @@ function module$use()
         Exception.exceptionHook = Deh.excHandlerDsp;
     }
     else {
-        xdc.useModule('ti.trace.StackDbg');
+        xdc.useModule('ti.deh.StackDbg');
     }
 
     Swi = xdc.useModule('ti.sysbios.knl.Swi');

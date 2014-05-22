@@ -37,5 +37,6 @@
 
 package ti.deh [1,0,0,0] {
     module Deh;
+    module StackDbg;
     module Watchdog;
 };

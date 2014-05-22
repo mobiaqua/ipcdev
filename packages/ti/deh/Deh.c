@@ -51,7 +51,7 @@
 #include <ti/sysbios/family/arm/m3/Hwi.h>
 
 #include <ti/ipc/MultiProc.h>
-#include <ti/trace/StackDbg.h>
+#include <ti/deh/StackDbg.h>
 #include <ti/deh/Watchdog.h>
 
 /* TBD: VirtQueue.h needs to somehow get factored out of family directory .*/

@@ -47,22 +47,17 @@ Pkg.attrs.exportSrc = true;
 Pkg.attrs.exportCfg = true;
 Pkg.otherFiles = [
     "Deh.h",
+    "StackDbg.h",
     "Watchdog.h",
 ];
 
 var myCopts = "";
-var SRCS_IPU = ["Deh.c", "Watchdog.c"]
+var SRCS_IPU = ["Deh.c", "Watchdog.c", "StackDbg.c"]
 var SRCS_DSP = ["DehDsp.c", "Watchdog.c"]
 
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
     var name = Pkg.name;
-
-    if (targ.$name.match(/^ti\.targets\.*/)) {
-        myCopts = "--gcc";  /* Rpmsg.h requires gcc-isms */
-    } else {
-        myCopts = "";
-    }
 
     if (targ.isa == "674") {
         continue;

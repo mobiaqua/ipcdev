@@ -43,7 +43,7 @@ Pkg.generatedFiles.$add("lib/");
 
 /* add custom files to all releases */
 Pkg.attrs.exportSrc = true;
-Pkg.otherFiles = ["package.bld", "SysMin.h", "StackDbg.h"];
+Pkg.otherFiles = ["package.bld", "SysMin.h"];
 
 /* list of libraries to build */
 var libArray = new Array();
@@ -54,7 +54,6 @@ libArray.push(
         name: "ti.trace_smp",
         sources: [
             "SysMin.c",
-            "StackDbg.c",
         ],
         libAttrs: {
             defs: " -DSMP"
@@ -69,7 +68,6 @@ libArray.push(
         name: "ti.trace",
         sources: [
             "SysMin.c",
-            "StackDbg.c",
         ],
     }
 );

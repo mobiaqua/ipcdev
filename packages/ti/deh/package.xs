@@ -41,41 +41,47 @@
 function getLibs(prog)
 {
     var suffix;
-    var file;
-    var libAry = [];
+    var lib;
     var profile = this.profile;
     var smp = "";
+    var plat = "";
 
     suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
         return "";  /* nothing to contribute */
     }
 
-    if (prog.platformName.match(/IPU/) ||
-        prog.platformName.match(/ipu/)) {
+    var device = Program.cpu.deviceName;
+    switch (device) {
+	case "OMAP5430": /* OMAP5 */
+	    plat = "_omap5";
+	    break;
+
+	case "Vayu":
+	case "DRA7XX":
+	    plat = "_vayu";
+	    break;
+
+	default:
+	    throw new Error("Unsupported device: " + device);
+	    break;
+    }
+
+    if (Program.build.target.isa.match(/v7M(|4)/)) {
         smp = "_smp";
     }
 
-    /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.deh" + smp +".a" + suffix;
-    if (java.io.File(this.packageBase + file).exists()) {
-        libAry.push(file);
-    }
-    else {
-        file = "lib/release/ti.deh" + smp +".a" + suffix;
-        if (java.io.File(this.packageBase + file).exists()) {
-            libAry.push(file);
-        }
-        else {
-            /* fallback to a compatible library built by this package */
-            for (var p in this.build.libDesc) {
-                if (suffix == this.build.libDesc[p].suffix) {
-                    libAry.push(p);
-                    break;
-                }
-            }
-        }
+    var name = "/ti.deh" + plat + smp + ".a" + suffix;
+    lib = "lib/" + profile + name;
+
+    /*
+     * If the requested profile doesn't exist, we return the 'release' library.
+     */
+    if (!java.io.File(this.packageBase + lib).exists()) {
+        $trace("Unable to locate lib for requested '" + this.profile +
+                "' profile.  Using 'release' profile.", 1, ['getLibs']);
+        lib = "lib/release/" + name;
     }
 
-    return libAry.join(";");
+    return lib;
 }

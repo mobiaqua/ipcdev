@@ -38,5 +38,4 @@
 
 package ti.trace [0,0,0] {
     module SysMin;
-    module StackDbg;
 };
