@@ -19,3 +19,4 @@ Options:
                 Supported on: OMAP54xx
  -g             Enable GateMP support on host
                 Supported on: DRA7xx
+ -d             Disable automatic crash recovery

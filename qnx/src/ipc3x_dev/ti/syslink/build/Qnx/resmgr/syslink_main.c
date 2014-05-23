@@ -89,6 +89,8 @@
 
 static int verbosity = 2;
 
+/* Disable recovery mechanism if true */
+static int disableRecovery = false;
 
 #if defined(SYSLINK_PLATFORM_VAYU)
 static bool gatempEnabled = false;
@@ -468,10 +470,12 @@ static void ipc_recover(Ptr args)
 {
     syslink_dev_t * dev = (syslink_dev_t *)args;
 
-    deinit_ipc(dev, TRUE);
-    init_ipc(dev, syslink_firmware, TRUE);
-    deinit_syslink_trace_device(dev);
-    init_syslink_trace_device(dev);
+    if (!disableRecovery) {
+        deinit_ipc(dev, TRUE);
+        init_ipc(dev, syslink_firmware, TRUE);
+        deinit_syslink_trace_device(dev);
+        init_syslink_trace_device(dev);
+    }
 }
 
 Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
@@ -868,6 +872,7 @@ static Void printUsage (Char * app)
     printf("Options:\n");
     printf("  -g   enable GateMP support on host\n");
 #endif
+    printf("  -d   disable recovery\n");
     exit (EXIT_SUCCESS);
 }
 
@@ -898,7 +903,7 @@ int main(int argc, char *argv[])
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "H:T:U:gv:");
+        c = getopt (argc, argv, "H:T:U:gdv:");
         if (c == -1)
             break;
 
@@ -917,6 +922,9 @@ int main(int argc, char *argv[])
 #endif
         case 'U':
             user_parm = optarg;
+            break;
+        case 'd':
+            disableRecovery = true;
             break;
         case 'v':
             verbosity++;
