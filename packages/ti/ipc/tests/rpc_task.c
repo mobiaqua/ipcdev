@@ -309,6 +309,7 @@ Int32 fxnFault(UInt32 size, UInt32 *data)
     Int a;
     typedef Int (*MyCode)();
     MyCode fxn = (MyCode)0x96000000;
+    volatile Int dummy = 0;
 
     a = (UInt32)payload[0].data;
 
@@ -324,6 +325,15 @@ Int32 fxnFault(UInt32 size, UInt32 *data)
         case 3:
             System_printf("Generating program MMU Fault...\n");
             fxn();
+            break;
+        case 4:
+            System_printf("Generating exception...\n");
+            dummy = dummy / dummy;
+            break;
+        case 5:
+            System_printf("Generating Watchdog interrupt...\n");
+            dummy = 1;
+            while(dummy);
             break;
         default:
             System_printf("Invalid fxnFault test\n");
