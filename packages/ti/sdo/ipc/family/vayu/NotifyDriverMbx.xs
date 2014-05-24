@@ -77,7 +77,7 @@ function module$use()
     /* Initialize mailboxTable */
     TableInit.generateTable(this);
 
-    if (isaChain.match(/#64P#|#v7M#|#v7A#/)) {
+    if (isaChain.match(/#64P#|#v7A#/)) {
         /* initialize mailbox base address table */
         this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
         this.mailboxBaseAddr[1]  = 0x4208C000;  /* EVE1 Internal Mailbox 1 */
@@ -128,6 +128,76 @@ function module$use()
             this.mailboxBaseAddr[11] = 0x4008D000;
         }
     }
+    else if (isaChain.match(/#v7M#/)) {
+        /* initialize mailbox base address table */
+        if (this.mailboxBaseAddr[0] == undefined) {
+            this.mailboxBaseAddr[0]  = 0x6208B000;  /* EVE1 MBOX0 */
+        }
+        if (this.mailboxBaseAddr[1] == undefined) {
+            this.mailboxBaseAddr[1]  = 0x6208C000;  /* EVE1 MBOX1 */
+        }
+        if (this.mailboxBaseAddr[2] == undefined) {
+            this.mailboxBaseAddr[2]  = 0;           /* EVE1 MBOX2 */
+        } else {
+            this.$logWarning("NotifySetup.mailboxBaseAddr[2] is EVE1 MBOX2, "
+                    + "which is not used for IPU communication and should "
+                    + "not be configured.", this);
+        }
+        if (this.mailboxBaseAddr[3] == undefined) {
+            this.mailboxBaseAddr[3]  = 0x6218B000;  /* EVE2 MBOX0 */
+        }
+        if (this.mailboxBaseAddr[4] == undefined) {
+            this.mailboxBaseAddr[4]  = 0x6218C000;  /* EVE2 MBOX1 */
+        }
+        if (this.mailboxBaseAddr[5] == undefined) {
+            this.mailboxBaseAddr[5]  = 0;           /* EVE2 MBOX2 */
+        } else {
+            this.$logWarning("NotifySetup.mailboxBaseAddr[5] is EVE2 MBOX2, "
+                    + "which is not used for IPU communication and should "
+                    + "not be configured.", this);
+        }
+
+        if (this.mailboxBaseAddr[6] == undefined) {
+            this.mailboxBaseAddr[6]  = 0x6228B000;  /* EVE3 MBOX0 */
+        }
+        if (this.mailboxBaseAddr[7] == undefined) {
+            this.mailboxBaseAddr[7]  = 0x6228C000;  /* EVE3 MBOX1 */
+        }
+        if (this.mailboxBaseAddr[8] == undefined) {
+            this.mailboxBaseAddr[8]  = 0;           /* EVE3 MBOX2 */
+        } else {
+            this.$logWarning("NotifySetup.mailboxBaseAddr[8] is EVE3 MBOX2, "
+                    + "which is not used for IPU communication and should "
+                    + "not be configured.", this);
+        }
+
+        if (this.mailboxBaseAddr[9] == undefined) {
+            this.mailboxBaseAddr[9]  = 0x6238B000;  /* EVE4 MBOX0 */
+        }
+        if (this.mailboxBaseAddr[10] == undefined) {
+            this.mailboxBaseAddr[10]  = 0x6238C000; /* EVE4 MBOX1 */
+        }
+        if (this.mailboxBaseAddr[11] == undefined) {
+            this.mailboxBaseAddr[11]  = 0;          /* EVE4 MBOX2 */
+        } else {
+            this.$logWarning("NotifySetup.mailboxBaseAddr[11] is EVE4 MBOX2, "
+                    + "which is not used for IPU communication and should "
+                    + "not be configured.", this);
+        }
+
+        if (this.mailboxBaseAddr[12] == undefined) {
+            this.mailboxBaseAddr[12] = 0x68840000;  /* System Mailbox 5 */
+        }
+        if (this.mailboxBaseAddr[13] == undefined) {
+            this.mailboxBaseAddr[13] = 0x68842000;  /* System Mailbox 6 */
+        }
+        if (this.mailboxBaseAddr[14] == undefined) {
+            this.mailboxBaseAddr[14] = 0x68844000;  /* System Mailbox 7 */
+        }
+        if (this.mailboxBaseAddr[15] == undefined) {
+            this.mailboxBaseAddr[15] = 0x68846000;  /* System Mailbox 8 */
+        }
+    }
     else {
         throw("Invalid target: " + Program.build.target.$name);
     }
@@ -146,43 +216,10 @@ function module$static$init(state, mod)
     }
 
     if (isaChain.match(/#64P#/)) {
-        /* interrupt event IDs used by this processor */
-        state.interruptTable[0] = 55; /* EVE1 -> DSP1 or DSP2 */
-        state.interruptTable[1] = 56; /* EVE2 -> DSP1 or DSP2 */
-        state.interruptTable[2] = 58; /* EVE3 -> DSP1 or DSP2 */
-        state.interruptTable[3] = 59; /* EVE4 -> DSP1 or DSP2 */
-        state.interruptTable[4] = 60; /* DSP1 -> DSP2 */
-        state.interruptTable[5] = 60; /* DSP2 -> DSP1 */
-        state.interruptTable[8] = 57; /* HOST -> DSP1 or DSP2 */
-
-        /* these are not known at config time, set at runtime */
-        state.interruptTable[6] = 0; /* IPU1 -> DSP1 or DSP2 */
-        state.interruptTable[7] = 0; /* IPU2 -> DSP1 or DSP2 */
-        state.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
-        state.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
     }
     else if (isaChain.match(/#arp32#/)) {
-        /* interrupt event IDs used by this processor */
-        state.interruptTable[0] = 60; /* EVE1 - Group1/INTC1 */
-        state.interruptTable[1] = 60; /* EVE2 - Group1/INTC1 */
-        state.interruptTable[2] = 60; /* EVE3 - Group1/INTC1 */
-        state.interruptTable[3] = 60; /* EVE4 - Group1/INTC1 */
-        state.interruptTable[4] = 29; /* DSP1 - Group0/INTC0 */
-        state.interruptTable[5] = 30; /* DSP2 - Group0/INTC0 */
-        state.interruptTable[6] = 29; /* IPU1-0 */
-        state.interruptTable[7] = 30; /* IPU2-0 */
-        state.interruptTable[8] = 29; /* HOST */
-        state.interruptTable[9] = 30; /* IPU1-1 */
-        state.interruptTable[10] = 30; /* IPU2-1 */
     }
     else if (isaChain.match(/#v7M#/)) {
-        /* TODO */
-//      if (Core.id == 0) {
-//          Hwi.construct(state.hwi, 53, NotifyDriverMbx.isr);
-//      }
-//      else {
-//          Hwi.construct(state.hwi, 54, NotifyDriverMbx.isr);
-//      }
     }
     else if (isaChain.match(/#v7A#/)) {
         /* TODO */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,6 @@ import ti.sdo.utils.MultiProc;
  *  ======== InterruptIpu ========
  *  IPU interrupt manager
  */
-
-@ModuleStartup
-
 module InterruptIpu inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
     /*!
@@ -164,7 +161,7 @@ internal:
     Void intShmDucatiStub(UArg arg);
 
     /*! Stub to be plugged for intra-ducati interrupts */
-    Void intShmMbxStub(UArg arg);
+    Void intShmMbxStub(UInt16 idx);
 
     struct Module_State {
         /*
@@ -175,8 +172,5 @@ internal:
 
         /* # of times interrupt registered */
         UInt16     numPlugged[NUM_EVE_MBX + NUM_SYS_MBX];
-
-        /* table of interrupt event ids use to communicate with this proc */
-        UInt16 interruptTable[NUM_CORES];
     };
 }

@@ -97,19 +97,4 @@ function module$static$init(mod, params)
         mod.fxnTable[remoteProcId].func  = null;
         mod.fxnTable[remoteProcId].arg   = 0;
     }
-
-    /* Initialize Interrupt Event Ids for communicating with this processor */
-    mod.interruptTable[0] = 55; /* EVE1 -> DSP1 or DSP2 */
-    mod.interruptTable[1] = 56; /* EVE2 -> DSP1 or DSP2 */
-    mod.interruptTable[2] = 58; /* EVE3 -> DSP1 or DSP2 */
-    mod.interruptTable[3] = 59; /* EVE4 -> DSP1 or DSP2 */
-    mod.interruptTable[4] = 60; /* DSP1 -> DSP2 */
-    mod.interruptTable[5] = 60; /* DSP2 -> DSP1 */
-    mod.interruptTable[8] = 57; /* HOST -> DSP1 or DSP2 */
-
-    /* These are not known at config time and is set a runtime */
-    mod.interruptTable[6] = 0; /* IPU1 -> DSP1 or DSP2 */
-    mod.interruptTable[7] = 0; /* IPU2 -> DSP1 or DSP2 */
-    mod.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
-    mod.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
 }

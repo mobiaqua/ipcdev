@@ -37,6 +37,11 @@ requires ti.sdo.ipc;
 
 /*!
  *  ======== ti.sdo.ipc.family.vayu ========
+ *  Device specific modules for Vayu
+ *
+ *  Low-level modules which interact directly with the device are
+ *  grouped into family packages. This package handles the Vayu
+ *  class of devices (DRA7xx, TDA2xx, OMAP57xx).
  */
 package ti.sdo.ipc.family.vayu [1,0,1] {
     module    TableInit;

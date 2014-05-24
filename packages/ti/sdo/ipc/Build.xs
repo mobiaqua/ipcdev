@@ -379,8 +379,7 @@ var commonSources = ipcSources +
                     transportsSources;
 //                  utilsSources;
 
-var C64PSources  =
-                   "ipc/gates/GateAAMonitor.c " +
+var C64PSources  = "ipc/gates/GateAAMonitor.c " +
                    "ipc/gates/GateHWSpinlock.c " +
                    "ipc/gates/GateHWSem.c " +
                    "ipc/family/dm6446/NotifySetup.c " +
@@ -400,8 +399,7 @@ var C66Sources   = "ipc/gates/GateHWSem.c " +
                    "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
-var C674Sources  =
-                   "ipc/gates/GateHWSpinlock.c " +
+var C674Sources  = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/da830/NotifySetup.c " +
                    "ipc/family/da830/NotifyCircSetup.c " +
                    "ipc/family/da830/InterruptDsp.c " +
@@ -419,14 +417,12 @@ var C674Sources  =
                    "ipc/family/c6a8149/NotifyMbxSetup.c " +
                    "ipc/family/c6a8149/NotifyDriverMbx.c ";
 
-
 var C647xSources = "ipc/family/c647x/Interrupt.c " +
                    "ipc/family/c647x/NotifyCircSetup.c " +
                    "ipc/family/c647x/MultiProcSetup.c " +
                    "ipc/family/c647x/NotifySetup.c ";
 
-var C64TSources  =
-                   "ipc/gates/GateHWSpinlock.c " +
+var C64TSources  = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/omap4430/NotifyCircSetup.c " +
                    "ipc/family/omap4430/NotifySetup.c " +
                    "ipc/family/omap4430/InterruptDsp.c ";
@@ -436,8 +432,7 @@ var C28Sources   = "ipc/family/f28m35x/NotifyDriverCirc.c " +
                    "ipc/family/f28m35x/TransportCirc.c " +
                    "ipc/family/f28m35x/NameServerBlock.c ";
 
-var M3Sources    =
-                   "ipc/gates/GateHWSpinlock.c " +
+var M3Sources    = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/omap4430/NotifySetup.c " +
                    "ipc/family/omap4430/NotifyCircSetup.c " +
                    "ipc/family/omap4430/InterruptDucati.c " +
@@ -456,11 +451,12 @@ var M3Sources    =
                    "ipc/family/f28m35x/TransportCirc.c " +
                    "ipc/family/f28m35x/NameServerBlock.c " +
                    "ipc/family/vayu/InterruptIpu.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
-var M4Sources    =
-                   "ipc/gates/GateHWSpinlock.c " +
+var M4Sources    = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/vayu/InterruptIpu.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c ";
 
 var Arm9Sources  = "ipc/family/dm6446/NotifySetup.c " +
@@ -470,8 +466,7 @@ var Arm9Sources  = "ipc/family/dm6446/NotifySetup.c " +
                    "ipc/family/da830/NotifyCircSetup.c " +
                    "ipc/family/da830/InterruptArm.c ";
 
-var A8FSources   =
-                   "ipc/gates/GateHWSpinlock.c " +
+var A8FSources   = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/ti81xx/NotifySetup.c " +
                    "ipc/family/ti81xx/NotifyCircSetup.c " +
                    "ipc/family/ti81xx/InterruptHost.c " +
@@ -486,8 +481,7 @@ var A8FSources   =
                    "ipc/family/omap3530/NotifyCircSetup.c " +
                    "ipc/family/omap3530/InterruptHost.c ";
 
-var A8gSources  =
-                   "ipc/gates/GateHWSpinlock.c " +
+var A8gSources  = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/ti81xx/NotifySetup.c " +
                    "ipc/family/ti81xx/NotifyCircSetup.c " +
                    "ipc/family/ti81xx/InterruptHost.c " +
@@ -501,14 +495,12 @@ var A8gSources  =
                    "ipc/family/omap3530/NotifySetup.c " +
                    "ipc/family/omap3530/NotifyCircSetup.c " +
                    "ipc/family/omap3530/InterruptHost.c ";
-
 
 var A15gSources  = "ipc/family/vayu/InterruptHost.c " +
                    "ipc/family/vayu/NotifySetup.c " +
                    "ipc/gates/GateHWSpinlock.c ";
 
-var ARP32Sources   =
-                   "ipc/gates/GateHWSpinlock.c " +
+var ARP32Sources = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/arctic/NotifySetup.c " +
                    "ipc/family/arctic/NotifyCircSetup.c " +
                    "ipc/family/arctic/InterruptArp32.c " +

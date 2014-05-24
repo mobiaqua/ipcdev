@@ -116,72 +116,8 @@ Int NotifyDriverMbx_Module_startup(Int phase)
 {
 #if defined(xdc_target__isaCompatible_64P)
 
-    extern cregister volatile UInt DNUM;
-
-    if (IntXbar_Module_startupDone()) {
-        /* connect mailbox interrupts at startup */
-        if (DNUM == 0) {               /* DSP1 */
-            IntXbar_connect(24, 284);  // eve1 mailbox 0 user 1
-            IntXbar_connect(25, 293);  // eve2 mailbox 0 user 1
-            IntXbar_connect(26, 249);  // system mailbox 5 user 0
-
-            NotifyDriverMbx_module->interruptTable[6] = 57; // IPU1-0
-            NotifyDriverMbx_module->interruptTable[9] = 57; // IPU1-1
-
-            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
-            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
-                IntXbar_connect(27, 302);  // eve3 mailbox 0 user 1
-                IntXbar_connect(28, 311);  // eve4 mailbox 0 user 1
-            }
-
-            /* plug mbx7 only if DSP2 or IPU2 exists */
-            if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
-                IntXbar_connect(29, 257);  // system mailbox 7 user 0
-                NotifyDriverMbx_module->interruptTable[7] = 60; // IPU2-0
-            }
-
-            /* plug mbx8 only if IPU2-1 exists */
-            if (MultiProc_getId("IPU2-1") != MultiProc_INVALIDID) {
-                IntXbar_connect(30, 261);  // system mailbox 8 user 0
-                NotifyDriverMbx_module->interruptTable[10] = 61; // IPU2-1
-            }
-        }
-        else if (DNUM == 1) {          /* DSP2 */
-            IntXbar_connect(24, 287);  // eve1 mailbox 1 user 1
-            IntXbar_connect(25, 296);  // eve2 mailbox 1 user 1
-            IntXbar_connect(26, 253);  // system mailbox 6 user 0
-
-            NotifyDriverMbx_module->interruptTable[7] = 57; // IPU2-0
-            NotifyDriverMbx_module->interruptTable[10] = 57; // IPU2-1
-
-            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
-            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
-                IntXbar_connect(27, 305);  // eve3 mailbox 1 user 1
-                IntXbar_connect(28, 314);  // eve4 mailbox 1 user 1
-            }
-
-            /* plug mbx7 only if DSP1 or IPU1 exists */
-            if ((MultiProc_getId("DSP1") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU1") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU1-0") != MultiProc_INVALIDID)) {
-                IntXbar_connect(29, 258);  // system mailbox 7 user 1
-                NotifyDriverMbx_module->interruptTable[6] = 60; // IPU1-0
-            }
-
-            /* plug mbx8 only if IPU1-1 exists */
-            if (MultiProc_getId("IPU1-1") != MultiProc_INVALIDID) {
-                IntXbar_connect(30, 262);  // system mailbox 8 user 1
-                NotifyDriverMbx_module->interruptTable[9] = 61; // IPU1-1
-            }
-        }
-        return (Startup_DONE);
-    }
-
-    return (Startup_NOTDONE);
+    /* nothing to do on this processor */
+    return (Startup_DONE);
 
 #elif defined(xdc_target__isaCompatible_arp32)
 
@@ -190,7 +126,7 @@ Int NotifyDriverMbx_Module_startup(Int phase)
 
 #elif defined(xdc_target__isaCompatible_v7M)
 
-    /* TODO */
+    /* nothing to do on this processor */
     return (Startup_DONE);
 
 #elif defined(xdc_target__isaCompatible_v7A)
@@ -356,9 +292,10 @@ Int NotifyDriverMbx_sendEvent(NotifyDriverMbx_Object *obj, UInt32 eventId,
         UInt32 payload, Bool waitClear)
 {
     UInt16 selfVirtId = PROCID(MultiProc_self());
-    UInt key, numMsgs;
-    UInt32 smallPayload;
     UInt16 index;
+    UInt key;
+    UInt numMsgs;
+    UInt32 smallPayload;
 
     /* Decide if the payload is small enough to fit in the first mbx msg */
     if (payload < 0x7FFFFFF) {
@@ -371,47 +308,17 @@ Int NotifyDriverMbx_sendEvent(NotifyDriverMbx_Object *obj, UInt32 eventId,
     }
 
 #if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
+    defined(xdc_target__isaCompatible_arp32) || \
+    defined(xdc_target__isaCompatible_v7M)
 
     index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
     PUT_NOTIFICATION(index);
 
-#elif defined(xdc_target__isaCompatible_v7M)
-
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          PUT_NOTIFICATION(VPSS_TO_DSP)
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          PUT_NOTIFICATION(VPSS_TO_HOST)
-//      }
-//      else {
-//          PUT_NOTIFICATION(VPSS_TO_VIDEO)
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          PUT_NOTIFICATION(VIDEO_TO_DSP)
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          PUT_NOTIFICATION(VIDEO_TO_HOST)
-//      }
-//      else {
-//          PUT_NOTIFICATION(VIDEO_TO_VPSS)
-//      }
-//  }
-
 #elif defined(xdc_target__isaCompatible_v7A)
 
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      PUT_NOTIFICATION(HOST_TO_DSP)
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      PUT_NOTIFICATION(HOST_TO_VIDEO)
-//  }
-//  else {
-//      PUT_NOTIFICATION(HOST_TO_VPSS)
-//  }
+    /* TODO */
+    index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
+    PUT_NOTIFICATION(index);
 
 #else
 #error Invalid target
@@ -429,47 +336,17 @@ Void NotifyDriverMbx_disable(NotifyDriverMbx_Object *obj)
     UInt16 index;
 
 #if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
+    defined(xdc_target__isaCompatible_arp32) || \
+    defined(xdc_target__isaCompatible_v7M)
 
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
-#elif defined(xdc_target__isaCompatible_v7M)
-
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_CLR_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
-//      }
-//  }
-
 #elif defined(xdc_target__isaCompatible_v7A)
 
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
-//  }
-//  else {
-//      REG32(MAILBOX_IRQENABLE_CLR_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
-//  }
+    /* TODO */
+    index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
+    REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
 #else
 #error Invalid target
@@ -485,47 +362,17 @@ Void NotifyDriverMbx_enable(NotifyDriverMbx_Object *obj)
     UInt16 index;
 
 #if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
+    defined(xdc_target__isaCompatible_arp32) || \
+    defined(xdc_target__isaCompatible_v7M)
 
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
-#elif defined(xdc_target__isaCompatible_v7M)
-
-//  if (!(BIOS_smpEnabled) && (Core_getId())) {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(HOST_TO_VPSS);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(VIDEO_TO_VPSS);
-//      }
-//  }
-//  else {
-//      if (remoteProcId == NotifyDriverMbx_hostProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(HOST_TO_VIDEO);
-//      }
-//      else if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
-//      }
-//      else {
-//          REG32(MAILBOX_IRQENABLE_SET_VIDEO) = MAILBOX_REG_VAL(VPSS_TO_VIDEO);
-//      }
-//  }
-
 #elif defined(xdc_target__isaCompatible_v7A)
 
-//  if (remoteProcId == NotifyDriverMbx_dspProcId) {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(DSP_TO_HOST);
-//  }
-//  else if (remoteProcId == NotifyDriverMbx_videoProcId) {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VIDEO_TO_HOST);
-//  }
-//  else {
-//      REG32(MAILBOX_IRQENABLE_SET_HOST) = MAILBOX_REG_VAL(VPSS_TO_HOST);
-//  }
+    /* TODO */
+    index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
+    REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 
 #else
 #error Invalid target
@@ -593,39 +440,21 @@ Void NotifyDriverMbx_isr(UInt16 idx)
     UInt16 eventId;
 
 #if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32)
+    defined(xdc_target__isaCompatible_arp32) || \
+    defined(xdc_target__isaCompatible_v7M)
 
     UInt16 srcVirtId;
 
     srcVirtId = idx / NotifyDriverMbx_NUM_CORES;
     MESSAGE_DELIVERY(idx)
 
-#elif defined(xdc_target__isaCompatible_v7M)
-
-//  do {
-//      numProcessed = 0;
-//      if (!(BIOS_smpEnabled) && (Core_getId())) {
-//          GET_NOTIFICATION(VPSS, HOST)
-//          GET_NOTIFICATION(VPSS, DSP)
-//          GET_NOTIFICATION(VPSS, VIDEO)
-//      }
-//      else {
-//          GET_NOTIFICATION(VIDEO, HOST)
-//          GET_NOTIFICATION(VIDEO, DSP)
-//          GET_NOTIFICATION(VIDEO, VPSS)
-//      }
-//  }
-//  while (numProcessed != 0);
-
 #elif defined(xdc_target__isaCompatible_v7A)
 
-//  do {
-//      numProcessed = 0;
-//      GET_NOTIFICATION(HOST, DSP)
-//      GET_NOTIFICATION(HOST, VPSS)
-//      GET_NOTIFICATION(HOST, VIDEO)
-//  }
-//  while (numProcessed != 0);
+    /* TODO */
+    UInt16 srcVirtId;
+
+    srcVirtId = idx / NotifyDriverMbx_NUM_CORES;
+    MESSAGE_DELIVERY(idx)
 
 #else
 #error Invalid target

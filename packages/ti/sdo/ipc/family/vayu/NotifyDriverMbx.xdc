@@ -94,7 +94,6 @@ module NotifyDriverMbx inherits ti.sdo.ipc.interfaces.INotifyDriver
 
     /*!  @_nodoc */
     metaonly struct ModuleView {
-        UInt16                  interruptTable[NUM_CORES];
         NotifyDriverMbx.Handle  drvHandles[NUM_CORES];
     }
 
@@ -175,6 +174,7 @@ internal:
     config UInt32 mailboxTable[NUM_CORES * NUM_CORES];
 
     /* base address table for the mailbox subsystem */
+    /* TODO use the table in NotifySetup module */
     config UInt32 mailboxBaseAddr[NUM_EVE_MBX + NUM_SYS_MBX];
 
     /* map MultiProc ID to virtual ID, virtId = procIdTable[procId] */
@@ -206,12 +206,6 @@ internal:
     }
 
     struct Module_State {
-        /*  Interrupt event IDs used to communicate with this processor.
-         *  This table is indexed by virtual processor ID.
-         *  TODO: move this table to NotifySetup module
-         */
-        UInt16 interruptTable[NUM_CORES];
-
         /*  Used by the isr to retrieve the driver handle. This table is
          *  indexed by virtual processorID.
          */

@@ -155,6 +155,7 @@ function generateTable(InterruptCore)
     var SYS_MBX8_OFFSET = 3;
     var eveMbx2BaseIdx = 2;
 
+    var index;
     var subMbxIdx;
     var tableEntry;
     var mbxUserIdx;
@@ -185,8 +186,10 @@ function generateTable(InterruptCore)
      */
     for (var i = 0; i < InterruptCore.NUM_CORES; i++) {
         for (var j = 0; j < InterruptCore.NUM_CORES; j++) {
+
             /* init mailboxTable */
-            InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = -1;
+            index = (i * InterruptCore.NUM_CORES) + j;
+            InterruptCore.mailboxTable[index] = -1;
 
             /* EVE Internal Mailbox 2 */
             if ((i < InterruptCore.NUM_EVES) && (j < InterruptCore.NUM_EVES)) {
@@ -194,15 +197,14 @@ function generateTable(InterruptCore)
                 /* Generate 3 masks forming a single table entry */
                 mbxBaseAddrIdx = ((j * 3) + eveMbx2BaseIdx) << 16;
 
-                /*
-                 * Determined based on the send remote receive local
+                /* Determined based on the send remote receive local
                  * methodology being followed for EVE-to-EVE communication.
                  */
                 mbxUserIdx = 0 << 8;
                 subMbxIdx = i;
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                InterruptCore.mailboxTable[index] = tableEntry;
                 continue;
             }
 
@@ -233,7 +235,7 @@ function generateTable(InterruptCore)
                     }
 
                     tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                    InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                    InterruptCore.mailboxTable[index] = tableEntry;
                     continue;
                 }
                 else if (j < InterruptCore.NUM_EVES) {
@@ -259,7 +261,7 @@ function generateTable(InterruptCore)
                     }
 
                     tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                    InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                    InterruptCore.mailboxTable[index] = tableEntry;
                     continue;
                 }
             }
@@ -270,10 +272,11 @@ function generateTable(InterruptCore)
                 (i == hostVirtId) || (i == ipu1_1VirtId)) &&
                 ((j == dsp1VirtId) || (j == ipu1_0VirtId) ||
                 (j == hostVirtId) || (j == ipu1_1VirtId))) {
+
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                   SYS_MBX5_OFFSET) << 16;
 
-                /* These combinations does not need mailbox */
+                /* These combinations do not need mailbox */
                 if ((i == j) ||
                     (i == ipu1_0VirtId && j == ipu1_1VirtId) ||
                     (i == ipu1_1VirtId && j == ipu1_0VirtId)) {
@@ -324,7 +327,7 @@ function generateTable(InterruptCore)
                 }
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                InterruptCore.mailboxTable[index] = tableEntry;
                 continue;
             }
 
@@ -334,10 +337,11 @@ function generateTable(InterruptCore)
                 (i == hostVirtId) || (i == ipu2_1VirtId)) &&
                 ((j == dsp2VirtId) || (j == ipu2_0VirtId) ||
                 (j == hostVirtId) || (j ==ipu2_1VirtId))) {
+
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                    SYS_MBX6_OFFSET) << 16;
 
-                /* These combinations does not need mailbox */
+                /* These combinations do not need mailbox */
                 if ((i == j) ||
                     (i == ipu2_0VirtId && j == ipu2_1VirtId) ||
                     (i == ipu2_1VirtId && j == ipu2_0VirtId)) {
@@ -388,12 +392,11 @@ function generateTable(InterruptCore)
                 }
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                InterruptCore.mailboxTable[index] = tableEntry;
                 continue;
             }
 
-            /*
-             *  System Mailbox 7
+            /*  System Mailbox 7
              *  This is for communication between DSP1/IPU1_0<->DSP2/IPU2-0
              *  but not DSP1<->IPU1-0 or DSP<->IPU2-0. Those communication
              *  lines have already been established above.
@@ -453,12 +456,11 @@ function generateTable(InterruptCore)
                 }
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                InterruptCore.mailboxTable[index] = tableEntry;
             }
 
-            /*
-             *  System Mailbox 8
-             *  This only required only if one of the IPU is running
+            /*  System Mailbox 8
+             *  This is required only if one of the IPU is running
              *  NON-SMP BIOS. This is for the second core of
              *  IPU1-1<->DSP2/IPU2 or second core of IPU2-1<->DSP1/IPU1.
              */
@@ -471,8 +473,6 @@ function generateTable(InterruptCore)
 
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                   SYS_MBX8_OFFSET) << 16;
-
-                //print("i= " + i + " j= " + j);
 
                 /* Don't set any previously established lines */
                 if (i == j) {
@@ -556,8 +556,15 @@ function generateTable(InterruptCore)
                 }
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
-                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+                InterruptCore.mailboxTable[index] = tableEntry;
             }
         }
     }
+
+    /* added mailbox for NotifyDriverMbx support */
+    index = (ipu1_0VirtId * InterruptCore.NUM_CORES) + ipu1_1VirtId;
+    InterruptCore.mailboxTable[index] = 15 << 16 | 2 << 8 | 4;
+
+    index = (ipu1_1VirtId * InterruptCore.NUM_CORES) + ipu1_0VirtId;
+    InterruptCore.mailboxTable[index] = 14 << 16 | 2 << 8 | 8;
 }

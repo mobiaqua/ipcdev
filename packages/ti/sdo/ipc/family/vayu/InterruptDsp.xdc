@@ -42,8 +42,6 @@ import xdc.rov.ViewInfo;
  *  ======== InterruptDsp ========
  *  Vayu/DSP interrupt manager
  */
-@ModuleStartup
-
 module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
     /*! @_nodoc */
@@ -129,10 +127,5 @@ internal:
          * System) for each DSP core.
          */
         FxnTable   fxnTable[NUM_CORES];
-
-        /*
-         * Interrupt event IDs used to communicate with this processor.
-         * Table is indexed by virtual processor ID. */
-        UInt16 interruptTable[NUM_CORES];
     };
 }

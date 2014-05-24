@@ -101,8 +101,14 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
      *  ======== plugHwi ========
      *  Register an isr for the given interrupt and event.
      *
-     *  The given interrupt number must be the same for all calls
-     *  because all IPC events should be taken by the same interrupt.
+     *  @param(remoteProcId) The MutiProc Id of the remote processor
+     *  which will raise the given interrupt.
+     *
+     *  @param(cpuIntrNum) The interrupt number which will be raised
+     *  by the remote processor.
+     *
+     *  @param(isr) The ISR which should be invoked to service the
+     *  given interrupt.
      */
     Void plugHwi(UInt16 remoteProcId, Int cpuIntrNum, DriverIsr isr);
 
@@ -111,6 +117,12 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
      *  Unregister the isr for the given interrupt.
      */
     Void unplugHwi(UInt16 remoteProcId, Int cpuIntrNum);
+
+    /*! @_nodoc
+     *  ======== interruptTable ========
+     *  Accessor method to return interrupt id for given virtual proc id
+     */
+    UInt16 interruptTable(Int srcVirtId);
 
 internal:
     /* total number of cores on Vayu SoC */
@@ -140,9 +152,9 @@ internal:
     config UInt eve4ProcId = MultiProc.INVALIDID;
     config UInt dsp1ProcId = MultiProc.INVALIDID;
     config UInt dsp2ProcId = MultiProc.INVALIDID;
-    config UInt ipu1_0ProcId = MultiProc.INVALIDID;
+    config UInt ipu1_0ProcId = MultiProc.INVALIDID;  /* also used for ipu1 */
     config UInt ipu1_1ProcId = MultiProc.INVALIDID;
-    config UInt ipu2_0ProcId = MultiProc.INVALIDID;
+    config UInt ipu2_0ProcId = MultiProc.INVALIDID;  /* also used for ipu2 */
     config UInt ipu2_1ProcId = MultiProc.INVALIDID;
     config UInt hostProcId = MultiProc.INVALIDID;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,8 @@ function module$use()
     Ipu             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
     Xbar            = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     TableInit       = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
+
+    xdc.useModule("ti.sdo.ipc.family.vayu.NotifySetup");
 
     /* Initisalize procIdTable */
     TableInit.initProcId(Ipu);
@@ -150,40 +152,7 @@ function module$static$init(mod, params)
         mod.fxnTable[remoteProcId].arg   = 0;
     }
 
-    for (mbxId = 0; mbxId < Ipu.mailboxBaseAddr.length; mbxId++) {
+    for (mbxId = 0; mbxId < mod.numPlugged.length; mbxId++) {
         mod.numPlugged[mbxId] = 0;
-    }
-
-    /* Initialize Interrupt Event Ids for communicating with this processor */
-    if (Core.id == 0) {
-        mod.interruptTable[0] = 64; /* EVE1 */
-        mod.interruptTable[1] = 65; /* EVE2 */
-        mod.interruptTable[2] = 67; /* EVE3 */
-        mod.interruptTable[3] = 68; /* EVE4 */
-
-        /* These are not known at config time and is set a runtime */
-        mod.interruptTable[4] = 0; /* DSP1 */
-        mod.interruptTable[5] = 0; /* DSP2 */
-        mod.interruptTable[6] = 0; /* Ipu1-0 */
-        mod.interruptTable[7] = 0; /* Ipu2-0 */
-        mod.interruptTable[8] = 0; /* HOST */
-        mod.interruptTable[9] = 0; /* Ipu1-1 */
-        mod.interruptTable[10] = 0; /* Ipu2-1 */
-    }
-    else {
-        mod.interruptTable[0] = 71; /* EVE1 */
-        mod.interruptTable[1] = 72; /* EVE2 */
-        mod.interruptTable[2] = 74; /* EVE3 */
-        mod.interruptTable[3] = 75; /* EVE4 */
-
-        /* These are not known at config time and is set a runtime */
-        mod.interruptTable[4] = 0; /* DSP1 */
-        mod.interruptTable[5] = 0; /* DSP2 */
-        mod.interruptTable[6] = 0; /* Ipu1-0 */
-        mod.interruptTable[7] = 0; /* Ipu2-0 */
-        mod.interruptTable[8] = 0; /* HOST */
-        mod.interruptTable[9] = 0; /* Ipu1-1 */
-        mod.interruptTable[10] = 0; /* Ipu2-1 */
-
     }
 }
