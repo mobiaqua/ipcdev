@@ -33,6 +33,7 @@
 /*
  *  ======== NotifySetup.xdc ========
  */
+
 package ti.sdo.ipc.family.vayu;
 
 import xdc.runtime.Assert;
@@ -40,17 +41,104 @@ import ti.sdo.utils.MultiProc;
 
 /*!
  *  ======== NotifySetup ========
- *  Notify setup proxy for Vayu
+ *  Notify driver setup proxy for Vayu
  *
- *  This module creates and registers all drivers necessary for
- *  inter-processor notification on Vayu.
+ *  This module creates and registers the IPC Notify drivers for the Vayu
+ *  device family. There are two types of notify drivers available: 1) shared
+ *  memory driver, and 2) mailbox driver. Use the {@link #connections}
+ *  configuration parameter to select which driver to use for communicating
+ *  with each remote processor.
+ *
+ *  The shared memory notify driver is the default driver. It implements the
+ *  full Notify API set. This driver uses memory for passing the notify
+ *  payload between processors. The memory is allocated from SharedRegion #0.
+ *
+ *  The mailbox notify driver uses hardware FIFOs for passing the notify
+ *  payload between processors. No shared memory is required. However, this
+ *  driver does not implement the full Notify API set. For example, the
+ *  `Notify_sendEvent()` API will never return `Notify_E_EVTNOTREGISTERED`
+ *  because it does not track this information.
+ *
+ *  When configuring the notify driver, you specify which driver to use
+ *  for communicating to each remote processor. If not configured, the
+ *  shared memory driver will be used by default. Both sides of each connection
+ *  must use the same driver. This is an easy mistake to make and there is
+ *  no way to check this.
+ *
+ *  This module is primarily used by notify driver authors. It is not expected
+ *  that any application would ever use this module in its runtime code.
+ *  The typical use of this module is simply to configure which notify driver
+ *  to use. See the following example for details.
+ *
+ *  @a(Configuration Example)
+ *
+ *  The following is a three processor example: HOST DSP1 EVE1. In this
+ *  example, HOST and DSP1 will communicate using the shared memory driver
+ *  and DSP1 and EVE1 will communicate using the mailbox driver. This example
+ *  explicitly configures the shared memory driver for HOST and DSP1, but
+ *  this is strictly not necessary. If left unconfigured, the shared memory
+ *  driver would be used as the default. Also, the connection between HOST
+ *  and EVE1 is left undefined as we don't expect to use this connection.
+ *
+ *  Notice that each connection configuration specifies the remote processor
+ *  name and the driver type. This is how the local processor declares which
+ *  driver it will use when communicating to that remote processor. The
+ *  corresponding configuration on the remote processor must be complimentary.
+ *
+ *  Add the following to your HOST configuration script.
+ *
+ *  @p(code)
+ *  // configure the notify driver
+ *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+ *
+ *  NotifySetup.connections.$add(
+ *      new NotifySetup.Connection({
+ *          driver: NotifySetup.Driver_SHAREDMEMORY,
+ *          procName: "DSP1"
+ *      })
+ *  );
+ *  @p
+ *  Add the following to your DSP1 configuration script.
+ *
+ *  @p(code)
+ *  // configure the notify driver
+ *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+ *
+ *  NotifySetup.connections.$add(
+ *      new NotifySetup.Connection({
+ *          driver: NotifySetup.Driver_SHAREDMEMORY,
+ *          procName: "HOST"
+ *      })
+ *  );
+ *
+ *  NotifySetup.connections.$add(
+ *      new NotifySetup.Connection({
+ *          driver: NotifySetup.Driver_MAILBOX,
+ *          procName: "EVE1"
+ *      })
+ *  );
+ *  @p
+ *  Add the following to your EVE1 configuration script.
+ *
+ *  @p(code)
+ *  // configure the notify driver
+ *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+ *
+ *  NotifySetup.connections.$add(
+ *      new NotifySetup.Connection({
+ *          driver: NotifySetup.Driver_MAILBOX,
+ *          procName: "DSP1"
+ *      })
+ *  );
+ *  @p
  */
+
 @ModuleStartup
 @Template("./NotifySetup.xdt")
 
 module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
 {
-    /*
+    /*! @_nodoc
      *  ======== DriverIsr ========
      *  Notify driver isr function type definition
      *  param1 = mailbox table index
@@ -58,34 +146,71 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
     typedef Void (*DriverIsr)(UInt16);
 
     /*!
-     *  ======== A_internal ========
-     *  Internal implementation error.
-     */
-    config Assert.Id A_internal = {
-        msg: "A_internal: internal implementation error"
-    };
-
-    /*!
-     *  Interrupt vector id for Vayu/DSP.
-     */
-    config UInt dspIntVectId = 4;
-
-    /*!
-     *  Interrupt vector id for Vayu/EVE
-     */
-    config UInt eveIntVectId_INTC0 = 4;
-    config UInt eveIntVectId_INTC1 = 8;
-
-    /*!
-     *  Available notify drivers.
+     *  ======== Driver ========
+     *  Define the available notify drivers
+     *
+     *  For any given connection to a remote processor, one of the
+     *  following notify driver types may be used. Each driver has
+     *  different characteristics and system requirements.
+     *
+     *  @p(html)
+     *  <div class="xdocText"><dl>
+     *  <dt>Driver_SHAREDMEMORY</dt>
+     *      <dd>
+     *      This driver uses shared memory for passing the notify payload
+     *      between processors. Additional state is also stored in the
+     *      shared memory.<br><br>
+     *
+     *      There is a separate, cache-aligned block of memory for each
+     *      event number. This is necessary to maintain cache coherency.
+     *      However, this requires a non-trivial amount of memory.<br><br>
+     *      </dd>
+     *
+     *  <dt>Driver_MAILBOX</dt>
+     *      <dd>
+     *      This driver uses a hardware FIFO (provided by the hardware
+     *      mailbox) to pass the notify payload between processors. No
+     *      shared memory is required by this driver.<br><br>
+     *
+     *      This driver does not support the full Notify API set. This
+     *      driver has lower delivery latency when compard to the shared
+     *      memory driver.<br><br>
+     *      </dd>
+     *  </dl>
+     *  @p
      */
     enum Driver {
-        Driver_SHAREDMEMORY = 0x01,     /*! shared memory */
-        Driver_MAILBOX = 0x02           /*! hardware mailbox */
+        Driver_SHAREDMEMORY = 0x01,     /*! shared memory driver */
+        Driver_MAILBOX = 0x02           /*! hardware mailbox driver */
     };
 
     /*!
-     *  Notify driver connection specification.
+     *  ======== Connection ========
+     *  Define a notify driver connection
+     *
+     *  Each IPC connection is defined by two end-points: the local
+     *  processor and the remote processor. Each connection supports
+     *  only one type of notify driver. In other words, both ends of
+     *  the connection must configure the same notify driver type.
+     *
+     *  However, when a processor has multiple connections (when
+     *  communicating with multiple remote processors), each connection
+     *  is configured independently. Therefore, different notify drivers
+     *  may be used for different connections. Currently, IPC supports
+     *  only one connection for each remote processor.
+     *
+     *  The configuration for a given connection must be coordinated with
+     *  the remote processor. Each processor is only able to configure its
+     *  local end-point for the connection. It is important that the remote
+     *  processor use the same notify driver for the connection.
+     *
+     *  @field(driver)
+     *  The driver to be used for this connection. See the {@link #Driver}
+     *  enumeration for details.
+     *
+     *  @field(procName)
+     *  The name of the remote processor for the given connection.
+     *  @p
      */
     struct Connection {
         Driver driver;                  /*! notify driver */
@@ -93,11 +218,77 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
     };
 
     /*!
-     *  Specify notify driver for given processor connections.
+     *  ======== connections ========
+     *  Configure the notify driver for each given connection
+     *
+     *  Use this configuration parameter to define which notify driver
+     *  is to be used when communicating with remote processors. Create
+     *  one entry in this array for each connection. Each entry you create,
+     *  defines the local end-point of the connection. The remote processor
+     *  must have a complimentary entry in its `connections` array.
+     *
+     *  Any connection which is undefined, will use the shared memory
+     *  notify driver. It is not necessary to define all connections, just
+     *  the ones which will not use the default.
+     *
+     *  To define a local end-point connection, establish a reference to
+     *  this module and add a new entry to this array.
+     *
+     *  The following example show how to setup the mailbox driver for
+     *  communicating from DSP1 to EVE1 and EVE2.
+     *
+     *  Add the following to your DSP1 configuration script.
+     *
+     *  @p(code)
+     *  // configure the notify driver
+     *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+     *
+     *  NotifySetup.connections.$add(
+     *      new NotifySetup.Connection({
+     *          driver: NotifySetup.Driver_MAILBOX,
+     *          procName: "EVE1"
+     *      })
+     *  );
+     *
+     *  NotifySetup.connections.$add(
+     *      new NotifySetup.Connection({
+     *          driver: NotifySetup.Driver_MAILBOX,
+     *          procName: "EVE2"
+     *      })
+     *  );
+     *  @p
+     *
+     *  Add the following to your EVE1 configuration script.
+     *
+     *  @p(code)
+     *  // configure the notify driver
+     *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+     *
+     *  NotifySetup.connections.$add(
+     *      new NotifySetup.Connection({
+     *          driver: NotifySetup.Driver_MAILBOX,
+     *          procName: "DSP1"
+     *      })
+     *  );
+     *  @p
+     *
+     *  Add the following to your EVE2 configuration script.
+     *
+     *  @p(code)
+     *  // configure the notify driver
+     *  var NotifySetup = xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
+     *
+     *  NotifySetup.connections.$add(
+     *      new NotifySetup.Connection({
+     *          driver: NotifySetup.Driver_MAILBOX,
+     *          procName: "DSP1"
+     *      })
+     *  );
+     *  @p
      */
     metaonly config Connection connections[length];
 
-    /*!
+    /*! @_nodoc
      *  ======== plugHwi ========
      *  Register an isr for the given interrupt and event.
      *
@@ -112,7 +303,7 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
      */
     Void plugHwi(UInt16 remoteProcId, Int cpuIntrNum, DriverIsr isr);
 
-    /*!
+    /*! @_nodoc
      *  ======== unplugHwi ========
      *  Unregister the isr for the given interrupt.
      */
@@ -125,6 +316,13 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
     UInt16 interruptTable(Int srcVirtId);
 
 internal:
+    /* interrupt vector id for dsp */
+    config UInt dspIntVectId = 4;
+
+    /* interrupt vector id for eve */
+    config UInt eveIntVectId_INTC0 = 4;
+    config UInt eveIntVectId_INTC1 = 8;
+
     /* total number of cores on Vayu SoC */
     const UInt8 NUM_CORES = 11;
 
@@ -161,6 +359,20 @@ internal:
     /* map MultiProc ID to virtual ID, virtId = procIdTable[procId] */
     config UInt32 procIdTable[NUM_CORES];
 
+    /* runtime driver binding structure */
+    struct DrvBind {
+        Driver driver;                  /* notify driver */
+        UInt16 procId;                  /* remote processor ID */
+    };
+
+    /*
+     *  ======== A_internal ========
+     *  Internal implementation error.
+     */
+    config Assert.Id A_internal = {
+        msg: "A_internal: internal implementation error"
+    };
+
     /*
      *  ======== driverType ========
      */
@@ -191,14 +403,6 @@ internal:
      *  Dispatch interrupt to notify driver instance.
      */
     Void dispatchIsr(UArg arg);
-
-    /*
-     *  ======== DrvBind ========
-     */
-    struct DrvBind {
-        Driver driver;                  /*! notify driver */
-        UInt16 procId;                  /*! remote processor ID */
-    };
 
     /*
      *  ======== Module_State ========
