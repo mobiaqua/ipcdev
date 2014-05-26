@@ -36,7 +36,6 @@
 
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
-#include <xdc/runtime/Startup.h>
 
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/family/shared/vayu/IntXbar.h>
@@ -108,7 +107,7 @@ Void InterruptIpu_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
     Bool useMailbox = TRUE;
-    UInt8 subMbxIdx;
+    UInt subMbxIdx;
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
 
@@ -145,7 +144,7 @@ Void InterruptIpu_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
     Bool useMailbox = TRUE;
-    UInt8 subMbxIdx;
+    UInt subMbxIdx;
 
     if (Core_ipuId == 1) {
         if ((remoteProcId == InterruptIpu_ipu1_0ProcId) ||
@@ -246,12 +245,9 @@ Void InterruptIpu_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 Void InterruptIpu_intUnregister(UInt16 remoteProcId,
         IInterrupt_IntInfo *intInfo)
 {
-    Int                        index;
+    Int index;
+    Hwi_Handle hwiHandle;
     InterruptIpu_FxnTable *table;
-    Hwi_Handle                 hwiHandle;
-
-    /* index is the virtual id (invariant) */
-    index = PROCID(remoteProcId);
 
     /* Disable the mailbox interrupt source */
     InterruptIpu_intDisable(remoteProcId, intInfo);
@@ -277,6 +273,9 @@ Void InterruptIpu_intUnregister(UInt16 remoteProcId,
         }
     }
 
+    /* index is the virtual id (invariant) */
+    index = PROCID(remoteProcId);
+
     /* Clear the FxnTable entry for the remote processor */
     table = &(InterruptIpu_module->fxnTable[index]);
     table->func = NULL;
@@ -289,7 +288,7 @@ Void InterruptIpu_intUnregister(UInt16 remoteProcId,
  *  Send interrupt to the remote processor
  */
 Void InterruptIpu_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
-                             UArg arg)
+        UArg arg)
 {
     UInt key;
     UInt16 index;

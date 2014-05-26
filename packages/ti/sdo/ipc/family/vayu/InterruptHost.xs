@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== InterruptHost.xs ========
  *
  */
-
-var Hwi         = null;
-var Host        = null;
-var Ipc         = null;
-var Xbar        = null;
-var Mmu         = null;
+var Hwi = null;
+var Host = null;
+var Ipc = null;
+var Xbar = null;
+var Mmu = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    Hwi              = xdc.useModule("ti.sysbios.family.arm.gic.Hwi");
-    Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
-    Host             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptHost");
-    Xbar             = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
-    Mmu              = xdc.useModule("ti.sysbios.family.arm.a15.Mmu");
-    TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
+    Hwi = xdc.useModule("ti.sysbios.family.arm.gic.Hwi");
+    Ipc = xdc.useModule("ti.sdo.ipc.Ipc");
+    Host = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptHost");
+    Xbar = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
+    Mmu = xdc.useModule("ti.sysbios.family.arm.a15.Mmu");
+    TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
-    /* Initisalize procIdTable */
-    TableInit.initProcId(Host);
+    /* initialize procIdTable */
+    TableInit.initProcId(this);
 
-    /* Initialize mailboxTable */
-    TableInit.generateTable(Host);
+    /* initialize mailboxTable */
+    TableInit.generateTable(this);
 
     /* Initialize mailbox base address table */
     this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
@@ -75,67 +75,16 @@ function module$use()
     this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
     this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
     this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
-
-    /* These are obtained by looking at MPU IRQ + 32 */
-    this.hostInterruptTable[0] = 134 + 32;        /* EVE1 */
-    this.hostInterruptTable[1] = 135 + 32;        /* EVE2 */
-    this.hostInterruptTable[2] = 137 + 32;        /* EVE3 */
-    this.hostInterruptTable[3] = 138 + 32;        /* EVE4 */
-    this.hostInterruptTable[4] = 136 + 32;        /* DSP1 */
-    this.hostInterruptTable[5] = 141 + 32;        /* DSP2 */
-    this.hostInterruptTable[6] = 136 + 32;        /* IPU1-0 */
-    this.hostInterruptTable[7] = 141 + 32;        /* IPU2-0 */
-    this.hostInterruptTable[8] = 0;               /* HOST */
-    this.hostInterruptTable[9] = 136 + 32;        /* IPU1-1 */
-    this.hostInterruptTable[10] = 141 + 32;       /* IPU2-1 */
-
-    /*
-     * In case of a spec change, follow the process shown below:
-     * 1. Update the mailboxBaseAddr Table.
-     * 2. Update the dspInterruptTable.
-     * 3. Update Virtual Index assignment.
-     * 4. Update numCores, numEves and eveMbx2BaseIdx variables
-     *    in order to correctly intialize the mailboxTable.
-     */
-
-    /* Add mailbox addresses to the Mmu table */
-    /* Force mailbox addresses to be NON cacheable */
-    var peripheralAttrs = {
-        type : Mmu.DescriptorType_BLOCK,  // BLOCK descriptor
-        accPerm    : 0,                   // read/write at PL1
-        noExecute  : true,                // not executable
-        attrIndx   : 1                    // MAIR0 Byte1 describes mem attr
-    };
-
-    /* Configure the corresponding MMU page descriptor accordingly */
-    Mmu.setSecondLevelDescMeta(0x42000000,
-                               0x42000000,
-                               peripheralAttrs);
-
-    Mmu.setSecondLevelDescMeta(0x42200000,
-                               0x42200000,
-                               peripheralAttrs);
-
-    Mmu.setSecondLevelDescMeta(0x48800000,
-                               0x48800000,
-                               peripheralAttrs);
 }
 
 /*
  *  ======== module$static$init ========
- *  Initialize module values.
+ *  Initialize the target state object.
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    var remoteProcId;
-    var mbxId;
-
-    for (remoteProcId = 0; remoteProcId < Host.procIdTable.length; remoteProcId++) {
-        mod.fxnTable[remoteProcId].func  = null;
-        mod.fxnTable[remoteProcId].arg   = 0;
-    }
-
-    for (mbxId = 0; mbxId < Host.mailboxBaseAddr.length; mbxId++) {
-        mod.numPlugged[mbxId] = 0;
+    for (var i = 0; i < this.procIdTable.length; i++) {
+        state.fxnTable[i].func = null;
+        state.fxnTable[i].arg = 0;
     }
 }

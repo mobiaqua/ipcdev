@@ -125,7 +125,7 @@ metaonly module Build
      *  to your config script:
      *
      *  @p(code)
-     *  print(Build.customCCOpts);
+     *  print("Build.customCCOpts="+Build.customCCOpts);
      *  @p
      *
      *  When {@link #libType Build.libType} is set to

@@ -497,6 +497,7 @@ var A8gSources  = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/omap3530/InterruptHost.c ";
 
 var A15gSources  = "ipc/family/vayu/InterruptHost.c " +
+                   "ipc/family/vayu/NotifyDriverMbx.c " +
                    "ipc/family/vayu/NotifySetup.c " +
                    "ipc/gates/GateHWSpinlock.c ";
 

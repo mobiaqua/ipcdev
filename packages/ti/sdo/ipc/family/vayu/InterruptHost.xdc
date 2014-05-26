@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,6 @@ import ti.sdo.utils.MultiProc;
  *  ======== InterruptHost ========
  *  TI81xx/A8 based interrupt manager
  */
-
-@ModuleStartup
-
 module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
     /* Total number of cores on Vayu SoC */
@@ -72,11 +69,9 @@ module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
      */
     config UInt32 mailboxTable[NUM_CORES * NUM_CORES];
 
-    config UInt32 hostInterruptTable[NUM_CORES];
-
     config UInt32 procIdTable[NUM_CORES];
-internal:
 
+internal:
     /*! Statically retrieve procIds to avoid doing this at runtime */
     config UInt eve1ProcId     = MultiProc.INVALIDID;
     config UInt eve2ProcId     = MultiProc.INVALIDID;
@@ -100,7 +95,7 @@ internal:
      *  ======== intShmStub ========
      *  Stub to be plugged
      */
-    Void intShmStub(UArg arg);
+    Void intShmStub(UInt16 idx);
 
     struct Module_State {
         /*
@@ -108,8 +103,5 @@ internal:
          * in the System).
          */
         FxnTable   fxnTable[NUM_CORES];
-
-        /* # of times interrupt registered */
-        UInt16       numPlugged[NUM_EVE_MBX + NUM_SYS_MBX];
     };
 }

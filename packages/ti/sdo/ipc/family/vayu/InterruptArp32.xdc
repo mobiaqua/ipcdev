@@ -98,14 +98,5 @@ internal:
          *  by virtual processor ID.
          */
         FxnTable fxnTable[NUM_CORES];
-
-        /*
-         * numPlugged is used to track number of times the interrupt was
-         * registered.
-         *
-         * numPlugged array length equals number of internal mailboxes per
-         * EVE.
-         */
-        UInt16 numPlugged[NUM_EVE_MBX/NUM_EVES];
     };
 }

@@ -124,8 +124,4 @@ function module$static$init(state, mod)
         state.fxnTable[i].func  = null;
         state.fxnTable[i].arg   = 0;
     }
-
-    for (i = 0; i < (mod.NUM_EVE_MBX/mod.NUM_EVES); i++) {
-        state.numPlugged[i] = 0;
-    }
 }

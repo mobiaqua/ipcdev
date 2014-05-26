@@ -169,8 +169,5 @@ internal:
          * System) for each M4 core.
          */
         FxnTable   fxnTable[NUM_CORES];
-
-        /* # of times interrupt registered */
-        UInt16     numPlugged[NUM_EVE_MBX + NUM_SYS_MBX];
     };
 }

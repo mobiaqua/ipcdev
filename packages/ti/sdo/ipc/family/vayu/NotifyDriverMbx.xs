@@ -34,7 +34,6 @@
  *  ======== NotifyDriverMbx.xs ================
  */
 var NotifyDriverMbx = null;
-var Core = null;
 var isaChain = "";
 
 /*
@@ -47,29 +46,27 @@ function module$use()
     var MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
     NotifyDriverMbx = this;
     xdc.useModule('xdc.runtime.Assert');
-    xdc.useModule('xdc.runtime.Error');
     xdc.useModule('xdc.runtime.Startup');
-    xdc.useModule("ti.sysbios.BIOS");
 
     /* concatenate isa chain into single string for easier matching */
     isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";
 
     if (isaChain.match(/#64P#/)) {
-        xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
         xdc.useModule("ti.sysbios.family.c64p.Hwi");
-        xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     }
     else if (isaChain.match(/#arp32#/)) {
         xdc.useModule('ti.sysbios.family.arp32.Hwi');
     }
     else if (isaChain.match(/#v7M#/)) {
-        Core = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+        xdc.useModule('ti.sysbios.family.arm.m3.Hwi');
+    }
+    else if (isaChain.match(/#v7A#/)) {
+        xdc.useModule('ti.sysbios.family.arm.gic.Hwi');
     }
 
     xdc.useModule('ti.sdo.ipc.Ipc');
     xdc.useModule("ti.sdo.ipc.Notify");
     xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
-    xdc.useModule('ti.sdo.ipc.interfaces.INotifyDriver');
 
     /* initialize procIdTable */
     TableInit.initProcId(this);
@@ -222,8 +219,6 @@ function module$static$init(state, mod)
     else if (isaChain.match(/#v7M#/)) {
     }
     else if (isaChain.match(/#v7A#/)) {
-        /* TODO */
-//      Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== InterruptHost.c ========
  *  Ducati/A8 based interupt manager
@@ -36,11 +37,11 @@
 
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
-#include <xdc/runtime/System.h>
-#include <xdc/runtime/Startup.h>
 
 #include <ti/sysbios/family/shared/vayu/IntXbar.h>
 #include <ti/sysbios/family/arm/gic/Hwi.h>
+
+#include <ti/sdo/ipc/family/vayu/NotifySetup.h>
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/sdo/ipc/_Ipc.h>
 #include <ti/sdo/utils/_MultiProc.h>
@@ -88,81 +89,50 @@
  */
 
 /*
- *  ======== InterruptHost_Module_startup ========
- */
-Int InterruptHost_Module_startup(Int phase)
-{
-    if (IntXbar_Module_startupDone()) {
-        /* connect mailbox interrupts at startup */
-        IntXbar_connect(127, 286);  // eve1 mailbox 0 user 3
-        IntXbar_connect(128, 295);  // eve2 mailbox 0 user 3
-        IntXbar_connect(129, 251);  // system mailbox 5 user 2
-
-        /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
-        if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
-            (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
-            IntXbar_connect(130, 304);  // eve3 mailbox 0 user 3
-            IntXbar_connect(131, 313);  // eve4 mailbox 0 user 3
-        }
-
-        /* plug mbx6 only if DSP2 or IPU2 exists */
-        if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
-            (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
-            (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
-            IntXbar_connect(134, 255);  // system mailbox 6 user 2
-        }
-
-        return (Startup_DONE);
-    }
-
-    return (Startup_NOTDONE);
-}
-
-/*
  *  ======== InterruptHost_intEnable ========
  *  Enable remote processor interrupt
  */
 Void InterruptHost_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    UInt subMbxIdx;
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
-    /*
-     *  If the remote processor communicates via mailboxes, we should enable
+
+    /*  If the remote processor communicates via mailboxes, we should enable
      *  the Mailbox IRQ instead of enabling the Hwi because multiple mailboxes
      *  share the same Hwi
      */
-    REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    subMbxIdx = SUBMBX_IDX(index);
+    REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(subMbxIdx);
 }
 
 /*
  *  ======== InterruptHost_intDisable ========
  *  Disables remote processor interrupt
  */
-Void InterruptHost_intDisable(UInt16 remoteProcId,
-                                IInterrupt_IntInfo *intInfo)
+Void InterruptHost_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    UInt subMbxIdx;
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
-    /*
-     *  If the remote processor communicates via mailboxes, we should disable
+
+    /*  If the remote processor communicates via mailboxes, we should disable
      *  the Mailbox IRQ instead of disabling the Hwi because multiple mailboxes
      *  share the same Hwi
      */
-    REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    subMbxIdx = SUBMBX_IDX(index);
+    REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(subMbxIdx);
 }
 
 /*
  *  ======== InterruptHost_intRegister ========
  */
-Void InterruptHost_intRegister(UInt16 remoteProcId,
-                                 IInterrupt_IntInfo *intInfo,
-                                 Fxn func, UArg arg)
+Void InterruptHost_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
+        Fxn func, UArg arg)
 {
-    Hwi_Params  hwiAttrs;
     UInt        key;
-    UInt        mbxIdx;
     Int         index;
     InterruptHost_FxnTable *table;
 
@@ -171,37 +141,26 @@ Void InterruptHost_intRegister(UInt16 remoteProcId,
 
     /* Assert that our MultiProc id is set correctly */
     Assert_isTrue((InterruptHost_hostProcId == MultiProc_self()),
-                  ti_sdo_ipc_Ipc_A_internal);
+            ti_sdo_ipc_Ipc_A_internal);
 
-    mbxIdx = MBX_BASEADDR_IDX(MBX_TABLE_IDX(remoteProcId, MultiProc_self()));
-
+    /* index is the virtual id (invariant) */
     index = PROCID(remoteProcId);
 
-    intInfo->localIntId = InterruptHost_hostInterruptTable[index];
+    intInfo->localIntId = NotifySetup_interruptTable(index);
 
     /* Disable global interrupts */
     key = Hwi_disable();
 
+    /* store callback function by virtual id */
     table = &(InterruptHost_module->fxnTable[index]);
     table->func = func;
     table->arg  = arg;
 
     InterruptHost_intClear(remoteProcId, intInfo);
 
-    Hwi_Params_init(&hwiAttrs);
-    hwiAttrs.maskSetting = Hwi_MaskingOption_LOWER;
-
-    /* Make sure the interrupt only gets plugged once */
-    InterruptHost_module->numPlugged[mbxIdx]++;
-    if (InterruptHost_module->numPlugged[mbxIdx] == 1) {
-        Hwi_create(intInfo->localIntId,
-                   (Hwi_FuncPtr)InterruptHost_intShmStub,
-                    &hwiAttrs,
-                    NULL);
-
-        /* Interrupt_intEnable won't enable the Hwi */
-        Hwi_enableInterrupt(intInfo->localIntId);
-    }
+    /* plug the cpu interrupt with notify setup dispatch isr */
+    NotifySetup_plugHwi(remoteProcId, intInfo->localIntId,
+            InterruptHost_intShmStub);
 
     InterruptHost_intEnable(remoteProcId, intInfo);
 
@@ -213,26 +172,18 @@ Void InterruptHost_intRegister(UInt16 remoteProcId,
  *  ======== InterruptHost_intUnregister ========
  */
 Void InterruptHost_intUnregister(UInt16 remoteProcId,
-                                   IInterrupt_IntInfo *intInfo)
+        IInterrupt_IntInfo *intInfo)
 {
-    UInt                       mbxIdx;
-    Int                        index;
+    Int index;
     InterruptHost_FxnTable *table;
-    Hwi_Handle                 hwiHandle;
-
-    mbxIdx = MBX_BASEADDR_IDX(MBX_TABLE_IDX(remoteProcId, MultiProc_self()));
-
-    index = PROCID(remoteProcId);
 
     /* Disable the mailbox interrupt source */
     InterruptHost_intDisable(remoteProcId, intInfo);
 
-    /* Disable the interrupt itself */
-    InterruptHost_module->numPlugged[mbxIdx]--;
-    if (InterruptHost_module->numPlugged[mbxIdx] == 0) {
-        hwiHandle = Hwi_getHandle(intInfo->localIntId);
-        Hwi_delete(&hwiHandle);
-    }
+    NotifySetup_unplugHwi(remoteProcId, intInfo->localIntId);
+
+    /* index is the virtual id (invariant) */
+    index = PROCID(remoteProcId);
 
     /* Clear the FxnTable entry for the remote processor */
     table = &(InterruptHost_module->fxnTable[index]);
@@ -240,13 +191,12 @@ Void InterruptHost_intUnregister(UInt16 remoteProcId,
     table->arg  = 0;
 }
 
-
 /*
  *  ======== InterruptHost_intSend ========
  *  Send interrupt to the remote processor
  */
 Void InterruptHost_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
-                             UArg arg)
+        UArg arg)
 {
     UInt key;
     UInt16 index;
@@ -258,7 +208,6 @@ Void InterruptHost_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     }
     Hwi_restore(key);
 }
-
 
 /*
  *  ======== InterruptHost_intPost ========
@@ -277,7 +226,6 @@ Void InterruptHost_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
     }
     Hwi_restore(key);
 }
-
 
 /*
  *  ======== InterruptHost_intClear ========
@@ -304,28 +252,12 @@ UInt InterruptHost_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 /*
  *  ======== InterruptHost_intShmMbxStub ========
  */
-Void InterruptHost_intShmStub(UArg arg)
+Void InterruptHost_intShmStub(UInt16 idx)
 {
-    UInt16 index;
-    UInt16 selfIdx;
-    UInt16 loopIdx;
+    UInt16 srcVirtId;
     InterruptHost_FxnTable *table;
 
-    selfIdx = MultiProc_self();
-
-    for (loopIdx = 0; loopIdx < MultiProc_getNumProcsInCluster(); loopIdx++) {
-
-        if (loopIdx == selfIdx) {
-            continue;
-        }
-
-        index = MBX_TABLE_IDX(loopIdx, selfIdx);
-
-        if (((REG32(MAILBOX_STATUS(index)) != 0) &&
-             (REG32(MAILBOX_IRQENABLE_SET(index)) &
-              MAILBOX_REG_VAL(SUBMBX_IDX(index))))) {
-            table = &(InterruptHost_module->fxnTable[PROCID(loopIdx)]);
-            (table->func)(table->arg);
-        }
-    }
+    srcVirtId = idx / InterruptHost_NUM_CORES;
+    table = &(InterruptHost_module->fxnTable[srcVirtId]);
+    (table->func)(table->arg);
 }

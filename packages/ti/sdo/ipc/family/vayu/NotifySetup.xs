@@ -35,6 +35,7 @@
  */
 var MultiProc = null;
 var Core = null;
+var Mmu = null;
 var isaChain = "";
 
 /*
@@ -84,7 +85,15 @@ function module$use()
         xdc.useModule('ti.sysbios.family.arp32.Hwi');
     }
     else if (isaChain.match(/#v7M#/)) {
+        xdc.useModule("ti.sysbios.BIOS");
         Core = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+        xdc.useModule('ti.sysbios.family.arm.m3.Hwi');
+        xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
+    }
+    else if (isaChain.match(/#v7A#/)) {
+        Mmu = xdc.useModule("ti.sysbios.family.arm.a15.Mmu");
+        xdc.useModule('ti.sysbios.family.arm.gic.Hwi');
+        xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
     }
 
     xdc.useModule('ti.sdo.ipc.Ipc');
@@ -219,6 +228,23 @@ function module$use()
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);
+    }
+
+    if (isaChain.match(/#v7A#/)) {
+        /*  Add mailbox addresses to the Mmu table.
+         *  Force mailbox addresses to be NON cacheable.
+         */
+        var peripheralAttrs = {
+            type : Mmu.DescriptorType_BLOCK,  // BLOCK descriptor
+            accPerm    : 0,                   // read/write at PL1
+            noExecute  : true,                // not executable
+            attrIndx   : 1                    // MAIR0 Byte1 describes mem attr
+        };
+
+        /* configure the corresponding MMU page descriptor */
+        Mmu.setSecondLevelDescMeta(0x42000000, 0x42000000, peripheralAttrs);
+        Mmu.setSecondLevelDescMeta(0x42200000, 0x42200000, peripheralAttrs);
+        Mmu.setSecondLevelDescMeta(0x48800000, 0x48800000, peripheralAttrs);
     }
 
     /* determine which notify drivers to include */
@@ -369,15 +395,23 @@ function module$static$init(state, mod)
         }
     }
     else if (isaChain.match(/#v7A#/)) {
-        state.numPlugged.length = 1;
-
-        /* interrupt event IDs used by this processor */
-        for (var i = 0; i < state.interruptTable.length; i++) {
-            state.interruptTable[i] = 0xFFFF; /* TODO */
+        state.numPlugged.length = mod.NUM_EVE_MBX + mod.NUM_SYS_MBX;
+        for (var i = 0; i < state.numPlugged.length; i++) {
+            state.numPlugged[i] = 0;
         }
 
-        /* TODO */
-        // Hwi.construct(state.hwi, 77, NotifyDriverMbx.isr);
+        /* obtained by looking at MPU IRQ + 32 */
+        state.interruptTable[0] = 134 + 32;   /* EVE1 */
+        state.interruptTable[1] = 135 + 32;   /* EVE2 */
+        state.interruptTable[2] = 137 + 32;   /* EVE3 */
+        state.interruptTable[3] = 138 + 32;   /* EVE4 */
+        state.interruptTable[4] = 136 + 32;   /* DSP1 */
+        state.interruptTable[5] = 141 + 32;   /* DSP2 */
+        state.interruptTable[6] = 136 + 32;   /* IPU1-0 */
+        state.interruptTable[7] = 141 + 32;   /* IPU2-0 */
+        state.interruptTable[8] = 0;          /* HOST */
+        state.interruptTable[9] = 136 + 32;   /* IPU1-1 */
+        state.interruptTable[10] = 141 + 32;  /* IPU2-1 */
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);

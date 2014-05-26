@@ -37,15 +37,29 @@
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Startup.h>
 
-#include <ti/sysbios/BIOS.h>
-#include <ti/sysbios/family/c64p/EventCombiner.h>
+#if defined(xdc_target__isaCompatible_64P)
+
 #include <ti/sysbios/family/c64p/Hwi.h>
-#include <ti/sysbios/family/shared/vayu/IntXbar.h>
+
+#elif defined(xdc_target__isaCompatible_arp32)
+
+#include <ti/sysbios/family/arp32/Hwi.h>
+
+#elif defined(xdc_target__isaCompatible_v7M)
+
+#include <ti/sysbios/family/arm/m3/Hwi.h>
+
+#elif defined(xdc_target__isaCompatible_v7A)
+
+#include <ti/sysbios/family/arm/gic/Hwi.h>
+
+#else
+#error Invalid target
+#endif
 
 #include <ti/sdo/ipc/_Ipc.h>
 #include <ti/sdo/ipc/_Notify.h>
 #include <ti/sdo/ipc/family/vayu/NotifySetup.h>
-#include <ti/sdo/ipc/interfaces/INotifyDriver.h>
 #include <ti/sdo/utils/_MultiProc.h>
 
 #include "package/internal/NotifyDriverMbx.xdc.h"
@@ -131,7 +145,6 @@ Int NotifyDriverMbx_Module_startup(Int phase)
 
 #elif defined(xdc_target__isaCompatible_v7A)
 
-    /* TODO */
     return (Startup_DONE);
 
 #else
@@ -307,22 +320,8 @@ Int NotifyDriverMbx_sendEvent(NotifyDriverMbx_Object *obj, UInt32 eventId,
         numMsgs = 2;
     }
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32) || \
-    defined(xdc_target__isaCompatible_v7M)
-
     index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
     PUT_NOTIFICATION(index);
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-    index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
-    PUT_NOTIFICATION(index);
-
-#else
-#error Invalid target
-#endif
 
     return (Notify_S_SUCCESS);
 }
@@ -335,22 +334,8 @@ Void NotifyDriverMbx_disable(NotifyDriverMbx_Object *obj)
     UInt16 selfVirtId = PROCID(MultiProc_self());
     UInt16 index;
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32) || \
-    defined(xdc_target__isaCompatible_v7M)
-
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-    index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
-    REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
-
-#else
-#error Invalid target
-#endif
 }
 
 /*
@@ -361,22 +346,8 @@ Void NotifyDriverMbx_enable(NotifyDriverMbx_Object *obj)
     UInt16 selfVirtId = PROCID(MultiProc_self());
     UInt16 index;
 
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32) || \
-    defined(xdc_target__isaCompatible_v7M)
-
     index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-    index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
-    REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
-
-#else
-#error Invalid target
-#endif
 }
 
 /*
@@ -438,27 +409,10 @@ Void NotifyDriverMbx_isr(UInt16 idx)
     NotifyDriverMbx_Object *obj;
     UInt32 msg, payload;
     UInt16 eventId;
-
-#if defined(xdc_target__isaCompatible_64P) || \
-    defined(xdc_target__isaCompatible_arp32) || \
-    defined(xdc_target__isaCompatible_v7M)
-
     UInt16 srcVirtId;
 
     srcVirtId = idx / NotifyDriverMbx_NUM_CORES;
     MESSAGE_DELIVERY(idx)
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-    UInt16 srcVirtId;
-
-    srcVirtId = idx / NotifyDriverMbx_NUM_CORES;
-    MESSAGE_DELIVERY(idx)
-
-#else
-#error Invalid target
-#endif
 }
 
 /*

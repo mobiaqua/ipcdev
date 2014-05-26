@@ -142,17 +142,10 @@ function module$use()
  *  ======== module$static$init ========
  *  Initialize module values.
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    var remoteProcId;
-    var mbxId;
-
-    for (remoteProcId = 0; remoteProcId < Ipu.procIdTable.length; remoteProcId++) {
-        mod.fxnTable[remoteProcId].func  = null;
-        mod.fxnTable[remoteProcId].arg   = 0;
-    }
-
-    for (mbxId = 0; mbxId < mod.numPlugged.length; mbxId++) {
-        mod.numPlugged[mbxId] = 0;
+    for (var i = 0; i < this.procIdTable.length; i++) {
+        state.fxnTable[i].func  = null;
+        state.fxnTable[i].arg   = 0;
     }
 }

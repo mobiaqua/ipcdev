@@ -36,7 +36,6 @@
  */
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
-#include <xdc/runtime/Startup.h>
 
 #include <ti/sysbios/family/c64p/EventCombiner.h>
 #include <ti/sysbios/family/c64p/Hwi.h>
@@ -95,13 +94,14 @@
 Void InterruptDsp_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    UInt subMbxIdx;
 
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
             (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
-
-    REG32(MAILBOX_IRQENABLE_SET_DSP(index))=MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    subMbxIdx = SUBMBX_IDX(index);
+    REG32(MAILBOX_IRQENABLE_SET_DSP(index)) = MAILBOX_REG_VAL(subMbxIdx);
 }
 
 /*
@@ -111,13 +111,14 @@ Void InterruptDsp_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 Void InterruptDsp_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    UInt subMbxIdx;
 
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
             (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
-
-    REG32(MAILBOX_IRQENABLE_CLR_DSP(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    subMbxIdx = SUBMBX_IDX(index);
+    REG32(MAILBOX_IRQENABLE_CLR_DSP(index)) = MAILBOX_REG_VAL(subMbxIdx);
 }
 
 /*
@@ -133,18 +134,20 @@ Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     Assert_isTrue(((remoteProcId < MultiProc_getNumProcsInCluster()) &&
             (remoteProcId != MultiProc_self())), ti_sdo_ipc_Ipc_A_internal);
 
+    /* index is the virtual id (invariant) */
     index = PROCID(remoteProcId);
 
     /* Disable global interrupts */
     key = Hwi_disable();
 
+    /* store callback function by virtual id */
     table = &(InterruptDsp_module->fxnTable[index]);
     table->func = func;
     table->arg  = arg;
 
     InterruptDsp_intClear(remoteProcId, intInfo);
 
-    /* plug the cpu interrupt */
+    /* plug the cpu interrupt with notify setup dispatch isr */
     NotifySetup_plugHwi(remoteProcId, intInfo->intVectorId,
             InterruptDsp_intShmStub);
 
@@ -185,15 +188,14 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
  *  Send interrupt to the remote processor
  */
 Void InterruptDsp_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
-                          UArg arg)
+        UArg arg)
 {
     UInt key;
     UInt16 index;
 
     index = MBX_TABLE_IDX(MultiProc_self(), remoteProcId);
 
-    /*
-     *  Before writing to a mailbox, check whether it already contains a
+    /*  Before writing to a mailbox, check whether it already contains a
      *  message. If so, wait for the message to be read since we want one
      *  and only one message per interrupt. Disable interrupts between reading
      *  the MSGSTATUS_X register and writing to the mailbox to protect from

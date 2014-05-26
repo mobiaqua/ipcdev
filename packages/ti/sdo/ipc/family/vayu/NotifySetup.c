@@ -64,6 +64,7 @@
 #elif defined(xdc_target__isaCompatible_v7A)
 
 #include <ti/sysbios/family/arm/gic/Hwi.h>
+#include <ti/sysbios/family/shared/vayu/IntXbar.h>
 
 #else
 #error Invalid target
@@ -120,68 +121,69 @@ Int NotifySetup_Module_startup(Int phase)
 
     extern cregister volatile UInt DNUM;
 
-    if (IntXbar_Module_startupDone()) {
-        /* connect mailbox interrupts at startup */
-        if (DNUM == 0) {               /* DSP1 */
-            IntXbar_connect(24, 284);  // eve1 mailbox 0 user 1
-            IntXbar_connect(25, 293);  // eve2 mailbox 0 user 1
-            IntXbar_connect(26, 249);  // system mailbox 5 user 0
-            NotifySetup_module->interruptTable[6] = 57; // IPU1-0
-            NotifySetup_module->interruptTable[9] = 57; // IPU1-1
-
-            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
-            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
-                IntXbar_connect(27, 302);  // eve3 mailbox 0 user 1
-                IntXbar_connect(28, 311);  // eve4 mailbox 0 user 1
-            }
-
-            /* plug mbx7 only if DSP2 or IPU2 exists */
-            if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
-                IntXbar_connect(29, 257);  // system mailbox 7 user 0
-                NotifySetup_module->interruptTable[7] = 60; // IPU2-0
-            }
-
-            /* plug mbx8 only if IPU2-1 exists */
-            if (MultiProc_getId("IPU2-1") != MultiProc_INVALIDID) {
-                IntXbar_connect(30, 261);  // system mailbox 8 user 0
-                NotifySetup_module->interruptTable[10] = 61; // IPU2-1
-            }
-        }
-        else if (DNUM == 1) {          /* DSP2 */
-            IntXbar_connect(24, 287);  // eve1 mailbox 1 user 1
-            IntXbar_connect(25, 296);  // eve2 mailbox 1 user 1
-            IntXbar_connect(26, 253);  // system mailbox 6 user 0
-            NotifySetup_module->interruptTable[7] = 57; // IPU2-0
-            NotifySetup_module->interruptTable[10] = 57; // IPU2-1
-
-            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
-            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
-                IntXbar_connect(27, 305);  // eve3 mailbox 1 user 1
-                IntXbar_connect(28, 314);  // eve4 mailbox 1 user 1
-            }
-
-            /* plug mbx7 only if DSP1 or IPU1 exists */
-            if ((MultiProc_getId("DSP1") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU1") != MultiProc_INVALIDID) ||
-                (MultiProc_getId("IPU1-0") != MultiProc_INVALIDID)) {
-                IntXbar_connect(29, 258);  // system mailbox 7 user 1
-                NotifySetup_module->interruptTable[6] = 60; // IPU1-0
-            }
-
-            /* plug mbx8 only if IPU1-1 exists */
-            if (MultiProc_getId("IPU1-1") != MultiProc_INVALIDID) {
-                IntXbar_connect(30, 262);  // system mailbox 8 user 1
-                NotifySetup_module->interruptTable[9] = 61; // IPU1-1
-            }
-        }
-        return (Startup_DONE);
+    if (!IntXbar_Module_startupDone()) {
+        return (Startup_NOTDONE);
     }
 
-    return (Startup_NOTDONE);
+    /* connect mailbox interrupts at startup */
+    if (DNUM == 0) {               /* DSP1 */
+        IntXbar_connect(24, 284);  // eve1 mailbox 0 user 1
+        IntXbar_connect(25, 293);  // eve2 mailbox 0 user 1
+        IntXbar_connect(26, 249);  // system mailbox 5 user 0
+        NotifySetup_module->interruptTable[6] = 57; // IPU1-0
+        NotifySetup_module->interruptTable[9] = 57; // IPU1-1
+
+        /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+        if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+            IntXbar_connect(27, 302);  // eve3 mailbox 0 user 1
+            IntXbar_connect(28, 311);  // eve4 mailbox 0 user 1
+        }
+
+        /* plug mbx7 only if DSP2 or IPU2 exists */
+        if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
+            IntXbar_connect(29, 257);  // system mailbox 7 user 0
+            NotifySetup_module->interruptTable[7] = 60; // IPU2-0
+        }
+
+        /* plug mbx8 only if IPU2-1 exists */
+        if (MultiProc_getId("IPU2-1") != MultiProc_INVALIDID) {
+            IntXbar_connect(30, 261);  // system mailbox 8 user 0
+            NotifySetup_module->interruptTable[10] = 61; // IPU2-1
+        }
+    }
+    else if (DNUM == 1) {          /* DSP2 */
+        IntXbar_connect(24, 287);  // eve1 mailbox 1 user 1
+        IntXbar_connect(25, 296);  // eve2 mailbox 1 user 1
+        IntXbar_connect(26, 253);  // system mailbox 6 user 0
+        NotifySetup_module->interruptTable[7] = 57; // IPU2-0
+        NotifySetup_module->interruptTable[10] = 57; // IPU2-1
+
+        /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+        if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+            IntXbar_connect(27, 305);  // eve3 mailbox 1 user 1
+            IntXbar_connect(28, 314);  // eve4 mailbox 1 user 1
+        }
+
+        /* plug mbx7 only if DSP1 or IPU1 exists */
+        if ((MultiProc_getId("DSP1") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU1") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU1-0") != MultiProc_INVALIDID)) {
+            IntXbar_connect(29, 258);  // system mailbox 7 user 1
+            NotifySetup_module->interruptTable[6] = 60; // IPU1-0
+        }
+
+        /* plug mbx8 only if IPU1-1 exists */
+        if (MultiProc_getId("IPU1-1") != MultiProc_INVALIDID) {
+            IntXbar_connect(30, 262);  // system mailbox 8 user 1
+            NotifySetup_module->interruptTable[9] = 61; // IPU1-1
+        }
+    }
+
+    return (Startup_DONE);
 
 #elif defined(xdc_target__isaCompatible_arp32)
 
@@ -294,7 +296,29 @@ Int NotifySetup_Module_startup(Int phase)
 
 #elif defined(xdc_target__isaCompatible_v7A)
 
-    /* TODO */
+    if (!IntXbar_Module_startupDone()) {
+        return (Startup_NOTDONE);
+    }
+
+    /* connect mailbox interrupts at startup */
+    IntXbar_connect(127, 286);  // eve1 mailbox 0 user 3
+    IntXbar_connect(128, 295);  // eve2 mailbox 0 user 3
+    IntXbar_connect(129, 251);  // system mailbox 5 user 2
+
+    /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+    if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+        (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+        IntXbar_connect(130, 304);  // eve3 mailbox 0 user 3
+        IntXbar_connect(131, 313);  // eve4 mailbox 0 user 3
+    }
+
+    /* plug mbx6 only if DSP2 or IPU2 exists */
+    if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
+        (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
+        (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
+        IntXbar_connect(134, 255);  // system mailbox 6 user 2
+    }
+
     return (Startup_DONE);
 
 #else
@@ -364,9 +388,7 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 {
     Error_Block eb;
     UInt        key;
-#if !defined(xdc_target__isaCompatible_v7A)
     Hwi_Params  hwiParams;
-#endif
     UInt16      srcVirtId;
 #if defined(xdc_target__isaCompatible_64P)
     Int         eventId;
@@ -375,7 +397,8 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     UInt        mbxIdx;
     Int         eventId;
     Bits16      mask;
-#elif defined(xdc_target__isaCompatible_v7M)
+#elif defined(xdc_target__isaCompatible_v7M) \
+    || defined(xdc_target__isaCompatible_v7A)
     UInt16      idx;
     UInt        mbxIdx;
 #endif
@@ -385,10 +408,10 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     /* disable interrupts */
     key = Hwi_disable();
 
-    /* map processor id to virtual id */
+    /* map remote processor id to virtual id */
     srcVirtId = VIRTID(remoteProcId);
 
-    /* save driver isr in dispatch table */
+    /* save driver ISR in dispatch table */
     NotifySetup_module->isrDispatchTable[srcVirtId] = isr;
 
 #if defined(xdc_target__isaCompatible_64P)
@@ -457,7 +480,8 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
         Hwi_enableInterrupt(NotifySetup_module->interruptTable[srcVirtId]);
     }
 
-#elif defined(xdc_target__isaCompatible_v7M)
+#elif defined(xdc_target__isaCompatible_v7M) \
+    || defined(xdc_target__isaCompatible_v7A)
 
     /* compute table index for given source and destination */
     idx = (srcVirtId * NotifySetup_NUM_CORES) + MultiProc_self();
@@ -480,10 +504,6 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
         Hwi_enableInterrupt(cpuIntrNum);
     }
 
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
-
 #else
 #error Invalid target
 #endif
@@ -498,15 +518,14 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
 {
     UInt        key;
-#if !defined(xdc_target__isaCompatible_v7A)
     Hwi_Handle  hwi;
-#endif
     UInt16      srcVirtId;
 #if defined(xdc_target__isaCompatible_64P)
     Int         eventId;
 #elif defined(xdc_target__isaCompatible_arp32)
     UInt        mbxIdx;
-#elif defined(xdc_target__isaCompatible_v7M)
+#elif defined(xdc_target__isaCompatible_v7M) \
+    || defined(xdc_target__isaCompatible_v7A)
     UInt16      idx;
     UInt        mbxIdx;
 #endif
@@ -561,7 +580,8 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
         Hwi_delete(&hwi);
     }
 
-#elif defined(xdc_target__isaCompatible_v7M)
+#elif defined(xdc_target__isaCompatible_v7M) \
+    || defined(xdc_target__isaCompatible_v7A)
 
     /* decrement plug count */
     idx = (srcVirtId * NotifySetup_NUM_CORES) + MultiProc_self();
@@ -573,10 +593,6 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
         hwi = Hwi_getHandle(cpuIntrNum);
         Hwi_delete(&hwi);
     }
-
-#elif defined(xdc_target__isaCompatible_v7A)
-
-    /* TODO */
 
 #else
 #error Invalid target
@@ -702,7 +718,12 @@ Int NotifySetup_Mbx_attach(UInt16 remoteProcId, Ptr sharedAddr)
         (MultiProc_self() == NotifySetup_ipu2_0ProcId) ||
         (MultiProc_self() == NotifySetup_ipu2_1ProcId)) {
 
-        /* map processor id to virtual id */
+        virtId = VIRTID(remoteProcId);
+        params.intVectorId = NotifySetup_module->interruptTable[virtId];
+    }
+
+    /* set the intVectorId if on the HOST */
+    if (MultiProc_self() == NotifySetup_hostProcId) {
         virtId = VIRTID(remoteProcId);
         params.intVectorId = NotifySetup_module->interruptTable[virtId];
     }
