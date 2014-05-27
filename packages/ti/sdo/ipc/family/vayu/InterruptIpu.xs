@@ -29,90 +29,92 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== InterruptIpu.xs ========
  *
  */
-
-var BIOS    = null;
-var Hwi     = null;
-var Core    = null;
-var Ipu     = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    BIOS            = xdc.useModule("ti.sysbios.BIOS");
-    Hwi             = xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
-    Core            = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
-    Ipu             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
-    Xbar            = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
-    TableInit       = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
+    xdc.useModule("xdc.runtime.Assert");
+
+    xdc.useModule("ti.sysbios.BIOS");
+    xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+    xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
+    xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
+
+    xdc.useModule("ti.sdo.ipc.family.vayu.NotifySetup");
+    xdc.useModule("ti.sdo.ipc.notifyDrivers.IInterrupt");
+    xdc.useModule("ti.sdo.utils.MultiProc");
+
+    var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     xdc.useModule("ti.sdo.ipc.family.vayu.NotifySetup");
 
     /* Initisalize procIdTable */
-    TableInit.initProcId(Ipu);
+    TableInit.initProcId(this);
 
     /* Initialize mailboxTable */
-    TableInit.generateTable(Ipu);
+    TableInit.generateTable(this);
 
     /* Initialize mailbox base addrs */
     if (this.mailboxBaseAddr[0] == undefined) {
-        this.mailboxBaseAddr[0]  = 0x6208B000;  /* EVE1 MBOX0 - PA: 0x4208B000 */
+        this.mailboxBaseAddr[0]  = 0x6208B000;  /* EVE1 Internal Mailbox 0 */
     }
     if (this.mailboxBaseAddr[1] == undefined) {
-        this.mailboxBaseAddr[1]  = 0x6208C000;  /* EVE1 MBOX1 - PA: 0x4208C000 */
+        this.mailboxBaseAddr[1]  = 0x6208C000;  /* EVE1 Internal Mailbox 1 */
     }
     if (this.mailboxBaseAddr[2] == undefined) {
-        this.mailboxBaseAddr[2]  = 0;           /* EVE1 MBOX2 - PA: N/A        */
+        this.mailboxBaseAddr[2]  = 0;           /* EVE1 Internal Mailbox 2 */
     } else {
-        this.$logWarning("InterruptIpu.mailboxBaseAddr[2] is the EVE1 MBOX2, " +
-                "which is not used for IPU communication and should not be " +
-                "configured.", this);
+        this.$logWarning("InterruptIpu.mailboxBaseAddr[2] is the EVE1 MBOX2, "
+                + "which is not used for IPU communication and should not be "
+                + "configured.", this);
     }
     if (this.mailboxBaseAddr[3] == undefined) {
-        this.mailboxBaseAddr[3]  = 0x6218B000;  /* EVE2 MBOX0 - PA: 0x4218B000 */
+        this.mailboxBaseAddr[3]  = 0x6218B000;  /* EVE2 Internal Mailbox 0 */
     }
     if (this.mailboxBaseAddr[4] == undefined) {
-        this.mailboxBaseAddr[4]  = 0x6218C000;  /* EVE2 MBOX1 - PA: 0x4218C000 */
+        this.mailboxBaseAddr[4]  = 0x6218C000;  /* EVE2 Internal Mailbox 1 */
     }
     if (this.mailboxBaseAddr[5] == undefined) {
-        this.mailboxBaseAddr[5]  = 0;           /* EVE2 MBOX2 - PA: N/A        */
+        this.mailboxBaseAddr[5]  = 0;           /* EVE2 Internal Mailbox 2 */
     } else {
-        this.$logWarning("InterruptIpu.mailboxBaseAddr[5] is the EVE2 MBOX2, " +
-                "which is not used for IPU communication and should not be " +
-                "configured.", this);
+        this.$logWarning("InterruptIpu.mailboxBaseAddr[5] is the EVE2 MBOX2, "
+                + "which is not used for IPU communication and should not be "
+                + "configured.", this);
     }
 
     if (this.mailboxBaseAddr[6] == undefined) {
-        this.mailboxBaseAddr[6]  = 0x6228B000;  /* EVE3 MBOX0 - PA: 0x4228B000 */
+        this.mailboxBaseAddr[6]  = 0x6228B000;  /* EVE3 Internal Mailbox 0 */
     }
     if (this.mailboxBaseAddr[7] == undefined) {
-        this.mailboxBaseAddr[7]  = 0x6228C000;  /* EVE3 MBOX1 - PA: 0x4228C000 */
+        this.mailboxBaseAddr[7]  = 0x6228C000;  /* EVE3 Internal Mailbox 1 */
     }
     if (this.mailboxBaseAddr[8] == undefined) {
-        this.mailboxBaseAddr[8]  = 0;           /* EVE3 MBOX2 - PA: N/A        */
+        this.mailboxBaseAddr[8]  = 0;           /* EVE3 Internal Mailbox 2 */
     } else {
-        this.$logWarning("InterruptIpu.mailboxBaseAddr[8] is the EVE3 MBOX2, " +
-                "which is not used for IPU communication and should not be " +
-                "configured.", this);
+        this.$logWarning("InterruptIpu.mailboxBaseAddr[8] is the EVE3 MBOX2, "
+                + "which is not used for IPU communication and should not be "
+                + "configured.", this);
     }
 
     if (this.mailboxBaseAddr[9] == undefined) {
-        this.mailboxBaseAddr[9]  = 0x6238B000;  /* EVE4 MBOX0 - PA: 0x4238B000 */
+        this.mailboxBaseAddr[9]  = 0x6238B000;  /* EVE4 Internal Mailbox 0 */
     }
     if (this.mailboxBaseAddr[10] == undefined) {
-        this.mailboxBaseAddr[10]  = 0x6238C000; /* EVE4 MBOX1 - PA: 0x4238C000 */
+        this.mailboxBaseAddr[10]  = 0x6238C000; /* EVE4 Internal Mailbox 1 */
     }
     if (this.mailboxBaseAddr[11] == undefined) {
-        this.mailboxBaseAddr[11]  = 0;          /* EVE4 MBOX2 - PA: N/A        */
+        this.mailboxBaseAddr[11]  = 0;          /* EVE4 Internal Mailbox 2 */
     } else {
-        this.$logWarning("InterruptIpu.mailboxBaseAddr[11] is the EVE4 MBOX2, " +
-                "which is not used for IPU communication and should not be " +
-                "configured.", this);
+        this.$logWarning("InterruptIpu.mailboxBaseAddr[11] is the EVE4 MBOX2, "
+                + "which is not used for IPU communication and should not be "
+                + "configured.", this);
     }
 
     if (this.mailboxBaseAddr[12] == undefined) {
