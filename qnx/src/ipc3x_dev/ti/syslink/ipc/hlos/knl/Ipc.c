@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -42,6 +42,10 @@
 #include <RscTable.h>
 #include <_MessageQCopy.h>
 #include <ti/ipc/MessageQCopy.h>
+
+#if defined(SYSLINK_PLATFORM_VAYU)
+#include <gptimers.h>
+#endif
 
 /*  ----------------------------------- SysLink utils Headers   */
 #include <ti/syslink/inc/_MultiProc.h>
@@ -200,9 +204,18 @@ Int Ipc_attach (UInt16 remoteProcId)
             ProcMgr_close(&procHandle);
         }
 
-#if defined(SYSLINK_USE_IPU_PM)
+#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5)
         if (status >= 0) {
             status = ipu_pm_attach(remoteProcId);
+            if (status < 0) {
+                MessageQCopy_detach(remoteProcId);
+            }
+        }
+#endif
+
+#if defined(SYSLINK_PLATFORM_VAYU)
+        if (status >= 0) {
+            status = gpt_wdt_attach(remoteProcId);
             if (status < 0) {
                 MessageQCopy_detach(remoteProcId);
             }
@@ -243,8 +256,12 @@ Int Ipc_detach (UInt16 remoteProcId)
     else {
         Gate_leaveSystem (key);
 
-#if defined(SYSLINK_USE_IPU_PM)
+#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5)
         status = ipu_pm_detach (remoteProcId);
+#endif
+
+#if defined(SYSLINK_PLATFORM_VAYU)
+        status = gpt_wdt_detach(remoteProcId);
 #endif
 
         status = MessageQCopy_detach (remoteProcId);

@@ -44,6 +44,12 @@ int gpt_setup();
 /* Disable GP timers */
 int gpt_destroy();
 
+/* Wire the Watchdog interrupts to trigger recovery */
+int gpt_wdt_attach(int proc_id);
+
+/* Un-hook the Watchdog interrupt handler */
+int gpt_wdt_detach(int proc_id);
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
