@@ -204,7 +204,7 @@ Int Ipc_attach (UInt16 remoteProcId)
             ProcMgr_close(&procHandle);
         }
 
-#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5)
+#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5430)
         if (status >= 0) {
             status = ipu_pm_attach(remoteProcId);
             if (status < 0) {
@@ -256,7 +256,7 @@ Int Ipc_detach (UInt16 remoteProcId)
     else {
         Gate_leaveSystem (key);
 
-#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5)
+#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5430)
         status = ipu_pm_detach (remoteProcId);
 #endif
 
