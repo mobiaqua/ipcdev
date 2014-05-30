@@ -589,7 +589,11 @@ static Bool ipu_pm_gptimer_interrupt(Ptr fxnArgs)
 {
     int num;
     uint16_t core0_id = MultiProc_getId(CORE0);
+#ifndef SYSLINK_SYSBIOS_SMP
     uint16_t core1_id = MultiProc_getId("CORE1");
+#else
+    uint16_t core1_id = core0_id;
+#endif
     uint16_t dsp_id = MultiProc_getId("DSP");
 
     switch ((uint32_t)fxnArgs) {
