@@ -73,6 +73,10 @@
 /* Module mode mask */
 #define MODULEMODE_MASK                   0x3
 
+/* Masks for timer registers */
+#define GPT_TWPS_W_PEND_TCLR              0x1
+#define GPT_TCLR_STOP_MASK                0xfffffffe
+
 /* Registers for clock management of timers in IPU power domain */
 #define CM_CORE_AON__IPU_SIZE             0x100
 #define CM_CORE_AON__IPU_BASE             0x4A005500
@@ -136,7 +140,9 @@ struct gpt_module_object {
     uintptr_t cmCoreAonBaseVa;
     /* base address to CM_CORE_AON__IPU */
     bool isSetup;
-    /* Indicates whether the ipu_pm module is setup. */
+    /* Indicates whether the module is setup. */
+    bool isAttached;
+    /* Indicates whether the module is attached. */
     OsalIsr_Handle gpt4IsrObject;
     /* ISR handle for gpt4 WDT */
     OsalIsr_Handle gpt9IsrObject;
@@ -329,7 +335,7 @@ static Bool gpt_interrupt(Ptr fxnArgs)
     }
 
     GT_1trace(curTrace, GT_4CLASS,
-              "ipu_pm_gptimer_interrupt: GPTimer %d expired!", num);
+              "gpt_interrupt: GPTimer %d expired!", num);
 
     return 0;
 }
@@ -362,6 +368,39 @@ static Bool gpt_clr_interrupt(Ptr fxnArgs)
     return TRUE;
 }
 
+/* Stop watchdog timer */
+static void gpt_wdt_stop(int num)
+{
+    uintptr_t reg;
+    gpt_Regs *GPTRegs = NULL;
+
+    if (num == GPTIMER_4) {
+        GPTRegs = gptState.gpt4BaseAddr;
+    }
+    else if (num == GPTIMER_9) {
+        GPTRegs = gptState.gpt9BaseAddr;
+    }
+    else {
+        return;
+    }
+
+    reg = in32((uintptr_t)&GPTRegs->tclr);
+    reg &= GPT_TCLR_STOP_MASK;
+
+    /* Clear Overflow event */
+    out32((uintptr_t)&GPTRegs->tclr, reg);
+
+    reg = in32((uintptr_t)&GPTRegs->twps);
+    while (reg & GPT_TWPS_W_PEND_TCLR) {
+        reg = in32((uintptr_t)&GPTRegs->twps);
+    }
+
+    /* Clear status bits */
+    reg = in32((uintptr_t)&GPTRegs->irqstatus);
+    if (reg) {
+        out32((uintptr_t)&GPTRegs->irqstatus, reg);
+    }
+}
 
 /* Wire the Watchdog interrupts to trigger recovery */
 int gpt_wdt_attach(int proc_id)
@@ -373,8 +412,14 @@ int gpt_wdt_attach(int proc_id)
         return -EINVAL;
     }
 
+    /* Only do the setup once since we only have two watchdog timers */
+    if (gptState.isAttached) {
+        return EOK;
+    }
+
     if ((proc_id == MultiProc_getId("IPU1")) ||
         (proc_id == MultiProc_getId("IPU2"))) {
+        gptState.isAttached = true;
         isrParams.checkAndClearFxn = gpt_clr_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_9;
         isrParams.intId = VAYU_IRQ_GPT9;
@@ -406,31 +451,32 @@ int gpt_wdt_attach(int proc_id)
         else {
             retval = -ENOMEM;
         }
-    }
 
-    if ((retval >= 0) &&
-        (gptState.proc_handles[MultiProc_getId("IPU2")] == NULL)) {
-        /* Using IPU2's entry since it is the offically supported IPU */
-        retval = ProcMgr_open(&gptState.proc_handles[MultiProc_getId("IPU2")],
-            proc_id);
-    }
-    else {
-        if ((proc_id == MultiProc_getId("IPU1")) ||
-            (proc_id == MultiProc_getId("IPU2"))) {
-            if (gptState.gpt9IsrObject) {
-                OsalIsr_uninstall(gptState.gpt9IsrObject);
-                OsalIsr_delete(&gptState.gpt9IsrObject);
-                gptState.gpt9IsrObject = NULL;
+
+        if (retval >= 0) {
+            if (gptState.proc_handles[MultiProc_getId("IPU2")] == NULL) {
+                /* Using IPU2's entry since it is the offically supported IPU */
+                retval = ProcMgr_open(&gptState.proc_handles[
+                    MultiProc_getId("IPU2")], proc_id);
             }
+        }
+        else {
+            if ((proc_id == MultiProc_getId("IPU1")) ||
+                (proc_id == MultiProc_getId("IPU2"))) {
+                if (gptState.gpt9IsrObject) {
+                    OsalIsr_uninstall(gptState.gpt9IsrObject);
+                    OsalIsr_delete(&gptState.gpt9IsrObject);
+                    gptState.gpt9IsrObject = NULL;
+                }
 
-            if (gptState.gpt4IsrObject) {
-                OsalIsr_uninstall(gptState.gpt4IsrObject);
-                OsalIsr_delete(&gptState.gpt4IsrObject);
-                gptState.gpt4IsrObject = NULL;
+                if (gptState.gpt4IsrObject) {
+                    OsalIsr_uninstall(gptState.gpt4IsrObject);
+                    OsalIsr_delete(&gptState.gpt4IsrObject);
+                    gptState.gpt4IsrObject = NULL;
+                }
             }
         }
     }
-
     return retval;
 }
 
@@ -443,21 +489,33 @@ int gpt_wdt_detach(int proc_id)
         return -EINVAL;
     }
 
-    if ((proc_id == MultiProc_getId("IPU1")) ||
-        (proc_id == MultiProc_getId("IPU2"))) {
-        OsalIsr_uninstall(gptState.gpt9IsrObject);
-        OsalIsr_delete(&gptState.gpt9IsrObject);
-        gptState.gpt9IsrObject = NULL;
+    if (gptState.isAttached) {
+        if ((proc_id == MultiProc_getId("IPU1")) ||
+            (proc_id == MultiProc_getId("IPU2"))) {
+            OsalIsr_uninstall(gptState.gpt9IsrObject);
+            OsalIsr_delete(&gptState.gpt9IsrObject);
+            gptState.gpt9IsrObject = NULL;
 
-        OsalIsr_uninstall(gptState.gpt4IsrObject);
-        OsalIsr_delete(&gptState.gpt4IsrObject);
-        gptState.gpt4IsrObject = NULL;
-    }
+            OsalIsr_uninstall(gptState.gpt4IsrObject);
+            OsalIsr_delete(&gptState.gpt4IsrObject);
+            gptState.gpt4IsrObject = NULL;
 
-    /* Using IPU2's entry since it is the offically supported IPU */
-    if (gptState.proc_handles[MultiProc_getId("IPU2")]) {
-        ProcMgr_close(&gptState.proc_handles[MultiProc_getId("IPU2")]);
-        gptState.proc_handles[MultiProc_getId("IPU2")] = NULL;
+            /* Using IPU2's entry since it is the offically supported IPU */
+            if (gptState.proc_handles[MultiProc_getId("IPU2")]) {
+                ProcMgr_close(&gptState.proc_handles[MultiProc_getId("IPU2")]);
+                gptState.proc_handles[MultiProc_getId("IPU2")] = NULL;
+            }
+
+            /*
+             * Stop the watchdog timers. We rely on the slave processors to
+             * start them, but on unload the host should stop them to avoid
+             * getting watchdog interrupts upon reload.
+             */
+            gpt_wdt_stop(GPTIMER_4);
+            gpt_wdt_stop(GPTIMER_9);
+
+            gptState.isAttached = false;
+        }
     }
 
     return retval;
