@@ -38,7 +38,6 @@
 #include <xdc/runtime/Error.h>
 #include <xdc/runtime/Startup.h>
 
-#include <ti/sdo/ipc/Ipc.h>
 #include <ti/sdo/ipc/_Notify.h>
 #include <ti/sdo/ipc/family/vayu/NotifyDriverMbx.h>
 #include <ti/sdo/ipc/notifyDrivers/NotifyDriverShm.h>
