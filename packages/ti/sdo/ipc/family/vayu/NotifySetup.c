@@ -483,7 +483,7 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     || defined(xdc_target__isaCompatible_v7A)
 
     /* compute table index for given source and destination */
-    idx = (srcVirtId * NotifySetup_NUM_CORES) + MultiProc_self();
+    idx = (srcVirtId * NotifySetup_NUM_CORES) + VIRTID(MultiProc_self());
 
     /* compute mailbox index */
     mbxIdx = MBX_BASEADDR_IDX(idx);
@@ -583,7 +583,7 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
     || defined(xdc_target__isaCompatible_v7A)
 
     /* decrement plug count */
-    idx = (srcVirtId * NotifySetup_NUM_CORES) + MultiProc_self();
+    idx = (srcVirtId * NotifySetup_NUM_CORES) + VIRTID(MultiProc_self());
     mbxIdx = MBX_BASEADDR_IDX(idx);
     NotifySetup_module->numPlugged[mbxIdx]--;
 
