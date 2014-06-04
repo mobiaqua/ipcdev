@@ -213,7 +213,7 @@ Int Ipc_attach (UInt16 remoteProcId)
         }
 #endif
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if !defined(IPC_DISABLE_WATCHDOG) && defined(SYSLINK_PLATFORM_VAYU)
         if (status >= 0) {
             status = gpt_wdt_attach(remoteProcId);
             if (status < 0) {
@@ -260,7 +260,7 @@ Int Ipc_detach (UInt16 remoteProcId)
         status = ipu_pm_detach (remoteProcId);
 #endif
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if !defined(IPC_DISABLE_WATCHDOG) && defined(SYSLINK_PLATFORM_VAYU)
         status = gpt_wdt_detach(remoteProcId);
 #endif
 

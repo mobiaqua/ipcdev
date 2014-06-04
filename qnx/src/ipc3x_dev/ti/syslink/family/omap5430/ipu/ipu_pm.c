@@ -122,7 +122,6 @@ extern pthread_mutex_t syslink_hib_mutex;
 extern pthread_cond_t syslink_hib_cond;
 
 #undef BENELLI_SELF_HIBERNATION
-#define BENELLI_WATCHDOG_TIMER
 
 /* A9 state flag 0000 | 0000 Benelli internal use*/
 #define CORE0_PROC_DOWN        0x00010000
@@ -542,7 +541,7 @@ void unmap_gpt_regs(void)
     GPT6ClkCtrl = NULL;
 }
 
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
 
 /* Interrupt clear function*/
 static Bool ipu_pm_clr_gptimer_interrupt(Ptr fxnArgs)
@@ -1952,7 +1951,7 @@ int ipu_pm_save_ctx(int proc_id)
         }
 
         if (core1_loaded) {
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
             save_gpt_context(GPTIMER_11);
             ipu_pm_gpt_stop(GPTIMER_11);
             ipu_pm_gpt_disable(GPTIMER_11);
@@ -1970,7 +1969,7 @@ int ipu_pm_save_ctx(int proc_id)
             GT_0trace(curTrace, GT_4CLASS, "Sleep CORE1");
         }
 
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         save_gpt_context(GPTIMER_9);
         ipu_pm_gpt_stop(GPTIMER_9);
         ipu_pm_gpt_disable(GPTIMER_9);
@@ -2087,7 +2086,7 @@ int ipu_pm_restore_ctx(int proc_id)
             goto error;
         }
 
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         ipu_pm_gpt_enable(GPTIMER_9);
         restore_gpt_context(GPTIMER_9);
         ipu_pm_gpt_start(GPTIMER_9);
@@ -2108,7 +2107,7 @@ int ipu_pm_restore_ctx(int proc_id)
         }
 
         if (core1_loaded) {
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
             ipu_pm_gpt_enable(GPTIMER_11);
             restore_gpt_context(GPTIMER_11);
             ipu_pm_gpt_start(GPTIMER_11);
@@ -2166,7 +2165,7 @@ int ipu_pm_restore_ctx(int proc_id)
 int ipu_pm_attach(int proc_id)
 {
     int retval = EOK;
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
     OsalIsr_Params isrParams;
 #endif
 
@@ -2176,7 +2175,7 @@ int ipu_pm_attach(int proc_id)
 
     if (proc_id == MultiProc_getId(CORE0)) {
         ipu_pm_state.loaded_procs |= CORE0_LOADED;
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         ipu_pm_gpt_enable(GPTIMER_9);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_9;
@@ -2199,7 +2198,7 @@ int ipu_pm_attach(int proc_id)
     else if (proc_id == MultiProc_getId("CORE1")) {
 #endif
         ipu_pm_state.loaded_procs |= CORE1_LOADED;
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         ipu_pm_gpt_enable(GPTIMER_11);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_11;
@@ -2220,7 +2219,7 @@ int ipu_pm_attach(int proc_id)
     }
     else if (proc_id == MultiProc_getId("DSP")) {
         ipu_pm_state.loaded_procs |= DSP_LOADED;
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         ipu_pm_gpt_enable(GPTIMER_6);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_6;
@@ -2244,7 +2243,7 @@ int ipu_pm_attach(int proc_id)
         retval = ProcMgr_open(&ipu_pm_state.proc_handles[proc_id], proc_id);
 
     if (retval < 0) {
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         if (proc_id == MultiProc_getId(CORE0)) {
             if (ipu_pm_state.gpt9IsrObject) {
                 OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
@@ -2303,7 +2302,7 @@ int ipu_pm_detach(int proc_id)
 #endif
 
     if (proc_id == MultiProc_getId(CORE0)) {
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt9IsrObject);
         ipu_pm_state.gpt9IsrObject = NULL;
@@ -2315,7 +2314,7 @@ int ipu_pm_detach(int proc_id)
     }
     else if (proc_id == MultiProc_getId("CORE1")) {
 #endif
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         OsalIsr_uninstall(ipu_pm_state.gpt11IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt11IsrObject);
         ipu_pm_state.gpt11IsrObject = NULL;
@@ -2325,7 +2324,7 @@ int ipu_pm_detach(int proc_id)
         ipu_pm_state.loaded_procs &= ~CORE1_LOADED;
     }
     else if (proc_id == MultiProc_getId("DSP")) {
-#ifdef BENELLI_WATCHDOG_TIMER
+#ifndef IPC_DISABLE_WATCHDOG
         OsalIsr_uninstall(ipu_pm_state.gpt6IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt6IsrObject);
         ipu_pm_state.gpt6IsrObject = NULL;

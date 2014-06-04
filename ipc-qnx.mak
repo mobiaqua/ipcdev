@@ -57,7 +57,8 @@ all: .qnx
 	@echo "building Qnx user libraries for \"$(PLATFORM)\" platform..."
 	@make -C qnx \
                 IPC_REPO=`pwd` \
-                PLATFORM=$(PLATFORM)
+                PLATFORM=$(PLATFORM) \
+                QNX_CFLAGS=$(QNX_CFLAGS)
 
 clean:
 	@echo "cleaning Qnx user libraries ..."
