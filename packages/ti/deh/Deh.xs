@@ -37,7 +37,36 @@
 
 var Deh = null;
 var MultiProc = null;
-var Hwi = null;
+
+function module$meta$init()
+{
+    var Settings = xdc.module("ti.sysbios.family.Settings");
+    var Hwi;
+
+    /* Only process during "cfg" phase */
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
+    Deh = this;
+
+    /*
+     * It's possible for the Hwi delegate to later be assigned to something
+     * other than what it is at the time of this method's execution, but
+     * we know there exists only one that can be used at the time of this
+     * comment's writing (SYS/BIOS will never have more than one for a
+     * particular architecture).  If another choice comes into existence
+     * at some future time then we must take that into account here, since
+     * the Hwi delegate to which we're assigning here might not be the one
+     * in use at the end of the configuration.
+     */
+    Hwi = xdc.useModule(Settings.getDefaultHwiDelegate());
+    if ((Program.build.target.name.match(/M3/)) ||
+        (Program.build.target.name.match(/M4/))) {
+        /* Need to do this early before it gets sealed */
+        Hwi.excHandlerFunc = Deh.excHandler;
+    }
+}
 
 /*
  *  ======== module$use ========
@@ -47,13 +76,9 @@ function module$use()
     var Swi = null;
     var Task = null;
     var Exception = null;
-    var Settings = xdc.module("ti.sysbios.family.Settings");
-
-    Deh = this;
 
     xdc.useModule('xdc.runtime.System');
 
-    Hwi = xdc.useModule(Settings.getDefaultHwiDelegate());
     MultiProc = xdc.module('ti.sdo.utils.MultiProc');
 
     if ((Program.build.target.name.match(/C64T/)) ||
@@ -100,6 +125,5 @@ function module$static$init(mod, params)
     else {
         mod.isrStackSize = Program.stack;
         mod.isrStackBase = $externPtr('__TI_STACK_BASE');
-        Hwi.excHandlerFunc = Deh.excHandler;
     }
 }
