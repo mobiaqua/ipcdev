@@ -319,6 +319,20 @@ int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
         MmRpc_BufDesc *desc);
 
 /*!
+ *  @brief      Get the id of an MmRpc instance
+ *              (currently only supported in QNX)
+ *
+ *  @param[in]  handle   Service handle returned by MmRpc_create()
+ *
+ *  @retval     32-bit id corresponding to the MmRpc instance
+ *
+ *  @remark     This returns the id corresponding to the MmRpc instance.
+ *              This id can be used to identify the MmRpc instance
+ *              on the slave core during instance deletion.
+ */
+uint32_t MmRpc_getId(MmRpc_Handle handle);
+
+/*!
  *  @brief      Initialize the instance create parameter structure
  *
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ extern "C" {
 #define MmServiceMgr_E_FAIL (-1)
 
 typedef Void (*MmServiceMgr_DelFxn)(Void);
-
+typedef Void (*MmServiceMgr_DelFxn2)(UInt32);
 
 /*!
  *  @brief      Initialize the MmServiceMgr module
@@ -82,6 +82,14 @@ Void MmServiceMgr_exit(Void);
  */
 Int MmServiceMgr_register(const String name, RcmServer_Params *params,
         MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn delFxn);
+
+/*!
+ *  @brief      Register a new service, when using MmServiceMgr_DelFxn2
+ *              as delete function type
+ *
+ */
+Int MmServiceMgr_register2(const String name, RcmServer_Params *params,
+        MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn2 delFxn);
 
 /*! @cond */
 /*!

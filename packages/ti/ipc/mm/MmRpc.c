@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -353,6 +353,18 @@ int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
 
     return(stat);
 }
+
+#if defined(SYSLINK_BUILDOS_QNX)
+/*
+ *  ======== MmRcp_getId ========
+ */
+uint32_t MmRpc_getId(MmRpc_Handle handle)
+{
+    MmRpc_Object *obj = (MmRpc_Object *)handle;
+
+    return obj->connect.id;
+}
+#endif
 
 #if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
 /*

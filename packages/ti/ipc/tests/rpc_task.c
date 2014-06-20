@@ -146,9 +146,10 @@ static MmType_FxnSigTab rpc_fxnSigTab = {
 static RcmServer_Params rpc_Params;
 
 
-Void RPC_SKEL_SrvDelNotification(Void)
+Void RPC_SKEL_SrvDelNotification(Uint32 id)
 {
-    System_printf("RPC_SKEL_SrvDelNotification: Nothing to cleanup\n");
+    System_printf("RPC_SKEL_SrvDelNotification: Nothing to cleanup for "
+        "MmRpc instance id=%d\n", id);
 }
 
 static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
@@ -371,7 +372,7 @@ void register_MxServer(void)
                    MultiProc_self());
 
     /* register an example service */
-    status = MmServiceMgr_register(mMServerName, &rpc_Params, &rpc_fxnSigTab,
+    status = MmServiceMgr_register2(mMServerName, &rpc_Params, &rpc_fxnSigTab,
             RPC_SKEL_SrvDelNotification);
 
     if (status < 0) {
