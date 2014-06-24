@@ -25,6 +25,8 @@ Syntax:
                     1: MMU Fault (data read access) (default)
                     2: MMU Fault (data write access)
                     3: MMU Fault (program access)
+                    4: Exception
+                    5: Watchdog timeout
 
 Examples:
   rpmsg-rpc-stress -t 1                 Runs the Multi-SrvMgr test with 1
