@@ -33,7 +33,7 @@
 var Memory = xdc.useModule('xdc.runtime.Memory');
 var Semaphore = xdc.useModule('ti.sysbios.knl.Semaphore');
 var BIOS = xdc.useModule('ti.sysbios.BIOS');
-BIOS.heapSize = 0x20000;
+BIOS.heapSize = 0x10000;
 //BIOS.libType = BIOS.LibType_Custom;
 
 var Idle = xdc.useModule('ti.sysbios.knl.Idle');

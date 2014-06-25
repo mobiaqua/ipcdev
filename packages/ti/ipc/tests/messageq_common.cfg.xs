@@ -33,7 +33,7 @@
 var Memory = xdc.useModule('xdc.runtime.Memory');
 var Semaphore = xdc.useModule('ti.sysbios.knl.Semaphore');
 var BIOS = xdc.useModule('ti.sysbios.BIOS');
-BIOS.heapSize = 0x20000;
+BIOS.heapSize = 0x10000;
 BIOS.libType = BIOS.LibType_Custom;
 
 var Task = xdc.useModule('ti.sysbios.knl.Task');
@@ -203,7 +203,7 @@ else if (Program.platformName.match(/simKepler/) ||
     /* TBD: Update for Kepler: */
     Cache.setMarMeta(0xA0000000, 0x1FFFFFF, 0);
 
-    Program.global.sysMinBufSize = 0x8000;
+    Program.global.sysMinBufSize = 0x2000;
     SysMin.bufSize  =  Program.global.sysMinBufSize;
 
     /* Enable Memory Translation module that operates on the Resource Table */
@@ -236,7 +236,7 @@ var HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
 var params = new HeapBuf.Params;
 params.align = 8;
 params.blockSize = 512;
-params.numBlocks = 256;
+params.numBlocks = 64;
 var msgHeap = HeapBuf.create(params);
 
 var MessageQ  = xdc.useModule('ti.sdo.ipc.MessageQ');
