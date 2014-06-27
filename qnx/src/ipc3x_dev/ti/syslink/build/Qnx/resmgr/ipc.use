@@ -1,6 +1,6 @@
 ipc - IPC Resource Manager
 
-ipc: [-HTg] <core_id1> <executable1> [<core_id2> <executable2> ...]
+ipc: [-HTgdc] <core_id1> <executable1> [<core_id2> <executable2> ...]
 
   <core_id#> should be set to a core name
       followed by the path to the executable to load on that core.
@@ -20,3 +20,5 @@ Options:
  -g             Enable GateMP support on host
                 Supported on: DRA7xx
  -d             Disable automatic crash recovery
+ -c <dump_file> Generate dump of slave trace during crashes. Use
+                absolute path for filename.
