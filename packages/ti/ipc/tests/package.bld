@@ -579,10 +579,13 @@ for (var i = 0; i < Build.targets.length; i++) {
 		}).addObjects(["messageq_single.c"]);
 	}
 
-        /* NameServerApp */
-        Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
-            cfgScript: "nameserverapp",
-        }).addObjects(["NameServerApp.c"]);
+        /* TODO: NameServerApp.xe66 too big for K2E's 512 KB L2SRAM */
+        if (!platform.match(/^ti.platforms.evmC66AK2E/)) {
+            /* NameServerApp */
+            Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
+                cfgScript: "nameserverapp",
+            }).addObjects(["NameServerApp.c"]);
+        }
 
         /* nano_test - demonstrates passing ptrs using CMEM */
         if (platform.match(/^ti\.platforms\.evmOMAPL138\:DSP/)) {

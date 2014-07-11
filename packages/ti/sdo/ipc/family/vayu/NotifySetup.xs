@@ -96,9 +96,6 @@ function module$use()
         xdc.useModule('ti.sysbios.family.shared.vayu.IntXbar');
     }
 
-    xdc.useModule('ti.sdo.ipc.Ipc');
-    xdc.useModule('ti.sdo.ipc.Notify');
-
     /* initialize procIdTable */
     TableInit.initProcId(this);
 
@@ -265,12 +262,18 @@ function module$use()
         }
     }
 
-    /* load notify drivers into configuration model */
-    if (this.$private.driverMask & this.Driver_SHAREDMEMORY) {
-        xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverShm');
-    }
-    if (this.$private.driverMask & this.Driver_MAILBOX) {
-        xdc.useModule('ti.sdo.ipc.family.vayu.NotifyDriverMbx');
+    /*  If Notify module is already used, then load notify drivers into
+     *  configuration model. Do *not* useModule the Notify module. Some
+     *  applications require this notify driver but do *not* want the
+     *  ti.sdo.ipc package to be loaded.
+     */
+    if (xdc.module('ti.sdo.ipc.Notify').$used) {
+        if (this.$private.driverMask & this.Driver_SHAREDMEMORY) {
+            xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverShm');
+        }
+        if (this.$private.driverMask & this.Driver_MAILBOX) {
+            xdc.useModule('ti.sdo.ipc.family.vayu.NotifyDriverMbx');
+        }
     }
 }
 

@@ -82,6 +82,9 @@ CMEM_INSTALL_DIR =
 #
 QNX_INSTALL_DIR =
 
+# Optional: Any additional compile options
+#
+QNX_CFLAGS =
 
 #################### IPC Bios ####################
 

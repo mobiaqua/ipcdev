@@ -55,9 +55,16 @@ all: .qnx
 .qnx,%: PATH:=$(QNX_PATH):$(PATH)
 .qnx,%:
 	@echo "building Qnx user libraries for \"$(PLATFORM)\" platform..."
+ifneq ("$(QNX_CFLAGS)","")
+	@make -C qnx \
+                IPC_REPO=`pwd` \
+                PLATFORM=$(PLATFORM) \
+                QNX_CFLAGS=$(QNX_CFLAGS)
+else
 	@make -C qnx \
                 IPC_REPO=`pwd` \
                 PLATFORM=$(PLATFORM)
+endif
 
 clean:
 	@echo "cleaning Qnx user libraries ..."

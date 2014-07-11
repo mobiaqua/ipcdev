@@ -53,8 +53,6 @@ function module$use()
 
     var TableInit = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
-    xdc.useModule("ti.sdo.ipc.family.vayu.NotifySetup");
-
     /* Initisalize procIdTable */
     TableInit.initProcId(this);
 

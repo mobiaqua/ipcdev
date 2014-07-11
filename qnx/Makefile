@@ -54,7 +54,7 @@ tests: libs
 
 ipc3x_dev: utils
 	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1
+            make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1 QNX_CFLAGS=$(QNX_CFLAGS)
 
 install:
 	@cd src/ipc3x_dev; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \

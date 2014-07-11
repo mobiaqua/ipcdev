@@ -1,7 +1,8 @@
 /*
  * Remote Processor Procedure Call Driver
  *
- * Copyright(c) 2012-2013 Texas Instruments. All rights reserved.
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,11 +54,11 @@ struct rppc_buf_fds {
 /*
  * ioctl definitions
  */
-#define RPPC_IOC_MAGIC		'r'
-#define RPPC_IOC_CREATE		_IOW(RPPC_IOC_MAGIC, 1, struct rppc_create_instance)
+#define RPPC_IOC_MAGIC    'r'
+#define RPPC_IOC_CREATE   _IOWR(RPPC_IOC_MAGIC, 1, struct rppc_create_instance)
 #define RPPC_IOC_BUFREGISTER    _IOW(RPPC_IOC_MAGIC, 2, struct rppc_buf_fds)
 #define RPPC_IOC_BUFUNREGISTER  _IOW(RPPC_IOC_MAGIC, 3, struct rppc_buf_fds)
-#define RPPC_IOC_MAXNR		(4)
+#define RPPC_IOC_MAXNR      (4)
 
 #define RPPC_MAX_PARAMETERS	(10)
 #define RPPC_MAX_TRANSLATIONS	(1024)
@@ -205,15 +206,16 @@ struct rppc_packet {
 
 //#ifdef __KERNEL__
 
-#define RPPC_MAX_NUM_FUNCS		(1024)
-#define RPPC_MAX_CHANNEL_NAMELEN	(64)
-#define RPPC_MAX_FUNC_NAMELEN		(64)
-#define RPPC_MAX_NUM_PARAMS		(10)
-#define RPPC_MAX_INST_NAMELEN		(48)
+#define RPPC_MAX_NUM_FUNCS          (1024)
+#define RPPC_MAX_CHANNEL_NAMELEN    (64)
+#define RPPC_MAX_FUNC_NAMELEN       (64)
+#define RPPC_MAX_NUM_PARAMS         (10)
+#define RPPC_MAX_INST_NAMELEN       (48)
 
 /* Added below definition for use with CREATE ioctl in QNX */
 struct rppc_create_instance {
-	char name[RPPC_MAX_CHANNEL_NAMELEN];
+    char name[RPPC_MAX_CHANNEL_NAMELEN];
+    uint32_t  id;  /* id for this instance */
 };
 
 /**

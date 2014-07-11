@@ -60,7 +60,7 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/usr \
 
 #Using the default build rules TODO: to selective pick and choose the compiler/linker/archiver & build rules
 include $(MKFILES_ROOT)/qtargets.mk
-CCOPTS += -DSYSLINK_BUILDOS_QNX -DSYSLINK_BUILD_DEBUG
+CCOPTS += -DSYSLINK_BUILDOS_QNX -DSYSLINK_BUILD_DEBUG $(QNX_CFLAGS)
 ifeq ("$(SYSLINK_DEBUG)", "1")
 #enable debug build
 CCOPTS += -g -O0

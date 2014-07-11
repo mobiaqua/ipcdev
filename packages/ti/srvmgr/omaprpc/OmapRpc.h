@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,6 +157,7 @@ typedef enum OmapRpc_ErrorType {
 
 typedef struct OmapRpc_CreateInstance {
     Char name[OMAPRPC_MAX_INST_NAMELEN];
+    UInt32 id;
 } OmapRpc_CreateInstance;
 
 typedef struct OmapRpc_ChannelInfo {
@@ -274,16 +275,19 @@ typedef struct OmapRpc_FuncDeclaration {
 
 typedef struct OmapRpc_Object *OmapRpc_Handle;
 typedef Void (*OmapRpc_SrvDelNotifyFxn)(Void);
+typedef Void (*OmapRpc_SrvDelNotifyFxn2)(UInt32);
 
-#if 0
-OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
-        UInt32 port, UInt32 numFuncs, OmapRpc_FuncDeclaration* fxns,
-        OmapRpc_SrvDelNotifyFxn func);
-#else
 OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
         UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
         OmapRpc_SrvDelNotifyFxn srvDelCBFunc);
-#endif
+
+/*
+ * OmapRpc_createChannel2
+ * Same as OmapRpc_createChannel but with OmapRpc_SrvDelNotifyFxn2
+ */
+OmapRpc_Handle OmapRpc_createChannel2(String channelName, UInt16 dstProc,
+        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
+        OmapRpc_SrvDelNotifyFxn2 srvDelCBFunc);
 
 Int OmapRpc_deleteChannel(OmapRpc_Handle handle);
 

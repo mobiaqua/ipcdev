@@ -71,7 +71,7 @@ Int `pkg`_NotifySetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 SizeT `pkg`_NotifySetup_sharedMemReq(UInt16 remoteProcId, Ptr sharedAddr)
 {
     `pkg`_NotifySetup_Driver driver;
-    SizeT memReq;
+    SizeT memReq = 0;
 
     driver = `pkg`_NotifySetup_driverType(remoteProcId);
 
