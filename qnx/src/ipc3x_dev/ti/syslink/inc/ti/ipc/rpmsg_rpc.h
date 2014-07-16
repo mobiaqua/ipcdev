@@ -55,7 +55,7 @@ struct rppc_buf_fds {
  * ioctl definitions
  */
 #define RPPC_IOC_MAGIC    'r'
-#define RPPC_IOC_CREATE   _IOWR(RPPC_IOC_MAGIC, 1, struct rppc_create_instance)
+#define RPPC_IOC_CREATE   _IOW(RPPC_IOC_MAGIC, 1, struct rppc_create_instance)
 #define RPPC_IOC_BUFREGISTER    _IOW(RPPC_IOC_MAGIC, 2, struct rppc_buf_fds)
 #define RPPC_IOC_BUFUNREGISTER  _IOW(RPPC_IOC_MAGIC, 3, struct rppc_buf_fds)
 #define RPPC_IOC_MAXNR      (4)
@@ -215,7 +215,6 @@ struct rppc_packet {
 /* Added below definition for use with CREATE ioctl in QNX */
 struct rppc_create_instance {
     char name[RPPC_MAX_CHANNEL_NAMELEN];
-    uint32_t  id;  /* id for this instance */
 };
 
 /**

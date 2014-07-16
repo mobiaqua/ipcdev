@@ -62,7 +62,6 @@ extern "C" {
 #define MmServiceMgr_E_FAIL (-1)
 
 typedef Void (*MmServiceMgr_DelFxn)(Void);
-typedef Void (*MmServiceMgr_DelFxn2)(UInt32);
 
 /*!
  *  @brief      Initialize the MmServiceMgr module
@@ -83,14 +82,6 @@ Void MmServiceMgr_exit(Void);
 Int MmServiceMgr_register(const String name, RcmServer_Params *params,
         MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn delFxn);
 
-/*!
- *  @brief      Register a new service, when using MmServiceMgr_DelFxn2
- *              as delete function type
- *
- */
-Int MmServiceMgr_register2(const String name, RcmServer_Params *params,
-        MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn2 delFxn);
-
 /*! @cond */
 /*!
  *  @brief      Start the service manager listener task
@@ -100,6 +91,14 @@ Int MmServiceMgr_start(const String name, Int aryLen,
         OmapRpc_FuncSignature *sigAry);
 /*! @endcond */
 
+/*!
+ *  @brief      Get the ID of the current service instance
+ *              This function can only be called in the context of skeleton
+ *              functions or service deletion function registered for
+ *              a service.
+ *
+ */
+UInt32 MmServiceMgr_getId();
 
 #if defined (__cplusplus)
 }

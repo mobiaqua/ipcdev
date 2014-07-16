@@ -62,14 +62,10 @@ typedef struct OmapRpc_Object {
     Bool                     shutdown;
     Semaphore_Handle         exitSem;
     OmapRpc_SrvDelNotifyFxn  srvDelCB;
-    OmapRpc_SrvDelNotifyFxn2 srvDelCB2;
     RcmServer_Params         rcmParams;
     UInt32                   numFuncs;
     OmapRpc_FuncSignature   *funcSigs;
 } OmapRpc_Object;
-
-static OmapRpc_Handle _OmapRpc_createChannel(String channelName, UInt16 dstProc,
-        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab);
 
 Int32 OmapRpc_GetSvrMgrHandle(Void *srvc, Int32 num, Int32 *params)
 {
@@ -168,12 +164,14 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
                 OmapRpc_InstanceHandle *handle =
                                 OmapRpc_PAYLOAD(msg, OmapRpc_InstanceHandle);
 
+                /* Stash away endpointAddress for MmServiceMgr_getId to work */
+                Task_setEnv(Task_self(), (Ptr)handle->endpointAddress);
+
                 if (obj->srvDelCB != NULL) {
                     obj->srvDelCB();
                 }
-                else if (obj->srvDelCB2 != NULL) {
-                    obj->srvDelCB2(handle->endpointAddress);
-                }
+
+                Task_setEnv(Task_self(), NULL);
 
                 /* don't clear out the old data... */
                 System_printf("OMAPRPC: destroying instance addr: %d\n",
@@ -271,42 +269,6 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
         UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
         OmapRpc_SrvDelNotifyFxn srvDelCBFunc)
 {
-    OmapRpc_Object * obj;
-
-    obj = _OmapRpc_createChannel(channelName, dstProc, port, rcmParams,
-        fxnSigTab);
-    if (obj != NULL) {
-        obj->srvDelCB = srvDelCBFunc;
-    }
-
-    return (obj);
-}
-
-/*
- *  ======== OmapRpc_createChannel2 ========
- */
-OmapRpc_Handle OmapRpc_createChannel2(String channelName, UInt16 dstProc,
-        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
-        OmapRpc_SrvDelNotifyFxn2 srvDelCBFunc2)
-{
-    OmapRpc_Object * obj;
-
-    obj = _OmapRpc_createChannel(channelName, dstProc, port, rcmParams,
-        fxnSigTab);
-    if (obj != NULL) {
-        obj->srvDelCB2 = srvDelCBFunc2;
-    }
-
-    return (obj);
-}
-
-
-/*
- *  ======== _OmapRpc_createChannel ========
- */
-static OmapRpc_Handle _OmapRpc_createChannel(String channelName, UInt16 dstProc,
-        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab)
-{
     Task_Params taskParams;
     UInt32      func;
 
@@ -348,6 +310,7 @@ static OmapRpc_Handle _OmapRpc_createChannel(String channelName, UInt16 dstProc,
     obj->port = port;
     strncpy(obj->channelName, channelName, OMAPRPC_MAX_CHANNEL_NAMELEN-1);
     obj->channelName[OMAPRPC_MAX_CHANNEL_NAMELEN-1]='\0';
+    obj->srvDelCB = srvDelCBFunc;
     obj->funcSigs = Memory_alloc(NULL, obj->numFuncs *
             sizeof(OmapRpc_FuncSignature), 0, NULL);
 

@@ -157,7 +157,6 @@ typedef enum OmapRpc_ErrorType {
 
 typedef struct OmapRpc_CreateInstance {
     Char name[OMAPRPC_MAX_INST_NAMELEN];
-    UInt32 id;
 } OmapRpc_CreateInstance;
 
 typedef struct OmapRpc_ChannelInfo {
@@ -275,19 +274,10 @@ typedef struct OmapRpc_FuncDeclaration {
 
 typedef struct OmapRpc_Object *OmapRpc_Handle;
 typedef Void (*OmapRpc_SrvDelNotifyFxn)(Void);
-typedef Void (*OmapRpc_SrvDelNotifyFxn2)(UInt32);
 
 OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
         UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
         OmapRpc_SrvDelNotifyFxn srvDelCBFunc);
-
-/*
- * OmapRpc_createChannel2
- * Same as OmapRpc_createChannel but with OmapRpc_SrvDelNotifyFxn2
- */
-OmapRpc_Handle OmapRpc_createChannel2(String channelName, UInt16 dstProc,
-        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
-        OmapRpc_SrvDelNotifyFxn2 srvDelCBFunc);
 
 Int OmapRpc_deleteChannel(OmapRpc_Handle handle);
 
