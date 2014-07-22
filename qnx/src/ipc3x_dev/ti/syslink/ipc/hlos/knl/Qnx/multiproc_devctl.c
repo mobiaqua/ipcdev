@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -101,13 +101,14 @@ int syslink_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
 {
     MultiProcDrv_CmdArgs * cargs = (MultiProcDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
-    MultiProc_Config local_config;
-    MultiProc_getConfig (&local_config);
+    MultiProc_Config *     config = (MultiProc_Config *)(cargs+1);
+
+    MultiProc_getConfig(config);
 
     cargs->apiStatus = MultiProc_S_SUCCESS;
     SETIOV(&ctp->iov[0], &msg->o, sizeof(msg->o) +
         sizeof(MultiProcDrv_CmdArgs));
-    SETIOV(&ctp->iov[1], &local_config, sizeof(MultiProc_Config));
+    SETIOV(&ctp->iov[1], config, sizeof(MultiProc_Config));
 
     return _RESMGR_NPARTS(2);
 }
