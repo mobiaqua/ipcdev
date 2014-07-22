@@ -354,18 +354,6 @@ int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
     return(stat);
 }
 
-#if defined(SYSLINK_BUILDOS_QNX)
-/*
- *  ======== MmRcp_getId ========
- */
-uint32_t MmRpc_getId(MmRpc_Handle handle)
-{
-    MmRpc_Object *obj = (MmRpc_Object *)handle;
-
-    return obj->connect.id;
-}
-#endif
-
 #if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
 /*
  *  ======== MmRpc_bufHandle ========

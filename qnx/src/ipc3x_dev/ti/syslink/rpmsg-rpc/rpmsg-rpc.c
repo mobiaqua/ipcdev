@@ -670,8 +670,6 @@ _rpmsg_rpc_create(resmgr_context_t *ctp, io_devctl_t *msg, rpmsg_rpc_ocb_t *ocb)
     Int status = EOK;
     struct rppc_create_instance * cargs =
         (struct rppc_create_instance *)(_DEVCTL_DATA (msg->i));
-    struct rppc_create_instance * out =
-        (struct rppc_create_instance *) (_DEVCTL_DATA (msg->o));
     struct rppc_msg_header * msg_hdr = NULL;
     rpmsg_rpc_object * rpc = ocb->rpc;
     Char * msg_data = NULL;
@@ -710,10 +708,7 @@ _rpmsg_rpc_create(resmgr_context_t *ctp, io_devctl_t *msg, rpmsg_rpc_ocb_t *ocb)
             status = OsalSemaphore_pend(rpmsg_rpc_state.sem, 5000);
             if (rpc->created == TRUE) {
                 msg->o.ret_val = EOK;
-                /* Use the remote endpoint address to identify this instance */
-                out->id = rpc->remoteAddr;
-                status = (_RESMGR_PTR(ctp, &msg->o, sizeof(msg->o) +
-                    sizeof(struct rppc_create_instance)));
+                status = (_RESMGR_PTR(ctp, &msg->o, sizeof(msg->o)));
             }
             else if (status < 0) {
                 GT_0trace(curTrace, GT_4CLASS, "Semaphore pend failed.");

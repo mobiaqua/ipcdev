@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,8 @@
 #include <xdc/runtime/knl/SemThread.h>
 #include <xdc/runtime/knl/Thread.h>
 #include <xdc/runtime/System.h>
+
+#include <ti/sysbios/knl/Task.h>
 
 #define MSGBUFFERSIZE    512   /* Make global and move to RPMessage.h */
 
@@ -1527,6 +1529,7 @@ Int RcmServer_execMsg_I(RcmServer_Object *obj, RcmClient_Message *msg)
         System_printf("RcmServer_execMsg_I: Calling fxnIdx: %d\n",
                       (msg->fxnIdx & 0x0000FFFF));
 #endif
+        Task_setEnv(Task_self(), (Ptr)RcmServer_getLocalAddress(obj));
 #if USE_RPMESSAGE
         if (createFxn)  {
             msg->result = (*createFxn)(obj, msg->dataSize, msg->data);
@@ -1537,6 +1540,7 @@ Int RcmServer_execMsg_I(RcmServer_Object *obj, RcmClient_Message *msg)
 #else
         msg->result = (*fxn)(msg->dataSize, msg->data);
 #endif
+        Task_setEnv(Task_self(), NULL);
     }
 
     return(status);

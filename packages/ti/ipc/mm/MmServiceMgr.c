@@ -107,22 +107,11 @@ Int MmServiceMgr_register(const String name, RcmServer_Params *rcmParams,
     return(status);
 }
 
-
 /*
- *  ======== MmServiceMgr_register2 ========
+ *  ======== MmServiceMgr_getId ========
  */
-Int MmServiceMgr_register2(const String name, RcmServer_Params *rcmParams,
-        MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn2 delFxn)
+UInt32 MmServiceMgr_getId()
 {
-    Int status = MmServiceMgr_S_SUCCESS;
-    OmapRpc_Handle handle;
-
-    handle = OmapRpc_createChannel2(name, MultiProc_getId("HOST"),
-            MmServiceMgr_PORT, rcmParams, fxnSigTab, delFxn);
-
-    if (handle == NULL) {
-        status = MmServiceMgr_E_FAIL;
-    }
-
-    return(status);
+    /* The id has been stashed onto the task environment */
+    return ((UInt32)Task_getEnv(Task_self()));
 }
