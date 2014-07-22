@@ -49,6 +49,7 @@ typedef struct NameServerMsg {
     Bits32  value;              /* holds value                      */
     Bits32  request;            /* whether its a request/response   */
     Bits32  requestStatus;      /* status of request                */
+    Bits32  seqNum;             /* NameServer request sequence #    */
                                 /* name of NameServer instance      */
     Bits32  instanceName[NAMEARRAYSZIE];
                                 /* name of NameServer entry         */

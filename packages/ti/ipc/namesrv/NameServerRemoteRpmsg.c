@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,6 +163,8 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
     NameServerRemote_Msg  *replyMsg;
     Semaphore_Handle      semRemoteWait =
                            NameServerRemoteRpmsg_module->semRemoteWait;
+    static UInt32         seqNum = 0;
+    Bool                  done = FALSE;
 
     GateMutex_Handle gateMutex = NameServerRemoteRpmsg_module->gateMutex;
 
@@ -181,6 +183,7 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
     msg.request = NameServerRemoteRpmsg_REQUEST;
     msg.requestStatus = 0;
     msg.valueLen = *valueLen;
+    msg.seqNum = seqNum++;
 
     len = strlen(instanceName);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
@@ -197,45 +200,53 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
     RPMessage_send(obj->remoteProcId, NameServerRemoteRpmsg_module->nsPort,
                RPMSG_MESSAGEQ_PORT, (Ptr)&msg, sizeof(msg));
 
-    /* Now pend for response */
-    status = Semaphore_pend(semRemoteWait, NameServerRemoteRpmsg_timeout);
+    while (!done) {
+        /* Now pend for response */
+        status = Semaphore_pend(semRemoteWait, NameServerRemoteRpmsg_timeout);
 
-    if (status == FALSE) {
-        Log_print0(Diags_INFO, FXNN": Wait for NS reply timed out\n");
-        /* return timeout failure */
-        return (NameServer_E_TIMEOUT);
-    }
+        if (status == FALSE) {
+            Log_print0(Diags_INFO, FXNN": Wait for NS reply timed out\n");
+            /* return timeout failure */
+            return (NameServer_E_TIMEOUT);
+        }
 
-    /* get the message */
-    replyMsg = NameServerRemoteRpmsg_module->nsMsg;
+        /* get the message */
+        replyMsg = NameServerRemoteRpmsg_module->nsMsg;
 
-    if (replyMsg->requestStatus) {
-        /* name is found */
+        if (replyMsg->seqNum != seqNum - 1) {
+            /* Ignore responses without current sequence # */
+            continue;
+        }
 
-        /* set length to amount of data that was copied */
-        *valueLen = replyMsg->valueLen;
+        if (replyMsg->requestStatus) {
+            /* name is found */
 
-        /* set the contents of value */
-        if (*valueLen <= sizeof (Bits32)) {
-            memcpy(value, &(replyMsg->value), sizeof(Bits32));
+            /* set length to amount of data that was copied */
+            *valueLen = replyMsg->valueLen;
+
+            /* set the contents of value */
+            if (*valueLen <= sizeof (Bits32)) {
+                memcpy(value, &(replyMsg->value), sizeof(Bits32));
+            }
+            else {
+                memcpy(value, replyMsg->valueBuf, *valueLen);
+            }
+
+            /* set the status to success */
+            status = NameServer_S_SUCCESS;
+            Log_print4(Diags_INFO, FXNN": Reply from: %d, %s:%s, value: 0x%x...\n",
+                  obj->remoteProcId, (IArg)msg.instanceName, (IArg)msg.name,
+                  *(UInt32 *)value);
         }
         else {
-            memcpy(value, replyMsg->valueBuf, *valueLen);
-        }
-
-        /* set the status to success */
-        status = NameServer_S_SUCCESS;
-        Log_print4(Diags_INFO, FXNN": Reply from: %d, %s:%s, value: 0x%x...\n",
-              obj->remoteProcId, (IArg)msg.instanceName, (IArg)msg.name,
-              *(UInt32 *)value);
-    }
-    else {
-        /* name is not found */
-        Log_print2(Diags_INFO, FXNN": value for %s:%s not found.\n",
+            /* name is not found */
+            Log_print2(Diags_INFO, FXNN": value for %s:%s not found.\n",
                    (IArg)msg.instanceName, (IArg)msg.name);
 
-        /* set status to not found */
-        status = NameServer_E_NOTFOUND;
+            /* set status to not found */
+            status = NameServer_E_NOTFOUND;
+        }
+        done = TRUE;
     }
 
 exit:

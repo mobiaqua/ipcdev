@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -805,6 +805,8 @@ Int NameServer_getRemote(NameServer_Handle handle,
     struct timeval tv;
     char buf = '1';
     int numBytes;
+    static int seqNum = 0;
+    Bool done = FALSE;
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
@@ -817,6 +819,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     nsMsg.request = NAMESERVER_REQUEST;
     nsMsg.requestStatus = 0;
     nsMsg.valueLen = *len;
+    nsMsg.seqNum = seqNum++;
 
     strncpy((char *)nsMsg.instanceName, obj->name, strlen(obj->name) + 1);
     strncpy((char *)nsMsg.name, name, strlen(name) + 1);
@@ -824,6 +827,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     LOG2("NameServer_getRemote: Requesting from procId %d, %s:",
            procId, (String)nsMsg.instanceName)
     LOG1("%s...\n", (String)nsMsg.name)
+
     /* send message */
     mqcStatus = MessageQCopy_send(procId, MultiProc_self(), MESSAGEQ_RPMSG_PORT,
             RPMSG_RESERVED_ADDRESSES, &nsMsg, sizeof(NameServerMsg),
@@ -834,65 +838,72 @@ Int NameServer_getRemote(NameServer_Handle handle,
         goto exit;
     }
 
-    /* Block on waitFd for signal from listener thread: */
-    waitFd = NameServer_module->waitFdR;
-    FD_ZERO(&rfds);
-    FD_SET(waitFd, &rfds);
-    maxfd = waitFd + 1;
-    LOG1("NameServer_getRemote: pending on waitFd: %d\n", waitFd)
-    ret = select(maxfd, &rfds, NULL, NULL, &tv);
-    if (ret == -1) {
-        LOG0("NameServer_getRemote: select failed.")
-        status = NameServer_E_FAIL;
-        goto exit;
-    }
-    else if (!ret) {
-        LOG0("NameServer_getRemote: select timed out.\n")
-        status = NameServer_E_TIMEOUT;
-        goto exit;
-    }
-
-    if (FD_ISSET(waitFd, &rfds)) {
-        /* Read, just to balance the write: */
-        numBytes = read(waitFd, &buf, sizeof(buf));
-
-        /* Process response: */
-        replyMsg = &NameServer_module->nsMsg;
-
-        if (replyMsg->requestStatus) {
-            /* name is found */
-
-            /* set length to amount of data that was copied */
-            *len = replyMsg->valueLen;
-
-            /* set the contents of value */
-            if (*len <= sizeof (Bits32)) {
-                *(UInt32 *)value = (UInt32)replyMsg->value;
-                LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                    procId, (String)replyMsg->instanceName)
-                LOG2("%s, value: 0x%x...\n",
-                    (String)replyMsg->name, *(UInt32 *)value)
-            }
-            else {
-                memcpy(value, replyMsg->valueBuf, *len);
-                LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                    procId, (String)replyMsg->instanceName)
-                LOG2("%s, value buffer at address: 0x%p...\n",
-                    (String)replyMsg->name, value)
-            }
-
+    while (!done) {
+        /* Block on waitFd for signal from listener thread: */
+        waitFd = NameServer_module->waitFdR;
+        FD_ZERO(&rfds);
+        FD_SET(waitFd, &rfds);
+        maxfd = waitFd + 1;
+        LOG1("NameServer_getRemote: pending on waitFd: %d\n", waitFd)
+        ret = select(maxfd, &rfds, NULL, NULL, &tv);
+        if (ret == -1) {
+            LOG0("NameServer_getRemote: select failed.")
+            status = NameServer_E_FAIL;
             goto exit;
         }
-        else {
-            /* name is not found */
-            LOG2("NameServer_getRemote: value for %s:%s not found.\n",
-                 (String)replyMsg->instanceName, (String)replyMsg->name)
-
-            /* set status to not found */
-            status = NameServer_E_NOTFOUND;
+        else if (!ret) {
+            LOG0("NameServer_getRemote: select timed out.\n")
+            status = NameServer_E_TIMEOUT;
+            goto exit;
         }
-    }
 
+        if (FD_ISSET(waitFd, &rfds)) {
+            /* Read, just to balance the write: */
+            numBytes = read(waitFd, &buf, sizeof(buf));
+
+            /* Process response: */
+            replyMsg = &NameServer_module->nsMsg;
+
+            if (replyMsg->seqNum != seqNum - 1) {
+                /* Ignore responses without current sequence # */
+                continue;
+            }
+
+            if (replyMsg->requestStatus) {
+                /* name is found */
+
+                /* set length to amount of data that was copied */
+                *len = replyMsg->valueLen;
+
+                /* set the contents of value */
+                if (*len <= sizeof (Bits32)) {
+                    *(UInt32 *)value = (UInt32)replyMsg->value;
+                    LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                        procId, (String)replyMsg->instanceName)
+                    LOG2("%s, value: 0x%x...\n",
+                        (String)replyMsg->name, *(UInt32 *)value)
+                }
+                else {
+                    memcpy(value, replyMsg->valueBuf, *len);
+                    LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                        procId, (String)replyMsg->instanceName)
+                    LOG2("%s, value buffer at address: 0x%p...\n",
+                        (String)replyMsg->name, value)
+                }
+
+                goto exit;
+            }
+            else {
+                /* name is not found */
+                LOG2("NameServer_getRemote: value for %s:%s not found.\n",
+                     (String)replyMsg->instanceName, (String)replyMsg->name)
+
+                /* set status to not found */
+                status = NameServer_E_NOTFOUND;
+            }
+        }
+        done = TRUE;
+    }
 exit:
     pthread_mutex_unlock(&NameServer_module->modGate);
 
