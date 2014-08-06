@@ -211,6 +211,10 @@ for (arg = 0; arg < arguments.length; arg++) {
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp2");
                 break;
 
+            case 'TDA3XX':
+                target.platforms.$add("ti.platforms.evmTDA3XX");
+                break;
+
             case 'NONE':
                 /* okay, no platform specified */
                 break;
@@ -236,6 +240,10 @@ for (arg = 0; arg < arguments.length; arg++) {
             case 'DRA7XX':
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu2");
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu1");
+                break;
+
+            case 'TDA3XX':
+                target.platforms.$add("ti.platforms.evmTDA3XX");
                 break;
 
             case 'NONE':
