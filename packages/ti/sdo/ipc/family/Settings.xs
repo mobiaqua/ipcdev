@@ -296,7 +296,7 @@ var notifySetupDelegates = {
     'F28M3.*'           : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Vayu'              : { del: 'ti.sdo.ipc.family.vayu.NotifySetup', },
-    'TDA3X'             : { del: 'ti.sdo.ipc.family.vayu.NotifySetup'  },
+    'TDA3X'             : { del: 'ti.sdo.ipc.family.tda3xx.NotifySetup'  },
     'OMAP5430'          : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull' }
 
 };
@@ -342,7 +342,7 @@ var interruptDelegates = {
     },
     'ti.catalog.arm.cortexm4' : {
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptIpu', },
-        'TDA3X'         : { del: 'ti.sdo.ipc.family.vayu.InterruptIpu' },
+        'TDA3X'         : { del: 'ti.sdo.ipc.family.tda3xx.InterruptIpu' },
     },
     'ti.catalog.arm.cortexa8' : {
         'TMS320TI816X'  : { del: 'ti.sdo.ipc.family.ti81xx.InterruptHost', },
@@ -368,13 +368,13 @@ var interruptDelegates = {
         'OMAP4430'      : { del: 'ti.sdo.ipc.family.omap4430.InterruptDsp', },
         'Arctic'        : { del: 'ti.sdo.ipc.family.arctic.InterruptDsp', },
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptDsp', },
-        'TDA3X'         : { del: 'ti.sdo.ipc.family.vayu.InterruptDsp' },
+        'TDA3X'         : { del: 'ti.sdo.ipc.family.tda3xx.InterruptDsp' },
     },
     'ti.catalog.arp32' : {
         'TMS320C6A8149' : { del: 'ti.sdo.ipc.family.c6a8149.InterruptEve', },
         'Arctic'        : { del: 'ti.sdo.ipc.family.arctic.InterruptArp32', },
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptArp32', },
-        'TDA3X'         : { del: 'ti.sdo.ipc.family.vayu.InterruptArp32' },
+        'TDA3X'         : { del: 'ti.sdo.ipc.family.tda3xx.InterruptArp32' },
     },
     'ti.catalog.c2800' : {
         'F28M3.*'       : { del: 'ti.sdo.ipc.family.f28m35x.InterruptC28', },

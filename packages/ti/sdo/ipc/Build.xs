@@ -397,7 +397,10 @@ var C66Sources   = "ipc/gates/GateHWSem.c " +
                    "ipc/family/tci663x/NotifySetup.c " +
                    "ipc/family/vayu/InterruptDsp.c " +
                    "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c ";
+                   "ipc/family/vayu/NotifySetup.c " +
+                   "ipc/family/tda3xx/InterruptDsp.c " +
+                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ipc/family/tda3xx/NotifySetup.c ";
 
 var C674Sources  = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/da830/NotifySetup.c " +
@@ -452,12 +455,18 @@ var M3Sources    = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/f28m35x/NameServerBlock.c " +
                    "ipc/family/vayu/InterruptIpu.c " +
                    "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c ";
+                   "ipc/family/vayu/NotifySetup.c " +
+                   "ipc/family/tda3xx/InterruptIpu.c " +
+                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ipc/family/tda3xx/NotifySetup.c ";
 
 var M4Sources    = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/vayu/InterruptIpu.c " +
                    "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c ";
+                   "ipc/family/vayu/NotifySetup.c " +
+                   "ipc/family/tda3xx/InterruptIpu.c " +
+                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ipc/family/tda3xx/NotifySetup.c ";
 
 var Arm9Sources  = "ipc/family/dm6446/NotifySetup.c " +
                    "ipc/family/dm6446/NotifyCircSetup.c " +
@@ -510,7 +519,10 @@ var ARP32Sources = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/c6a8149/InterruptEve.c " +
                    "ipc/family/vayu/InterruptArp32.c " +
                    "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c ";
+                   "ipc/family/vayu/NotifySetup.c " +
+                   "ipc/family/tda3xx/InterruptArp32.c " +
+                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ipc/family/tda3xx/NotifySetup.c ";
 
 var cList = {
     "ti.targets.C28_large"              : commonSources + C28Sources,
@@ -564,6 +576,7 @@ var ipcPackages = [
     "ti.sdo.ipc.family.c647x",
     "ti.sdo.ipc.family.c6a8149",
     "ti.sdo.ipc.family.tci663x",
+    "ti.sdo.ipc.family.tda3xx",
     "ti.sdo.ipc.family.vayu",
     "ti.sdo.ipc.gates",
     "ti.sdo.ipc.heaps",
