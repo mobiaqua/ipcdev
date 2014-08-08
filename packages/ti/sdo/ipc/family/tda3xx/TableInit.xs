@@ -136,6 +136,8 @@ function generateTable(mod)
 
     /* 'i' is src core index, and
      * 'j' is dst core index
+     *
+     *  enc(mbxIdx, user, fifo)
      */
 
     mod.mailboxTable[idx(mod,0,0)] = -1;            /* DSP1 -> DSP1 */
@@ -154,7 +156,7 @@ function generateTable(mod)
     mod.mailboxTable[idx(mod,2,1)] = enc(2,1,4);    /* IPU1-0 -> DSP2 */
     mod.mailboxTable[idx(mod,2,2)] = -1;            /* IPU1-0 -> IPU1-0 */
     mod.mailboxTable[idx(mod,2,3)] = enc(2,3,11);   /* IPU1-0 -> IPU1-1 */
-    mod.mailboxTable[idx(mod,2,4)] = enc(0,4,5);    /* IPU1-0 -> EVE1 */
+    mod.mailboxTable[idx(mod,2,4)] = enc(0,0,5);    /* IPU1-0 -> EVE1 */
 
     mod.mailboxTable[idx(mod,3,0)] = enc(2,2,0);    /* IPU1-1 -> DSP1 */
     mod.mailboxTable[idx(mod,3,1)] = enc(2,1,5);    /* IPU1-1 -> DSP2 */
