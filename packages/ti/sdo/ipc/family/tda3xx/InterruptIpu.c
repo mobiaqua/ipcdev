@@ -358,21 +358,11 @@ Void InterruptIpu_intShmDucatiStub(UArg arg)
     UInt16 index;
     InterruptIpu_FxnTable *table;
 
-    if (Core_ipuId == 1) {
-        if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
-            index = 9;
-        }
-        else {
-            index = 6;
-        }
+    if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
+        index = 3;
     }
     else {
-        if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
-            index = 10;
-        }
-        else {
-            index = 7;
-        }
+        index = 2;
     }
 
     table = &(InterruptIpu_module->fxnTable[index]);
