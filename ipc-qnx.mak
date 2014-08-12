@@ -36,12 +36,10 @@ include ./products.mak
 # Setup QNX paths
 ifneq ($(wildcard $(QNX_INSTALL_DIR)),)
     QNX_PATH := $(QNX_INSTALL_DIR)/host/linux/x86/usr/bin
-    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/host/linux/x86/bin
-    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/host/linux/x86/sbin
-    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/host/linux/x86/usr/sbin
-    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/linux/x86/usr/photon/appbuilder
+    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/.qnx/bin
+    QNX_PATH := $(QNX_PATH):$(QNX_INSTALL_DIR)/jre/bin
 
-    export QNX_CONFIGURATION?=$(QNX_INSTALL_DIR)/etc/qnx
+    export QNX_CONFIGURATION?=$(QNX_INSTALL_DIR)/.qnx
     export QNX_HOST?=$(QNX_INSTALL_DIR)/host/linux/x86
     export QNX_TARGET?=$(QNX_INSTALL_DIR)/target/qnx6
     export MAKEFLAGS=-I$(QNX_INSTALL_DIR)/target/qnx6/usr/include
