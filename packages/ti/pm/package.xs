@@ -88,6 +88,8 @@ function getLibs(prog)
     var libAry = [];
     var profile = this.profile;
     var smp = "";
+    var device = prog.cpu.deviceName;
+    var platform = "";
 
     suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
@@ -98,13 +100,28 @@ function getLibs(prog)
         smp = "_smp";
     }
 
+    switch (device) {
+        case "OMAP5430":
+            platform = "_omap5";
+            break;
+
+        case "Vayu":
+        case "DRA7XX":
+            platform = "_vayu";
+            break;
+
+        default:
+            throw ("Unspported device: " + device);
+            return "";  /* nothing to contribute */
+    }
+
     /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.pm" + smp + ".a" + suffix;
+    file = "lib/" + profile + "/ti.pm" + smp + platform + ".a" + suffix;
     if (java.io.File(this.packageBase + file).exists()) {
         libAry.push(file);
     }
     else {
-        file = "lib/release/ti.pm" + smp + ".a" + suffix;
+        file = "lib/release/ti.pm" + smp + platform + ".a" + suffix;
         if (java.io.File(this.packageBase + file).exists()) {
             libAry.push(file);
         }

@@ -59,11 +59,11 @@
 #ifndef SMP
 #include <ti/sysbios/family/arm/ducati/omap4430/Power.h>
 #include <ti/sysbios/family/arm/ducati/Core.h>
-#include <ti/ipc/MultiProc.h>
 #else
 #include <ti/sysbios/family/arm/ducati/smp/Power.h>
 #endif
 
+#include <ti/ipc/MultiProc.h>
 #include <ti/pm/IpcPower.h>
 #include "_IpcPower.h"
 
@@ -119,6 +119,8 @@ typedef enum IpcPower_SleepMode {
 /* Deep sleep state variable for IpcPower module */
 static Bool IpcPower_deepSleep = TRUE;
 
+static IpcPower_WugenEvtMask wugenEvtMask;
+
 
 /*
  *  ======== IpcPower_callUserFxns ========
@@ -161,9 +163,28 @@ static inline Void IpcPower_sleepMode(IpcPower_SleepMode opt)
     Hwi_restore(hwiKey);
 }
 
-static inline Void IpcPower_setWugen()
+Void IpcPower_getWugenEvtMask(IpcPower_WugenEvtMask *mask)
 {
-    REG32(WUGEN_MEVT1) |= WUGEN_INT_MASK;
+    mask->mevt0 = wugenEvtMask.mevt0;
+    mask->mevt1 = wugenEvtMask.mevt1;
+}
+
+Void IpcPower_setWugenEvtMask(IpcPower_WugenEvtMask *mask)
+{
+    wugenEvtMask.mevt0 = mask->mevt0;
+    wugenEvtMask.mevt1 = mask->mevt1;
+}
+
+static inline Void IpcPower_getWugen(IpcPower_WugenEvtMask *mask)
+{
+    mask->mevt0 = REG32(WUGEN_MEVT0);
+    mask->mevt1 = REG32(WUGEN_MEVT1);
+}
+
+static inline Void IpcPower_setWugen(IpcPower_WugenEvtMask *mask)
+{
+    REG32(WUGEN_MEVT0) = mask->mevt0;
+    REG32(WUGEN_MEVT1) = mask->mevt1;
 }
 
 /*
@@ -191,7 +212,7 @@ static Void IpcPower_suspendSwi(UArg arg0, UArg arg1)
     Power_suspend(&PowerSuspArgs);
 #ifndef SMP
     IpcPower_sleepMode(IpcPower_SLEEP_MODE_DEEPSLEEP);
-    IpcPower_setWugen();
+    IpcPower_setWugen(&wugenEvtMask);
 
     Log_print0(Diags_INFO, FXNN":Resume");
 #endif
@@ -299,7 +320,22 @@ Void IpcPower_init()
 #endif
     PowerSuspArgs.intMask79_64 = 0x0;
     IpcPower_sleepMode(IpcPower_SLEEP_MODE_DEEPSLEEP);
-    IpcPower_setWugen();
+
+    IpcPower_getWugen(&wugenEvtMask);
+#ifdef OMAP5
+    wugenEvtMask.mevt0 |= OMAP_IPU_WUGEN_INT_MASK0;
+    wugenEvtMask.mevt1 |= OMAP_IPU_WUGEN_INT_MASK1;
+#else
+    if (MultiProc_self() == MultiProc_getId("IPU2")) {
+        wugenEvtMask.mevt0 |= VAYU_IPU2_WUGEN_INT_MASK0;
+        wugenEvtMask.mevt1 |= VAYU_IPU2_WUGEN_INT_MASK1;
+    }
+    else {
+        wugenEvtMask.mevt0 |= VAYU_IPU1_WUGEN_INT_MASK0;
+        wugenEvtMask.mevt1 |= VAYU_IPU1_WUGEN_INT_MASK1;
+    }
+#endif
+    IpcPower_setWugen(&wugenEvtMask);
 }
 
 /*
