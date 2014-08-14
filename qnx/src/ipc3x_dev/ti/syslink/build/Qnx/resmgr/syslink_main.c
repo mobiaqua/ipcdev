@@ -93,6 +93,9 @@ static int verbosity = 2;
 static int disableRecovery = false;
 static char * logFilename = NULL;
 
+/* Number of cores to attach to */
+static int numAttach = 0;
+
 #if defined(SYSLINK_PLATFORM_VAYU)
 static bool gatempEnabled = false;
 #endif
@@ -115,6 +118,7 @@ typedef struct syslink_firmware_info_t {
     uint16_t proc_id;
     char * proc;
     char * firmware;
+    bool attachOnly;
 } syslink_firmware_info;
 static syslink_firmware_info syslink_firmware[MultiProc_MAXPROCESSORS];
 static unsigned int syslink_num_cores = 0;
@@ -585,6 +589,8 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
             pthread_mutex_unlock(&dev->lock);
         }
 
+        memset(procH_fileId, 0, sizeof(procH_fileId));
+
         for (i = 0; i < syslink_num_cores; i++) {
             procId = firmware[i].proc_id = MultiProc_getId(firmware[i].proc);
             if (procId >= MultiProc_MAXPROCESSORS) {
@@ -602,6 +608,14 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 break;
             }
 
+            if (recover) {
+                /*
+                 * if we are in recovery, we load the cores we previously
+                 * attached to
+                 */
+                syslink_firmware[i].attachOnly = false;
+            }
+
             if (syslink_firmware[i].firmware) {
                 rscHandle[procId] = RscTable_alloc(firmware[i].firmware, procId);
                 if (rscHandle[procId] == NULL) {
@@ -616,6 +630,9 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
 
             /* Load and start the remote processor. */
             ProcMgr_getAttachParams (procH[procId], &attachParams);
+            if (syslink_firmware[i].attachOnly) {
+                attachParams.bootMode = ProcMgr_BootMode_NoBoot;
+            }
             status = ProcMgr_attach (procH[procId], &attachParams);
             if (status < 0) {
                 GT_setFailureReason (curTrace,
@@ -626,7 +643,8 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto procmgrattach_fail;
             }
 
-            if (syslink_firmware[i].firmware) {
+            if ((syslink_firmware[i].firmware) &&
+                (!syslink_firmware[i].attachOnly)) {
                 status = ProcMgr_load (procH[procId],
                                        (String)firmware[i].firmware, 0, NULL,
                                         NULL, &procH_fileId[procId]);
@@ -656,14 +674,16 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto procmgrreg_fail;
             }
 
-            status = ProcMgr_start(procH[procId], NULL);
-            if (status < 0) {
-                GT_setFailureReason (curTrace,
+            if (!syslink_firmware[i].attachOnly) {
+                status = ProcMgr_start(procH[procId], NULL);
+                if (status < 0) {
+                    GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "init_ipc",
                                      status,
                                      "ProcMgr_start failed!");
-                goto procmgrstart_fail;
+                    goto procmgrstart_fail;
+                }
             }
 
             continue;
@@ -674,8 +694,10 @@ procmgrstart_fail:
 procmgrreg_fail:
             Ipc_detach(procId);
 ipcattach_fail:
-            if (syslink_firmware[i].firmware)
+            if ((syslink_firmware[i].firmware) &&
+                (!syslink_firmware[i].attachOnly)) {
                 ProcMgr_unload(procH[procId], procH_fileId[procId]);
+            }
 procmgrload_fail:
             ProcMgr_detach(procH[procId]);
 procmgrattach_fail:
@@ -734,10 +756,12 @@ tiipcsetup_fail:
         }
         ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
                                 (Ptr)dev, errStates);
-        ProcMgr_stop(procH[procId]);
-        if (procH_fileId[procId]) {
-            ProcMgr_unload(procH[procId], procH_fileId[procId]);
-            procH_fileId[procId] = 0;
+        if (!syslink_firmware[i].attachOnly) {
+            ProcMgr_stop(procH[procId]);
+            if (procH_fileId[procId]) {
+                ProcMgr_unload(procH[procId], procH_fileId[procId]);
+                procH_fileId[procId] = 0;
+            }
         }
         ProcMgr_detach(procH[procId]);
         ProcMgr_close(&procH[procId]);
@@ -767,7 +791,8 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
 
     // Stop the remote cores right away
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
-        if (procH[i]) {
+        /* Only stop the ones that we have loaded */
+        if ((procH[i]) && (procH_fileId[i])) {
             GT_1trace(curTrace, GT_4CLASS, "stopping %s", MultiProc_getName(i));
             ProcMgr_stop(procH[i]);
         }
@@ -864,7 +889,7 @@ static Void printUsage (Char * app)
 {
     printf("\n\nUsage:\n");
 #if defined(SYSLINK_PLATFORM_OMAP5430)
-    printf("\n%s: [-HTdc] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+    printf("\n%s: [-HTdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
     printf("  <core_id#> should be set to a core name (e.g. IPU, DSP)\n");
     printf("      followed by the path to the executable to load on that core.\n");
@@ -874,16 +899,18 @@ static Void printUsage (Char * app)
     printf("  -T <arg>    specify the hibernation timeout in ms, Default:"
         " 5000 ms)\n");
 #else
-    printf("\n%s: [-gdc] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+    printf("\n%s: [-gdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
     printf("  <core_id#> should be set to a core name (e.g. DSP1, IPU2)\n");
     printf("      followed by the path to the executable to load on that core.\n");
     printf("Options:\n");
-    printf("  -g          enable GateMP support on host\n");
+    printf("  -g   enable GateMP support on host\n");
 #endif
-    printf("  -d          disable recovery\n");
+    printf("  -d   disable recovery\n");
     printf("  -c <file>   generate dump of slave trace during crashes (use\n");
     printf("              absolute path for filename)\n");
+    printf("  -a<n> specify that the first n cores have been pre-loaded\n");
+    printf("        and started. Perform late-attach to these cores.\n");
 
     exit (EXIT_SUCCESS);
 }
@@ -915,7 +942,7 @@ int main(int argc, char *argv[])
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "H:T:U:gc:dv:");
+        c = getopt (argc, argv, "H:T:U:gc:dv:a:");
         if (c == -1)
             break;
 
@@ -941,6 +968,9 @@ int main(int argc, char *argv[])
         case 'c':
             logFilename = optarg;
             break;
+        case 'a':
+            numAttach = atoi(optarg);
+            break;
         case 'v':
             verbosity++;
             break;
@@ -963,9 +993,10 @@ int main(int argc, char *argv[])
             return (error);
         }
         syslink_firmware[syslink_num_cores].proc = argv [optind];
+        syslink_firmware[syslink_num_cores].attachOnly =
+            ((numAttach-- > 0) ? true : false);
         syslink_firmware[syslink_num_cores++].firmware = argv [optind+1];
     }
-
 
     /* Get the name of the binary from the input args */
     if (!syslink_num_cores) {

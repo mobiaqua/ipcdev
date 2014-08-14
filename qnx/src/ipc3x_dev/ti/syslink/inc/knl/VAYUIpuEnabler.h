@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -252,6 +252,10 @@ struct iotlb_lock {
 Int rproc_ipu_setup (VAYUIPU_HalObject * halObject,
                      ProcMgr_AddrInfo * memEntries, UInt32 numMemEntries);
 Void rproc_ipu_destroy (VAYUIPU_HalObject * halObject);
+
+Int rproc_mem_lookup(VAYUIPU_HalObject * halObject,
+    UInt32 da, UInt32 * pAddr);
+
 UInt32 get_IpuVirtAdd (VAYUIPU_HalObject * halObject,
                        UInt32 physAdd);
 Int save_ipu_mmu_ctxt (VAYUIPU_HalObject * halObject, UInt32 procId);

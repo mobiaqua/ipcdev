@@ -458,6 +458,7 @@ VAYUIPUCORE1PROC_create (      UInt16                procId,
                 handle->procFxnTable.map         = &VAYUIPUCORE1PROC_map;
                 handle->procFxnTable.unmap       = &VAYUIPUCORE1PROC_unmap;
                 handle->procFxnTable.translateAddr = &VAYUIPUCORE1PROC_translate;
+                handle->procFxnTable.translateFromPte = NULL;
                 handle->state = ProcMgr_State_Unknown;
 
                 /* Allocate memory for the VAYUIPUCORE1PROC handle */
@@ -873,38 +874,52 @@ VAYUIPUCORE1PROC_attach(
         object = (VAYUIPUCORE1PROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
-        /* Added for Netra Benelli core0 is cortex M4 */
+        /* Initialize halObject for Processor_translateFromPte to work */
+        halParams.procId = procHandle->procId;
+        status = VAYUIPU_halInit(&(object->halObject), &halParams);
+
+        if (status < 0) {
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUIPUCORE1PROC_attach", status,
+                "VAYUIPU_halInit failed");
+        }
+
+        /* Added for Netra Benelli core1 is cortex M4 */
         params->procArch = Processor_ProcArch_M4;
 
         object->pmHandle = params->pmHandle;
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUIPUCORE1PROC_attach: Mapping memory regions");
 
-        /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId,
+        if (status >= 0) {
+            /* search for dsp memory map */
+            status = RscTable_process(procHandle->procId,
                                   TRUE,
-                                  &memBlock.numEntries);
-        if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
-            /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
-            status = PROCESSOR_E_INVALIDARG;
-            GT_setFailureReason (curTrace,
+                                  &memBlock.numEntries,
+                                  procHandle,
+                                  procHandle->bootMode);
+            if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
+                /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
+                status = PROCESSOR_E_INVALIDARG;
+                GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "VAYUIPUCORE1PROC_attach",
                                  status,
                                  "Failed to process resource table");
-        }
-        else {
-            status = RscTable_getMemEntries(procHandle->procId,
+            }
+            else {
+                status = RscTable_getMemEntries(procHandle->procId,
                                             memBlock.memEntries,
                                             &memBlock.numEntries);
-            if (status < 0) {
-                /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
-                status = PROCESSOR_E_INVALIDARG;
-                GT_setFailureReason (curTrace,
+                if (status < 0) {
+                    /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
+                    status = PROCESSOR_E_INVALIDARG;
+                    GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "VAYUIPUCORE1PROC_attach",
                                      status,
                                      "Failed to get resource table memEntries");
+                }
             }
         }
 
@@ -980,68 +995,54 @@ VAYUIPUCORE1PROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            halParams.procId = procHandle->procId;
-            status = VAYUIPU_halInit(&(object->halObject), &halParams);
+            if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
+                || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined(SYSLINK_BUILD_HLOS)
-            if (status < 0) {
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUIPUCORE1PROC_attach", status,
-                    "VAYUIPU_halInit failed");
-            }
-            else {
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUIPUCORE1PROC_attach", status,
+                        "Failed to reset the slave processor");
+                }
+                else {
 #endif
-                if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
-                    || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
+                    GT_0trace(curTrace, GT_1CLASS,
+                        "VAYUIPUCORE1PROC_attach: slave is now in reset");
 
+                    mmuEnableArgs.numMemEntries = 0;
+                    status = VAYUIPU_halMmuCtrl(object->halObject,
+                        Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason(curTrace, GT_4CLASS,
                             "VAYUIPUCORE1PROC_attach", status,
-                            "Failed to reset the slave processor");
+                            "Failed to enable the slave MMU");
                     }
                     else {
 #endif
-                        GT_0trace(curTrace, GT_1CLASS,
-                            "VAYUIPUCORE1PROC_attach: slave is now in reset");
-
-                        mmuEnableArgs.numMemEntries = 0;
-                        status = VAYUIPU_halMmuCtrl(object->halObject,
-                            Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                        GT_0trace(curTrace, GT_2CLASS,
+                            "VAYUIPUCORE1PROC_attach: Slave MMU "
+                            "is configured!");
+                        /*
+                         * Pull IPU MMU out of reset to make internal
+                         * memory "loadable"
+                         */
+                        status = VAYUIPUCORE1_halResetCtrl(
+                            object->halObject,
+                            Processor_ResetCtrlCmd_MMU_Release);
                         if (status < 0) {
-                            GT_setFailureReason(curTrace, GT_4CLASS,
-                                "VAYUIPUCORE1PROC_attach", status,
-                                "Failed to enable the slave MMU");
+                            /*! @retval status */
+                            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "VAYUIPUCORE1_halResetCtrl",
+                                status,
+                                "Reset MMU_Release failed");
                         }
-                        else {
-#endif
-                            GT_0trace(curTrace, GT_2CLASS,
-                                "VAYUIPUCORE1PROC_attach: Slave MMU "
-                                "is configured!");
-                            /*
-                             * Pull IPU MMU out of reset to make internal
-                             * memory "loadable"
-                             */
-                            status = VAYUIPUCORE1_halResetCtrl(
-                                object->halObject,
-                                Processor_ResetCtrlCmd_MMU_Release);
-                            if (status < 0) {
-                                /*! @retval status */
-                                GT_setFailureReason(curTrace,
-                                    GT_4CLASS,
-                                    "VAYUIPUCORE1_halResetCtrl",
-                                    status,
-                                    "Reset MMU_Release failed");
-                            }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                        }
                     }
-#endif
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
-            }
 #endif
+            }
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }

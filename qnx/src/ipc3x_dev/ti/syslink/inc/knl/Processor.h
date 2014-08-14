@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -240,6 +240,12 @@ Int Processor_control (Processor_Handle handle, Int32 cmd, Ptr arg);
 Int Processor_translateAddr (Processor_Handle handle,
                              UInt32 *         dstAddr,
                              UInt32           srcAddr)
+;
+
+/* Function to translate slave virtual address to physical using page table */
+Int Processor_translateFromPte (Processor_Handle handle,
+                                UInt32 *         dstAddr,
+                                UInt32           srcAddr)
 ;
 
 /* Function to map address to slave address space */
