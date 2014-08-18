@@ -274,13 +274,12 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 #elif defined(xdc_target__isaCompatible_arp32)
 
     if ((remoteProcId == NotifySetup_dsp1ProcId)
+        || (remoteProcId == NotifySetup_dsp2ProcId)
         || (remoteProcId == NotifySetup_ipu1_0ProcId)) {
 
         mbxIdx = 0;
     }
-    else if ((remoteProcId == NotifySetup_dsp2ProcId)
-        || (remoteProcId == NotifySetup_ipu1_1ProcId)) {
-
+    else if (remoteProcId == NotifySetup_ipu1_1ProcId) {
         mbxIdx = 1;
     }
     else {
@@ -384,13 +383,12 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
 #elif defined(xdc_target__isaCompatible_arp32)
 
     if ((remoteProcId == NotifySetup_dsp1ProcId)
+        || (remoteProcId == NotifySetup_dsp2ProcId)
         || (remoteProcId == NotifySetup_ipu1_0ProcId)) {
 
         mbxIdx = 0;
     }
-    else if ((remoteProcId == NotifySetup_dsp2ProcId)
-        || (remoteProcId == NotifySetup_ipu1_1ProcId)) {
-
+    else if (remoteProcId == NotifySetup_ipu1_1ProcId) {
         mbxIdx = 1;
     }
     else {

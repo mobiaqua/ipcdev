@@ -29,24 +29,23 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== TableInit.xs ========
- *
- */
 
 /*
- * Virtual Index Assignment:
- *     DSP1   -> 0
- *     DSP2   -> 1
- *     IPU1   -> 2 (IPU1-0)
- *     IPU1-1 -> 3
- *     EVE1   -> 4
+ *  ======== TableInit.xs ========
  */
-var eve1VirtId    = 4;
+
+/* Virtual Index Assignment (invariant)
+ *     DSP1:        0
+ *     DSP2:        1
+ *     IPU1,IPU1-0: 2
+ *     IPU1-1:      3
+ *     EVE1:        4
+ */
 var dsp1VirtId    = 0;
 var dsp2VirtId    = 1;
 var ipu1_0VirtId  = 2;
 var ipu1_1VirtId  = 3;
+var eve1VirtId    = 4;
 
 
 /*
@@ -134,10 +133,17 @@ function generateTable(mod)
      *     3. Sub-Mailbox Index  = mailboxTable[Index] & 0xFF
      */
 
-    /* 'i' is src core index, and
-     * 'j' is dst core index
+    /*  idx(mod, src, dst) - compute table index
+     *      src: source core virtual index
+     *      dst: destination core virtual index
      *
-     *  enc(mbxIdx, user, fifo)
+     *  enc(mbxIdx, user, fifo) - encode mailbox table entry
+     *      mbxIdx: mailbox index
+     *          0: EVE1 Mailbox 0
+     *          1: EVE1 Mailbox 1
+     *          2: System Mailbox 2
+     *      user: mailbox user interrupt
+     *      fifo: mailbox fifo number
      */
 
     mod.mailboxTable[idx(mod,0,0)] = -1;            /* DSP1 -> DSP1 */
@@ -158,7 +164,7 @@ function generateTable(mod)
     mod.mailboxTable[idx(mod,2,3)] = enc(2,3,11);   /* IPU1-0 -> IPU1-1 */
     mod.mailboxTable[idx(mod,2,4)] = enc(0,0,5);    /* IPU1-0 -> EVE1 */
 
-    mod.mailboxTable[idx(mod,3,0)] = enc(2,2,0);    /* IPU1-1 -> DSP1 */
+    mod.mailboxTable[idx(mod,3,0)] = enc(2,0,2);    /* IPU1-1 -> DSP1 */
     mod.mailboxTable[idx(mod,3,1)] = enc(2,1,5);    /* IPU1-1 -> DSP2 */
     mod.mailboxTable[idx(mod,3,2)] = enc(2,2,8);    /* IPU1-1 -> IPU1-0 */
     mod.mailboxTable[idx(mod,3,3)] = -1;            /* IPU1-1 -> IPU1-1 */
