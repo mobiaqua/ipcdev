@@ -280,8 +280,8 @@ Void NotifyDriverCirc_disable(NotifyDriverCirc_Object *obj)
  */
 Void NotifyDriverCirc_enable(NotifyDriverCirc_Object *obj)
 {
-    /* NotifyDriverCirc_enableEvent not supported by this driver */
-    Assert_isTrue(FALSE, NotifyDriverCirc_A_notSupported);
+    /* Enable the incoming interrupt line */
+    NotifyDriverCirc_intEnable();
 }
 
 /*
@@ -302,8 +302,8 @@ Void NotifyDriverCirc_disableEvent(NotifyDriverCirc_Object *obj,
 Void NotifyDriverCirc_enableEvent(NotifyDriverCirc_Object *obj,
                                   UInt32 eventId)
 {
-    /* Enable the incoming interrupt line */
-    NotifyDriverCirc_intEnable();
+    /* NotifyDriverCirc_enableEvent not supported by this driver */
+    Assert_isTrue(FALSE, NotifyDriverCirc_A_notSupported);
 }
 
 /*
