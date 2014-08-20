@@ -132,6 +132,7 @@ Int GateMP_setup(Void)
     UInt32            nsValue[NUM_INFO_FIELDS];
     UInt32            len;
     UInt32            size;
+    UInt32            alignDiff;
     Int32             fdMem;
 
     NameServer_Params_init(&params);
@@ -199,6 +200,12 @@ Int GateMP_setup(Void)
                  LOG1("Failed to map remoteSystemInUse=0x%p to host address" \
                       "  space!", GateMP_module->remoteSystemInUse);
             }
+            else {
+                alignDiff = (off_t)nsValue[0] -
+                    ((off_t)nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                GateMP_module->remoteSystemInUse =
+                    GateMP_module->remoteSystemInUse + alignDiff;
+            }
 
             size = GateMP_module->numRemoteCustom1 * sizeof (UInt8) +
                 (nsValue[0] & (sysconf(_SC_PAGE_SIZE) - 1));
@@ -212,6 +219,12 @@ Int GateMP_setup(Void)
                     status = GateMP_E_MEMORY;
                     LOG1("Failed to map remoteCustom1InUse=%p to host address" \
                         " space!", GateMP_module->remoteCustom1InUse);
+                }
+                else {
+                    alignDiff = (off_t)nsValue[1] -
+                        ((off_t)nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    GateMP_module->remoteCustom1InUse =
+                        GateMP_module->remoteCustom1InUse + alignDiff;
                 }
             }
 
@@ -227,6 +240,12 @@ Int GateMP_setup(Void)
                     status = GateMP_E_MEMORY;
                     LOG1("Failed to map remoteCustom2InUse=%p to host address" \
                         " space!", GateMP_module->remoteCustom2InUse);
+                }
+                else {
+                    alignDiff = (off_t)nsValue[2] -
+                        ((off_t)nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    GateMP_module->remoteCustom2InUse =
+                        GateMP_module->remoteCustom2InUse + alignDiff;
                 }
             }
         }

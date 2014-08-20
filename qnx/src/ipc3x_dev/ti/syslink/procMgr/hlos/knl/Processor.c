@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -697,6 +697,57 @@ Processor_translateAddr (Processor_Handle handle,
     return status;
 }
 
+/*!
+ *  @brief      Function to translate slave virtual address to master physical
+ *              address using MMU page table entries
+ *
+ *  @param      handle     Handle to the Processor object
+ *  @param      dstAddr    Returned: master physical address.
+ *  @param      srcAddr    Slave virtual address.
+ *
+ *  @sa
+ */
+inline
+Int
+Processor_translateFromPte(Processor_Handle handle,
+                         UInt32 *         dstAddr,
+                         UInt32           srcAddr)
+{
+    Int                status     = PROCESSOR_SUCCESS;
+    Processor_Object * procHandle = (Processor_Object *) handle;
+
+    GT_3trace (curTrace, GT_ENTER, "Processor_translateFromPte",
+               handle, dstAddr, srcAddr);
+
+    GT_assert (curTrace, (handle        != NULL));
+    GT_assert (curTrace, (dstAddr       != NULL));
+
+    /* No parameter validation here since this is an internal module, and
+     * validation has already happened at the ProcMgr level.
+     */
+    if (procHandle->procFxnTable.translateFromPte != NULL) {
+        status = procHandle->procFxnTable.translateFromPte(
+            handle, dstAddr, srcAddr);
+    }
+    else {
+        status = PROCESSOR_E_NOTSUPPORTED;
+    }
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "Processor_translateFromPte",
+                             status,
+                             "Processor address translation failed!");
+    }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
+    GT_1trace (curTrace, GT_LEAVE, "Processor_translateFromPte", status);
+
+    /*! @retval PROCESSOR_SUCCESS Operation successful */
+    return status;
+}
 
 /*!
  *  @brief      Function to map address to slave address space.

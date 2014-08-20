@@ -55,6 +55,7 @@ extern "C" {
 #include <ti/syslink/SysLink.h>
 #include <rsc_types.h>
 #include <ti/syslink/ProcMgr.h>
+#include <Processor.h>
 
 /*!
  *  @def    RSCTABLE_MODULEID
@@ -132,7 +133,8 @@ RscTable_Handle RscTable_alloc (Char * fileName, UInt16 procId);
 
 Int RscTable_free (RscTable_Handle * handle);
 
-Int RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks);
+Int RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
+    Processor_Handle procHandle, ProcMgr_BootMode bootMode);
 
 Int RscTable_getMemEntries (UInt16 procId, SysLink_MemEntry * memEntries,
                             UInt32 * numMemEntries);

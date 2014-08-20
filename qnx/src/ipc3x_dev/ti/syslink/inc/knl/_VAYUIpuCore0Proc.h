@@ -8,7 +8,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -108,6 +108,13 @@ Int VAYUIPUCORE0PROC_control (Processor_Handle handle, Int32 cmd, Ptr arg);
 Int VAYUIPUCORE0PROC_translate (Processor_Handle handle,
                                 UInt32 *         dstAddr,
                                 UInt32           srcAddr);
+
+/*
+ * Function to translate slave virtual address into master physical address
+ * using page table
+ */
+Int VAYUIPUCORE0PROC_translateFromPte (Processor_Handle handle,
+    UInt32 * dstAddr, UInt32 srcAddr);
 
 /* Function to map slave address to host address space */
 Int VAYUIPUCORE0PROC_map (Processor_Handle handle,

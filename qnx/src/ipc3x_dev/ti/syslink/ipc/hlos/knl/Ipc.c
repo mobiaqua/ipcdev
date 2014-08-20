@@ -199,6 +199,7 @@ Int Ipc_attach (UInt16 remoteProcId)
             }
 
             if (status >= 0) {
+                /* flush the resource table to device memory */
                 status = RscTable_update(remoteProcId, procHandle);
             }
             ProcMgr_close(&procHandle);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ typedef struct NameServerRemote_Msg {
     Bits32  value;              /* holds value if len <= 4          */
     Bits32  request;            /* whether its a request/response   */
     Bits32  requestStatus;      /* status of request                */
+    Bits32  seqNum;             /* NameServer request sequence #    */
                                 /* name of NameServer instance      */
     Bits32  instanceName[NAMEARRAYSZIE];
                                 /* name of NameServer entry         */

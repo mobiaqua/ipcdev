@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -71,6 +71,9 @@
 
 
 #define PAGE_SIZE 0x1000
+
+/* Size of L1 translation table */
+#define TRANSLATION_TABLE_SIZE 0x4000
 
 /* Attributes of L2 page tables for DSP MMU.*/
 struct page_info {
@@ -1319,6 +1322,146 @@ static Int rproc_mem_map (VAYUIPU_HalObject * halObject,
     return status;
 }
 
+/*
+ *  ======== rproc_mem_lookup ========
+ *  Look up the physical address of a virtual address based on PTEs
+ */
+Int rproc_mem_lookup(VAYUIPU_HalObject * halObject,
+    UInt32 da, UInt32 * pAddr)
+{
+    UInt32 L1_base_va = 0;
+    UInt32 L2_base_va = 0;
+    UInt32 L2_base_pa;
+    UInt32 pte_val;
+    UInt32 pte_size;
+    UInt32 pte_addr_l1;
+    UInt32 pte_addr_l2 = 0;
+    UInt32 vaCurr;
+    Int status = 0;
+    VAYUIpu_MMURegs * mmuRegs;
+    UInt32 tableBaseAddr = 0;
+
+    if (halObject == NULL) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_mem_lookup",
+                             status,
+                             "halObject is NULL");
+    }
+    else if (halObject->mmuBase == 0) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_mem_lookup",
+                             status,
+                             "halObject->mmuBase is 0");
+    }
+    else {
+        /* Retrieve the L1 page table's physical address from TTB */
+        mmuRegs = (VAYUIpu_MMURegs *)halObject->mmuBase;
+        tableBaseAddr = INREG32(&mmuRegs->TTB);
+        vaCurr = da;
+
+        /* Temporarily map to virtual address space */
+        L1_base_va = (UInt32) mmap(NULL,
+                    TRANSLATION_TABLE_SIZE,
+                    PROT_NOCACHE | PROT_READ | PROT_WRITE,
+                    MAP_PHYS | MAP_PRIVATE,
+                    NOFD,
+                    (off_t)tableBaseAddr);
+        if (L1_base_va == (UInt32)MAP_FAILED) {
+            status = -ENOMEM;
+            GT_setFailureReason (curTrace,
+                GT_4CLASS,
+                "rproc_mem_lookup",
+                status,
+                "Memory map failed.");
+                goto EXIT_LOOP;
+        }
+
+        /* Lookup entry in L1 page table */
+        pte_addr_l1 = hw_mmu_pte_addr_l1(L1_base_va, vaCurr);
+        pte_val = *(UInt32 *)pte_addr_l1;
+        pte_size = hw_mmu_pte_sizel1(pte_val);
+
+        if (pte_size == HW_MMU_COARSE_PAGE_SIZE) {
+            /*
+             * Get the L2 PA from the L1 PTE, and find
+             * corresponding L2 VA
+             */
+            L2_base_pa = hw_mmu_pte_coarsel1(pte_val);
+
+            /* Temporarily map to virtual address space */
+            L2_base_va = (UInt32)mmap(NULL, HW_MMU_COARSE_PAGE_SIZE,
+                PROT_NOCACHE | PROT_READ | PROT_WRITE,
+                MAP_PHYS | MAP_PRIVATE,
+                NOFD,
+                (off_t)L2_base_pa);
+            if (L2_base_va == (UInt32)MAP_FAILED) {
+                status = -ENOMEM;
+                GT_setFailureReason (curTrace,
+                         GT_4CLASS,
+                         "rproc_mem_lookup",
+                         status,
+                         "Memory map failed.");
+                goto EXIT_LOOP;
+            }
+
+            /*
+             * Find the L2 PTE address from which we will start
+             * clearing, the number of PTEs to be cleared on this
+             * page, and the size of VA space that needs to be
+             * cleared on this L2 page
+             */
+            pte_addr_l2 = hw_mmu_pte_addr_l2(L2_base_va, vaCurr);
+            /*
+             * Unmap the VA space on this L2 PT. A quicker way
+             * would be to clear pte_count entries starting from
+             * pte_addr_l2. However, below code checks that we don't
+             * clear invalid entries or less than 64KB for a 64KB
+             * entry. Similar checking is done for L1 PTEs too
+             * below
+             */
+            pte_val = *(UInt32 *)pte_addr_l2;
+            pte_size = hw_mmu_pte_sizel2(pte_val);
+            /* vaCurr aligned to pte_size? */
+            if (pte_size != 0) {
+                /* Obtain Physical address from VA */
+                *pAddr = (pte_val & ~(pte_size - 1));
+                *pAddr += (vaCurr & (pte_size - 1));
+            }
+            else {
+                /* Error. Not found */
+                *pAddr = 0;
+                status = -EFAULT;
+            }
+        }
+        else if (pte_size != 0) {
+            /* pte_size = 1 MB or 16 MB */
+            /* entry is in L1 page table */
+            *pAddr = (pte_val & ~(pte_size - 1));
+            *pAddr += (vaCurr & (pte_size - 1));
+        }
+        else {
+            /* Not found */
+            *pAddr = 0;
+            status = -EFAULT;
+        }
+    }
+
+EXIT_LOOP:
+
+    if ((L2_base_va != 0) && (L2_base_va != (UInt32)MAP_FAILED)) {
+        munmap((void *)L2_base_va, HW_MMU_COARSE_PAGE_SIZE);
+    }
+
+    if ((L1_base_va != 0) && (L1_base_va != (UInt32)MAP_FAILED)) {
+        munmap((void *)L1_base_va, TRANSLATION_TABLE_SIZE);
+    }
+
+    return status;
+}
 
 
 /*

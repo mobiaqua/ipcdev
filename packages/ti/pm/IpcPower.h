@@ -78,6 +78,16 @@ typedef enum IpcPower_Event {
  */
 typedef Void (*IpcPower_CallbackFuncPtr)(Int event, Ptr data);
 
+/*!
+ *  @brief  Type representing OMAP's WUGEN_MEVT[0|1] registers
+ *
+ *  For APIs IpcPower_getWugenEvtMask() and IpcPower_setWugenEvtMask()
+ */
+typedef struct IpcPower_WugenEvtMask {
+    UInt32 mevt0;
+    UInt32 mevt1;
+} IpcPower_WugenEvtMask;
+
 /* =============================================================================
  *  IpcPower Functions:
  * =============================================================================
@@ -162,6 +172,29 @@ Int IpcPower_registerCallback(Int event, IpcPower_CallbackFuncPtr fxn,
  *  @sa         IpcPower_unregisterCallback
  */
 Int IpcPower_unregisterCallback(Int event, IpcPower_CallbackFuncPtr fxn);
+
+/*!
+ *  @brief      Retrieve current WUGEN mask used for suspend
+ *
+ *  @param[in]  mask  Pointer to structure for holding WUGEN event mask
+ *
+ *  @sa         IpcPower_suspend, IpcPower_setWugenEvtMask
+ */
+Void IpcPower_getWugenEvtMask(IpcPower_WugenEvtMask *mask);
+
+/*!
+ *  @brief      Set WUGEN mask used for suspend
+ *
+ *  The values in the passed structure are copied into the internal
+ *  WUGEN event mask. To achieve an ORing of certain bits in the mask,
+ *  first retrieve the current mask with IpcPower_getWugenEvtMask() and
+ *  then OR in the bits you want to enable.
+ *
+ *  @param[in]  mask  Pointer to WUGEN event mask structure
+ *
+ *  @sa         IpcPower_suspend, IpcPower_getWugenEvtMask
+ */
+Void IpcPower_setWugenEvtMask(IpcPower_WugenEvtMask *mask);
 
 #if defined (__cplusplus)
 }

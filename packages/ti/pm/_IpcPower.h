@@ -52,10 +52,29 @@ extern "C" {
 #define MIRQ38_SHIFT                    6
 #define MIRQ39_SHIFT                    7
 
+/*
+ * First 16 interrupts are internal interrupts only and do not
+ * have WUGEN bits, and a WUGEN event register can accomodate
+ * 32 interrupts, with one per bit. So IRQs 17 to 48 are programmed
+ * in EVT0 register and IRQs 49 to 80 are programmed in EVT0
+ * register.
+ */
+#define MIRQ_SHIFT(irq)                 (((irq) - 16) % 32)
+
+#define MBX_INT                         50
+#define GPT3_INT                        53
+#define GPT4_INT                        54
+#define GPT9_INT                        55
+#define GPT11_INT                       56
+#define MBX6_U1_INT                     66
+
 #define WUGEN_MAILBOX_BIT               (1 << MIRQ34_SHIFT)
 #define WUGEN_GPT3_BIT                  (1 << MIRQ37_SHIFT)
 #define WUGEN_GPT4_BIT                  (1 << MIRQ38_SHIFT)
 #define WUGEN_GPT9_BIT                  (1 << MIRQ39_SHIFT)
+
+#define WUGEN_GPT11_BIT                 (1 << MIRQ_SHIFT(GPT11_INT))
+#define WUGEN_MBX6_U1_BIT               (1 << MIRQ_SHIFT(MBX6_U1_INT))
 
 /* Wake-up masks for interrupts 00-31 */
 #define WUGEN_MEVT0                     0x4000100C
@@ -63,9 +82,16 @@ extern "C" {
 #define WUGEN_MEVT1                     0x40001010
 
 /* Enable Mailbox, GPT3, and GPT4 interrupts as Wakeup sources */
-#define WUGEN_INT_MASK                  (WUGEN_MAILBOX_BIT | \
+#define OMAP_IPU_WUGEN_INT_MASK0        0
+#define OMAP_IPU_WUGEN_INT_MASK1        (WUGEN_MAILBOX_BIT | \
                                          WUGEN_GPT3_BIT    | \
                                          WUGEN_GPT4_BIT)
+#define VAYU_IPU2_WUGEN_INT_MASK0       0
+#define VAYU_IPU2_WUGEN_INT_MASK1       (WUGEN_GPT3_BIT | \
+                                         WUGEN_MBX6_U1_BIT)
+#define VAYU_IPU1_WUGEN_INT_MASK0       0
+#define VAYU_IPU1_WUGEN_INT_MASK1       (WUGEN_GPT11_BIT | \
+                                         WUGEN_MBX6_U1_BIT)
 
 #define M3_SCR_REG                      0xE000ED10
 

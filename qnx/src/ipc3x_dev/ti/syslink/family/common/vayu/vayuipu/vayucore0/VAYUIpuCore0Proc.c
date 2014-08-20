@@ -458,6 +458,8 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                 handle->procFxnTable.map           = &VAYUIPUCORE0PROC_map;
                 handle->procFxnTable.unmap         = &VAYUIPUCORE0PROC_unmap;
                 handle->procFxnTable.translateAddr = &VAYUIPUCORE0PROC_translate;
+                handle->procFxnTable.translateFromPte =
+                    &VAYUIPUCORE0PROC_translateFromPte;
                 handle->state = ProcMgr_State_Unknown;
 
                 /* Allocate memory for the VAYUIPUCORE0PROC handle */
@@ -873,6 +875,16 @@ VAYUIPUCORE0PROC_attach(
         object = (VAYUIPUCORE0PROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
+        /* Initialize halObject for Processor_translateFromPte to work */
+        halParams.procId = procHandle->procId;
+        status = VAYUIPU_halInit(&(object->halObject), &halParams);
+
+        if (status < 0) {
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUIPUCORE0PROC_attach", status,
+                "VAYUIPU_halInit failed");
+        }
+
         /* Added for Netra Benelli core1 is cortex M4 */
         params->procArch = Processor_ProcArch_M4;
 
@@ -880,31 +892,35 @@ VAYUIPUCORE0PROC_attach(
         GT_0trace(curTrace, GT_1CLASS,
             "VAYUIPUCORE0PROC_attach: Mapping memory regions");
 
-        /* search for dsp memory map */
-        status = RscTable_process(procHandle->procId,
+        if (status >= 0) {
+            /* search for dsp memory map */
+            status = RscTable_process(procHandle->procId,
                                   TRUE,
-                                  &memBlock.numEntries);
-        if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
-            /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
-            status = PROCESSOR_E_INVALIDARG;
-            GT_setFailureReason (curTrace,
+                                  &memBlock.numEntries,
+                                  procHandle,
+                                  procHandle->bootMode);
+            if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
+                /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
+                status = PROCESSOR_E_INVALIDARG;
+                GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "VAYUIPUCORE0PROC_attach",
                                  status,
                                  "Failed to process resource table");
-        }
-        else {
-            status = RscTable_getMemEntries(procHandle->procId,
+            }
+            else {
+                status = RscTable_getMemEntries(procHandle->procId,
                                             memBlock.memEntries,
                                             &memBlock.numEntries);
-            if (status < 0) {
-                /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
-                status = PROCESSOR_E_INVALIDARG;
-                GT_setFailureReason (curTrace,
+                if (status < 0) {
+                    /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
+                    status = PROCESSOR_E_INVALIDARG;
+                    GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "VAYUIPUCORE0PROC_attach",
                                      status,
                                      "Failed to get resource table memEntries");
+                }
             }
         }
 
@@ -980,68 +996,54 @@ VAYUIPUCORE0PROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            halParams.procId = procHandle->procId;
-            status = VAYUIPU_halInit(&(object->halObject), &halParams);
+            if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
+                || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-            if (status < 0) {
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUIPUCORE0PROC_attach", status,
-                    "VAYUIPU_halInit failed");
-            }
-            else {
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUIPUCORE0PROC_attach", status,
+                        "Failed to reset the slave processor");
+                }
+                else {
 #endif
-                if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
-                    || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
+                    GT_0trace(curTrace, GT_1CLASS,
+                        "VAYUIPUCORE0PROC_attach: slave is now in reset");
 
+                    mmuEnableArgs.numMemEntries = 0;
+                    status = VAYUIPU_halMmuCtrl(object->halObject,
+                        Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason(curTrace, GT_4CLASS,
                             "VAYUIPUCORE0PROC_attach", status,
-                            "Failed to reset the slave processor");
+                            "Failed to enable the slave MMU");
                     }
                     else {
 #endif
-                        GT_0trace(curTrace, GT_1CLASS,
-                            "VAYUIPUCORE0PROC_attach: slave is now in reset");
-
-                        mmuEnableArgs.numMemEntries = 0;
-                        status = VAYUIPU_halMmuCtrl(object->halObject,
-                            Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                        GT_0trace(curTrace, GT_2CLASS,
+                            "VAYUIPUCORE0PROC_attach: Slave MMU "
+                            "is configured!");
+                        /*
+                         * Pull IPU MMU out of reset to make internal
+                         * memory "loadable"
+                         */
+                        status = VAYUIPUCORE0_halResetCtrl(
+                            object->halObject,
+                            Processor_ResetCtrlCmd_MMU_Release);
                         if (status < 0) {
-                            GT_setFailureReason(curTrace, GT_4CLASS,
-                                "VAYUIPUCORE0PROC_attach", status,
-                                "Failed to enable the slave MMU");
+                            /*! @retval status */
+                            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "VAYUIPUCORE0_halResetCtrl",
+                                status,
+                                "Reset MMU_Release failed");
                         }
-                        else {
-#endif
-                            GT_0trace(curTrace, GT_2CLASS,
-                                "VAYUIPUCORE0PROC_attach: Slave MMU "
-                                "is configured!");
-                            /*
-                             * Pull IPU MMU out of reset to make internal
-                             * memory "loadable"
-                             */
-                            status = VAYUIPUCORE0_halResetCtrl(
-                                object->halObject,
-                                Processor_ResetCtrlCmd_MMU_Release);
-                            if (status < 0) {
-                                /*! @retval status */
-                                GT_setFailureReason(curTrace,
-                                    GT_4CLASS,
-                                    "VAYUIPUCORE0_halResetCtrl",
-                                    status,
-                                    "Reset MMU_Release failed");
-                            }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                        }
                     }
-#endif
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-            }
 #endif
+            }
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
@@ -1703,6 +1705,77 @@ VAYUIPUCORE0PROC_translate(
     /*! @retval PROCESSOR_SUCCESS Operation successful */
     return status;
 }
+
+/*!
+ *  @brief      Translate slave virtual address to master physical address
+ *              by inspecting page table entries.
+ *
+ *  @param      handle     Handle to the Processor object
+ *  @param      dstAddr    Returned: master physical address.
+ *  @param      srcAddr    Slave virtual address.
+ *
+ *  @sa
+ */
+Int
+VAYUIPUCORE0PROC_translateFromPte(
+        Processor_Handle    handle,
+        UInt32 *            dstAddr,
+        UInt32              srcAddr)
+{
+    Int                         status = PROCESSOR_SUCCESS;
+    Processor_Object *          procHandle= (Processor_Object *)handle;
+    VAYUIPUCORE0PROC_Object *   object = NULL;
+
+    GT_3trace(curTrace, GT_ENTER, "VAYUIPUCORE0PROC_translateFromPte",
+              handle, dstAddr, srcAddr);
+
+    GT_assert (curTrace, (handle  != NULL));
+    GT_assert (curTrace, (dstAddr != NULL));
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    if (handle == NULL) {
+        /*! @retval PROCESSOR_E_HANDLE Invalid argument */
+        status = PROCESSOR_E_HANDLE;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "VAYUIPUCORE0PROC_translateFromPte",
+                             status,
+                             "Invalid handle specified");
+    }
+    else if (dstAddr == NULL) {
+        /*! @retval PROCESSOR_E_INVALIDARG sglist provided as NULL */
+        status = PROCESSOR_E_INVALIDARG;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "VAYUIPUCORE0PROC_translateFromPte",
+                             status,
+                             "dstAddr provided as NULL");
+    }
+    else {
+#endif
+        object = (VAYUIPUCORE0PROC_Object *)procHandle->object;
+        GT_assert(curTrace, (object != NULL));
+        *dstAddr = -1u;
+
+        status = rproc_mem_lookup(object->halObject, srcAddr, dstAddr);
+
+        if (status < 0) {
+            /* srcAddr not found in slave address space */
+            status = PROCESSOR_E_INVALIDARG;
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUIPUCORE0PROC_translateFromPte", status,
+                "srcAddr not found in slave address space");
+        }
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    }
+#endif
+    GT_1trace(curTrace, GT_LEAVE,
+        "VAYUIPUCORE0PROC_translateFromPte: status=0x%x", status);
+
+    /*! @retval PROCESSOR_SUCCESS Operation successful */
+    return status;
+}
+
 
 
 /*!

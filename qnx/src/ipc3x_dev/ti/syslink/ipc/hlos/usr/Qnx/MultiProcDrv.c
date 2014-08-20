@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -88,7 +88,7 @@ MultiProcDrv_ioctl (UInt32 cmd, Ptr args)
               SETIOV(&mpgetconfig_iov[0], cargs, sizeof(MultiProcDrv_CmdArgs));
               SETIOV(&mpgetconfig_iov[1], cargs->args.getConfig.config,
                   sizeof(MultiProc_Config));
-              osStatus = devctlv(IpcDrv_handle, DCMD_MULTIPROC_GETCONFIG, 1, 2,
+              osStatus = devctlv(IpcDrv_handle, DCMD_MULTIPROC_GETCONFIG, 2, 2,
                   mpgetconfig_iov, mpgetconfig_iov, NULL);
           }
           break;

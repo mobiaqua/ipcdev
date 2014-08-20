@@ -91,6 +91,10 @@ static int verbosity = 2;
 
 /* Disable recovery mechanism if true */
 static int disableRecovery = false;
+static char * logFilename = NULL;
+
+/* Number of cores to attach to */
+static int numAttach = 0;
 
 #if defined(SYSLINK_PLATFORM_VAYU)
 static bool gatempEnabled = false;
@@ -114,6 +118,7 @@ typedef struct syslink_firmware_info_t {
     uint16_t proc_id;
     char * proc;
     char * firmware;
+    bool attachOnly;
 } syslink_firmware_info;
 static syslink_firmware_info syslink_firmware[MultiProc_MAXPROCESSORS];
 static unsigned int syslink_num_cores = 0;
@@ -359,7 +364,7 @@ int deinit_syslink_trace_device(syslink_dev_t *dev)
     for (i = 0; i < syslink_num_cores; i++) {
         status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_trace[i], 0);
         if (status < 0) {
-            Osal_printf("syslink: resmgr_detach failed %d", errno);
+            Osal_printf("IPC: resmgr_detach failed %d", errno);
             status = errno;
         }
         if (proc_traces[i].va && proc_traces[i].va != MAP_DEVICE_FAILED) {
@@ -431,7 +436,7 @@ int deinit_syslink_device(syslink_dev_t *dev)
 
     status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id, 0);
     if (status < 0) {
-        Osal_printf("syslink: resmgr_detach failed %d", errno);
+        Osal_printf("IPC: resmgr_detach failed %d", errno);
         status = errno;
     }
 
@@ -445,7 +450,7 @@ int deinit_syslink_device(syslink_dev_t *dev)
 int init_devices(syslink_dev_t *dev)
 {
     if (init_syslink_device(dev) < 0) {
-        Osal_printf("syslink: syslink device init failed");
+        Osal_printf("IPC: device init failed");
         return(-1);
     }
 
@@ -459,7 +464,7 @@ int deinit_devices(syslink_dev_t *dev)
     int status = EOK;
 
     if ((status = deinit_syslink_device(dev)) < 0) {
-        fprintf( stderr, "syslink: syslink device de-init failed %d\n", status);
+        fprintf( stderr, "IPC: device de-init failed %d\n", status);
         status = errno;
     }
 
@@ -584,6 +589,8 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
             pthread_mutex_unlock(&dev->lock);
         }
 
+        memset(procH_fileId, 0, sizeof(procH_fileId));
+
         for (i = 0; i < syslink_num_cores; i++) {
             procId = firmware[i].proc_id = MultiProc_getId(firmware[i].proc);
             if (procId >= MultiProc_MAXPROCESSORS) {
@@ -601,6 +608,14 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 break;
             }
 
+            if (recover) {
+                /*
+                 * if we are in recovery, we load the cores we previously
+                 * attached to
+                 */
+                syslink_firmware[i].attachOnly = false;
+            }
+
             if (syslink_firmware[i].firmware) {
                 rscHandle[procId] = RscTable_alloc(firmware[i].firmware, procId);
                 if (rscHandle[procId] == NULL) {
@@ -615,6 +630,9 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
 
             /* Load and start the remote processor. */
             ProcMgr_getAttachParams (procH[procId], &attachParams);
+            if (syslink_firmware[i].attachOnly) {
+                attachParams.bootMode = ProcMgr_BootMode_NoBoot;
+            }
             status = ProcMgr_attach (procH[procId], &attachParams);
             if (status < 0) {
                 GT_setFailureReason (curTrace,
@@ -625,7 +643,8 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto procmgrattach_fail;
             }
 
-            if (syslink_firmware[i].firmware) {
+            if ((syslink_firmware[i].firmware) &&
+                (!syslink_firmware[i].attachOnly)) {
                 status = ProcMgr_load (procH[procId],
                                        (String)firmware[i].firmware, 0, NULL,
                                         NULL, &procH_fileId[procId]);
@@ -655,14 +674,16 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                 goto procmgrreg_fail;
             }
 
-            status = ProcMgr_start(procH[procId], NULL);
-            if (status < 0) {
-                GT_setFailureReason (curTrace,
+            if (!syslink_firmware[i].attachOnly) {
+                status = ProcMgr_start(procH[procId], NULL);
+                if (status < 0) {
+                    GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "init_ipc",
                                      status,
                                      "ProcMgr_start failed!");
-                goto procmgrstart_fail;
+                    goto procmgrstart_fail;
+                }
             }
 
             continue;
@@ -673,8 +694,10 @@ procmgrstart_fail:
 procmgrreg_fail:
             Ipc_detach(procId);
 ipcattach_fail:
-            if (syslink_firmware[i].firmware)
+            if ((syslink_firmware[i].firmware) &&
+                (!syslink_firmware[i].attachOnly)) {
                 ProcMgr_unload(procH[procId], procH_fileId[procId]);
+            }
 procmgrload_fail:
             ProcMgr_detach(procH[procId]);
 procmgrattach_fail:
@@ -733,10 +756,12 @@ tiipcsetup_fail:
         }
         ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
                                 (Ptr)dev, errStates);
-        ProcMgr_stop(procH[procId]);
-        if (procH_fileId[procId]) {
-            ProcMgr_unload(procH[procId], procH_fileId[procId]);
-            procH_fileId[procId] = 0;
+        if (!syslink_firmware[i].attachOnly) {
+            ProcMgr_stop(procH[procId]);
+            if (procH_fileId[procId]) {
+                ProcMgr_unload(procH[procId], procH_fileId[procId]);
+                procH_fileId[procId] = 0;
+            }
         }
         ProcMgr_detach(procH[procId]);
         ProcMgr_close(&procH[procId]);
@@ -759,9 +784,15 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
     int status = EOK;
     uint32_t i = 0, id = 0;
 
+    if (logFilename) {
+        /* wait a little bit for traces to finish dumping */
+        sleep(1);
+    }
+
     // Stop the remote cores right away
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
-        if (procH[i]) {
+        /* Only stop the ones that we have loaded */
+        if ((procH[i]) && (procH_fileId[i])) {
             GT_1trace(curTrace, GT_4CLASS, "stopping %s", MultiProc_getName(i));
             ProcMgr_stop(procH[i]);
         }
@@ -802,38 +833,39 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
     }
 
     if (recover) {
-        static FILE *log;
-        /* Dump the trace information */
-        Osal_printf("syslink: printing remote core trace dump to"
-                    " /var/log/ducati-m3-traces.log");
-        log = fopen ("/var/log/ducati-m3-traces.log", "a+");
-        if (log) {
-            for (id = 0; id < syslink_num_cores; id++) {
-                if (proc_traces[id].va) {
-                    /* print traces */
-                    /* wait a little bit for traces to finish dumping */
-                    sleep(1);
-                    fprintf(log, "****************************************\n");
-                    fprintf(log, "***         CORE%d TRACE DUMP         ***\n",
-                            id);
-                    fprintf(log, "****************************************\n");
-                    for (i = (*proc_traces[id].widx + 1);
-                         i < (proc_traces[id].len - 8);
-                         i++) {
-                        fprintf(log, "%c",
+        static FILE *log = NULL;
+        if (logFilename) {
+            /* Dump the trace information */
+            Osal_printf("IPC: printing remote core trace dump");
+            log = fopen(logFilename, "a+");
+            if (log) {
+                for (id = 0; id < syslink_num_cores; id++) {
+                    if (proc_traces[id].va) {
+                        /* print traces */
+                        fprintf(log, "*************************************\n");
+                        fprintf(log, "***       CORE%d TRACE DUMP        ***\n",
+                            syslink_firmware[i].proc_id);
+                        fprintf(log, "*************************************\n");
+                        for (i = (*proc_traces[id].widx + 1);
+                            i < (proc_traces[id].len - 8);
+                            i++) {
+                            fprintf(log, "%c",
                                 *(char *)((uint32_t)proc_traces[id].va + i));
-                    }
-                    for (i = 0; i < *proc_traces[id].widx; i++) {
-                        fprintf(log, "%c",
+                        }
+                        for (i = 0; i < *proc_traces[id].widx; i++) {
+                            fprintf(log, "%c",
                                 *(char *)((uint32_t)proc_traces[id].va + i));
+                        }
                     }
                 }
+                fflush(log);
+                fclose(log);
             }
-            fclose(log);
-        }
-        else {
-            GT_setFailureReason(curTrace, GT_4CLASS, "deinit_ipc", errno,
-                                "error opening /var/log/ducati-m3-traces.log");
+            else {
+                fprintf(stderr, "\nERROR: unable to open crash dump file %s\n",
+                    logFilename);
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -857,15 +889,17 @@ static Void printUsage (Char * app)
 {
     printf("\n\nUsage:\n");
 #if defined(SYSLINK_PLATFORM_OMAP5430)
-    printf("\n%s: [-HT] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+    printf("\n%s: [-HTdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
     printf("  <core_id#> should be set to a core name (e.g. IPU, DSP)\n");
     printf("      followed by the path to the executable to load on that core.\n");
     printf("Options:\n");
-    printf("  -H   enable/disable hibernation, 1: ON, 0: OFF, Default: 1)\n");
-    printf("  -T   specify the hibernation timeout in ms, Default: 5000 ms)\n");
+    printf("  -H <arg>    enable/disable hibernation, 1: ON, 0: OFF,"
+        " Default: 1)\n");
+    printf("  -T <arg>    specify the hibernation timeout in ms, Default:"
+        " 5000 ms)\n");
 #else
-    printf("\n%s: [-g] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+    printf("\n%s: [-gdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
     printf("  <core_id#> should be set to a core name (e.g. DSP1, IPU2)\n");
     printf("      followed by the path to the executable to load on that core.\n");
@@ -873,6 +907,11 @@ static Void printUsage (Char * app)
     printf("  -g   enable GateMP support on host\n");
 #endif
     printf("  -d   disable recovery\n");
+    printf("  -c <file>   generate dump of slave trace during crashes (use\n");
+    printf("              absolute path for filename)\n");
+    printf("  -a<n> specify that the first n cores have been pre-loaded\n");
+    printf("        and started. Perform late-attach to these cores.\n");
+
     exit (EXIT_SUCCESS);
 }
 
@@ -895,15 +934,15 @@ int main(int argc, char *argv[])
     char * abs_path = NULL;
 
     if (-1 != stat(IPC_DEVICE_PATH, &sbuf)) {
-        printf ("Syslink Already Running...\n");
+        printf ("IPC Already Running...\n");
         return EXIT_FAILURE;
     }
-    printf ("Starting syslink resource manager...\n");
+    printf ("Starting IPC resource manager...\n");
 
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "H:T:U:gdv:");
+        c = getopt (argc, argv, "H:T:U:gc:dv:a:");
         if (c == -1)
             break;
 
@@ -925,6 +964,12 @@ int main(int argc, char *argv[])
             break;
         case 'd':
             disableRecovery = true;
+            break;
+        case 'c':
+            logFilename = optarg;
+            break;
+        case 'a':
+            numAttach = atoi(optarg);
             break;
         case 'v':
             verbosity++;
@@ -948,9 +993,10 @@ int main(int argc, char *argv[])
             return (error);
         }
         syslink_firmware[syslink_num_cores].proc = argv [optind];
+        syslink_firmware[syslink_num_cores].attachOnly =
+            ((numAttach-- > 0) ? true : false);
         syslink_firmware[syslink_num_cores++].firmware = argv [optind+1];
     }
-
 
     /* Get the name of the binary from the input args */
     if (!syslink_num_cores) {
@@ -997,7 +1043,7 @@ int main(int argc, char *argv[])
 
     /* allocate the device structure */
     if (NULL == (dev = calloc(1, sizeof(syslink_dev_t)))) {
-        Osal_printf("syslink: calloc() failed");
+        Osal_printf("IPC: calloc() failed");
         return (-1);
     }
 
@@ -1013,7 +1059,7 @@ int main(int argc, char *argv[])
 
     /* create the dispatch structure */
     if (NULL == (dev->dpp = syslink_dpp = dispatch_create_channel (channelid, 0))) {
-        Osal_printf("syslink:  dispatch_create() failed");
+        Osal_printf("IPC: dispatch_create() failed");
         return(-1);
     }
 
@@ -1040,21 +1086,21 @@ int main(int argc, char *argv[])
 
     /* Create the thread pool */
     if ((dev->tpool = thread_pool_create(&tattr, 0)) == NULL) {
-        Osal_printf("syslink: thread pool create failed");
+        Osal_printf("IPC: thread pool create failed");
         return(-1);
     }
 
     /* init syslink */
     status = init_ipc(dev, syslink_firmware, FALSE);
     if (status < 0) {
-        Osal_printf("syslink: IPC init failed");
+        Osal_printf("IPC: init failed");
         return(-1);
     }
 
     /* init the syslink device */
     status = init_devices(dev);
     if (status < 0) {
-        Osal_printf("syslink: device init failed");
+        Osal_printf("IPC: device init failed");
         return(-1);
     }
 
@@ -1096,7 +1142,7 @@ int main(int argc, char *argv[])
     /* make this a daemon process */
     if (-1 == procmgr_daemon(EXIT_SUCCESS,
         PROCMGR_DAEMON_NOCLOSE | PROCMGR_DAEMON_NODEVNULL)) {
-        Osal_printf("syslink:  procmgr_daemon() failed");
+        Osal_printf("IPC: procmgr_daemon() failed");
         return(-1);
     }
 
@@ -1114,7 +1160,7 @@ int main(int argc, char *argv[])
     sigaddset (&set, SIGQUIT);
     sigaddset (&set, SIGTERM);
 
-    Osal_printf("Syslink resource manager started");
+    Osal_printf("IPC resource manager started");
 
     /* Wait for a signal */
     while (1)
@@ -1135,13 +1181,14 @@ int main(int argc, char *argv[])
     error = EOK;
 
 done:
-    GT_0trace(curTrace, GT_4CLASS, "Syslink resource manager exiting \n");
+    GT_0trace(curTrace, GT_4CLASS, "IPC resource manager exiting \n");
 
     error = thread_pool_destroy(dev->tpool);
     if (error < 0)
-        Osal_printf("syslink: thread_pool_destroy returned an error");
+        Osal_printf("IPC: thread_pool_destroy returned an error");
     deinit_ipc(dev, FALSE);
     deinit_devices(dev);
     free(dev);
+
     return (EOK);
 }

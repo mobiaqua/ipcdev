@@ -64,6 +64,16 @@ libArray.push(
             defs: " -DSMP"
         },
         isas: [ "v7M", "v7M4" ],
+        devices: [
+            {
+                name: "_omap5",
+                defs: " -DOMAP5",
+            },
+            {
+                name: "_vayu",
+                defs: " -DVAYU",
+            },
+        ],
     }
 );
 
@@ -99,20 +109,33 @@ for (var i = 0; i < libArray.length; i++) {
         /* ==== loop over all profiles ==== */
         for (var profile in targ.profiles) {
 
-            /* name = lib/profile/name.a+suffix */
-            var name = "lib/" + profile + "/" + lib.name;
+            var devices = "devices" in lib ? lib.devices
+                                           : [{name: "", defs: ""}];
 
-            /* pass along library attributes specified in library array */
-            var libAttrs = "libAttrs" in lib ? lib.libAttrs : {};
+            for (d = 0; d < devices.length; d++) {
 
-            /* must set profile explicitly */
-            libAttrs.profile = profile;
+                /* name = lib/profile/name_device.a+suffix */
+                var name = "lib/" + profile + "/" + lib.name + devices[d].name;
 
-            /* build the library */
-            var library = Pkg.addLibrary(name, targ, libAttrs);
+                /* pass along library attributes specified in library array */
+                var libAttrs = {};
 
-            /* add the source files */
-            library.addObjects(lib.sources);
+                if ("libAttrs" in lib) {
+                    libAttrs.defs = lib.libAttrs.defs + devices[d].defs;
+                }
+                else {
+                    libAttrs.defs = devices[d].defs;
+                }
+
+                /* must set profile explicitly */
+                libAttrs.profile = profile;
+
+                /* build the library */
+                var library = Pkg.addLibrary(name, targ, libAttrs);
+
+                /* add the source files */
+                library.addObjects(lib.sources);
+            }
         }
     }
 }

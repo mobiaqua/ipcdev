@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -281,6 +281,14 @@ typedef Int (*Processor_UnRegisterNotifyFxn) (Processor_Handle    handle,
                                               Ptr                 arg,
                                               ProcMgr_State       state []);
 
+/*!
+ *  @brief  Function pointer type for the function to translate between
+ *          two types of address spaces.
+ */
+typedef Int (*Processor_TranslateFromPteFxn) (Processor_Handle handle,
+                                              UInt32 *         dstAddr,
+                                              UInt32           srcAddr);
+
 /* =============================================================================
  *  Function table interface
  * =============================================================================
@@ -312,7 +320,9 @@ typedef struct Processor_FxnTable_tag {
     Processor_GetProcInfoFxn           getProcInfo;
     /* !< Function to Get the proc info of the slave */
     Processor_VirtToPhysFxn            virtToPhys;
-    /* Function to convert Virtual to Physical pages */
+    /*!< Function to convert Virtual to Physical pages */
+    Processor_TranslateFromPteFxn      translateFromPte;
+    /*!< Function to translate slave virtual address into physical using page table */
 } Processor_FxnTable;
 
 

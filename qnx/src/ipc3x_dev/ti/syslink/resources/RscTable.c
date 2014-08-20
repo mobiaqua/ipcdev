@@ -58,6 +58,7 @@ extern "C" {
 #include <_MultiProc.h>
 #include <dload_api.h>
 #include <ti/syslink/ProcMgr.h>
+#include <Processor.h>
 #include <Bitops.h>
 #include <_MessageQCopyDefs.h>
 #include <ProcDefs.h>
@@ -378,7 +379,8 @@ Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
 }
 
 Int
-RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
+RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
+    Processor_Handle procHandle, ProcMgr_BootMode bootMode)
 {
     Int status = 0;
     Int ret = 0;
@@ -386,6 +388,9 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
     RscTable_Header * table = NULL;
     UInt i = 0, j = 0;
     UInt dmem_num = 0;
+    struct fw_rsc_vdev *vdev = NULL;
+    struct fw_rsc_vdev_vring * vring = NULL;
+    UInt32 vr_size = 0;
 #if !ZEROINIT_CHUNKS
     UInt32 vringVA = 0, vringSize = 0;
 #endif
@@ -417,26 +422,48 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
             case TYPE_CARVEOUT :
             {
                 // TODO: need to allocate this mem from carveout
-                struct fw_rsc_carveout * cout = (struct fw_rsc_carveout *)entry;
+                struct fw_rsc_carveout * cout =
+                    (struct fw_rsc_carveout *)entry;
                 UInt32 pa = 0;
-                if (cout->pa == 0) {
-                    ret = Chunk_allocate (obj, cout->len, &pa);
+
+                if (bootMode == ProcMgr_BootMode_NoBoot) {
+                    /* Lookup physical address of carveout from page table */
+                    if (Processor_translateFromPte(procHandle,
+                        &cout->pa, cout->da) != ProcMgr_S_SUCCESS) {
+                        status = RSCTABLE_E_FAIL;
+                        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "RscTable_process",
+                             status,
+                             "Failed to lookup address from page table");
+                        ret = -1;
+                    }
                 }
-                if (!ret) {
-                    cout->pa = pa;
+                else {
+                    if (cout->pa == 0) {
+                        ret = Chunk_allocate (obj, cout->len, &pa);
+                    }
+                    if (!ret) {
+                        cout->pa = pa;
+                    }
+                }
+
+                if (ret == 0) {
                     if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
                         ret = -1;
                     }
                     else {
                         obj->memEntries[obj->numMemEntries].slaveVirtAddr =
-                                cout->da;
+                            cout->da;
                         obj->memEntries[obj->numMemEntries].masterPhysAddr =
-                                cout->pa;
-                        obj->memEntries[obj->numMemEntries].size = cout->len;
+                            cout->pa;
+                        obj->memEntries[obj->numMemEntries].size =
+                            cout->len;
                         obj->memEntries[obj->numMemEntries].map = TRUE;
                         obj->memEntries[obj->numMemEntries].mapMask =
                             ProcMgr_SLAVEVIRT;
-                        obj->memEntries[obj->numMemEntries].isCached = FALSE;
+                        obj->memEntries[obj->numMemEntries].isCached =
+                            FALSE;
                         obj->memEntries[obj->numMemEntries].isValid = TRUE;
                         obj->numMemEntries++;
                     }
@@ -474,37 +501,93 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
             {
                 // only care about mem in DDR for now
                 struct fw_rsc_devmem * dmem = (struct fw_rsc_devmem *)entry;
+                UInt32 pa = 0;
+
                 if (dmem->pa >= DDR_MEM) {
                     // HACK: treat vring mem specially, vring is always the
                     //       first devmem entry, may change in future
                     if (dmem_num++ == 0) {
-                        // memory should already be reserved for vring
-                        if (obj->vringPa == 0) {
-                            // vdev must have been defined first
-                            GT_setFailureReason (curTrace,
+                        if (bootMode == ProcMgr_BootMode_NoBoot) {
+                            /*
+                             * Lookup physical address of vrings from page
+                             * table
+                             */
+                            if (Processor_translateFromPte(procHandle,
+                                &pa, dmem->da) != ProcMgr_S_SUCCESS) {
+                                status = RSCTABLE_E_FAIL;
+                                GT_setFailureReason (curTrace,
+                                    GT_4CLASS,
+                                    "RscTable_process",
+                                    status,
+                                    "Failed to lookup address from page table");
+                                ret = -1;
+                            }
+                            obj->vringPa = pa;
+                            obj->vringBufsPa = pa + vr_size;
+                        }
+                        else {
+                            // memory should already be reserved for vring
+                            if (obj->vringPa == 0) {
+                                // vdev must have been defined first
+                                GT_setFailureReason (curTrace,
                                                  GT_4CLASS,
                                                  "RscTable_process",
                                                  status,
                                                  "Vring Must be Defined First");
 
-                            ret = -1;
-                        }
-                        else if (obj->vringPa != dmem->pa && (!tryAlloc)) {
-                            // defined pa does not match allocated pa, and
-                            // either the mmu is disabled or the platform has
-                            // not given permission to allocate on our own
-                            ret = -1;
-                            GT_setFailureReason (curTrace,
+                                ret = -1;
+                            }
+                            else if (obj->vringPa != dmem->pa && (!tryAlloc)) {
+                                // defined pa does not match allocated pa, and
+                                // either the mmu is disabled or the platform has
+                                // not given permission to allocate on our own
+                                ret = -1;
+                                GT_setFailureReason (curTrace,
                                                  GT_4CLASS,
                                                  "RscTable_process",
                                                  status,
                                                  "Vring PA Mis-match");
 
-                            GT_2trace (curTrace, GT_4CLASS,
+                                GT_2trace (curTrace, GT_4CLASS,
                                        "vringPa is 0x%x, dmem->pa is 0x%x",
                                        obj->vringPa, dmem->pa);
+                            }
                         }
-                        else {
+                        if (ret == 0) {
+#if !ZEROINIT_CHUNKS
+                            /* Map the phys mem to local */
+                            vringVA = (UInt32)mmap_device_io(vringSize, pa);
+                            if (vringVA != MAP_DEVICE_FAILED) {
+                                /* Zero-init the vring */
+                                Memory_set((Ptr)vringVA, 0, vringSize);
+                                munmap_device_io(vringVA, vringSize);
+                            }
+                            else {
+                                GT_0trace(curTrace, GT_4CLASS,
+                                    "RscTable_alloc: "
+                                    "Warning - Unable to zero-init vring mem");
+                            }
+#endif
+                            /*
+                             * Override the vring 'da' field in resource table.
+                             * This allows the slave to look it up when creating
+                             * the VirtQueues
+                             */
+                            for (j = 0; j < vdev->num_of_vrings; j++) {
+                                vring = (struct fw_rsc_vdev_vring *)
+                                    ((UInt32)vdev + sizeof(*vdev) +
+                                     (sizeof(*vring) * j));
+                                vring->da = obj->vringPa + (j *
+                                    vr_size / vdev->num_of_vrings);
+                            }
+
+                            /*
+                             * Override the physical address provided by the
+                             * entry with the physical locations of the vrings
+                             * as allocated when we processed the vdev entry
+                             * (or as allocated by external loader for late
+                             * attach mode)
+                             */
                             dmem->pa = obj->vringPa;
                         }
                     }
@@ -543,11 +626,10 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
             case TYPE_VDEV :
             {
                 // TODO: save vring info for future use
-                struct fw_rsc_vdev *vdev = (struct fw_rsc_vdev *)entry;
-                struct fw_rsc_vdev_vring * vring = NULL;
-                UInt32 vr_size = 0;
                 UInt32 vr_bufs_size = 0;
                 UInt32 pa = 0;
+
+                vdev = (struct fw_rsc_vdev *)entry;
                 obj->numVrings = vdev->num_of_vrings;
                 obj->vrings = Memory_alloc(NULL,
                                            sizeof (*vring) * obj->numVrings, 0,
@@ -575,12 +657,22 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
                     vr_size += ROUND_UP(MessageQCopy_RINGSIZE, 0x4000);
                     vr_bufs_size += (vring->num) * RPMSG_BUF_SIZE;
                 }
-                if (!ret) {
+                if ((!ret) && (bootMode != ProcMgr_BootMode_NoBoot)) {
                     // HACK: round up to multiple of 1MB, because we know this
                     //       is the size of the remote entry
                     ret = Chunk_allocate(obj,
-                                 ROUND_UP(vr_size + vr_bufs_size, 0x100000),
-                                 &pa);
+                        ROUND_UP(vr_size + vr_bufs_size, 0x100000),
+                        &pa);
+                }
+
+                if (!ret) {
+#if !ZEROINIT_CHUNKS
+                    vringSize = vr_size + vr_bufs_size;
+#endif
+                    if (bootMode != ProcMgr_BootMode_NoBoot) {
+                        obj->vringPa = pa;
+                        obj->vringBufsPa = pa + vr_size;
+                    }
                 }
                 else if (obj->vrings) {
                     Memory_free (NULL, obj->vrings,
@@ -588,39 +680,6 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks)
                     obj->vrings = NULL;
                 }
 
-                if (!ret) {
-#if !ZEROINIT_CHUNKS
-                    /* Map the phys mem to local */
-                    vringSize = vr_size + vr_bufs_size;
-                    vringVA = (UInt32)mmap_device_io(vringSize, pa);
-                    if (vringVA != MAP_DEVICE_FAILED) {
-                        /* Zero-init the vring */
-                        Memory_set((Ptr)vringVA, 0, vringSize);
-                        munmap_device_io(vringVA, vringSize);
-                    }
-                    else {
-                        GT_0trace(curTrace, GT_4CLASS,
-                                  "RscTable_alloc: "
-                                  "Warning - Unable to zero-init vring mem");
-                    }
-#endif
-
-                    obj->vringPa = pa;
-                    obj->vringBufsPa = pa + vr_size;
-
-                    /*
-                     * Override the vring 'da' field in resource table.
-                     * This allows the slave to look it up when creating
-                     * the VirtQueues
-                     */
-                    for (j = 0; j < vdev->num_of_vrings; j++) {
-                        vring = (struct fw_rsc_vdev_vring *)
-                                ((UInt32)vdev + sizeof(*vdev) +
-                                 (sizeof(*vring) * j));
-                        vring->da = obj->vringPa + (j *
-                            vr_size / vdev->num_of_vrings);
-                    }
-                }
                 break;
             }
             default :

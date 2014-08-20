@@ -457,6 +457,7 @@ VAYUDSPPROC_create (      UInt16                procId,
                 handle->procFxnTable.map           = &VAYUDSPPROC_map;
                 handle->procFxnTable.unmap         = &VAYUDSPPROC_unmap;
                 handle->procFxnTable.translateAddr = &VAYUDSPPROC_translate;
+                handle->procFxnTable.translateFromPte = NULL;
                 handle->state = ProcMgr_State_Unknown;
 
                 /* Allocate memory for the VAYUDSPPROC handle */
@@ -852,7 +853,9 @@ VAYUDSPPROC_attach(
         /* search for dsp memory map */
         status = RscTable_process(procHandle->procId,
                                   TRUE,
-                                  &memBlock.numEntries);
+                                  &memBlock.numEntries,
+                                  procHandle,
+                                  procHandle->bootMode);
         if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
             status = PROCESSOR_E_INVALIDARG;
