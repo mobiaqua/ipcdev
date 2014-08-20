@@ -433,7 +433,11 @@ var C64TSources  = "ipc/gates/GateHWSpinlock.c " +
 var C28Sources   = "ipc/family/f28m35x/NotifyDriverCirc.c " +
                    "ipc/family/f28m35x/IpcMgr.c " +
                    "ipc/family/f28m35x/TransportCirc.c " +
-                   "ipc/family/f28m35x/NameServerBlock.c ";
+                   "ipc/family/f28m35x/NameServerBlock.c " +
+                   "ipc/family/f2837x/NotifyDriverCirc.c " +
+                   "ipc/family/f2837x/IpcMgr.c " +
+                   "ipc/family/f2837x/TransportCirc.c " +
+                   "ipc/family/f2837x/NameServerBlock.c ";
 
 var M3Sources    = "ipc/gates/GateHWSpinlock.c " +
                    "ipc/family/omap4430/NotifySetup.c " +
@@ -573,6 +577,7 @@ var ipcPackages = [
     "ti.sdo.ipc.family.ti81xx",
     "ti.sdo.ipc.family.arctic",
     "ti.sdo.ipc.family.f28m35x",
+    "ti.sdo.ipc.family.f2837x",
     "ti.sdo.ipc.family.c647x",
     "ti.sdo.ipc.family.c6a8149",
     "ti.sdo.ipc.family.tci663x",
