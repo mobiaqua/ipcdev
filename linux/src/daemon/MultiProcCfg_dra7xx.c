@@ -40,6 +40,8 @@
 /* For Backplane IPC startup/shutdown stuff: */
 #include <_MultiProc.h>
 
+#include <linux/version.h>
+
 /* This must match BIOS side MultiProc configuration for given platform!: */
 MultiProc_Config _MultiProc_cfg =  {
    .numProcessors = 5,
@@ -49,9 +51,16 @@ MultiProc_Config _MultiProc_cfg =  {
    .nameList[3] = "DSP2",
    .nameList[4] = "DSP1",
    .rprocList[0] = -1,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0)
    .rprocList[1] = 1,
    .rprocList[2] = 3,
    .rprocList[3] = 2,
    .rprocList[4] = 0,
+#else
+   .rprocList[1] = 1,
+   .rprocList[2] = 0,
+   .rprocList[3] = 3,
+   .rprocList[4] = 2,
+#endif /* LINUX_VERSION_CODE */
    .id = 0,                 /* The host is always zero */
 };
