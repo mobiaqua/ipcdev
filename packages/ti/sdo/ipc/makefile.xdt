@@ -76,7 +76,7 @@ ASM = `CGEN`/`TARGET.asmBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
 AR = `CGEN`/`TARGET.arBin.cmd` `TARGET.ar.opts`
 %}
 %else {
-CC = `CGEN`/bin/`TARGET.cc.cmd` $(CCOPTS) -I `CGEN`/include
+CC = `CGEN`/bin/`TARGET.cc.cmd` $(CCOPTS) --output_file=$@ -I `CGEN`/include
 ASM = `CGEN`/bin/`TARGET.asm.cmd` $(CCOPTS) -I `CGEN`/include
 AR = `CGEN`/bin/`TARGET.ar.cmd` `TARGET.ar.opts`
 %}
@@ -114,7 +114,8 @@ all: `LIB`
 %}
 
 %var sources = Build.getAsmFiles(TARGET.$name);
-%for each (var s in sources) {
+%for (var i = 0; i <  sources.length; i++) {
+%    var s = sources[i];
 %if (TARGET.$name.match(/gnu/)) {
 %    var obj = packageName(s) + "_" + baseName(s) + ".o";
 %}
@@ -146,13 +147,14 @@ Ipc.obj: `CFILES` makefile
 	@$(CC) $(BUILD_DEFS) $(XOPTS) $(BIOS_INC) \
 	$(IPC_INC) $(UTILS_INC) \
 %var sources = CFILES.split(' ');
-%for each (var s in sources) {
+%for (var i = 0; i < sources.length; i++) {
+%    var s = sources[i] + (i == (sources.length - 1) ? "" : " \\");
 %    if (s.substring(0,4) == "xdc/") {
-	$(XDC_ROOT)`s` \
+	$(XDC_ROOT)`s`
 %    } else if (s.substring(0,2) == "./") {
-	`s` \
+	`s`
 %    } else {
-	$(IPC_ROOT)`s` \
+	$(IPC_ROOT)`s`
 %    }
 %}
 

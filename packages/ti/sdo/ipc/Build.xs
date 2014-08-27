@@ -733,14 +733,12 @@ function getDefs()
  */
 function getCFiles(target)
 {
-    var localSources = "ipc/Ipc.c ";
+    var localSources = "";
 
-    /*
-     * logic to trim the C files down to just what the application needs
-     * 3/2/11 disabled for now ...
-     */
     if (BIOS.buildingAppLib == true) {
-        for each (var mod in Program.targetModules()) {
+        var targetModules = Program.targetModules();
+        for (var m = 0; m < targetModules.length; m++) {
+            var mod = targetModules[m];
             var mn = mod.$name;
             var pn = mn.substring(0, mn.lastIndexOf("."));
 
@@ -754,8 +752,7 @@ function getCFiles(target)
                 }
             }
 
-            if (packageMatch && !mn.match(/Proxy/) &&
-               (mn != "ti.sdo.ipc.Ipc")) {
+            if (packageMatch && !mn.match(/Proxy/)) {
                 if (cFiles[mn] === undefined) {
                     var prefix = mn.substr(mn.indexOf("sdo")+4);
                     var mod = mn.substr(mn.lastIndexOf(".")+1);
