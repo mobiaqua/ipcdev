@@ -61,7 +61,6 @@ function module$use()
         xdc.useModule('ti.sysbios.family.arm.m3.Hwi');
     }
 
-    xdc.useModule('ti.sdo.ipc.Ipc');
     xdc.useModule("ti.sdo.ipc.Notify");
     xdc.useModule('ti.sdo.ipc.family.tda3xx.NotifySetup');
 

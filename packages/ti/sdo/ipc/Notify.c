@@ -123,10 +123,14 @@ Int Notify_attach(UInt16 remoteProcId, Ptr sharedAddr)
 {
     Int status;
 
-    Assert_isTrue(remoteProcId < ti_sdo_utils_MultiProc_numProcessors,
-        ti_sdo_ipc_Notify_A_invArgument);
+    /* validate remote processor ID */
+    if ((remoteProcId >= ti_sdo_utils_MultiProc_numProcessors)
+            || (remoteProcId == MultiProc_self())) {
 
-    /* Use the NotifySetup proxy to setup drivers */
+        return (Notify_E_INVALIDARG);
+    }
+
+    /* use the NotifySetup proxy to setup drivers */
     status = ti_sdo_ipc_Notify_SetupProxy_attach(remoteProcId, sharedAddr);
 
     return (status);
