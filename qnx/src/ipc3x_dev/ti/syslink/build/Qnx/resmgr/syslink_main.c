@@ -481,6 +481,10 @@ static void ipc_recover(Ptr args)
         deinit_syslink_trace_device(dev);
         init_syslink_trace_device(dev);
     }
+    else {
+        GT_0trace(curTrace, GT_4CLASS,
+                  "ipc_recover: Recovery disabled.\n");
+    }
 }
 
 Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
@@ -970,6 +974,7 @@ int main(int argc, char *argv[])
             break;
         case 'a':
             numAttach = atoi(optarg);
+            printf("Late-attaching to %d core(s)\n", numAttach);
             break;
         case 'v':
             verbosity++;

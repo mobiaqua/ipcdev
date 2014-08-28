@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,15 @@
 #include <ti/ipc/transports/TransportRpmsgSetup.h>
 #include <ti/ipc/rpmsg/_RPMessage.h>
 
+#ifdef IpcMgr_USEDEH
+#include <ti/deh/Watchdog.h>
+#ifdef DSP
+#include <ti/sysbios/family/c64p/Exception.h>
+#elif IPU
+#include <ti/sysbios/family/arm/m3/Hwi.h>
+#endif
+#endif
+
 /*
  *  ======== IpcMgr_rpmsgStartup ========
  *  Initialize the RPMSG module.  This calls VirtQueue_startup().
@@ -53,6 +62,18 @@ Void IpcMgr_rpmsgStartup()
 {
     Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), NULL);
     RPMessage_init(MultiProc_getId("HOST"));
+
+#ifdef IpcMgr_USEDEH
+    /*
+     * When using DEH, initialize the Watchdog timers if not already done
+     * (i.e. late-attach)
+     */
+#ifdef DSP
+    Watchdog_init((Void (*)(Void))ti_sysbios_family_c64p_Exception_handler);
+#elif IPU
+    Watchdog_init(ti_sysbios_family_arm_m3_Hwi_excHandlerAsm__I);
+#endif
+#endif
 }
 
 /*
@@ -74,6 +95,18 @@ Void IpcMgr_ipcStartup()
     /* Sets up to communicate with host's NameServer: */
     status = NameServerRemoteRpmsg_attach(procId, 0);
     Assert_isTrue(status >= 0, NULL);
+
+#ifdef IpcMgr_USEDEH
+    /*
+     * When using DEH, initialize the Watchdog timers if not already done
+     * (i.e. late-attach)
+     */
+#ifdef DSP
+    Watchdog_init((Void (*)(Void))ti_sysbios_family_c64p_Exception_handler);
+#elif IPU
+    Watchdog_init(ti_sysbios_family_arm_m3_Hwi_excHandlerAsm__I);
+#endif
+#endif
 }
 
 /*

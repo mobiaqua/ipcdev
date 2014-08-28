@@ -199,8 +199,8 @@ typedef unsigned short u16;
 #define MMU_CNTL_TWL_EN        (1 << 2)
 #define MMU_CNTL_MMU_EN        (1 << 1)
 
-
-
+/* MMU GPR */
+#define MMU_FAULT_INTR_DIS_MASK  (1 << 0)
 
 #define PAGE_MASK(pg_size) (~((pg_size)-1))
 #define PG_ALIGN_LOW(addr, pg_size) ((addr) & PAGE_MASK(pg_size))
@@ -261,5 +261,12 @@ UInt32 get_IpuVirtAdd (VAYUIPU_HalObject * halObject,
 Int save_ipu_mmu_ctxt (VAYUIPU_HalObject * halObject, UInt32 procId);
 Int restore_ipu_mmu_ctxt (VAYUIPU_HalObject * halObject,
                           UInt32 procId);
+
+/* Enable interrupt for MMU faults */
+Int rproc_enable_fault_interrupt(VAYUIPU_HalObject * halObject);
+
+/* Disable interrupt for MMU faults */
+Int rproc_disable_fault_interrupt(VAYUIPU_HalObject * halObject);
+
 
 #endif /* _DIpuMMU_ENABLER_H_*/

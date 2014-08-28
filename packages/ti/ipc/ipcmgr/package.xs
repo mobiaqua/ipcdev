@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
  */
 function getLibs(prog)
 {
+    var lib;
     var suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
@@ -47,9 +48,17 @@ function getLibs(prog)
         return ("");
     }
 
-    /* the location of the libraries are in lib/<profile>/* */
-    var lib = "lib/" + this.profile + "/ti.ipc.ipcmgr.a" + suffix;
+    var deh = xdc.module("ti.deh.Deh");
 
+    /* the location of the libraries are in lib/<profile>/* */
+    if (deh.$used) {
+        /* Deh is used */
+        lib = "lib/" + this.profile + "/ti.ipc.ipcmgr_deh.a" + suffix;
+    }
+    else {
+        /* Deh is not used */
+        lib = "lib/" + this.profile + "/ti.ipc.ipcmgr.a" + suffix;
+    }
 
     /*
      * If the requested profile doesn't exist, we return the 'release' library.

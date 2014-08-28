@@ -162,12 +162,15 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
     Types_FreqHz        tFreq;
     Watchdog_TimerRegs  *timer;
     Int                 i;
+    static Bool         first = TRUE;
 
     tHandle = Timer_Object_get(NULL, 0);
     Timer_getFreq(tHandle, &tFreq);  /* get timer frequency */
 
 #if defined(IPU) && defined(OMAP5)
-    adjustGptClkCtrlAddr();
+    if (first) {
+        adjustGptClkCtrlAddr();
+    }
 #endif
     for (i = 0; i < Watchdog_module->wdtCores; i++) {  /* loop for SMP cores */
         timer = (Watchdog_TimerRegs *) Watchdog_module->device[i].baseAddr;
@@ -181,45 +184,53 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
             continue;  /* for next core */
         }
 
-        /* Configure the timer */
-        initTimer(timer, TRUE);
+        if (Watchdog_module->status[i] != Watchdog_Mode_ENABLED) {
+            /* Configure the timer */
+            initTimer(timer, TRUE);
 
-        /* Enable interrupt in BIOS */
-        Hwi_Params_init(&hwiParams);
-        hwiParams.priority = 1;
-        hwiParams.eventId = Watchdog_module->device[i].eventId;
-        hwiParams.maskSetting = Hwi_MaskingOption_LOWER;
-        hwiParams.arg = 1;     /* Exception_handler(abortFlag) */
-        key = Hwi_disable();
-        Hwi_create(Watchdog_module->device[i].intNum, (Hwi_FuncPtr) timerFxn,
+            /* Enable interrupt in BIOS */
+            Hwi_Params_init(&hwiParams);
+            hwiParams.priority = 1;
+            hwiParams.eventId = Watchdog_module->device[i].eventId;
+            hwiParams.maskSetting = Hwi_MaskingOption_LOWER;
+            hwiParams.arg = 1;     /* Exception_handler(abortFlag) */
+            key = Hwi_disable();
+            Hwi_create(Watchdog_module->device[i].intNum, (Hwi_FuncPtr) timerFxn,
                                                             &hwiParams, NULL);
-        Hwi_enableInterrupt(Watchdog_module->device[i].intNum);
+            Hwi_enableInterrupt(Watchdog_module->device[i].intNum);
 #if defined(DSP) && defined(OMAP5)
-        Wugen_enableEvent(Watchdog_module->device[i].eventId);
+            Wugen_enableEvent(Watchdog_module->device[i].eventId);
 #endif
-        Hwi_restore(key);
+            Hwi_restore(key);
 
-        /* Enable timer */
-        while (timer->twps & WATCHDOG_TIMER_TWPS_W_PEND_TCLR);
-        timer->tclr |= 1;
-        Watchdog_module->status[i] = Watchdog_Mode_ENABLED;
+            /* Enable timer */
+            while (timer->twps & WATCHDOG_TIMER_TWPS_W_PEND_TCLR);
+            timer->tclr |= 1;
+            Watchdog_module->status[i] = Watchdog_Mode_ENABLED;
 
 #ifdef SMP
-        System_printf("Watchdog enabled: TimerBase = 0x%x SMP-Core = %d "
+            System_printf("Watchdog enabled: TimerBase = 0x%x SMP-Core = %d "
                                             "Freq = %d\n", timer, i, tFreq.lo);
 #else
-        System_printf("Watchdog enabled: TimerBase = 0x%x Freq = %d\n",
+            System_printf("Watchdog enabled: TimerBase = 0x%x Freq = %d\n",
                                                             timer, tFreq.lo);
 #endif
+        }
     }
 
 #if defined(OMAP5) || defined(IPU)
-    /* Register callback function */
-    if (!IpcPower_registerCallback(IpcPower_Event_RESUME, Watchdog_restore,
+    if (first) {
+        /* Register callback function */
+        if (!IpcPower_registerCallback(IpcPower_Event_RESUME, Watchdog_restore,
                                     NULL)) {
-        System_printf("Watchdog_restore registered as a resume callback\n");
+            System_printf("Watchdog_restore registered as a resume callback\n");
+        }
     }
 #endif
+
+    if (first) {
+        first = FALSE;
+    }
 
     return;
 }
