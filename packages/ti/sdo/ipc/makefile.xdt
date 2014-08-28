@@ -189,6 +189,7 @@ clean:
 %for (var i = 0; i < OBJS.length; i++) {
 	@-$(call RM, `OBJS[i]`)
 %}
+%if (Build.$private.libDir != null) {
 
 # create output directories
 ifneq ($(MAKECMDGOALS),clean)
@@ -196,3 +197,4 @@ ifeq ($(wildcard `Build.$private.libDir`),)
     $(shell $(MKDIR) `Build.$private.libDir`)
 endif
 endif
+%}
