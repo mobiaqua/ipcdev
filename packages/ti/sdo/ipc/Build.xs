@@ -338,6 +338,7 @@ var ipcSources  =  "ipc/GateMP.c " +
                    "ipc/ListMP.c " +
                    "ipc/SharedRegion.c " +
                    "ipc/MessageQ.c " +
+                   "ipc/Ipc.c " +
                    "ipc/Notify.c ";
 
 var gatesSources = "ipc/gates/GatePeterson.c " +
