@@ -207,7 +207,8 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
         if (status == FALSE) {
             Log_print0(Diags_INFO, FXNN": Wait for NS reply timed out\n");
             /* return timeout failure */
-            return (NameServer_E_TIMEOUT);
+            status = NameServer_E_TIMEOUT;
+            goto exit;
         }
 
         /* get the message */
