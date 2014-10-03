@@ -144,7 +144,7 @@ else if (Program.platformName.match(/simKepler/) ||
             MultiProc.setConfig(null, ["HOST", "CORE0"]);
             break;
 
-        case "TMS320TCI6630":
+        case "TMS320TCI6630K2L":
             MultiProc.setConfig(null,
                     ["HOST", "CORE0", "CORE1", "CORE2", "CORE3"]);
             break;
