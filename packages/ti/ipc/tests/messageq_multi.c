@@ -50,7 +50,7 @@
 
 #define SLAVE_MESSAGEQNAME "SLAVE"
 #define HOST_MESSAGEQNAME "HOST"
-#define NUMTHREADS 55
+#define NUMTHREADS 25
 #define NUMLOOPS 1000
 
 static int numTests = 0;
