@@ -203,7 +203,9 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->notifySRPtr = SharedRegion_invalidSRPtr();
+            if (MultiProc_self() < remoteProcId) {
+                slave->notifySRPtr = SharedRegion_invalidSRPtr();
+            }
         }
 
         /* call attach to remote processor */
@@ -246,7 +248,9 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->nsrnSRPtr = SharedRegion_invalidSRPtr();
+            if (MultiProc_self() < remoteProcId) {
+                slave->nsrnSRPtr = SharedRegion_invalidSRPtr();
+            }
         }
 
         /* call attach to remote processor */
@@ -289,7 +293,9 @@ Int Ipc_attach(UInt16 remoteProcId)
         }
         else {
             sharedAddr = NULL;
-            slave->transportSRPtr = SharedRegion_invalidSRPtr();
+            if (MultiProc_self() < remoteProcId) {
+                slave->transportSRPtr = SharedRegion_invalidSRPtr();
+            }
         }
 
         /* call attach to remote processor */
