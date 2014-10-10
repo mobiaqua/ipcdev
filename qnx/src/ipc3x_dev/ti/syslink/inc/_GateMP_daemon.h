@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,9 @@ extern "C" {
 #endif
 
 /*!
- * Setup the GateMP module.
+ * Setup the GateMP module. Return the procId of SR0 owner.
  */
-Int GateMP_setup(Void);
+Int GateMP_setup(Int32 * sr0ProcId);
 
 /*!
  * Function to destroy the GateMP module.

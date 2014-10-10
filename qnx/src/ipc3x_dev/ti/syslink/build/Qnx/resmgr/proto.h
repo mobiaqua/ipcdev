@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -94,19 +94,27 @@ struct syslink_attr;
 typedef struct syslink_attr {
     iofunc_attr_t   attr;
     uint16_t        procid;
+    Ptr             dev;
 } syslink_attr_t;
 
 typedef struct named_device {
     iofunc_mount_t      mattr;
     iofunc_attr_t       cattr;
     syslink_attr_t      cattr_trace[MultiProc_MAXPROCESSORS];
+    syslink_attr_t      cattr_slave[MultiProc_MAXPROCESSORS];
     int                 resmgr_id;
     int                 resmgr_id_trace[MultiProc_MAXPROCESSORS];
+    int                 resmgr_id_state[MultiProc_MAXPROCESSORS];
+    int                 resmgr_id_file[MultiProc_MAXPROCESSORS];
     iofunc_funcs_t      mfuncs;
     resmgr_connect_funcs_t  cfuncs;
     resmgr_connect_funcs_t  cfuncs_trace[MultiProc_MAXPROCESSORS];
+    resmgr_connect_funcs_t  cfuncs_state[MultiProc_MAXPROCESSORS];
+    resmgr_connect_funcs_t  cfuncs_file[MultiProc_MAXPROCESSORS];
     resmgr_io_funcs_t   iofuncs;
     resmgr_io_funcs_t   iofuncs_trace[MultiProc_MAXPROCESSORS];
+    resmgr_io_funcs_t   iofuncs_state[MultiProc_MAXPROCESSORS];
+    resmgr_io_funcs_t   iofuncs_file[MultiProc_MAXPROCESSORS];
     char device_name[_POSIX_PATH_MAX];
 } named_device_t;
 
@@ -116,6 +124,7 @@ typedef struct syslink_dev {
     named_device_t     syslink;
     void             * da_virt;
     void             * da_tesla_virt;
+    pthread_mutex_t    firmwareLock;  /* lock for load/unload firmware */
     pthread_mutex_t    lock;
     Bool               recover;
     OsalThread_Handle  ipc_recovery_work;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,9 @@
 extern "C" {
 #endif
 
+/* Timeout of GateMP_setup in seconds */
+#define SETUP_TIMEOUT         2
+
 #define NUM_INFO_FIELDS       6    /* Number of fields in info entry */
 
 /* Values used to populate the resource 'inUse' arrays */
@@ -91,7 +94,8 @@ typedef struct {
 } GateMP_ModuleObject;
 
 /* Internal functions */
-static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr);
+static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr,
+    UInt16 * creatorProcId);
 static Int GateMP_closeDefaultGate(GateMP_Handle *handlePtr);
 
 /* =============================================================================
@@ -121,12 +125,14 @@ static GateMP_ModuleObject * GateMP_module = &GateMP_state;
  */
 
 /* Function to setup the gatemp module. */
-Int GateMP_setup(Void)
+Int GateMP_setup(Int32 * sr0ProcId)
 {
     Int               status = GateMP_S_SUCCESS;
     NameServer_Params params;
     UInt32            nsValue[NUM_INFO_FIELDS];
     UInt32            len;
+    UInt              timeout = SETUP_TIMEOUT;
+    UInt16            procId;
 
     NameServer_Params_init(&params);
     params.maxRuntimeEntries = MAX_RUNTIME_ENTRIES;
@@ -144,15 +150,22 @@ Int GateMP_setup(Void)
     }
 
     if (status == GateMP_S_SUCCESS) {
-        do {
-            sleep(1);   /* Give the slaves some time to get NameServer ready */
-            status = GateMP_openDefaultGate(&GateMP_module->defaultGate);
-        } while (status == GateMP_E_NOTFOUND);
+        /* The default gate creator is the owner of SR0 */
+        while (((status = GateMP_openDefaultGate(&GateMP_module->defaultGate,
+            &procId)) == GateMP_E_NOTFOUND) && (timeout > 0)) {
+            sleep(1);
+            timeout--;
+        }
 
-
-        if (status < 0) {
+        if ((status < 0) && (status != GateMP_E_NOTFOUND)) {
             LOG0("GateMP_setup: failed to open default gate\n");
             status = GateMP_E_FAIL;
+        }
+        else if (status == GateMP_S_SUCCESS) {
+            *sr0ProcId = procId;
+        }
+        else {
+            /* If default gate is not found, return GateMP_E_NOTFOUND */
         }
     }
 
@@ -217,8 +230,9 @@ Int GateMP_setup(Void)
     if (status < 0) {
         GateMP_destroy();
     }
-
-    GateMP_module->isSetup = TRUE;
+    else {
+        GateMP_module->isSetup = TRUE;
+    }
 
     return (status);
 }
@@ -258,7 +272,8 @@ Void GateMP_destroy(Void)
 }
 
 /* Open default gate during GateMP_setup. Should only be called once */
-static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
+static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr,
+    UInt16 * creatorProcId)
 {
     Int             status = GateMP_S_SUCCESS;
     UInt32          len;
@@ -266,7 +281,6 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
     GateMP_Object * obj = NULL;
     UInt32          arg;
     UInt32          mask;
-    UInt32          creatorProcId;
 
     GateMP_RemoteSystemProxy_Params     systemParams;
 
@@ -289,7 +303,7 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
         else {
             arg = nsValue[2];
             mask = nsValue[3];
-            creatorProcId = nsValue[1] >> 16;
+            *creatorProcId = nsValue[1] >> 16;
         }
     }
 
