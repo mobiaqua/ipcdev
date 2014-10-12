@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -210,10 +210,17 @@ typedef enum {
                                             GateMPDrv_CmdArgs)
 
 /*!
+ *  @brief  Command for GateMP_stop
+ */
+#define DCMD_GATEMP_STOP                    __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            5,\
+                                            GateMPDrv_CmdArgs)
+
+/*!
  *  @brief  Command for GateMP_isSetup
  */
 #define DCMD_GATEMP_ISSETUP                 __DIOTF(_DCMD_SYSLINK_GATEMP,\
-                                            5,\
+                                            6,\
                                             GateMPDrv_CmdArgs)
 
 #if defined (__cplusplus)

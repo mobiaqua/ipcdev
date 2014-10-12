@@ -82,15 +82,17 @@ extern "C" {
 
 /* structure for GateMP module state */
 typedef struct {
-    Int               numRemoteSystem;
-    Int               numRemoteCustom1;
-    Int               numRemoteCustom2;
-    UInt8 *           remoteSystemInUse;
-    UInt8 *           remoteCustom1InUse;
-    UInt8 *           remoteCustom2InUse;
-    GateMP_Handle     defaultGate;
-    NameServer_Handle nameServer;
-    Bool              isSetup;
+    Int                numRemoteSystem;
+    Int                numRemoteCustom1;
+    Int                numRemoteCustom2;
+    UInt8 *            remoteSystemInUse;
+    UInt8 *            remoteCustom1InUse;
+    UInt8 *            remoteCustom2InUse;
+    GateMP_Handle      defaultGate;
+    NameServer_Handle  nameServer;
+    Bool               isSetup;
+    UInt32             startCount;   /* number of times GateMP is started */
+    pthread_mutex_t    lock;
 } GateMP_ModuleObject;
 
 /* Internal functions */
@@ -114,7 +116,9 @@ static GateMP_ModuleObject GateMP_state = {
     .remoteCustom2InUse              = NULL,
     .defaultGate                     = NULL,
     .nameServer                      = NULL,
-    .isSetup                         = FALSE
+    .isSetup                         = FALSE,
+    .startCount                      = 0,
+    .lock                            = PTHREAD_RMUTEX_INITIALIZER
 };
 
 static GateMP_ModuleObject * GateMP_module = &GateMP_state;
@@ -140,6 +144,13 @@ Int GateMP_setup(Int32 * sr0ProcId)
 
     /* Assume info entry has more fields than other entries */
     params.maxValueLen = NUM_INFO_FIELDS * sizeof(UInt32);
+
+    pthread_mutex_lock(&GateMP_module->lock);
+
+    if (GateMP_module->isSetup) {
+        pthread_mutex_unlock(&GateMP_module->lock);
+        return (GateMP_S_ALREADYSETUP);
+    }
 
     GateMP_module->nameServer =
                 NameServer_create(GateMP_NAMESERVER, &params);
@@ -228,17 +239,27 @@ Int GateMP_setup(Int32 * sr0ProcId)
 
     /* clean up if error */
     if (status < 0) {
-        GateMP_destroy();
+        GateMP_destroy(TRUE);
     }
     else {
         GateMP_module->isSetup = TRUE;
     }
 
+    pthread_mutex_unlock(&GateMP_module->lock);
+
     return (status);
 }
 
-Void GateMP_destroy(Void)
+Int GateMP_destroy(Bool forced)
 {
+    pthread_mutex_lock(&GateMP_module->lock);
+
+    if ((!forced) && (GateMP_module->startCount != 0)) {
+        /* Some process on the host is still using GateMP */
+        pthread_mutex_unlock(&GateMP_module->lock);
+        return (GateMP_E_FAIL);
+    }
+
     if (GateMP_module->remoteSystemInUse) {
         munmap((unsigned int *)GateMP_module->remoteSystemInUse,
             GateMP_module->numRemoteSystem * sizeof (UInt8));
@@ -268,7 +289,9 @@ Void GateMP_destroy(Void)
 
     GateMP_module->isSetup = FALSE;
 
-    return;
+    pthread_mutex_unlock(&GateMP_module->lock);
+
+    return (GateMP_S_SUCCESS);
 }
 
 /* Open default gate during GateMP_setup. Should only be called once */
@@ -488,6 +511,44 @@ Int GateMP_getNumResources(GateMP_RemoteProtect type)
 NameServer_Handle GateMP_getNameServer(Void)
 {
     return (GateMP_module->nameServer);
+}
+
+Int GateMP_start(Void)
+{
+    Int status = GateMP_S_SUCCESS;
+
+    pthread_mutex_lock(&GateMP_module->lock);
+
+    if (GateMP_isSetup()) {
+        GateMP_module->startCount++;
+    }
+    else {
+        /* Cannot start GateMP if it is not setup */
+        status = GateMP_E_FAIL;
+    }
+
+    pthread_mutex_unlock(&GateMP_module->lock);
+
+    return (status);
+}
+
+Int GateMP_stop(Void)
+{
+    Int status = GateMP_S_SUCCESS;
+
+    pthread_mutex_lock(&GateMP_module->lock);
+
+    if (GateMP_isSetup()) {
+        GateMP_module->startCount--;
+    }
+    else {
+        /* Cannot stop GateMP if it is not setup */
+        status = GateMP_E_FAIL;
+    }
+
+    pthread_mutex_unlock(&GateMP_module->lock);
+
+    return (status);
 }
 
 Bool GateMP_isSetup(Void)

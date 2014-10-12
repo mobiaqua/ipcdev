@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,10 +89,16 @@ extern "C" {
                                             GATEMP_BASE_CMD + 4u,\
                                             GateMPDrv_CmdArgs)
 /*!
+ *  @brief  Command for GateMP_stop
+ */
+#define CMD_GATEMP_STOP                 _IOWR(UTILSCMDBASE,\
+                                            GATEMP_BASE_CMD + 5u,\
+                                            GateMPDrv_CmdArgs)
+/*!
  *  @brief  Command for GateMP_isSetup
  */
 #define CMD_GATEMP_ISSETUP              _IOWR(UTILSCMDBASE,\
-                                            GATEMP_BASE_CMD + 5u,\
+                                            GATEMP_BASE_CMD + 6u,\
                                             GateMPDrv_CmdArgs)
 
 

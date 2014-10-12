@@ -486,6 +486,19 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
     }
     else if (strcmp("0", buf) == 0) {
         if (syslink_firmware[i].procState == RUNNING_STATE) {
+#if defined(SYSLINK_PLATFORM_VAYU)
+            if ((gatempEnabled) && (procid == sr0OwnerProcId)) {
+                sr0OwnerProcId = -1;
+                status = GateMP_destroy(FALSE);
+                if (status < 0) {
+                    pthread_mutex_unlock(&dev->firmwareLock);
+                    free(buf);
+                    fprintf(stderr, "Core %s cannot be reset. GateMP may still"
+                        " be in use by host\n", MultiProc_getName(procid));
+                    return (EIO);
+                }
+            }
+#endif
             resetSlave(ocb->ocb.attr->dev, procid);
             syslink_firmware[i].procState = RESET_STATE;
             syslink_firmware[i].reload = false;
@@ -497,12 +510,6 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
                     status);
                 return (EIO);
             }
-#if defined(SYSLINK_PLATFORM_VAYU)
-            if ((gatempEnabled) && (procid == sr0OwnerProcId)) {
-                sr0OwnerProcId = -1;
-                GateMP_destroy();
-            }
-#endif
             printf("Core %s has been reset.\n", MultiProc_getName(procid));
         }
     }
@@ -1429,7 +1436,7 @@ int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
 
 #if defined(SYSLINK_PLATFORM_VAYU)
     if (gatempEnabled) {
-        GateMP_destroy();
+        GateMP_destroy(TRUE);
 
         NameServer_destroy();
     }
