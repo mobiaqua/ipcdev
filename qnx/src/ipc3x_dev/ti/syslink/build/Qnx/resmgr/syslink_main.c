@@ -200,7 +200,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
     if (status < 0) {
         GT_setFailureReason(curTrace,
                             GT_4CLASS,
-                            "init_ipc",
+                            "runSlave",
                             status,
                             "ProcMgr_attach failed!");
         goto procmgrattach_fail;
@@ -214,7 +214,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
         if (status < 0) {
             GT_setFailureReason(curTrace,
                                 GT_4CLASS,
-                                "init_ipc",
+                                "runSlave",
                                 status,
                                 "ProcMgr_load failed!");
             goto procmgrload_fail;
@@ -225,7 +225,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
     if (status < 0) {
         GT_setFailureReason(curTrace,
                              GT_4CLASS,
-                             "init_ipc",
+                             "runSlave",
                              status,
                              "Ipc_attach failed!");
         goto ipcattach_fail;
@@ -242,7 +242,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
         if (status < 0) {
             GT_setFailureReason(curTrace,
                                 GT_4CLASS,
-                                "init_ipc",
+                                "runSlave",
                                 status,
                                 "ProcMgr_start failed!");
             goto procmgrstart_fail;
@@ -1275,7 +1275,6 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
     int status = 0;
     Ipc_Config iCfg;
     OsalThread_Params threadParams;
-    ProcMgr_AttachParams attachParams;
     UInt16 procId;
     int i;
 
@@ -1655,14 +1654,6 @@ int main(int argc, char *argv[])
         syslink_firmware[syslink_num_cores].reload = true;
         syslink_firmware[syslink_num_cores].freeString = false;
         syslink_firmware[syslink_num_cores++].firmware = argv [optind+1];
-    }
-
-    /* Get the name of the binary from the input args */
-    if (!syslink_num_cores) {
-        fprintf(stderr, "At least one core_id and executable must be "\
-            "specified");
-        printUsage(argv[0]);
-        return (error);
     }
 
     /* Validate hib_enable args */
