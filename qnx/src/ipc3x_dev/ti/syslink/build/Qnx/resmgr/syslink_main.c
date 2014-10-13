@@ -97,8 +97,13 @@ static char * logFilename = NULL;
 static int numAttach = 0;
 
 #if defined(SYSLINK_PLATFORM_VAYU)
+/* DSP2 is invalid on Vayu */
+#define INVALID_PROC     "DSP2"
+
 static bool gatempEnabled = false;
 static Int32 sr0OwnerProcId = -1;
+#else
+#define INVALID_PROC     ""
 #endif
 
 // Syslink hibernation global variables
@@ -315,6 +320,11 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
         return (ENOSYS);
     }
 
+    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+        fprintf(stderr, "Unsupported core\n");
+        return (EPERM);
+    }
+
     pthread_mutex_lock(&dev->firmwareLock);
 
     for (i = 0; i < syslink_num_cores; i++) {
@@ -401,6 +411,11 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
 
     if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE) {
         return (ENOSYS);
+    }
+
+    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+        fprintf(stderr, "Unsupported core\n");
+        return (EPERM);
     }
 
     /* set up the number of bytes (returned by client's write()) */
@@ -548,6 +563,11 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
         return (ENOSYS);
     }
 
+    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+        fprintf(stderr, "Unsupported core\n");
+        return (EPERM);
+    }
+
     pthread_mutex_lock(&dev->firmwareLock);
     for (i = 0; i < syslink_num_cores; i++) {
         if (syslink_firmware[i].proc_id == procid) {
@@ -631,6 +651,11 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
 
     if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE) {
         return (ENOSYS);
+    }
+
+    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+        fprintf(stderr, "Unsupported core\n");
+        return (EPERM);
     }
 
     /* set up the number of bytes (returned by client's write()) */
@@ -1619,6 +1644,11 @@ int main(int argc, char *argv[])
             printUsage(argv[0]);
             return (error);
         }
+        if (strcmp(argv[optind], INVALID_PROC) == 0) {
+            fprintf (stderr, "Unsupported core specified\n");
+            return (error);
+        }
+
         syslink_firmware[syslink_num_cores].proc = argv [optind];
         syslink_firmware[syslink_num_cores].attachOnly =
             ((numAttach-- > 0) ? true : false);
