@@ -301,6 +301,21 @@ static int resetSlave(syslink_dev_t *dev, uint16_t procId)
     return 0;
 }
 
+/* Add firmware entry after IPC is setup */
+static void addFirmware(uint16_t procId)
+{
+    syslink_firmware[syslink_num_cores].proc =
+        MultiProc_getName(procId);
+    syslink_firmware[syslink_num_cores].proc_id = procId;
+    syslink_firmware[syslink_num_cores].attachOnly = false;
+    syslink_firmware[syslink_num_cores].reload = false;
+    syslink_firmware[syslink_num_cores].procState = RESET_STATE;
+    syslink_firmware[syslink_num_cores].freeString = false;
+    syslink_firmware[syslink_num_cores++].firmware = NULL;
+
+    return;
+}
+
 static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
     syslink_ocb_t *ocb)
 {
@@ -309,7 +324,7 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
     int             status;
     int             nleft;
     int             i;
-    uint16_t        procid = ocb->ocb.attr->procid;
+    uint16_t        procId = ocb->ocb.attr->procid;
     syslink_dev_t * dev = ocb->ocb.attr->dev;
 
     if ((status = iofunc_read_verify(ctp, msg, &ocb->ocb, NULL)) != EOK) {
@@ -320,7 +335,7 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
         fprintf(stderr, "Unsupported core\n");
         return (EPERM);
     }
@@ -328,20 +343,13 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
     pthread_mutex_lock(&dev->firmwareLock);
 
     for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procid) {
+        if (syslink_firmware[i].proc_id == procId) {
             break;
         }
     }
     if (i == syslink_num_cores) {
         if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
-            syslink_firmware[syslink_num_cores].proc =
-                MultiProc_getName(procid);
-            syslink_firmware[syslink_num_cores].proc_id = procid;
-            syslink_firmware[syslink_num_cores].attachOnly = false;
-            syslink_firmware[syslink_num_cores].reload = false;
-            syslink_firmware[syslink_num_cores].procState = RESET_STATE;
-            syslink_firmware[syslink_num_cores].freeString = false;
-            syslink_firmware[syslink_num_cores++].firmware = NULL;
+            addFirmware(procId);
         }
         else {
             pthread_mutex_unlock(&dev->firmwareLock);
@@ -399,7 +407,7 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
 {
     int             status;
     char *          buf;
-    uint16_t        procid = ocb->ocb.attr->procid;
+    uint16_t        procId = ocb->ocb.attr->procid;
     int             i;
     char *          ptr;
     syslink_dev_t * dev = ocb->ocb.attr->dev;
@@ -413,7 +421,7 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
         fprintf(stderr, "Unsupported core\n");
         return (EPERM);
     }
@@ -437,20 +445,13 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
 
     pthread_mutex_lock(&dev->firmwareLock);
     for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procid) {
+        if (syslink_firmware[i].proc_id == procId) {
             break;
         }
     }
     if (i == syslink_num_cores) {
         if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
-            syslink_firmware[syslink_num_cores].proc =
-                MultiProc_getName(procid);
-            syslink_firmware[syslink_num_cores].proc_id = procid;
-            syslink_firmware[syslink_num_cores].attachOnly = false;
-            syslink_firmware[syslink_num_cores].reload = false;
-            syslink_firmware[syslink_num_cores].procState = RESET_STATE;
-            syslink_firmware[syslink_num_cores].freeString = false;
-            syslink_firmware[syslink_num_cores++].firmware = NULL;
+            addFirmware(procId);
         }
         else {
             pthread_mutex_unlock(&dev->firmwareLock);
@@ -461,14 +462,14 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
     if (strcmp("1", buf) == 0) {
         if ((syslink_firmware[i].procState == RESET_STATE) &&
            (syslink_firmware[i].firmware != NULL)) {
-            runSlave(ocb->ocb.attr->dev, procid, &syslink_firmware[i]);
+            runSlave(ocb->ocb.attr->dev, procId, &syslink_firmware[i]);
 #if defined(SYSLINK_PLATFORM_VAYU)
             if (gatempEnabled) {
                 if (sr0OwnerProcId == -1) {
                     /* Set up GateMP */
                     status = GateMP_setup(&sr0ProcId);
                     if ((status < 0) && (status != GateMP_E_NOTFOUND)) {
-                        resetSlave(ocb->ocb.attr->dev, procid);
+                        resetSlave(ocb->ocb.attr->dev, procId);
                         pthread_mutex_unlock(&dev->firmwareLock);
                         free(buf);
                         return (EIO);
@@ -496,25 +497,25 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
                 free(buf);
                 return (EIO);
             }
-            printf("Core %s has been started.\n", MultiProc_getName(procid));
+            printf("Core %s has been started.\n", MultiProc_getName(procId));
         }
     }
     else if (strcmp("0", buf) == 0) {
         if (syslink_firmware[i].procState == RUNNING_STATE) {
 #if defined(SYSLINK_PLATFORM_VAYU)
-            if ((gatempEnabled) && (procid == sr0OwnerProcId)) {
+            if ((gatempEnabled) && (procId == sr0OwnerProcId)) {
                 sr0OwnerProcId = -1;
                 status = GateMP_destroy(FALSE);
                 if (status < 0) {
                     pthread_mutex_unlock(&dev->firmwareLock);
                     free(buf);
                     fprintf(stderr, "Core %s cannot be reset. GateMP may still"
-                        " be in use by host\n", MultiProc_getName(procid));
+                        " be in use by host\n", MultiProc_getName(procId));
                     return (EIO);
                 }
             }
 #endif
-            resetSlave(ocb->ocb.attr->dev, procid);
+            resetSlave(ocb->ocb.attr->dev, procId);
             syslink_firmware[i].procState = RESET_STATE;
             syslink_firmware[i].reload = false;
             status = deinit_syslink_trace_device(dev);
@@ -525,7 +526,7 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
                     status);
                 return (EIO);
             }
-            printf("Core %s has been reset.\n", MultiProc_getName(procid));
+            printf("Core %s has been reset.\n", MultiProc_getName(procId));
         }
     }
     else {
@@ -552,7 +553,7 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
     int             status;
     int             nleft;
     int             i;
-    uint16_t        procid = ocb->ocb.attr->procid;
+    uint16_t        procId = ocb->ocb.attr->procid;
     syslink_dev_t * dev = ocb->ocb.attr->dev;
 
     if ((status = iofunc_read_verify (ctp, msg, &ocb->ocb, NULL)) != EOK) {
@@ -563,28 +564,21 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
         fprintf(stderr, "Unsupported core\n");
         return (EPERM);
     }
 
     pthread_mutex_lock(&dev->firmwareLock);
     for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procid) {
+        if (syslink_firmware[i].proc_id == procId) {
             break;
         }
     }
 
     if (i == syslink_num_cores) {
         if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
-            syslink_firmware[syslink_num_cores].proc =
-                MultiProc_getName(procid);
-            syslink_firmware[syslink_num_cores].proc_id = procid;
-            syslink_firmware[syslink_num_cores].attachOnly = false;
-            syslink_firmware[syslink_num_cores].reload = false;
-            syslink_firmware[syslink_num_cores].procState = RESET_STATE;
-            syslink_firmware[syslink_num_cores].freeString = false;
-            syslink_firmware[syslink_num_cores++].firmware = NULL;
+            addFirmware(procId);
         }
         else {
             pthread_mutex_unlock(&dev->firmwareLock);
@@ -651,7 +645,7 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
 {
     int             status;
     char *          buf;
-    uint16_t        procid = ocb->ocb.attr->procid;
+    uint16_t        procId = ocb->ocb.attr->procid;
     int             i;
     char *          absPath;
     char *          ptr;
@@ -665,7 +659,7 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procid), INVALID_PROC) == 0) {
+    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
         fprintf(stderr, "Unsupported core\n");
         return (EPERM);
     }
@@ -710,20 +704,15 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
      * If not, create one. Otherwise just update the firmware path.
      */
     for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procid) {
+        if (syslink_firmware[i].proc_id == procId) {
             break;
         }
     }
     if (i == syslink_num_cores) {
         if (syslink_num_cores < MultiProc_MAXPROCESSORS) {
-            syslink_firmware[syslink_num_cores].proc =
-                MultiProc_getName(procid);
-            syslink_firmware[syslink_num_cores].proc_id = procid;
-            syslink_firmware[syslink_num_cores].attachOnly = false;
-            syslink_firmware[syslink_num_cores].reload = false;
-            syslink_firmware[syslink_num_cores].procState = RESET_STATE;
-            syslink_firmware[syslink_num_cores].freeString = true;
-            syslink_firmware[syslink_num_cores++].firmware = absPath;
+            addFirmware(procId);
+            syslink_firmware[syslink_num_cores - 1].freeString = true;
+            syslink_firmware[syslink_num_cores - 1].firmware = absPath;
         }
         else {
             pthread_mutex_unlock(&dev->firmwareLock);
@@ -733,8 +722,8 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
     }
     else {
         /* Free previously allocated string */
-        if ((syslink_firmware[syslink_num_cores].freeString) &&
-           (syslink_firmware[syslink_num_cores].firmware)) {
+        if ((syslink_firmware[i].freeString) &&
+           (syslink_firmware[i].firmware)) {
             free(syslink_firmware[i].firmware);
         }
         syslink_firmware[i].firmware = absPath;
