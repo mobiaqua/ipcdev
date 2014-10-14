@@ -159,8 +159,8 @@ static ProcMgr_State errStates[] = {ProcMgr_State_Mmu_Fault,
 #define RESET_STATE  0
 #define RUNNING_STATE 1
 
-static String procStateNames[] = { "In reset",
-                                   "Running" };
+static String procStateNames[] = { "In reset\n",
+                                   "Running\n" };
 
 typedef struct syslink_trace_info_t {
     uintptr_t   va;
@@ -597,22 +597,34 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
     }
     else {
         nleft = strlen(syslink_firmware[i].firmware)
-            - ocb->ocb.offset; /* the state is expressed in one byte */
+            - ocb->ocb.offset + 1; /* Add one byte for carriage return */
         nbytes = min(msg->i.nbytes, nleft);
     }
 
     /* Make sure the user has supplied a big enough buffer */
     if (nbytes > 0) {
-        /* set up the return data IOV */
-        SETIOV(ctp->iov, (char *)syslink_firmware[i].firmware
-            + ocb->ocb.offset, nbytes);
+        if (nbytes == nleft) {
+            /* set up the return data IOV */
+            SETIOV(&ctp->iov[0], (char *)syslink_firmware[i].firmware
+                + ocb->ocb.offset, nbytes - 1);
+
+            /* add a carriage return */
+            SETIOV(&ctp->iov[1], "\n", 1);
+
+            nparts = 2;
+        }
+        else {
+            /* set up the return data IOV */
+            SETIOV(ctp->iov, (char *)syslink_firmware[i].firmware
+                + ocb->ocb.offset, nbytes);
+
+            nparts = 1;
+        }
 
         /* set up the number of bytes (returned by client's read()) */
         _IO_SET_READ_NBYTES(ctp, nbytes);
 
         ocb->ocb.offset += nbytes;
-
-        nparts = 1;
     }
     else {
         _IO_SET_READ_NBYTES (ctp, 0);
@@ -877,9 +889,10 @@ int init_slave_devices(syslink_dev_t *dev)
     int              status = 0;
 
     memset(&resmgr_attr, 0, sizeof resmgr_attr);
-    resmgr_attr.nparts_max = 1;
+    resmgr_attr.nparts_max = 2;
     resmgr_attr.msg_max_size = _POSIX_PATH_MAX;
 
+    /* Populate the /dev/ipc-state namespace */
     for (i = 1; i < MultiProc_getNumProcessors(); i++) {
         iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_state[i],
                          _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_state[i]);
@@ -907,6 +920,7 @@ int init_slave_devices(syslink_dev_t *dev)
         }
     }
 
+    /* Populate the /dev/ipc-file namespace */
     for (i = 1; i < MultiProc_getNumProcessors(); i++) {
         iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_file[i],
                          _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_file[i]);
