@@ -817,6 +817,79 @@ error_exit:
     return ret_val;
 }
 
+/****************************************************
+* Function to enable interrupt for MMU faults
+*****************************************************/
+Int rproc_enable_fault_interrupt(VAYUIPU_HalObject * halObject)
+{
+    Int status = 0;
+    UInt32 reg;
+    VAYUIpu_MMURegs * mmuRegs = NULL;
+
+    if (halObject == NULL) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_enable_fault_interrupt",
+                             status,
+                             "halObject is NULL");
+    }
+    else if (halObject->mmuBase == 0) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_enable_fault_interrupt",
+                             status,
+                             "halObject->mmuBase is NULL");
+    }
+    else {
+        mmuRegs = (VAYUIpu_MMURegs *)halObject->mmuBase;
+        /*
+         * Enable generation of interrupt on fault.
+         * This also ensures the slave core stays halted in its
+         * fault state upon generating an MMU fault.
+         */
+        reg = INREG32(&mmuRegs->GP_REG);
+        reg &= ~MMU_FAULT_INTR_DIS_MASK;
+        OUTREG32(&mmuRegs->GP_REG, reg);
+
+        OUTREG32(&mmuRegs->IRQENABLE, MMU_IRQ_TLB_MISS_MASK);
+   }
+
+   return status;
+}
+
+/****************************************************
+* Function to disable interrupt for MMU faults
+*****************************************************/
+Int rproc_disable_fault_interrupt(VAYUIPU_HalObject * halObject)
+{
+    Int status = 0;
+    VAYUIpu_MMURegs * mmuRegs = NULL;
+
+    if (halObject == NULL) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_enable_fault_interrupt",
+                             status,
+                             "halObject is NULL");
+    }
+    else if (halObject->mmuBase == 0) {
+        status = -ENOMEM;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "rproc_enable_fault_interrupt",
+                             status,
+                             "halObject->mmuBase is NULL");
+    }
+    else {
+        mmuRegs = (VAYUIpu_MMURegs *)halObject->mmuBase;
+        OUTREG32(&mmuRegs->IRQENABLE, 0);
+   }
+
+   return status;
+}
 
 /****************************************************
 *

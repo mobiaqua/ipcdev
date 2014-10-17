@@ -112,10 +112,12 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
 }
 
 /*
- *  ======== module$meta$init ========
+ *  ======== module$use ========
  */
-function module$meta$init()
+function module$use()
 {
+    var found = false;
+
     /* Only process during "cfg" phase */
     if (xdc.om.$name != "cfg") {
         return;
@@ -140,26 +142,23 @@ function module$meta$init()
                 Watchdog.timerSettings[i].eventId = device[i].eventId;
             }
 
-            return;
+            found = true;
+
+	    break;
         }
     }
 
-    /* Falls through on failure */
-    print("Watchdog Timer configuration is not found for the specified device ("
-            + Program.cpu.deviceName + ").");
+    if (!found) {
+        print("Watchdog Timer configuration is not found for the " +
+              "specified device (" + Program.cpu.deviceName + ").");
 
-    for (device in deviceTable[catalogName]) {
-        print("\t" + device);
+        for (device in deviceTable[catalogName]) {
+            print("\t" + device);
+        }
+
+        throw new Error ("Watchdog Timer unsupported on device!");
     }
 
-    throw new Error ("Watchdog Timer unsupported on device!");
-}
-
-/*
- *  ======== module$use ========
- */
-function module$use()
-{
     var Settings = xdc.module("ti.sysbios.family.Settings");
     var Hwi = xdc.useModule(Settings.getDefaultHwiDelegate());
 

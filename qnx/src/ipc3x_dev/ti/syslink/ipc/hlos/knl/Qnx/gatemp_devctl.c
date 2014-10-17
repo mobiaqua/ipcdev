@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -100,6 +100,12 @@ int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
       case DCMD_GATEMP_START:
       {
           return syslink_gatemp_start(ctp, msg, ocb);
+      }
+      break;
+
+      case DCMD_GATEMP_STOP:
+      {
+          return syslink_gatemp_stop(ctp, msg, ocb);
       }
       break;
 
@@ -222,7 +228,33 @@ int syslink_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
         (_DEVCTL_DATA (msg->o));
 
     cargs->args.start.nameServerHandle = GateMP_getNameServer();
-    out->apiStatus = GateMP_S_SUCCESS;
+    out->apiStatus = GateMP_start();
+
+    return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
+        sizeof(GateMPDrv_CmdArgs)));
+}
+
+/**
+ * Handler for gatemp stop API.
+ *
+ * \param ctp   Thread's associated context information.
+ * \param msg   The actual devctl() message.
+ * \param ocb   OCB associated with client's session.
+ *
+ * \return POSIX errno value.
+ *
+ * \retval EOK      Success.
+ * \retval ENOTSUP  Unsupported devctl().
+ */
+int syslink_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
+    syslink_ocb_t *ocb)
+{
+    GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->i));
+    GateMPDrv_CmdArgs * out  = (GateMPDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->o));
+
+    out->apiStatus = GateMP_stop();
 
     return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
         sizeof(GateMPDrv_CmdArgs)));

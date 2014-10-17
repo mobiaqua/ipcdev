@@ -1085,25 +1085,25 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
         /*
          * Mailbox 5 is used for HOST<->DSP1 communication
          */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (DSP1_HOST_SUB_MBOX) << 1));
+        REG(VAYUIpcInt_state.mailbox5Base + \
+            MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
+            1 << ((DSP1_HOST_SUB_MBOX) << 1);
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*
          * Mailbox 5 is used for HOST<->IPU1 communication
          */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (IPU1_HOST_SUB_MBOX) << 1));
+        REG(VAYUIpcInt_state.mailbox5Base + \
+            MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
+            1 << ((IPU1_HOST_SUB_MBOX) << 1);
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
          * Mailbox 6 is used for HOST<->IPU2 communication
          */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (IPU2_HOST_SUB_MBOX) << 1));
+        REG(VAYUIpcInt_state.mailbox6Base + \
+            MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
+            1 << ((IPU2_HOST_SUB_MBOX) << 1);
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {

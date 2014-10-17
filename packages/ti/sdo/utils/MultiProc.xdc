@@ -179,7 +179,7 @@ module MultiProc
      *  The base processor ID of the cluster.
      *
      *  The ID of each processor in a cluster is computed by adding
-     *  its position in the name list of {@link @setConfig} to the
+     *  its position in the name list of {@link #setConfig} to the
      *  base ID of the cluster. When more than one cluster exists in
      *  the system, this parameter must be set before calling
      *  {@link #setConfig}.

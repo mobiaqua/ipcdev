@@ -996,6 +996,12 @@ VAYUIPUCORE0PROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
+
+            /* Setup the xbar for MMU fault interrupts */
+            mmuEnableArgs.numMemEntries = 0;
+            status = VAYUIPU_halMmuCtrl(object->halObject,
+                Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
+
             if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
                 || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
@@ -1003,44 +1009,53 @@ VAYUIPUCORE0PROC_attach(
                 if (status < 0) {
                     GT_setFailureReason(curTrace, GT_4CLASS,
                         "VAYUIPUCORE0PROC_attach", status,
-                        "Failed to reset the slave processor");
+                        "Failed to enable the slave MMU");
+                }
+                else {
+#endif
+                    GT_0trace(curTrace, GT_2CLASS,
+                        "VAYUIPUCORE0PROC_attach: Slave MMU "
+                        "is configured!");
+
+                    /*
+                     * Pull IPU MMU out of reset to make internal
+                     * memory "loadable"
+                     */
+                    status = VAYUIPUCORE0_halResetCtrl(
+                        object->halObject,
+                        Processor_ResetCtrlCmd_MMU_Release);
+                    if (status < 0) {
+                        /*! @retval status */
+                        GT_setFailureReason(curTrace,
+                            GT_4CLASS,
+                            "VAYUIPUCORE0_halResetCtrl",
+                            status,
+                            "Reset MMU_Release failed");
+                    }
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                }
+#endif
+            }
+            else {
+                /* NoBoot, late-attach */
+                /*
+                 * Setup MMU fault interrupt now since we won't have a chance
+                 * to do it in ProcMgr_start
+                 */
+                rproc_enable_fault_interrupt(object->halObject);
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUIPUCORE0PROC_attach", status,
+                        "Failed to enable the slave MMU");
                 }
                 else {
 #endif
                     GT_0trace(curTrace, GT_1CLASS,
-                        "VAYUIPUCORE0PROC_attach: slave is now in reset");
-
-                    mmuEnableArgs.numMemEntries = 0;
-                    status = VAYUIPU_halMmuCtrl(object->halObject,
-                        Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
+                        "VAYUIPUCORE0PROC_attach: Slave MMU interrupt is "
+                        "configured");
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                    if (status < 0) {
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUIPUCORE0PROC_attach", status,
-                            "Failed to enable the slave MMU");
-                    }
-                    else {
-#endif
-                        GT_0trace(curTrace, GT_2CLASS,
-                            "VAYUIPUCORE0PROC_attach: Slave MMU "
-                            "is configured!");
-                        /*
-                         * Pull IPU MMU out of reset to make internal
-                         * memory "loadable"
-                         */
-                        status = VAYUIPUCORE0_halResetCtrl(
-                            object->halObject,
-                            Processor_ResetCtrlCmd_MMU_Release);
-                        if (status < 0) {
-                            /*! @retval status */
-                            GT_setFailureReason(curTrace,
-                                GT_4CLASS,
-                                "VAYUIPUCORE0_halResetCtrl",
-                                status,
-                                "Reset MMU_Release failed");
-                        }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-                    }
                 }
 #endif
             }
@@ -1105,14 +1120,29 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
                 /*! @retval status */
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
-                                     "VAYUIPUCORE0_halResetCtrl",
+                                     "VAYUIPUCORE0PROC_detach",
                                      status,
                                      "Reset MMU failed");
             }
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+        else {
+            status = rproc_disable_fault_interrupt(object->halObject);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            if (status < 0) {
+                /*! @retval status */
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "VAYUIPUCORE0PROC_detach",
+                                     status,
+                                     "rproc_disable_fault_interrupt failed");
+            }
+#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
 
-            status = VAYUIPU_halMmuCtrl(object->halObject,
-                                        Processor_MmuCtrlCmd_Disable, NULL);
+        if (status >= 0) {
+             status = VAYUIPU_halMmuCtrl(object->halObject,
+                                    Processor_MmuCtrlCmd_Disable, NULL);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason(curTrace, GT_4CLASS,
@@ -1120,43 +1150,43 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
                     "Failed to disable the slave MMU");
             }
 #endif
+        }
 
-            /* delete all dynamically added entries */
-            for (i = 0; i <
-                AddrTable_count[PROCID_TO_IPU(procHandle->procId)]; i++) {
-                ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][i];
-                ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
-                ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                ai->size = 0u;
-                ai->isCached = FALSE;
-                ai->mapMask = 0u;
-                ai->isMapped = FALSE;
-                ai->refCount = 0u;
-            }
-            object->params.numMemEntries = 0;
-            AddrTable_count[PROCID_TO_IPU(procHandle->procId)] = 0;
+        /* delete all dynamically added entries */
+        for (i = 0; i <
+            AddrTable_count[PROCID_TO_IPU(procHandle->procId)]; i++) {
+            ai = &AddrTable[PROCID_TO_IPU(procHandle->procId)][i];
+            ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
+            ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+            ai->size = 0u;
+            ai->isCached = FALSE;
+            ai->mapMask = 0u;
+            ai->isMapped = FALSE;
+            ai->refCount = 0u;
+        }
+        object->params.numMemEntries = 0;
+        AddrTable_count[PROCID_TO_IPU(procHandle->procId)] = 0;
 
-            //No need to reset.. that will be done in STOP
-            /*tmpStatus = VAYUIPUCORE0_halResetCtrl(object->halObject,
-                Processor_ResetCtrlCmd_Reset, NULL);
+        //No need to reset.. that will be done in STOP
+        /*tmpStatus = VAYUIPUCORE0_halResetCtrl(object->halObject,
+            Processor_ResetCtrlCmd_Reset, NULL);
 
-            GT_0trace(curTrace, GT_2CLASS,
-                "VAYUIPUCORE0PROC_detach: Slave processor is now in reset");*/
+        GT_0trace(curTrace, GT_2CLASS,
+            "VAYUIPUCORE0PROC_detach: Slave processor is now in reset");*/
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-            if ((tmpStatus < 0) && (status >= 0)) {
-                status = tmpStatus;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "VAYUIPUCORE0PROC_detach",
-                                     status,
-                                     "Failed to reset the slave processor");
-            }
-#endif
+        if ((tmpStatus < 0) && (status >= 0)) {
+            status = tmpStatus;
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "VAYUIPUCORE0PROC_detach",
+                                 status,
+                                 "Failed to reset the slave processor");
         }
+#endif
 
         GT_0trace (curTrace,
                    GT_2CLASS,

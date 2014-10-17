@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -138,6 +138,17 @@ Int GateMPDrv_ioctl(UInt32 cmd, Ptr args)
       case CMD_GATEMP_START:
       {
           osStatus = devctl(IpcDrv_handle, DCMD_GATEMP_START, cargs,
+              sizeof(GateMPDrv_CmdArgs), NULL);
+
+          if (osStatus != 0) {
+              status = GateMP_E_OSFAILURE;
+          }
+      }
+      break;
+
+      case CMD_GATEMP_STOP:
+      {
+          osStatus = devctl(IpcDrv_handle, DCMD_GATEMP_STOP, cargs,
               sizeof(GateMPDrv_CmdArgs), NULL);
 
           if (osStatus != 0) {

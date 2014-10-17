@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2014, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -179,6 +179,7 @@ Int GateMP_start(Void)
 Int GateMP_stop(Void)
 {
     Int status = GateMP_S_SUCCESS;
+    GateMPDrv_CmdArgs cmdArgs;
 
     PRINTVERBOSE0("GateMP_stop: entered\n")
 
@@ -192,6 +193,16 @@ Int GateMP_stop(Void)
     if (GateMP_module->remoteSystemGates != NULL) {
         free(GateMP_module->remoteSystemGates);
         GateMP_module->remoteSystemGates = NULL;
+    }
+
+    /* Call stop in resource manager if necessary */
+    if (GateMP_module->nameServer != NULL) {
+        GateMP_module->nameServer = NULL;
+        status = GateMPDrv_ioctl(CMD_GATEMP_STOP, &cmdArgs);
+        if (status < 0) {
+            PRINTVERBOSE1("GateMP_stop: API (through IOCTL) failed, \
+                status=%d\n", status)
+        }
     }
 
     GateMP_module->isStarted = FALSE;
@@ -269,6 +280,12 @@ Int GateMP_open(String name, GateMP_Handle *handle)
     if (handle == NULL) {
         PRINTVERBOSE0("GateMP_open: handle cannot be null")
         status = GateMP_E_INVALIDARG;
+    }
+
+    if (GateMP_module->nameServer == NULL) {
+        PRINTVERBOSE0("GateMP_open: NameServer handle is null")
+        PRINTVERBOSE0("GateMP_open: Make sure GateMP_start is called")
+        status = GateMP_E_INVALIDSTATE;
     }
 
     if (status == GateMP_S_SUCCESS) {
@@ -379,7 +396,7 @@ Int GateMP_open(String name, GateMP_Handle *handle)
 
 GateMP_Handle GateMP_getDefaultRemote()
 {
-    return(GateMP_module->defaultGate);
+    return (GateMP_module->defaultGate);
 }
 
 GateMP_LocalProtect GateMP_getLocalProtect(GateMP_Handle handle)
@@ -387,7 +404,7 @@ GateMP_LocalProtect GateMP_getLocalProtect(GateMP_Handle handle)
     GateMP_Object *obj;
 
     obj = (GateMP_Object *)handle;
-    return(obj->localProtect);
+    return (obj->localProtect);
 }
 
 GateMP_RemoteProtect GateMP_getRemoteProtect(GateMP_Handle handle)
@@ -524,9 +541,6 @@ static Int GateMP_Instance_init(GateMP_Object *obj,
 {
     GateMP_RemoteSystemProxy_Params     systemParams;
     UInt32                              nsValue[4];
-    Int                                 status;
-
-    status = 0;
 
     obj->resourceId = (UInt)-1;
 

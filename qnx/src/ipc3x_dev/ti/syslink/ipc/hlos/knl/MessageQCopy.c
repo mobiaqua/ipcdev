@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2014, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -673,6 +673,8 @@ MessageQCopy_detach (UInt16 remoteProcId)
                 }
             }
 
+            MessageQCopy_module->transport[remoteProcId] = NULL;
+
             /* Delete the virtqueues */
             for (i = 0; i < MessageQCopy_NUMVIRTQS; i++) {
                 VirtQueue_delete (&obj->vq[i]);
@@ -788,8 +790,9 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
             if (reserved != MessageQCopy_ADDRANY && name != NULL)
                 announce = TRUE;
         }
-        else
+        else {
             mq = handle->mq;
+        }
 
         /* Enter critical section protection. */
         key = IGateProvider_enter (MessageQCopy_module->gateHandle);

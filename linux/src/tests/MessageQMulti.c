@@ -62,7 +62,7 @@
 
 #define  NUM_LOOPS_DFLT   1000
 #define  NUM_THREADS_DFLT 10
-#define  MAX_NUM_THREADS  55
+#define  MAX_NUM_THREADS  25
 #define  ONE_PROCESS_ONLY (-1)
 
 /** ============================================================================
