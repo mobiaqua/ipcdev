@@ -38,15 +38,16 @@
 var Deh = null;
 var MultiProc = null;
 
-function module$meta$init()
+/*
+ *  ======== module$use ========
+ */
+function module$use()
 {
+    var Swi = null;
+    var Task = null;
+    var Exception = null;
     var Settings = xdc.module("ti.sysbios.family.Settings");
     var Hwi;
-
-    /* Only process during "cfg" phase */
-    if (xdc.om.$name != "cfg") {
-        return;
-    }
 
     Deh = this;
 
@@ -66,16 +67,6 @@ function module$meta$init()
         /* Need to do this early before it gets sealed */
         Hwi.excHandlerFunc = Deh.excHandler;
     }
-}
-
-/*
- *  ======== module$use ========
- */
-function module$use()
-{
-    var Swi = null;
-    var Task = null;
-    var Exception = null;
 
     xdc.useModule('xdc.runtime.System');
 

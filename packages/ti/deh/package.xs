@@ -63,7 +63,17 @@ function getLibs(prog)
 	    break;
 
 	default:
-	    throw new Error("Unsupported device: " + device);
+	    var deh = xdc.module("ti.deh.Deh");
+	    var watchdog = xdc.module("ti.deh.Watchdog");
+	    var stackdbg = xdc.module("ti.deh.StackDbg");
+	    if (deh.$used || watchdog.$used || stackdbg.$used) {
+		    throw new Error("Unsupported device: " + device);
+	    }
+	    else {
+		/* package is merely referenced and not used */
+		return "";
+	    }
+
 	    break;
     }
 

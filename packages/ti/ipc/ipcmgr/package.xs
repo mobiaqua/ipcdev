@@ -35,6 +35,18 @@
  */
 
 /*
+ *  ======== init ========
+ */
+function init()
+{
+    if (xdc.om.$name != 'cfg') {
+        return;
+    }
+
+    xdc.loadPackage("ti.deh");
+}
+
+/*
  *  ======== getLibs ========
  */
 function getLibs(prog)
