@@ -85,6 +85,16 @@ struct fw_rsc_carveout {
     Char    name[32];
 };
 
+struct fw_rsc_intmem {
+    UInt32  type;
+    UInt32  version;
+    UInt32  da;
+    UInt32  pa;
+    UInt32  len;
+    UInt32  reserved;
+    Char    name[32];
+};
+
 struct fw_rsc_devmem {
     UInt32  type;
     UInt32  da;

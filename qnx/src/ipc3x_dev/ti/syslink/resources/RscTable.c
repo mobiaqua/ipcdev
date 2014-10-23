@@ -473,7 +473,7 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
             }
             case TYPE_INTMEM :
             {
-                struct fw_rsc_carveout * cout = (struct fw_rsc_carveout *)entry;
+                struct fw_rsc_intmem * cout = (struct fw_rsc_intmem *)entry;
 
                 if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
                     ret = -1;
