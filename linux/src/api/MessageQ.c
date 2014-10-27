@@ -1009,6 +1009,7 @@ static Int transportCreateEndpoint(int * fd, UInt16 rprocId, UInt16 queueIndex)
         /* don't hard-printf since this is no longer fatal */
         PRINTVERBOSE2("transportCreateEndpoint: bind failed: %d, %s\n",
                       errno, strerror(errno));
+        close(*fd);
     }
 
 exit:
