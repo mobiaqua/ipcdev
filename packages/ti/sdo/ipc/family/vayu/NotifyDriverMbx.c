@@ -57,7 +57,6 @@
 #error Invalid target
 #endif
 
-#include <ti/sdo/ipc/_Ipc.h>
 #include <ti/sdo/ipc/_Notify.h>
 #include <ti/sdo/ipc/family/vayu/NotifySetup.h>
 #include <ti/sdo/utils/_MultiProc.h>
@@ -167,16 +166,6 @@ Void NotifyDriverMbx_Instance_init(NotifyDriverMbx_Object *obj,
     UInt        key;
     UInt16      selfVirtId;
     UInt16      index;
-
-    Assert_isTrue((params->remoteProcId != MultiProc_INVALIDID) &&
-            (params->remoteProcId != MultiProc_self()),
-            ti_sdo_ipc_Ipc_A_invParam);
-
-    /* TODO: this check is weak */
-    if (params->remoteProcId >= MultiProc_getNumProcessors() ||
-        params->remoteProcId == MultiProc_INVALIDID) {
-        return;    /* keep Coverity happy */
-    }
 
     obj->evtRegMask = 0;
     obj->notifyHandle = NULL;

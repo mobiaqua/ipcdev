@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,6 @@ function module$use()
         xdc.useModule('ti.sysbios.family.arm.gic.Hwi');
     }
 
-    xdc.useModule('ti.sdo.ipc.Ipc');
     xdc.useModule("ti.sdo.ipc.Notify");
     xdc.useModule('ti.sdo.ipc.family.vayu.NotifySetup');
 
