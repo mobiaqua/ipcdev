@@ -133,9 +133,10 @@ Void MessageQ_Params2_init(MessageQ_Params2 *params)
 
 /*
  *  ======== MessageQ_alloc ========
- *  Allocate a message and initial the needed fields (note some
- *  of the fields in the header at set via other APIs or in the
- *  MessageQ_put function.
+ *  Allocate a message and initialize the needed fields
+ *
+ *  Note: some of the fields in the header are set via other
+ *  APIs or in the MessageQ_put function.
  */
 MessageQ_Msg MessageQ_alloc(UInt16 heapId, UInt32 size)
 {

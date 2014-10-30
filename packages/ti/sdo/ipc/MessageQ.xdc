@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -637,11 +637,11 @@ internal:
      *  ---------------------------------
      *  |V V V|T|     reserved      |P P|
      *  ---------------------------------
-     *   E D C B A 0 9 8 7 6 5 4 3 2 1 0
+     *   F E D C B A 9 8 7 6 5 4 3 2 1 0
      *
      *  V = version
-     *  P = priority
      *  T = trace flag
+     *  P = priority
      */
 
     /*! Mask to extract version setting */
@@ -682,11 +682,11 @@ internal:
         Bits32       msgSize;           /* message size                 */
         Bits16       flags;             /* bitmask of different flags   */
         Bits16       msgId;             /* message id                   */
-        Bits16       dstId;             /* destination processor id     */
-        Bits16       dstProc;           /* destination processor        */
-        Bits16       replyId;           /* reply id                     */
-        Bits16       replyProc;         /* reply processor              */
-        Bits16       srcProc;           /* source processor             */
+        Bits16       dstId;             /* destination queue id         */
+        Bits16       dstProc;           /* destination processor id     */
+        Bits16       replyId;           /* reply queue id               */
+        Bits16       replyProc;         /* reply processor id           */
+        Bits16       srcProc;           /* proc who initialized the msg */
         Bits16       heapId;            /* heap id                      */
         Bits16       seqNum;            /* sequence number              */
         Bits16       reserved;          /* reserved                     */
