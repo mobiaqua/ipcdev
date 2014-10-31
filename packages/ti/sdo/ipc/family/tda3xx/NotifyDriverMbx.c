@@ -110,7 +110,8 @@
     while (REG32(MAILBOX_STATUS(idx)) != 0) {                               \
         REG32(MAILBOX_MESSAGE(idx));                                        \
     }                                                                       \
-    REG32(MAILBOX_IRQSTATUS_CLR(idx)) = MAILBOX_REG_VAL(SUBMBX_IDX(idx));
+    REG32(MAILBOX_IRQSTATUS_CLR(idx)) = MAILBOX_REG_VAL(SUBMBX_IDX(idx));   \
+    REG32(MAILBOX_EOI_REG(idx)) = MBX_USER_IDX(idx);
 
 /*
  *************************************************************************
@@ -168,9 +169,9 @@ Void NotifyDriverMbx_Instance_init(NotifyDriverMbx_Object *obj,
     /* disable global interrupts */
     key = Hwi_disable();
 
-    /* clear mailbox of any old messages */
+    /* clear inbound mailbox of all old messages */
     selfVirtId = PROCID(MultiProc_self());
-    index = (selfVirtId * NotifyDriverMbx_NUM_CORES) + obj->remoteVirtId;
+    index = (obj->remoteVirtId * NotifyDriverMbx_NUM_CORES) + selfVirtId;
     MAILBOX_INIT(index);
 
     /* must use processor virtual ID to store driver handle in table */
@@ -383,7 +384,7 @@ Void NotifyDriverMbx_enableEvent(NotifyDriverMbx_Object *obj, UInt32 eventId)
     if (TEST_BIT(obj->evtRegMask, eventId)) {                               \
         ti_sdo_ipc_Notify_exec(obj->notifyHandle, eventId, payload);        \
     }                                                                       \
-    REG32(MAILBOX_EOI_REG(idx)) = 0x1;
+    REG32(MAILBOX_EOI_REG(idx)) = MBX_USER_IDX(idx);
 
 Void NotifyDriverMbx_isr(UInt16 idx)
 {
