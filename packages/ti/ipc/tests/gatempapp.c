@@ -160,6 +160,7 @@ Int Server_exec()
     UInt32              physAddr;
     volatile UInt32 *   intPtr              = 0;
     Int                 num                 = 0;
+    Int                 prevNum             = 0;
     UInt                i                   = 0;
     IArg                gateKey             = 0;
 
@@ -215,6 +216,9 @@ Int Server_exec()
         /* enter GateMP */
         gateKey = GateMP_enter(Module.hostGateMPHandle);
 
+        /* read shared variable value */
+        prevNum = *intPtr;
+
         /* randomly modify the shared variable */
         if ( rand() % 2) {
             *intPtr -= 1;
@@ -223,15 +227,15 @@ Int Server_exec()
             *intPtr += 1;
         }
 
-        /* copy shared variable value */
+        /* read shared variable value again */
         num = *intPtr;
 
-        Log_print2(Diags_INFO, "Server_exec: Current shared variable "
-                "value %d, read value=%d", *intPtr, num);
-
-        if (*intPtr != num) {
-            Log_print0(Diags_INFO, "Server_exec: mismatch in variable value." \
+        if ((prevNum != num + 1) && (prevNum != num - 1)) {
+            Log_print0(Diags_INFO, "Server_exec: unexpected variable value." \
                 "Test failed.");
+            Log_print2(Diags_INFO, "Server_exec: Previous shared variable "
+                "value %d, current value=%d", prevNum, num);
+
             status = GATEMPAPP_E_FAILURE;
             goto leave;
         }
@@ -266,6 +270,9 @@ Int Server_exec()
         /* enter GateMP */
         gateKey = GateMP_enter(Module.slaveGateMPHandle);
 
+        /* read shared variable value */
+        prevNum = *intPtr;
+
         /* randomly modify the shared variable */
         if ( rand() % 2) {
             *intPtr -= 1;
@@ -274,15 +281,15 @@ Int Server_exec()
             *intPtr += 1;
         }
 
-        /* copy shared variable value */
+        /* read shared variable value again */
         num = *intPtr;
 
-        Log_print2(Diags_INFO, "Server_exec: Current "
-                "value=%d, read value=%d", *intPtr, num);
-
-        if (*intPtr != num) {
-            Log_print0(Diags_INFO, "Server_exec: mismatch in variable value." \
+        if ((prevNum != num - 1) && (prevNum != num + 1)) {
+            Log_print0(Diags_INFO, "Server_exec: unexpected variable value." \
                 "Test failed.");
+            Log_print2(Diags_INFO, "Server_exec: Previous "
+                "value=%d, current value=%d", prevNum, num);
+
             status = GATEMPAPP_E_FAILURE;
             goto leave;
         }

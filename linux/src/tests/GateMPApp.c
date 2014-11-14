@@ -241,6 +241,7 @@ Int GateMPApp_exec(Void)
     GateMPApp_Msg *   msg;
     IArg        gateKey         = 0;
     UInt32      num;
+    UInt32      prevNum;
 
     printf("--> GateMPApp_exec:\n");
 
@@ -300,6 +301,9 @@ Int GateMPApp_exec(Void)
         /* enter GateMP */
         gateKey = GateMP_enter(Module.hostGateMPHandle);
 
+        /* read shared variable value */
+        prevNum = *Module.intPtr;
+
         /* randomly modify the shared variable */
         if (rand() % 2) {
             *Module.intPtr -= 1;
@@ -308,14 +312,15 @@ Int GateMPApp_exec(Void)
             *Module.intPtr += 1;
         }
 
-        /* read shared variable value */
+        /* read shared variable value again*/
         num = *Module.intPtr;
-        printf("GateMPApp_exec: Current value: %d, " \
-            "previously read=%d\n", *Module.intPtr, num);
 
-        if (*Module.intPtr != num) {
-            printf("GateMPApp_exec: mismatch in variable value." \
+        if ((prevNum != num + 1) && (prevNum != num - 1)) {
+            printf("GateMPApp_exec: unexpected variable value." \
                 "Test failed.\n");
+            printf("GateMPApp_exec: Previous value: %d, " \
+                "current value=%d\n", prevNum, num);
+
             status = GATEMPAPP_E_FAILURE;
             goto leave;
         }
@@ -365,6 +370,9 @@ Int GateMPApp_exec(Void)
         /* enter GateMP */
         gateKey = GateMP_enter(Module.slaveGateMPHandle);
 
+        /* read shared variable value */
+        prevNum = *Module.intPtr;
+
         /* randomly modify the shared variable */
         if (rand() % 2) {
             *Module.intPtr -= 1;
@@ -373,14 +381,15 @@ Int GateMPApp_exec(Void)
             *Module.intPtr += 1;
         }
 
-        /* read shared variable value */
+        /* read shared variable value again */
         num = *Module.intPtr;
-        printf("GateMPApp_exec: Current value: %d, " \
-            "previously read=%d\n", *Module.intPtr, num);
 
-        if (*Module.intPtr != num) {
-            printf("GateMPApp_exec: mismatch in variable value." \
+        if ((prevNum != num + 1) && (prevNum != num - 1)) {
+            printf("GateMPApp_exec: unexpected variable value." \
                 "Test failed.\n");
+            printf("GateMPApp_exec: Previous value: %d, " \
+                "current value=%d\n", prevNum, num);
+
             status = GATEMPAPP_E_FAILURE;
             goto leave;
         }
