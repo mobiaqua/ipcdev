@@ -1373,11 +1373,9 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
 
             if (obj == NULL) {
                 status = MessageQCopy_E_INVALIDARG;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "MessageQCopy_send",
-                                     status,
-                                     "obj is NULL.");
+                GT_1trace(curTrace, GT_2CLASS,
+                    "MessageQCopy_send: obj is NULL. Core %d is not attached",
+                    dstProc);
             }
             else if (obj->vq[1] == NULL) {
                 status = MessageQCopy_E_INVALIDSTATE;
