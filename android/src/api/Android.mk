@@ -39,7 +39,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
                      $(LOCAL_PATH)/$(IPC_ROOT)/packages \
                      $(LOCAL_PATH)/$(IPC_ROOT)/hlos_common/include
 
-LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT -fPIC
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/api/MultiProc.c \
