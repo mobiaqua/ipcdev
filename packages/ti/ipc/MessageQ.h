@@ -535,6 +535,21 @@ typedef enum {
  */
 typedef Void (*MessageQ_FreeHookFxn)(Bits16 heapId, Bits16 msgId);
 
+#ifdef STD_H
+#include <ITransport.h>
+#include <IMessageQTransport.h>
+#else
+#include <ti/sdo/ipc/interfaces/ITransport.h>
+#include <ti/sdo/ipc/interfaces/IMessageQTransport.h>
+#endif
+
+Bool MessageQ_registerTransport(IMessageQTransport_Handle handle,
+                                UInt16 rprocId, UInt priority);
+Void MessageQ_unregisterTransport(UInt16 rprocId, UInt priority);
+Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst);
+Void MessageQ_unregisterTransportId(UInt tid);
+
+
 /* =============================================================================
  *  MessageQ Module-wide Functions
  * =============================================================================

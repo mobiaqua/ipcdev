@@ -132,6 +132,7 @@ AC_CONFIG_FILES([linux/src/mm/Makefile])
 AC_CONFIG_FILES([linux/src/mm/libmmrpc.pc])
 AC_CONFIG_FILES([linux/src/daemon/Makefile])
 AC_CONFIG_FILES([linux/src/tests/Makefile])
+AC_CONFIG_FILES([linux/src/transport/Makefile])
 AC_OUTPUT
 
 echo \

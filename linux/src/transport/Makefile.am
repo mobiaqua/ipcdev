@@ -28,19 +28,39 @@
 ##  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ##  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
-##  ======== Makefile.am ========
+## ======== src/api/Makefile.am ========
 ##
 
-# the subdirectories of the project to go into
-SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/transport \
-        linux/src/mm linux/src/daemon linux/src/tests
+# additional include paths necessary to compile the library
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
+        -I$(top_srcdir)/packages -I$(KERNEL_INSTALL_DIR)/include/generated/uapi\
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
 
-# where to install common headers on the system
-ipcincludedir = $(includedir)/ti/ipc
+#if DRA7XX
+#AM_CFLAGS += -DGATEMP_SUPPORT
+#endif
 
-# the list of common header files (to be installed later)
-ipcinclude_HEADERS = $(top_srcdir)/packages/ti/ipc/Ipc.h \
-                $(top_srcdir)/packages/ti/ipc/GateMP.h \
-                $(top_srcdir)/packages/ti/ipc/MessageQ.h \
-                $(top_srcdir)/packages/ti/ipc/MultiProc.h \
-                $(top_srcdir)/packages/ti/ipc/NameServer.h
+###############################################################################
+# THE LIBRARIES TO BUILD
+###############################################################################
+
+# the library names to build (note we are building shared libs)
+lib_LTLIBRARIES = libtransport.la
+
+# where to install the headers on the system
+libtransport_ladir = $(includedir)/ti/ipc
+
+# the list of header files that belong to the library (to be installed later)
+libtransport_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
+
+# the sources to add to the library and to add to the source distribution
+libtransport_la_SOURCES =    \
+                        TransportRpmsg.c
+
+# Add version info to the shared library
+libtransport_la_LDFLAGS = -version-info 1:0:0
+
+#pkgconfig_DATA          = libtiipc.pc
+#pkgconfigdir            = $(libdir)/pkgconfig
+
+###############################################################################

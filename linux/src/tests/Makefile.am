@@ -58,7 +58,7 @@ VPATH = ../../../packages/ti/ipc/tests
 
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
-                NameServerApp Msgq100
+                MessageQMultiMulti NameServerApp Msgq100
 
 
 if OMAP54XX_SMP
@@ -139,6 +139,7 @@ nameServer_common_sources = \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
                 NameServerApp.c
 
+
 # list of sources for the 'ping_rpmsg' binary
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
@@ -155,6 +156,9 @@ MessageQBench_SOURCES = $(common_sources) MessageQBench.c
 
 # list of sources for the 'MessageQMulti' binary
 MessageQMulti_SOURCES = $(common_sources) MessageQMulti.c
+
+# list of sources for the 'MessageQMultiMulti' binary
+MessageQMultiMulti_SOURCES = $(common_sources) MessageQMultiMulti.c
 
 # list of sources for the 'NameServerApp' binary
 NameServerApp_SOURCES = $(nameServer_common_sources)
@@ -174,7 +178,9 @@ GateMPApp_SOURCES = $(common_sources) \
                 $(top_srcdir)/packages/ti/ipc/tests/GateMPAppCommon.h
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+                $(top_builddir)/linux/src/utils/libtiipcutils.la \
+                $(top_builddir)/linux/src/transport/libtransport.la
+
 
 # the additional libraries to link ping_rpmsg
 ping_rpmsg_LDADD = -lrt
@@ -195,6 +201,10 @@ MessageQBench_LDADD = $(common_libraries) -lrt \
 
 # the additional libraries needed to link MessageQMulti
 MessageQMulti_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+
+# the additional libraries needed to link MessageQMultiMulti
+MessageQMultiMulti_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link NameServerApp

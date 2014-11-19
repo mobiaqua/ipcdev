@@ -85,6 +85,9 @@
 /* Slot 0 reserved for NameServer messages: */
 #define RESERVED_MSGQ_INDEX  1
 
+/* Number of entries to grow when we run out of queueIndexs */
+#define MessageQ_GROWSIZE 32
+
 /* Define BENCHMARK to quiet key MessageQ APIs: */
 //#define BENCHMARK
 
@@ -221,6 +224,7 @@ Int MessageQ_setup(const MessageQ_Config * cfg)
     MessageQ_module->numQueues = cfg->maxRuntimeEntries;
     MessageQ_module->queues = (MessageQ_Handle *)
         calloc(1, sizeof(MessageQ_Handle) * MessageQ_module->numQueues);
+    MessageQ_module->canFreeQueues = TRUE;
 
 exitSetup:
     LOG1("MessageQ_setup: exiting, refCount=%d\n", MessageQ_module->refCount)
@@ -269,7 +273,6 @@ Int MessageQ_destroy(void)
 
     memset(&MessageQ_module->cfg, 0, sizeof(MessageQ_Config));
     MessageQ_module->numQueues  = 0u;
-    MessageQ_module->canFreeQueues = TRUE;
 
 exitDestroy:
     LOG1("MessageQ_destroy: exiting, refCount=%d\n", MessageQ_module->refCount)
@@ -431,7 +434,8 @@ static UInt16 _MessageQ_grow(MessageQ_Object * obj)
     oldSize = (MessageQ_module->numQueues) * sizeof(MessageQ_Handle);
 
     /* Allocate larger table */
-    queues = calloc(1, oldSize + sizeof(MessageQ_Handle));
+    queues = calloc(MessageQ_module->numQueues + MessageQ_GROWSIZE,
+                    sizeof(MessageQ_Handle));
 
     /* Copy contents into new table */
     memcpy(queues, MessageQ_module->queues, oldSize);
@@ -442,7 +446,7 @@ static UInt16 _MessageQ_grow(MessageQ_Object * obj)
     /* Hook-up new table */
     oldQueues = MessageQ_module->queues;
     MessageQ_module->queues = queues;
-    MessageQ_module->numQueues++;
+    MessageQ_module->numQueues += MessageQ_GROWSIZE;
 
     /* Delete old table if not statically defined */
     if (MessageQ_module->canFreeQueues == TRUE) {

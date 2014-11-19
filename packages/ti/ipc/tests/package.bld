@@ -559,6 +559,12 @@ for (var i = 0; i < Build.targets.length; i++) {
             defs: "-D BENCHMARK" + extraDefs
         }).addObjects(["messageq_multi.c"]);
 
+        /* messageq_multimulti */
+        Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
+            cfgScript: "rpmsg_transport",
+            defs: "-D BENCHMARK" + extraDefs
+        }).addObjects(["messageq_multimulti.c"]);
+
         /* messageq_single */
         if (platform.match(/^ti\.platforms\.sdp5430/) &&
                 (targ.isa == "64T")) {

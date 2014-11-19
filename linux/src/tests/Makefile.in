@@ -45,12 +45,12 @@ host_triplet = @host@
 
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
-	NameServerApp$(EXEEXT) Msgq100$(EXEEXT) $(am__EXEEXT_1) \
-	$(am__EXEEXT_2) $(am__EXEEXT_1) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_1) $(am__EXEEXT_5) \
+	MessageQMultiMulti$(EXEEXT) NameServerApp$(EXEEXT) \
+	Msgq100$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_1) $(am__EXEEXT_3) $(am__EXEEXT_4) \
+	$(am__EXEEXT_1) $(am__EXEEXT_5) $(am__EXEEXT_1) \
 	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_1) \
-	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7)
+	$(am__EXEEXT_1) $(am__EXEEXT_6) $(am__EXEEXT_7)
 
 # Add platform specific bin application's here
 @OMAP54XX_SMP_TRUE@am__append_3 = 
@@ -99,7 +99,8 @@ am_GateMPApp_OBJECTS = $(am__objects_1) main_host.$(OBJEXT) \
 	GateMPApp.$(OBJEXT)
 GateMPApp_OBJECTS = $(am_GateMPApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
-	$(top_builddir)/linux/src/utils/libtiipcutils.la
+	$(top_builddir)/linux/src/utils/libtiipcutils.la \
+	$(top_builddir)/linux/src/transport/libtransport.la
 am__DEPENDENCIES_2 =
 GateMPApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
@@ -114,6 +115,11 @@ MessageQBench_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 am_MessageQMulti_OBJECTS = $(am__objects_1) MessageQMulti.$(OBJEXT)
 MessageQMulti_OBJECTS = $(am_MessageQMulti_OBJECTS)
 MessageQMulti_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
+am_MessageQMultiMulti_OBJECTS = $(am__objects_1) \
+	MessageQMultiMulti.$(OBJEXT)
+MessageQMultiMulti_OBJECTS = $(am_MessageQMultiMulti_OBJECTS)
+MessageQMultiMulti_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am_Msgq100_OBJECTS = $(am__objects_1) Msgq100.$(OBJEXT)
 Msgq100_OBJECTS = $(am_Msgq100_OBJECTS)
@@ -150,14 +156,14 @@ LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
 	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
-	$(Msgq100_SOURCES) $(NameServerApp_SOURCES) \
-	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(MessageQMultiMulti_SOURCES) $(Msgq100_SOURCES) \
+	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
 DIST_SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
 	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
-	$(Msgq100_SOURCES) $(NameServerApp_SOURCES) \
-	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(MessageQMultiMulti_SOURCES) $(Msgq100_SOURCES) \
+	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -322,6 +328,9 @@ MessageQBench_SOURCES = $(common_sources) MessageQBench.c
 # list of sources for the 'MessageQMulti' binary
 MessageQMulti_SOURCES = $(common_sources) MessageQMulti.c
 
+# list of sources for the 'MessageQMultiMulti' binary
+MessageQMultiMulti_SOURCES = $(common_sources) MessageQMultiMulti.c
+
 # list of sources for the 'NameServerApp' binary
 NameServerApp_SOURCES = $(nameServer_common_sources)
 
@@ -340,7 +349,8 @@ GateMPApp_SOURCES = $(common_sources) \
                 $(top_srcdir)/packages/ti/ipc/tests/GateMPAppCommon.h
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+                $(top_builddir)/linux/src/utils/libtiipcutils.la \
+                $(top_builddir)/linux/src/transport/libtransport.la
 
 
 # the additional libraries to link ping_rpmsg
@@ -365,6 +375,11 @@ MessageQBench_LDADD = $(common_libraries) -lrt \
 
 # the additional libraries needed to link MessageQMulti
 MessageQMulti_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+
+
+# the additional libraries needed to link MessageQMultiMulti
+MessageQMultiMulti_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 
@@ -462,6 +477,9 @@ MessageQBench$(EXEEXT): $(MessageQBench_OBJECTS) $(MessageQBench_DEPENDENCIES)
 MessageQMulti$(EXEEXT): $(MessageQMulti_OBJECTS) $(MessageQMulti_DEPENDENCIES) 
 	@rm -f MessageQMulti$(EXEEXT)
 	$(LINK) $(MessageQMulti_LDFLAGS) $(MessageQMulti_OBJECTS) $(MessageQMulti_LDADD) $(LIBS)
+MessageQMultiMulti$(EXEEXT): $(MessageQMultiMulti_OBJECTS) $(MessageQMultiMulti_DEPENDENCIES) 
+	@rm -f MessageQMultiMulti$(EXEEXT)
+	$(LINK) $(MessageQMultiMulti_LDFLAGS) $(MessageQMultiMulti_OBJECTS) $(MessageQMultiMulti_LDADD) $(LIBS)
 Msgq100$(EXEEXT): $(Msgq100_OBJECTS) $(Msgq100_DEPENDENCIES) 
 	@rm -f Msgq100$(EXEEXT)
 	$(LINK) $(Msgq100_LDFLAGS) $(Msgq100_OBJECTS) $(Msgq100_LDADD) $(LIBS)
@@ -488,6 +506,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQBench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMultiMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Msgq100.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@

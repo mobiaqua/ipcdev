@@ -46,6 +46,8 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
+#include <IMessageQTransport.h>
+#include <TransportRpmsg.h>
 
 /* User side headers */
 #include <ladclient.h>
@@ -71,15 +73,19 @@ static void cleanup(int arg);
 /* Function to start Ipc */
 Int Ipc_start (Void)
 {
+    TransportRpmsg_Handle  transport;
+    TransportRpmsg_Params  params;
+    IMessageQTransport_Handle iMsgQTrans;
     MessageQ_Config        msgqCfg;
     MultiProc_Config       mpCfg;
 #if defined(GATEMP_SUPPORT)
     GateHWSpinlock_Config  gateHWCfg;
 #endif
+    Int                    attachStatus;
     Int32                  status;
     LAD_Status             ladStatus;
     UInt16                 rprocId;
-    Int32                  attachedAny = 0;
+    Int32                  attachedAny;
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
@@ -138,29 +144,44 @@ Int Ipc_start (Void)
         MessageQ_getConfig(&msgqCfg);
         MessageQ_setup(&msgqCfg);
 
-        /* Now attach to all remote processors, assuming they are up. */
+        /*
+         * Attach to all remote processors.  We need to attach to
+         * at least one, so tolerate MessageQ_E_RESOURCE failures for
+         * now.
+         */
+        status = Ipc_S_SUCCESS;
+        attachedAny = FALSE;
+
         for (rprocId = 0; rprocId < MultiProc_getNumProcessors(); rprocId++) {
             if (0 == rprocId) {
                 /* Skip host, which should always be 0th entry. */
                 continue;
             }
-            status = MessageQ_attach(rprocId, NULL);
-            if (status == MessageQ_E_RESOURCE) {
-                continue;
+
+            params.rprocId = rprocId;
+            transport = TransportRpmsg_create(&params, &attachStatus);
+
+            if (transport) {
+                iMsgQTrans = TransportRpmsg_upCast(transport);
+                MessageQ_registerTransport(iMsgQTrans, rprocId, 0);
+
+                attachedAny = TRUE;
             }
-            if (status < 0) {
-                printf("Ipc_start: MessageQ_attach(%d) failed: %d\n",
-                       rprocId, status);
+            else {
+                if (attachStatus == MessageQ_E_RESOURCE) {
+                    continue;
+                }
+
+                printf("Ipc_start: failed to attach to %d: %d\n",
+                       rprocId, attachStatus);
+
                 status = Ipc_E_FAIL;
 
                 break;
             }
-            else {
-                attachedAny = 1;
-            }
         }
-        if (attachedAny) {
-            status = Ipc_S_SUCCESS;
+        if (!attachedAny) {
+            status = Ipc_E_FAIL;
         }
     }
     else {
@@ -202,9 +223,11 @@ Int Ipc_start (Void)
 gatempstart_fail:
     GateHWSpinlock_stop();
 gatehwspinlockstart_fail:
+#if 0
     for (rprocId = rprocId - 1; (rprocId > 0) && (status >= 0); rprocId--) {
         MessageQ_detach(rprocId);
     }
+#endif
 #endif
 
 exit:
@@ -227,6 +250,7 @@ Int Ipc_stop (Void)
           /* Skip host, which should always be 0th entry. */
           continue;
         }
+#if 0
         status = MessageQ_detach(rprocId);
         if (status < 0) {
             printf("Ipc_stop: MessageQ_detach(%d) failed: %d\n",
@@ -234,6 +258,7 @@ Int Ipc_stop (Void)
             status = Ipc_E_FAIL;
             goto exit;
        }
+#endif
     }
 
     status = MessageQ_destroy();
