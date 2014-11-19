@@ -635,13 +635,15 @@ internal:
     /*
      *  The following describes the usage of the flag field
      *  ---------------------------------
-     *  |V V V|T|     reserved      |P P|
+     *  |V V V|T|  reserved   |t t t|P P|
      *  ---------------------------------
      *   F E D C B A 9 8 7 6 5 4 3 2 1 0
      *
-     *  V = version
-     *  T = trace flag
-     *  P = priority
+     *  [15:13] V = version
+     *  [12]    T = trace flag
+     *  [11:5]  reserved
+     *  [4:2]   t = transport Id, zero = default
+     *  [1:0]   P = priority
      */
 
     /*! Mask to extract version setting */

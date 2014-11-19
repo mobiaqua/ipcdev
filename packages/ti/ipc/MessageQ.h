@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -367,6 +367,17 @@ extern "C" {
                 | ((MessageQ_Msg)(msg))->replyId)
 
 /*!
+ *  @brief   Return the transport Id for the given message
+ *
+ *  Extract the transport Id from the message header.
+ *
+ *  @param[in]   msg      message of type #MessageQ_Msg
+ *  @retval      tid      transport Id
+ */
+#define MessageQ_getTransportId(msg) \
+        ((((MessageQ_Msg)(msg))->flags & (0x7 << 2)) >> 2)
+
+/*!
  *  @brief   Sets the message id in a message.
  *
  *  This function sets the message ID in the message. The MessageQ_getMsgId()
@@ -388,6 +399,23 @@ extern "C" {
  */
 #define MessageQ_setMsgPri(msg, priority) \
         (((MessageQ_Msg) (msg))->flags = ((priority) & MessageQ_PRIORITYMASK))
+
+/*!
+ *  @brief   Set the transport Id for the given message
+ *
+ *  Set the transport Id in the flags field of the message header. When
+ *  set to a non-zero value, the message will be given to the specified
+ *  transport for delivery. The transport must be registered with MessageQ
+ *  with the given Id.
+ *
+ *  There is no error checking on the transport Id.
+ *
+ *  @param[in]   msg      message of type #MessageQ_Msg
+ *  @param[in]   tid      transport ID (1-7)
+ */
+#define MessageQ_setTransportId(msg, tid) \
+        ((MessageQ_Msg)(msg))->flags = \
+        ((((MessageQ_Msg)(msg))->flags & ~(0x7 << 2)) | ((tid) << 2))
 
 /* =============================================================================
  *  Structures & Enums
