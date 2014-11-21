@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,11 +259,9 @@ Int HeapBufMP_open(String name,
     Assert_isTrue(name != NULL, ti_sdo_ipc_Ipc_A_invParam);
 
     /* Open by name */
-    status = NameServer_getUInt32((NameServer_Handle)
-                 HeapBufMP_module->nameServer,
-                 name,
-                 &sharedShmBase,
-                 ti_sdo_utils_MultiProc_procIdList);
+    status = NameServer_getUInt32(
+            (NameServer_Handle)HeapBufMP_module->nameServer, name,
+            &sharedShmBase, MultiProc_getClusterProcList());
 
     if (status < 0) {
         /* Name not found. */

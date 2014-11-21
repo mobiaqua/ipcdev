@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,9 +159,7 @@ Int ListMP_open(String name, ListMP_Handle *handlePtr)
 
     /* Search NameServer */
     status = NameServer_getUInt32((NameServer_Handle)ListMP_module->nameServer,
-                                  name,
-                                  &sharedShmBase,
-                                  ti_sdo_utils_MultiProc_procIdList);
+            name, &sharedShmBase, MultiProc_getClusterProcList());
 
     if (status < 0) {
         /* Name was not found */

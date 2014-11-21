@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 
 #ifdef __ti__
     #pragma FUNC_EXT_CALLED(MultiProc_getBaseIdOfCluster);
+    #pragma FUNC_EXT_CALLED(MultiProc_getClusterProcList);
     #pragma FUNC_EXT_CALLED(MultiProc_getId);
     #pragma FUNC_EXT_CALLED(MultiProc_getName);
     #pragma FUNC_EXT_CALLED(MultiProc_getNumProcessors);
@@ -65,6 +66,14 @@
 UInt16 MultiProc_getBaseIdOfCluster()
 {
     return (MultiProc_module->baseIdOfCluster);
+}
+
+/*
+ *  ======== MultiProc_getClusterProcList ========
+ */
+UInt16 *MultiProc_getClusterProcList()
+{
+    return (MultiProc_module->clusterProcList);
 }
 
 /*

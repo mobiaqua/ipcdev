@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== MultiProc.xs ========
  *
  */
-
 var MultiProc = null;
 var BaseIdOfCluster = null;
 var NumProcessors = null;
@@ -125,12 +125,6 @@ function setConfig(name, nameList)
     /* BaseIdOfCluster and NumProcessors must not change after this point */
     NumProcessors = MultiProc.numProcessors;
     BaseIdOfCluster = MultiProc.baseIdOfCluster;
-
-    /* create the list of processor ids */
-    MultiProc.procIdList.length = MultiProc.numProcsInCluster;
-    for (var i = 0; i < MultiProc.numProcsInCluster; i++) {
-        MultiProc.procIdList[i] = i + MultiProc.baseIdOfCluster;
-    }
 
     if (nameList.length == 0) {
         /* Empty name array supplied */
@@ -228,10 +222,20 @@ function getIdMeta(name)
 /*
  *  ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    mod.id = params.id;
-    mod.baseIdOfCluster = params.baseIdOfCluster;
+    state.id = mod.id;
+    state.baseIdOfCluster = mod.baseIdOfCluster;
+
+    /* now that we know how big the cluster is, set the size of the array */
+    state.clusterProcList.length = mod.numProcsInCluster;
+
+    /* initialize the array if we know the actual procIds */
+    if (mod.baseIdOfCluster != MultiProc.INVALIDID) {
+        for (var i = 0; i < state.clusterProcList.length; i++) {
+            state.clusterProcList[i] = mod.baseIdOfCluster + i;
+        }
+    }
 }
 
 /*

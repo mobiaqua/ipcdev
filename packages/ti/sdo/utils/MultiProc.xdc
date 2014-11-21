@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -286,12 +286,12 @@ module MultiProc
 
 internal:
 
-    /* list of processor id's in cluster */
-    config UInt16 procIdList[];
-
-    /* id is in Module_State to support the changing of it via setLocalId */
+    /*  Store these elements in the module state (instead of config) to
+     *  support boot-time assignment (for single image reuse).
+     */
     struct Module_State {
         UInt16 id;
         UInt16 baseIdOfCluster;
+        UInt16 clusterProcList[];       /* list of procIds in cluster */
     };
 }

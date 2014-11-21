@@ -222,7 +222,7 @@ Int HeapMemMP_open(String name, HeapMemMP_Handle *handlePtr)
     /* Open by name */
     status = NameServer_getUInt32(
             (NameServer_Handle)HeapMemMP_module->nameServer, name,
-            &sharedShmBase, ti_sdo_utils_MultiProc_procIdList);
+            &sharedShmBase, MultiProc_getClusterProcList());
 
     if (status < 0) {
         /* Name not found. */

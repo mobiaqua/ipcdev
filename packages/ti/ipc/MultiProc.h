@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,7 +158,7 @@ extern "C" {
  * =============================================================================
  */
 
- /*!
+/*!
  *  @brief      Gets the base MultiProc id of the cluster
  *
  *  Retrieves the base MultiProc id for the cluster of processors.
@@ -168,6 +168,19 @@ extern "C" {
  *  @sa         MultiProc_getClusterId
  */
 UInt16 MultiProc_getBaseIdOfCluster(Void);
+
+/*!
+ *  @brief      Return the list of processors in the cluster
+ *
+ *  Returns a list which contains the procIds of every processor in
+ *  the cluster. This is useful for functions which require a list
+ *  of procIds.
+ *
+ *  @return     List of processors Ids
+ *
+ *  @sa         MultiProc_getNumProcsInCluster
+ */
+UInt16 *MultiProc_getClusterProcList(Void);
 
 /*!
  *  @brief      Gets the MultiProc id

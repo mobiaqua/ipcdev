@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,7 +259,7 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
      *  Search all processors.
      */
     status = NameServer_get((NameServer_Handle)GateMP_module->nameServer, name,
-            &nsValue, &len, ti_sdo_utils_MultiProc_procIdList);
+            &nsValue, &len, MultiProc_getClusterProcList());
 
     if (status < 0) {
         *handlePtr = NULL;
