@@ -64,8 +64,13 @@ function module$use()
     List       = xdc.useModule("ti.sdo.utils.List");
     MultiProc  = xdc.useModule("ti.sdo.utils.MultiProc");
     NameServer = xdc.useModule('ti.sdo.utils.NameServer');
-    GateThread = xdc.useModule("xdc.runtime.knl.GateThread");
-    SyncSem    = xdc.useModule("ti.sysbios.syncs.SyncSem");
+    GateThread = xdc.useModule('xdc.runtime.knl.GateThread');
+    SyncSem    = xdc.useModule('ti.sysbios.syncs.SyncSem');
+
+    xdc.useModule('ti.sdo.ipc.interfaces.ITransport');
+    xdc.useModule('ti.sdo.ipc.interfaces.IMessageQTransport');
+    xdc.useModule('ti.sdo.ipc.interfaces.INetworkTransport');
+    xdc.useModule('ti.sdo.ipc.transports.TransportNetworkDummy');
 
     /* Plug the SetupTransportProxy for the MessageQ transport */
     if (MessageQ.SetupTransportProxy == null) {
@@ -85,12 +90,12 @@ function module$use()
  *  ======== module$static$init ========
  *  Initialize module values.
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
     /* initialize the NameServer param to be used now or later */
-    MessageQ.nameSrvPrms.maxRuntimeEntries = params.maxRuntimeEntries;
-    MessageQ.nameSrvPrms.tableSection      = params.tableSection;
-    MessageQ.nameSrvPrms.maxNameLen        = params.maxNameLen;
+    MessageQ.nameSrvPrms.maxRuntimeEntries = mod.maxRuntimeEntries;
+    MessageQ.nameSrvPrms.tableSection      = mod.tableSection;
+    MessageQ.nameSrvPrms.maxNameLen        = mod.maxNameLen;
 
     /*
      *  Get the current number of created static instances of this module.
@@ -101,11 +106,10 @@ function module$static$init(mod, params)
 
     /* create NameServer here only if no static instances are created */
     if (instCount == 0) {
-        mod.nameServer = NameServer.create("MessageQ",
-                                           MessageQ.nameSrvPrms);
+        state.nameServer = NameServer.create("MessageQ", MessageQ.nameSrvPrms);
     }
     else {
-        mod.nameServer = null;
+        state.nameServer = null;
     }
 
     /*
@@ -113,94 +117,98 @@ function module$static$init(mod, params)
      *  Also pre-allocate if numReservedEntries is not zero.
      *  maxRuntimeEntries < numReservedEntries is caught in validate.
      */
-    mod.numQueues = this.$instances.length;
-    if (params.maxRuntimeEntries != NameServer.ALLOWGROWTH) {
-        mod.numQueues += params.maxRuntimeEntries;
+    state.numQueues = this.$instances.length;
+    if (mod.maxRuntimeEntries != NameServer.ALLOWGROWTH) {
+        state.numQueues += mod.maxRuntimeEntries;
     }
-    else if (params.numReservedEntries != 0){
-        mod.numQueues += params.numReservedEntries;
+    else if (mod.numReservedEntries != 0){
+        state.numQueues += mod.numReservedEntries;
     }
 
-    mod.queues.length = mod.numQueues;
-    mod.canFreeQueues = false;
-    mod.freeHookFxn   = params.freeHookFxn;
+    state.queues.length = state.numQueues;
+    state.canFreeQueues = false;
+    state.freeHookFxn   = mod.freeHookFxn;
 
-    if (params.nameTableGate == null) {
-         mod.gate = null;
+    if (mod.nameTableGate == null) {
+         state.gate = null;
     }
     else {
-        mod.gate = params.nameTableGate;
+        state.gate = mod.nameTableGate;
     }
 
     var messsageQParams = new this.Params;
 
     /* Initial the seqNum used for tracing */
-    mod.seqNum     = 0;
+    state.seqNum = 0;
 
     /* Set the length of the heaps array */
-    mod.numHeaps     = params.numHeaps;
-    mod.heaps.length = mod.numHeaps;
+    state.numHeaps = mod.numHeaps;
+    state.heaps.length = state.numHeaps;
 
     /* Initialize the heaps array to null */
-    for (var i = 0; i < mod.heaps.length; i++) {
-            mod.heaps[i] = null;
+    for (var i = 0; i < state.heaps.length; i++) {
+        state.heaps[i] = null;
     }
 
     /*
      *  Sort the static heaps by heap id into the heaps array
      */
-    for (var i = 0; i < params.staticHeaps.length; i++) {
+    for (var i = 0; i < mod.staticHeaps.length; i++) {
 
         /* Make sure the id is not too big */
-        if (params.staticHeaps[i].heapId >= mod.numHeaps) {
-            MessageQ.$logError("Out of range heapId (" +
-                                params.staticHeaps[i].heapId +
-                                "). Max heapId is " + (params.numHeaps - 1) +
-                                " (MessageQ.numHeaps - 1).", this);
+        if (mod.staticHeaps[i].heapId >= state.numHeaps) {
+            MessageQ.$logError("Out of range heapId ("
+                    + mod.staticHeaps[i].heapId + "). Max heapId is "
+                    + (mod.numHeaps - 1) + " (MessageQ.numHeaps - 1).", this);
         }
 
         /* Make sure the same id is not used twice */
-        if (mod.heaps[params.staticHeaps[i].heapId] != null) {
-            MessageQ.$logError("Cannot register multiple heaps to heapId " +
-                                params.staticHeaps[i].heapId + ".", this);
+        if (state.heaps[mod.staticHeaps[i].heapId] != null) {
+            MessageQ.$logError("Cannot register multiple heaps to heapId "
+                    + mod.staticHeaps[i].heapId + ".", this);
         }
 
-        mod.heaps[params.staticHeaps[i].heapId] = params.staticHeaps[i].heap;
+        state.heaps[mod.staticHeaps[i].heapId] = mod.staticHeaps[i].heap;
     }
 
     /* Set the length of the transport array */
-    mod.transports.length = MultiProc.numProcessors;
+    state.transports.length = MultiProc.numProcessors;
 
     /* Initialize all the transports to null */
-    for (var i = 0; i < mod.transports.length; i++) {
-        mod.transports[i][0] = null;
-        mod.transports[i][1] = null;
+    for (var i = 0; i < state.transports.length; i++) {
+        state.transports[i][0] = null;
+        state.transports[i][1] = null;
     }
 
     /*
      *  Sort the static Transports by processor id into the
      *  transport array
      */
-    for (var i = 0; i < params.staticTransports.length; i++) {
+    for (var i = 0; i < mod.staticTransports.length; i++) {
 
         /* Make sure the procId is not too big */
-        if (params.staticTransports[i].procId >= MultiProc.numProcessors) {
-            MessageQ.$logError("MessageQ Out of range procId (" +
-                                params.staticTransports[i].procId +
-                                "). Max procId is " +
-                                (MultiProc.numProcessors) +
-                                " (MultiProc.numProcessors).", this);
+        if (mod.staticTransports[i].procId >= MultiProc.numProcessors) {
+            MessageQ.$logError("MessageQ Out of range procId ("
+                    + mod.staticTransports[i].procId + "). Max procId is "
+                    + (MultiProc.numProcessors) + " (MultiProc.numProcessors).",
+                    this);
         }
 
         /* Make sure the same id is not used twice */
-        if (mod.transports[params.staticTransports[i].procId] != null) {
-            MessageQ.$logError("Cannot register multiple transports to one" +
-                               " remote processor " +
-                               params.staticTransports[i].procId + ".", this);
+        if (state.transports[mod.staticTransports[i].procId] != null) {
+            MessageQ.$logError("Cannot register multiple transports to one"
+                    + " remote processor " + mod.staticTransports[i].procId
+                    + ".", this);
         }
 
-        mod.transports[params.staticTransports[i].procId] =
-            params.staticTransports[i].transport;
+        state.transports[mod.staticTransports[i].procId] =
+            mod.staticTransports[i].transport;
+    }
+
+    /* initialize the registered transport array */
+    for (var i = 0; i < state.regTrans.length; i++) {
+        state.regTrans[i].transport = null;
+        state.regTrans[i].type = mod.TransportType_Invalid;
     }
 }
 

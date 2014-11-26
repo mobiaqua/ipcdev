@@ -46,6 +46,7 @@ import xdc.runtime.knl.ISync;
 
 import ti.sysbios.syncs.SyncSem;
 
+import ti.sdo.ipc.interfaces.ITransport;
 import ti.sdo.ipc.interfaces.IMessageQTransport;
 import ti.sdo.utils.NameServer;
 import ti.sdo.utils.List;
@@ -597,6 +598,18 @@ module MessageQ
      */
     Void unregisterTransport(UInt16 procId, UInt priority);
 
+    /*!
+     *  ======== registerTransportId ========
+     *  Register the transport instance for the given ID
+     */
+    Bool registerTransportId(UInt tid, ITransport.Handle inst);
+
+    /*!
+     *  ======== unregisterTransportId ========
+     *  Unregister the transport for the given ID
+     */
+    Bool unregisterTransportId(UInt tid);
+
 instance:
 
     /*!
@@ -704,6 +717,17 @@ internal:
         UInt16             procId;
     };
 
+    enum TransportType {
+        TransportType_IMessageQTransport,
+        TransportType_INetworkTransport,
+        TransportType_Invalid
+    };
+
+    struct RegisteredTransport {
+        ITransport.Handle transport;
+        TransportType type;
+    };
+
     /*!
      *  ======== nameSrvPrms ========
      *  This Params object is used for temporary storage of the
@@ -753,5 +777,6 @@ internal:
         FreeHookFxn          freeHookFxn;
         Bool                 canFreeQueues;
         UInt16               seqNum;
+        RegisteredTransport  regTrans[8];
     };
 }

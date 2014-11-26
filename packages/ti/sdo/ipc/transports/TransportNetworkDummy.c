@@ -29,22 +29,45 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
- *
+ *  ======== TransportNetworkDummy.c ========
  */
 
-/*!
- *  ======== ti.sdo.ipc.transports ========
- */
+#include <xdc/std.h>
+#include <xdc/runtime/Error.h>
 
-package ti.sdo.ipc.transports [1,0,0,0] {
-    module    TransportShm;
-    module    TransportShmSetup;
-    module    TransportShmCirc;
-    module    TransportShmCircSetup;
-    module    TransportShmNotify;
-    module    TransportShmNotifySetup;
-    module    TransportNullSetup;
-    module    TransportNetworkDummy;
+#include "package/internal/TransportNetworkDummy.xdc.h"
+
+/*
+ *  ======== TransportNetworkDummy_Instance_init ========
+ */
+Void TransportNetworkDummy_Instance_init(TransportNetworkDummy_Object *obj,
+        const TransportNetworkDummy_Params *params)
+{
+    /* ... */
+}
+
+/*
+ *  ======== TransportNetworkDummy_bind ========
+ */
+Int TransportNetworkDummy_bind(TransportNetworkDummy_Object *obj, UInt32 qid)
+{
+    return (0);
+}
+
+/*
+ *  ======== TransportNetworkDummy_unbind ========
+ */
+Int TransportNetworkDummy_unbind(TransportNetworkDummy_Object *obj, UInt32 qid)
+{
+    return (0);
+}
+
+/*
+ *  ======== TransportNetworkDummy_put ========
+ */
+Bool TransportNetworkDummy_put(TransportNetworkDummy_Object *obj, Ptr msg)
+{
+    return (TRUE);
 }

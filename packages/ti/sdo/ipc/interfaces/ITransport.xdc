@@ -29,22 +29,19 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
- *
+ *  ======== ITransport.xdc ========
  */
+package ti.sdo.ipc.interfaces;
 
 /*!
- *  ======== ti.sdo.ipc.transports ========
+ *  ======== ITransport ========
+ *  Base interface for all message transports
  */
+@DirectCall
+interface ITransport {
 
-package ti.sdo.ipc.transports [1,0,0,0] {
-    module    TransportShm;
-    module    TransportShmSetup;
-    module    TransportShmCirc;
-    module    TransportShmCircSetup;
-    module    TransportShmNotify;
-    module    TransportShmNotifySetup;
-    module    TransportNullSetup;
-    module    TransportNetworkDummy;
+instance:
+
 }

@@ -29,22 +29,18 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
- *
+ *  ======== TransportNetworkDummy.xdc ========
  */
+
 
 /*!
- *  ======== ti.sdo.ipc.transports ========
+ *  ======== TransportNetworkDummy ========
+ *  Dummy implementation to avoid RTSC bug
  */
 
-package ti.sdo.ipc.transports [1,0,0,0] {
-    module    TransportShm;
-    module    TransportShmSetup;
-    module    TransportShmCirc;
-    module    TransportShmCircSetup;
-    module    TransportShmNotify;
-    module    TransportShmNotifySetup;
-    module    TransportNullSetup;
-    module    TransportNetworkDummy;
+module TransportNetworkDummy inherits ti.sdo.ipc.interfaces.INetworkTransport
+{
+
 }

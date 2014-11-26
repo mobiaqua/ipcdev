@@ -52,7 +52,9 @@
 #include <ti/sysbios/hal/Hwi.h>
 #include <ti/sysbios/syncs/SyncSem.h>
 
+#include <ti/sdo/ipc/interfaces/ITransport.h>
 #include <ti/sdo/ipc/interfaces/IMessageQTransport.h>
+#include <ti/sdo/ipc/interfaces/INetworkTransport.h>
 #include <ti/sdo/utils/List.h>
 
 /* must be included after the internal header file for now */
@@ -433,13 +435,58 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     UInt16            srcProc;
 #endif
     ti_sdo_ipc_MessageQ_Object   *obj;
+    Int tid;
+    ITransport_Handle baseTrans;
+    INetworkTransport_Handle netTrans;
 
     Assert_isTrue((msg != NULL), ti_sdo_ipc_MessageQ_A_invalidMsg);
 
     msg->dstId   = (UInt16)(queueId);
     msg->dstProc = (UInt16)(queueId >> 16);
 
-    if (dstProcId != MultiProc_self()) {
+    /* extract the transport ID from the message header */
+    tid = MessageQ_getTransportId(msg);
+
+    /* if recipient is local, use direct message delivery */
+    if (dstProcId == MultiProc_self()) {
+        /* Assert queueId is valid */
+        Assert_isTrue((UInt16)queueId < MessageQ_module->numQueues,
+                      ti_sdo_ipc_MessageQ_A_invalidQueueId);
+
+        /* It is a local MessageQ */
+        obj = MessageQ_module->queues[(UInt16)(queueId)];
+
+        /* Assert object is not NULL */
+        Assert_isTrue(obj != NULL, ti_sdo_ipc_MessageQ_A_invalidObj);
+
+        if ((msg->flags & MessageQ_PRIORITYMASK) == MessageQ_URGENTPRI) {
+            listHandle = ti_sdo_ipc_MessageQ_Instance_State_highList(obj);
+            List_putHead(listHandle, (List_Elem *)msg);
+        }
+        else {
+            if ((msg->flags & MessageQ_PRIORITYMASK) == MessageQ_NORMALPRI) {
+                listHandle = ti_sdo_ipc_MessageQ_Instance_State_normalList(obj);
+            }
+            else {
+                listHandle = ti_sdo_ipc_MessageQ_Instance_State_highList(obj);
+            }
+            /* put on the queue */
+            List_put(listHandle, (List_Elem *)msg);
+        }
+
+        ISync_signal(obj->synchronizer);
+
+        status = MessageQ_S_SUCCESS;
+
+        if ((ti_sdo_ipc_MessageQ_traceFlag) ||
+            (msg->flags & ti_sdo_ipc_MessageQ_TRACEMASK) != 0) {
+            Log_write4(ti_sdo_ipc_MessageQ_LM_putLocal, (UArg)(msg),
+                       (UArg)(msg->seqNum), (UArg)(msg->srcProc), (UArg)(obj));
+        }
+    }
+
+    /* if transport ID is zero, use primary transport array */
+    else if (tid == 0) {
         /* assert that dstProcId is valid */
         Assert_isTrue(dstProcId < ti_sdo_utils_MultiProc_numProcessors,
                       ti_sdo_ipc_MessageQ_A_procIdInvalid);
@@ -490,43 +537,33 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
             status = MessageQ_E_FAIL;
         }
     }
+
+    /* use a registered transport to deliver the message */
     else {
-        /* Assert queueId is valid */
-        Assert_isTrue((UInt16)queueId < MessageQ_module->numQueues,
-                      ti_sdo_ipc_MessageQ_A_invalidQueueId);
+        baseTrans = MessageQ_module->regTrans[tid].transport;
 
-        /* It is a local MessageQ */
-        obj = MessageQ_module->queues[(UInt16)(queueId)];
-
-        /* Assert object is not NULL */
-        Assert_isTrue(obj != NULL, ti_sdo_ipc_MessageQ_A_invalidObj);
-
-        if ((msg->flags & MessageQ_PRIORITYMASK) == MessageQ_URGENTPRI) {
-            listHandle = ti_sdo_ipc_MessageQ_Instance_State_highList(obj);
-            List_putHead(listHandle, (List_Elem *)msg);
-        }
-        else {
-            if ((msg->flags & MessageQ_PRIORITYMASK) == MessageQ_NORMALPRI) {
-                listHandle = ti_sdo_ipc_MessageQ_Instance_State_normalList(obj);
-            }
-            else {
-                listHandle = ti_sdo_ipc_MessageQ_Instance_State_highList(obj);
-            }
-            /* put on the queue */
-            List_put(listHandle, (List_Elem *)msg);
+        if (baseTrans == NULL) {
+            /* raise error */
+            status = MessageQ_E_FAIL;
+            goto leave;
         }
 
-        ISync_signal(obj->synchronizer);
+        switch (MessageQ_module->regTrans[tid].type) {
 
-        status = MessageQ_S_SUCCESS;
+            case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
+                netTrans = INetworkTransport_Handle_downCast(baseTrans);
 
-        if ((ti_sdo_ipc_MessageQ_traceFlag) ||
-            (msg->flags & ti_sdo_ipc_MessageQ_TRACEMASK) != 0) {
-            Log_write4(ti_sdo_ipc_MessageQ_LM_putLocal, (UArg)(msg),
-                       (UArg)(msg->seqNum), (UArg)(msg->srcProc), (UArg)(obj));
+                if (INetworkTransport_put(netTrans, msg)) {
+                    status = MessageQ_S_SUCCESS;
+                }
+                else {
+                    status = MessageQ_E_FAIL;
+                }
+            break;
         }
     }
 
+leave:
     return (status);
 }
 
@@ -742,6 +779,54 @@ Void ti_sdo_ipc_MessageQ_unregisterTransport(UInt16 procId, UInt priority)
 }
 
 /*
+ *  ======== ti_sdo_ipc_MessageQ_registerTransportId ========
+ */
+Bool ti_sdo_ipc_MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
+{
+    ti_sdo_ipc_MessageQ_TransportType type;
+
+    /* validate transport ID */
+    if ((tid < 1) || (tid > 7)) {
+        /* raise error */
+        return (FALSE);
+    }
+
+    /* don't overwrite an existing transport */
+    if (MessageQ_module->regTrans[tid].transport != NULL) {
+        /* raise error */
+        return (FALSE);
+    }
+
+    /* determine the transport type */
+    if (INetworkTransport_Handle_downCast(inst) != NULL) {
+        type = ti_sdo_ipc_MessageQ_TransportType_INetworkTransport;
+    }
+    else {
+        /* raise error */
+        return (FALSE);
+    }
+
+    /* register the transport instance */
+    MessageQ_module->regTrans[tid].transport = inst;
+    MessageQ_module->regTrans[tid].type = type;
+    return (TRUE);
+}
+
+/*
+ *  ======== ti_sdo_ipc_MessageQ_registerTransportId ========
+ */
+Bool ti_sdo_ipc_MessageQ_unregisterTransportId(UInt tid)
+{
+    /* forget the registered transport instance */
+    MessageQ_module->regTrans[tid].transport = NULL;
+    MessageQ_module->regTrans[tid].type =
+            ti_sdo_ipc_MessageQ_TransportType_Invalid;
+
+    return (TRUE);
+}
+
+
+/*
  *************************************************************************
  *                       Instance functions
  *************************************************************************
@@ -761,6 +846,10 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
     List_Handle      listHandle;
     SyncSem_Handle   syncSemHandle;
     MessageQ_QueueIndex queueIndex;
+    Int tid;
+    Int status;
+    ITransport_Handle baseTrans;
+    INetworkTransport_Handle netTrans;
 
     /* lock */
     key = IGateProvider_enter(MessageQ_module->gate);
@@ -865,6 +954,33 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
         }
     }
 
+    /* notify all registered transports about the new queue */
+    for (tid = 1; tid <= 7; tid++) {
+        if (MessageQ_module->regTrans[tid].transport == NULL) {
+            continue;
+        }
+        baseTrans = MessageQ_module->regTrans[tid].transport;
+
+        switch (MessageQ_module->regTrans[tid].type) {
+
+            case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
+                netTrans = INetworkTransport_Handle_downCast(baseTrans);
+
+                if (INetworkTransport_bind(netTrans, obj->queue)) {
+                    status = MessageQ_S_SUCCESS;
+                }
+                else {
+                    status = MessageQ_E_FAIL;
+                }
+            break;
+        }
+
+        /* check for failure */
+        if (status < 0) {
+            /* TODO add error handling */
+        }
+    }
+
     return (0);
 }
 
@@ -877,10 +993,40 @@ Void ti_sdo_ipc_MessageQ_Instance_finalize(
     UInt key;
     MessageQ_QueueIndex index = (MessageQ_QueueIndex)(obj->queue);
     List_Handle listHandle;
+    Int tid;
+    ITransport_Handle baseTrans;
+    INetworkTransport_Handle netTrans;
 
     /* Requested queueId was not available. Nothing was done in the init */
     if (status == 5) {
         return;
+    }
+
+    /* notify all registered transports that given queue is being deleted */
+    for (tid = 1; tid <= 7; tid++) {
+        if (MessageQ_module->regTrans[tid].transport == NULL) {
+            continue;
+        }
+        baseTrans = MessageQ_module->regTrans[tid].transport;
+
+        switch (MessageQ_module->regTrans[tid].type) {
+
+            case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
+                netTrans = INetworkTransport_Handle_downCast(baseTrans);
+
+                if (INetworkTransport_unbind(netTrans, obj->queue)) {
+                    status = MessageQ_S_SUCCESS;
+                }
+                else {
+                    status = MessageQ_E_FAIL;
+                }
+            break;
+        }
+
+        /* check for failure */
+        if (status < 0) {
+            /* TODO add error handling */
+        }
     }
 
     if (obj->syncSemHandle != NULL) {

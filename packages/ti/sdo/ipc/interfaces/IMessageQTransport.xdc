@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== IMessageQTransport.xdc ========
- *
  */
+package ti.sdo.ipc.interfaces;
 
 /*!
  *  ======== IMessageQTransport ========
@@ -47,8 +48,7 @@
  *  the transport implementation can use.
  */
 
-interface IMessageQTransport
-{
+interface IMessageQTransport inherits ITransport {
     /*!
      *  Transport return values
      *

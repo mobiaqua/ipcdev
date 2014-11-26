@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,43 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
- *
+ *  ======== INetworkTransport.xdc ========
  */
+package ti.sdo.ipc.interfaces;
 
 /*!
- *  ======== ti.sdo.ipc.transports ========
+ *  ======== INetworkTransport ========
+ *  Interface for the network type of transports
  */
 
-package ti.sdo.ipc.transports [1,0,0,0] {
-    module    TransportShm;
-    module    TransportShmSetup;
-    module    TransportShmCirc;
-    module    TransportShmCircSetup;
-    module    TransportShmNotify;
-    module    TransportShmNotifySetup;
-    module    TransportNullSetup;
-    module    TransportNetworkDummy;
+interface INetworkTransport inherits ITransport {
+
+instance:
+
+    /*!
+     *  ======== create ========
+     *  Create a transport instance
+     */
+    create();
+
+    /*!
+     *  ======== bind ========
+     *  Bind a resource for the given queueId
+     */
+    Int bind(UInt32 queueId);
+
+    /*!
+     *  ======== unbind ========
+     *  Unbind a resource for the given queueId
+     */
+    Int unbind(UInt32 queueId);
+
+    /*!
+     *  ======== put ========
+     *  Send the message over the given transport instance
+     */
+    @DirectCall
+    Bool put(Ptr msg);
 }
