@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ var Settings   = null;
 var SyncSem    = null;
 
 var instCount = 0;  /* use to determine if processing last instance */
-var sharedCreateId = new Array();
 
 /*
  *  ======== module$meta$init ========
@@ -52,14 +51,6 @@ function module$meta$init(name)
     /* Only process during "cfg" phase */
     if (xdc.om.$name != "cfg") {
         return;
-    }
-
-    /* Initialize the shared CreateId array */
-    var MultiProc = xdc.module('ti.sdo.utils.MultiProc');
-    sharedCreateId.length != MultiProc.numProcessors;
-
-    for (var i = 0; i < sharedCreateId.length; i++) {
-        sharedCreateId[i] = 1;
     }
 }
 
