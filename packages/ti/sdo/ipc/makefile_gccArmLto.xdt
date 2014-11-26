@@ -33,13 +33,9 @@
 %%}
 %%{
     var File = xdc.module("xdc.services.io.File");
-
     var BIOS = xdc.module("ti.sysbios.BIOS");
-
     var Build = xdc.module("ti.sdo.ipc.Build");
-
     var TARGET = $args[0];
-
     var XDCROOT = String(environment['xdc.rootDir'] + '/packages/').replace(/\\/g, "/");
 
     var XOPTS = '-I "' + XDCROOT + '"'
@@ -68,11 +64,10 @@ XDC_ROOT  = `XDCROOT`
 BUILD_DEFS = `Build.getDefs()`
 
 BIOS_INC  = -I"`xdc.getPackageRepository("ti.sysbios")`"
-
+TARGET_INC  = -I"`xdc.getPackageRepository("ti.targets")`"
 IPC_INC    = -I"`xdc.getPackageRepository("ti.sdo.ipc")`"
-
 UTILS_INC    = -I"`xdc.getPackageRepository("ti.sdo.utils")`"
-
+INCS = $(BIOS_INC) $(TARGET_INC) $(IPC_INC) $(UTILS_INC)
 
 CC = `CGEN`/`TARGET.ccBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
 ASM = `CGEN`/`TARGET.asmBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
@@ -96,12 +91,12 @@ endef
 
 define ASSEMBLE
 	@echo asm`TARGET.suffix` $< ...
-	@$(ASM) $(BUILD_DEFS) `XOPTS` $(BIOS_INC) $<
+	@$(ASM) $(BUILD_DEFS) `XOPTS` $(INCS) $<
 endef
 
 define COMPILE
 	@echo cl`TARGET.suffix` $< ...
-	@$(CC) $(BUILD_DEFS) `XOPTS` $(BIOS_INC) $(IPC_INC) $(UTILS_INC) $<
+	@$(CC) $(BUILD_DEFS) `XOPTS` $(INCS) $<
 endef
 
 %var LIB = "ipc.a" + TARGET.suffix;
