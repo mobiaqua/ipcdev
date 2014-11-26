@@ -33,17 +33,13 @@
 %%}
 %%{
     var File = xdc.module("xdc.services.io.File");
-
     var BIOS = xdc.module("ti.sysbios.BIOS");
-
     var Build = xdc.module("ti.sdo.ipc.Build");
-
     var TARGET = $args[0];
-
     var XDCROOT = String(environment['xdc.rootDir'] + '/packages/').replace(/\\/g, "/");
 
-    var XOPTS = '-I "' + XDCROOT + '"'
-	+ " -Dxdc_target_types__=" + File.getDOSPath(TARGET.$package.packageRepository) + TARGET.stdInclude
+    var XOPTS = '-I "' + XDCROOT + '"' + " -Dxdc_target_types__="
+        + File.getDOSPath(TARGET.$package.packageRepository) + TARGET.stdInclude
 	+ " -Dxdc_target_name__=" + TARGET.name;
 
     var CGEN = TARGET.rootDir.replace(/\\/g, "/");
@@ -61,18 +57,34 @@
 vpath % `File.getDOSPath(this.$package.packageRepository) + "ti/sdo/"`
 vpath %.c `XDCROOT`
 
-CCOPTS    = `Build.getCCOpts(TARGET.$name)`
-
-XDC_ROOT  = `XDCROOT`
+CCOPTS = `Build.getCCOpts(TARGET.$name)`
 
 BUILD_DEFS = `Build.getDefs()`
 
-BIOS_INC  = -I"`xdc.getPackageRepository("ti.sysbios")`"
+%%{
+    /* convert package path into include path */
+    var incs = new Array();
+    incs.push("-I" + this.$package.packageRepository.replace(/\/$/, ""));
 
-IPC_INC    = -I"`xdc.getPackageRepository("ti.sdo.ipc")`"
+    for each (var repo in xdc.curPath().split(';')) {
+        /* skip empty repo, relative paths, and xdctools itself */
+        if ((repo == "") || repo.match(/^\./) || repo.match(/xdctools/)) {
+            continue;
+        }
 
-UTILS_INC    = -I"`xdc.getPackageRepository("ti.sdo.utils")`"
-
+        /* add repo if not already present in array */
+        var i;
+        for (i = 0; i < incs.length; i++) {
+            if (incs[i] == "-I" + repo) {
+                break;
+            }
+        }
+        if (i == incs.length) {
+            incs.push("-I" + repo);
+        }
+    }
+%%}
+INCS = `incs.join(" ")`
 
 CC = `CGEN`/`TARGET.ccBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
 ASM = `CGEN`/`TARGET.asmBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
@@ -96,12 +108,12 @@ endef
 
 define ASSEMBLE
 	@echo asm`TARGET.suffix` $< ...
-	@$(ASM) $(BUILD_DEFS) `XOPTS` $(BIOS_INC) $<
+	@$(ASM) $(BUILD_DEFS) `XOPTS` $(INCS) $<
 endef
 
 define COMPILE
 	@echo cl`TARGET.suffix` $< ...
-	@$(CC) $(BUILD_DEFS) `XOPTS` $(BIOS_INC) $(IPC_INC) $(UTILS_INC) $<
+	@$(CC) $(BUILD_DEFS) `XOPTS` $(INCS) $<
 endef
 
 %var LIB = "ipc.a" + TARGET.suffix;
