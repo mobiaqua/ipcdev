@@ -58,17 +58,34 @@ XOPTS = `'-I"' + XDCROOT + '"' + " -Dxdc_target_types__=" + File.getDOSPath(TARG
 
 CCOPTS = `Build.getCCOpts(TARGET.name)`
 
-XDC_ROOT  = `XDCROOT`
-
 IPC_ROOT = `File.getDOSPath(this.$package.packageRepository) + "ti/sdo/"`
 
 BUILD_DEFS = `Build.getDefs()`
 
-BIOS_INC  = -I"`xdc.getPackageRepository("ti.sysbios")`"
-TARGET_INC  = -I"`xdc.getPackageRepository("ti.targets")`"
-IPC_INC    = -I"`xdc.getPackageRepository("ti.sdo.ipc")`"
-UTILS_INC    = -I"`xdc.getPackageRepository("ti.sdo.utils")`"
-INCS = $(BIOS_INC) $(TARGET_INC) $(IPC_INC) $(UTILS_INC)
+%%{
+    /* convert package path into include path */
+    var incs = new Array();
+    incs.push("-I" + this.$package.packageRepository.replace(/\/$/, ""));
+
+    for each (var repo in xdc.curPath().split(';')) {
+        /* skip empty repo, relative paths, and xdctools itself */
+        if ((repo == "") || repo.match(/^\./) || repo.match(/xdctools/)) {
+            continue;
+        }
+
+        /* add repo if not already present in array */
+        var i;
+        for (i = 0; i < incs.length; i++) {
+            if (incs[i] == "-I" + repo) {
+                break;
+            }
+        }
+        if (i == incs.length) {
+            incs.push("-I" + repo);
+        }
+    }
+%%}
+INCS = `incs.join(" ")`
 
 %if (TARGET.$name.match(/gnu/)) {
 CC = `CGEN`/`TARGET.ccBin.cmd` $(CCOPTS) -I `CGEN`/arm-none-eabi/include
@@ -149,7 +166,7 @@ Ipc.obj: `CFILES` makefile
 %for (var i = 0; i < sources.length; i++) {
 %    var s = sources[i] + (i == (sources.length - 1) ? "" : " \\");
 %    if (s.substring(0,4) == "xdc/") {
-	$(XDC_ROOT)`s`
+	`XDCROOT``s`
 %    } else if (s.substring(0,2) == "./") {
 	`s`
 %    } else {
