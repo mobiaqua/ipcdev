@@ -130,6 +130,7 @@
 #include <ti/ipc/NameServer.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/syslink/inc/_MultiProc.h>
+#define MessageQ_internal 1     /* must be defined before include file */
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
 #include <_IpcLog.h>
@@ -182,6 +183,17 @@
  * =============================================================================
  */
 
+/* params structure evolution */
+typedef struct {
+    Void *synchronizer;
+} MessageQ_Params_Legacy;
+
+typedef struct {
+    Int __version;
+    Void *synchronizer;
+    MessageQ_QueueIndex queueIndex;
+} MessageQ_Params_Version2;
+
 /* structure for MessageQ module state */
 typedef struct MessageQ_ModuleObject {
     Int                 refCount;
@@ -190,8 +202,6 @@ typedef struct MessageQ_ModuleObject {
     /*!< Handle to the local NameServer used for storing GP objects */
     pthread_mutex_t     gate;
     /*!< Handle of gate to be used for local thread safety */
-    MessageQ_Params     defaultInstParams;
-    /*!< Default instance creation parameters */
     int                 ipcFd[MultiProc_MAXPROCESSORS];
     /*!< File Descriptors for sending to each remote processor */
     int                 seqNum;
@@ -321,13 +331,36 @@ Int MessageQ_destroy (void)
     return status;
 }
 
-/* Function to initialize the parameters for the MessageQ instance. */
-Void MessageQ_Params_init (MessageQ_Params * params)
+/*
+ *  ======== MessageQ_Params_init ========
+ *  Legacy implementation.
+ */
+Void MessageQ_Params_init(MessageQ_Params *params)
 {
-    memcpy (params, &(MessageQ_module->defaultInstParams),
-            sizeof (MessageQ_Params));
+    ((MessageQ_Params_Legacy *)params)->synchronizer = NULL;
+}
 
-    return;
+/*
+ *  ======== MessageQ_Params_init__S ========
+ *  New implementation which is version aware.
+ */
+Void MessageQ_Params_init__S(MessageQ_Params *params, Int version)
+{
+    MessageQ_Params_Version2 *params2;
+
+    switch (version) {
+
+        case MessageQ_Params_VERSION_2:
+            params2 = (MessageQ_Params_Version2 *)params;
+            params2->__version = MessageQ_Params_VERSION_2;
+            params2->synchronizer = NULL;
+            params2->queueIndex = MessageQ_ANY;
+            break;
+
+        default:
+            assert(FALSE);
+            break;
+    }
 }
 
 /*
@@ -337,7 +370,7 @@ Void MessageQ_Params_init (MessageQ_Params * params)
  *   (local ProcId/MessageQ ID) in
  *   order to get messages dispatched to this messageQ.
  */
-MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
+MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
 {
     Int                   status    = MessageQ_S_SUCCESS;
     MessageQ_Object *     obj    = NULL;
@@ -345,9 +378,32 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
     UInt16                procId;
     MessageQDrv_CmdArgs   cmdArgs;
     int                   fildes[2];
+    MessageQ_Params       ps;
 
-    cmdArgs.args.create.params = (MessageQ_Params *) params;
+    MessageQ_Params_init__S(&ps, MessageQ_Params_VERSION);
+
+    /* copy the given params into the current params structure */
+    if (pp != NULL) {
+
+        /* snoop the params pointer to see if it's a legacy structure */
+        if ((pp->__version == 0) || (pp->__version > 100)) {
+            ps.synchronizer = ((MessageQ_Params_Legacy *)pp)->synchronizer;
+        }
+
+        /* not legacy structure, use params version field */
+        else if (pp->__version == MessageQ_Params_VERSION_2) {
+            ps.__version = ((MessageQ_Params_Version2 *)pp)->__version;
+            ps.synchronizer = ((MessageQ_Params_Version2 *)pp)->synchronizer;
+            ps.queueIndex = ((MessageQ_Params_Version2 *)pp)->queueIndex;
+        }
+        else {
+            assert(FALSE);
+        }
+    }
+
+    cmdArgs.args.create.params = &ps;
     cmdArgs.args.create.name = name;
+
     if (name != NULL) {
         cmdArgs.args.create.nameLen = (strlen (name) + 1);
     }
@@ -383,10 +439,8 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * params)
         goto cleanup;
     }
 
-    if (params != NULL) {
-       /* Populate the params member */
-        memcpy((Ptr) &obj->params, (Ptr)params, sizeof (MessageQ_Params));
-    }
+   /* Populate the params member */
+    memcpy(&obj->params, &ps, sizeof(ps));
 
     procId = MultiProc_self();
     obj->queue = cmdArgs.args.create.queueId;

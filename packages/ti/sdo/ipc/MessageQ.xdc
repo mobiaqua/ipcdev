@@ -642,8 +642,8 @@ instance:
      *
      *  This parameter allows an application to specify the queueIndex to
      *  be used for a message queue. To use this functionality, the
-     *  MessageQ.numReservedEntries static configuration parameter must be set to
-     *  a specific value.
+     *  MessageQ.numReservedEntries static configuration parameter must be
+     *  set to a specific value.
      *
      *  The default is {@link #ANY}. This means do that you are not asking for
      *  an explicit index. MessageQ will find the first available one which is

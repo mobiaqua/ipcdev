@@ -47,6 +47,7 @@
 #include <ti/ipc/NameServer.h>
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
+#define MessageQ_internal 1     /* must be defined before include file */
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
 #include <ITransport.h>
@@ -101,6 +102,17 @@
  * =============================================================================
  */
 
+/* params structure evolution */
+typedef struct {
+    Void *synchronizer;
+} MessageQ_Params_Legacy;
+
+typedef struct {
+    Int __version;
+    Void *synchronizer;
+    MessageQ_QueueIndex queueIndex;
+} MessageQ_Params_Version2;
+
 /* structure for MessageQ module state */
 typedef struct MessageQ_ModuleObject {
     MessageQ_Handle           *queues;
@@ -108,7 +120,6 @@ typedef struct MessageQ_ModuleObject {
     Int                       refCount;
     NameServer_Handle         nameServer;
     pthread_mutex_t           gate;
-    MessageQ_Params           defaultInstParams;
     int                       seqNum;
     IMessageQTransport_Handle transports[MultiProc_MAXPROCESSORS][2];
     INetworkTransport_Handle  transInst[MessageQ_MAXTRANSPORTS];
@@ -398,20 +409,42 @@ Int MessageQ_destroy(void)
     return status;
 }
 
-
-/* Function to initialize the parameters for the MessageQ instance. */
+/*
+ *  ======== MessageQ_Params_init ========
+ *  Legacy implementation.
+ */
 Void MessageQ_Params_init(MessageQ_Params *params)
 {
-    memcpy (params, &(MessageQ_module->defaultInstParams),
-            sizeof (MessageQ_Params));
+    ((MessageQ_Params_Legacy *)params)->synchronizer = NULL;
+}
 
-    return;
+/*
+ *  ======== MessageQ_Params_init__S ========
+ *  New implementation which is version aware.
+ */
+Void MessageQ_Params_init__S(MessageQ_Params *params, Int version)
+{
+    MessageQ_Params_Version2 *params2;
+
+    switch (version) {
+
+        case MessageQ_Params_VERSION_2:
+            params2 = (MessageQ_Params_Version2 *)params;
+            params2->__version = MessageQ_Params_VERSION_2;
+            params2->synchronizer = NULL;
+            params2->queueIndex = MessageQ_ANY;
+            break;
+
+        default:
+            assert(FALSE);
+            break;
+    }
 }
 
 /*
  *  MessageQ_create - create a MessageQ object for receiving.
  */
-MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
+MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
 {
     Int                   status;
     MessageQ_Object      *obj = NULL;
@@ -424,6 +457,28 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
     LAD_ClientHandle      handle;
     struct LAD_CommandObj cmd;
     union LAD_ResponseObj rsp;
+    MessageQ_Params ps;
+
+    MessageQ_Params_init__S(&ps, MessageQ_Params_VERSION);
+
+    /* copy the given params into the current params structure */
+    if (pp != NULL) {
+
+        /* snoop the params pointer to see if it's a legacy structure */
+        if ((pp->__version == 0) || (pp->__version > 100)) {
+            ps.synchronizer = ((MessageQ_Params_Legacy *)pp)->synchronizer;
+        }
+
+        /* not legacy structure, use params version field */
+        else if (pp->__version == MessageQ_Params_VERSION_2) {
+            ps.__version = ((MessageQ_Params_Version2 *)pp)->__version;
+            ps.synchronizer = ((MessageQ_Params_Version2 *)pp)->synchronizer;
+            ps.queueIndex = ((MessageQ_Params_Version2 *)pp)->queueIndex;
+        }
+        else {
+            assert(FALSE);
+        }
+    }
 
     handle = LAD_findHandle();
     if (handle == LAD_MAXNUMCLIENTS) {
@@ -436,6 +491,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
 
     cmd.cmd = LAD_MESSAGEQ_CREATE;
     cmd.clientId = handle;
+
     if (name == NULL) {
         cmd.args.messageQCreate.name[0] = '\0';
     }
@@ -445,9 +501,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
         cmd.args.messageQCreate.name[LAD_MESSAGEQCREATEMAXNAMELEN - 1] = '\0';
     }
 
-    if (params) {
-        memcpy(&cmd.args.messageQCreate.params, params, sizeof (*params));
-    }
+    memcpy(&cmd.args.messageQCreate.params, &ps, sizeof(ps));
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
         PRINTVERBOSE1(
@@ -475,10 +529,8 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
     /* Create the generic obj */
     obj = (MessageQ_Object *)calloc(1, sizeof (MessageQ_Object));
 
-    if (params != NULL) {
-       /* Populate the params member */
-        memcpy((Ptr) &obj->params, (Ptr)params, sizeof (MessageQ_Params));
-    }
+   /* Populate the params member */
+    memcpy(&obj->params, &ps, sizeof(ps));
 
     queueIndex = (MessageQ_QueueIndex)(rsp.messageQCreate.queueId & 0x0000ffff);
 

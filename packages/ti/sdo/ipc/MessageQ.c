@@ -58,11 +58,23 @@
 #include <ti/sdo/utils/List.h>
 
 /* must be included after the internal header file for now */
+#define MessageQ_internal 1     /* must be defined before include file */
 #include <ti/sdo/ipc/_MessageQ.h>
 #include <ti/sdo/utils/_MultiProc.h>
 #include <ti/sdo/utils/_NameServer.h>
 
 #include "package/internal/MessageQ.xdc.h"
+
+/* params structure evolution */
+typedef struct {
+    Void *synchronizer;
+} MessageQ_Params_Legacy;
+
+typedef struct {
+    Int __version;
+    Void *synchronizer;
+    MessageQ_QueueIndex queueIndex;
+} MessageQ_Params_Version2;
 
 #ifdef __ti__
     #pragma FUNC_EXT_CALLED(MessageQ_Params_init);
@@ -119,14 +131,39 @@ static Void MessageQ_msgInit(MessageQ_Msg msg)
 
 /*
  *  ======== MessageQ_Params_init ========
+ *  Legacy implementation.
  */
 Void MessageQ_Params_init(MessageQ_Params *params)
 {
-    params->synchronizer = NULL;
+    ((MessageQ_Params_Legacy *)params)->synchronizer = NULL;
+}
+
+/*
+ *  ======== MessageQ_Params_init__S ========
+ *  New implementation which is version aware.
+ */
+Void MessageQ_Params_init__S(MessageQ_Params *params, Int version)
+{
+    MessageQ_Params_Version2 *params2;
+
+    switch (version) {
+
+        case MessageQ_Params_VERSION_2:
+            params2 = (MessageQ_Params_Version2 *)params;
+            params2->__version = MessageQ_Params_VERSION_2;
+            params2->synchronizer = NULL;
+            params2->queueIndex = MessageQ_ANY;
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
 }
 
 /*
  *  ======== MessageQ_Params2_init ========
+ *  Deprecated
  */
 Void MessageQ_Params2_init(MessageQ_Params2 *params)
 {
@@ -221,19 +258,36 @@ Int MessageQ_close(MessageQ_QueueId *queueId)
 /*
  *  ======== MessageQ_create ========
  */
-MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
+MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
 {
-    MessageQ_Handle handle;
-    MessageQ_Params2 params2;
+    ti_sdo_ipc_MessageQ_Handle handle;
+    ti_sdo_ipc_MessageQ_Params ps;
+    Error_Block eb;
 
-    MessageQ_Params2_init(&params2);
+    Error_init(&eb);
 
-    /* Use the MessageQ_Params fields if not NULL */
-    if (params != NULL) {
-        params2.synchronizer = params->synchronizer;
+    if (pp != NULL) {
+        ti_sdo_ipc_MessageQ_Params_init(&ps);
+
+        /* snoop the params pointer to see if it's a legacy structure */
+        if ((pp->__version == 0) || (pp->__version > 100)) {
+            ps.synchronizer = ((MessageQ_Params_Legacy *)pp)->synchronizer;
+        }
+
+        /* not legacy structure, use params version field */
+        else if (pp->__version == MessageQ_Params_VERSION_2) {
+            ps.synchronizer = ((MessageQ_Params_Version2 *)pp)->synchronizer;
+            ps.queueIndex = ((MessageQ_Params_Version2 *)pp)->queueIndex;
+        }
+        else {
+            Assert_isTrue(FALSE, NULL);
+        }
+
+        handle = ti_sdo_ipc_MessageQ_create(name, &ps, &eb);
     }
-
-    handle = MessageQ_create2(name, &params2);
+    else {
+        handle = ti_sdo_ipc_MessageQ_create(name, NULL, &eb);
+    }
 
     return ((MessageQ_Handle)handle);
 }

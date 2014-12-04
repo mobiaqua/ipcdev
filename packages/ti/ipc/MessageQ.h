@@ -441,6 +441,13 @@ typedef struct MessageQ_Object *MessageQ_Handle;
  *  @brief  Structure defining parameters for MessageQ_create().
  */
 typedef struct {
+/** @cond INTERNAL */
+    Int __version;
+    /*  Used internally for tracking implementation evolution.
+     *  For internal use only.
+     */
+/** @endcond INTERNAL */
+
     Void *synchronizer;
     /*!< Synchronizer instance used to signal IO completion
      *
@@ -450,13 +457,48 @@ typedef struct {
      *  present.
      */
 
+     MessageQ_QueueIndex queueIndex;
+     /*!< Value used to specify the index in the MessageQ array
+      *
+      *  This parameter allows an application to specify a queueIndex to
+      *  be used for a message queue. To use this functionality, the
+      *  MessageQ.numReservedEntries static configuration parameter must be
+      *  set to one more than the highest requested queueIndex. The
+      *  MessageQ.numReservedEntries parameter reserves that number of
+      *  message queue slots starting at 0 and proceeding to
+      *  (MessageQ.numReservedEntries - 1).
+      *
+      *  The default is MessageQ_ANY, which means it is not taken from the
+      *  reserved slots.
+      */
+
 } MessageQ_Params;
+
+/** @cond INTERNAL */
+/*  Date: 02 Dec 2014
+ *
+ *  Initial implementation of params structure which contains
+ *  a version field. This allows for binary compatibility as
+ *  the params structure is modified in the future.
+ */
+#define MessageQ_Params_VERSION_2       2
+/** @endcond INTERNAL */
+
+/** @cond INTERNAL */
+/*!
+ *  @brief      Defines the current params structure version
+ */
+#define MessageQ_Params_VERSION         MessageQ_Params_VERSION_2
+/** @endcond INTERNAL */
 
 /*!
  *  @brief  Structure defining parameters for MessageQ_create2().
  *
  *  MessageQ_Params2 is a superset of MessageQ_Params. It is used
  *  with MessageQ_create2().
+ *
+ *  @deprecated This type has been deprecated. It will be removed
+ *  in a future release. Please use MessageQ_Params instead.
  */
 typedef struct {
     Void *synchronizer;
@@ -522,7 +564,7 @@ typedef enum {
 /*!
  *  @brief      Denotes any queueId is acceptable.
  *
- *  This constant is the default for the queueId in the MessageQ_Params2
+ *  This constant is the default for the queueId in the MessageQ_Params
  *  structure.
  */
 #define MessageQ_ANY (Bits16)~(0)
@@ -567,15 +609,33 @@ Void MessageQ_unregisterTransportId(UInt tid);
  * =============================================================================
  */
 
+/** @cond INTERNAL */
+Void MessageQ_Params_init__S(MessageQ_Params *params, Int version);
+/** @endcond INTERNAL */
+
 /*!
  *  @brief      Initialize MessageQ_Params
  *
+ *  Initialized the given structure to its default values.
+ *
  *  @param[in]  params      Parameters required to create a MessageQ
  */
-Void MessageQ_Params_init(MessageQ_Params *params);
+#ifndef MessageQ_internal
+static inline Void MessageQ_Params_init(MessageQ_Params *params)
+{
+    if (params != NULL) {
+        MessageQ_Params_init__S(params, MessageQ_Params_VERSION);
+    }
+}
+#endif
 
 /*!
  *  @brief      Initialize MessageQ_Params2
+ *
+ *  Initialized the given structure to its default values.
+ *
+ *  @deprecated This function has been deprecated. It will be removed
+ *  in a future release. Please use MessageQ_Params_init() instead.
  *
  *  @param[in]  params      Parameters required to create a MessageQ
  */
@@ -600,15 +660,18 @@ Void MessageQ_Params2_init(MessageQ_Params2 *params);
 MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params);
 
 /*!
- *  @brief      Create a MessageQ instance with the MessageQ_Params2 structure
+ *  @brief      Create a MessageQ instance using the type MessageQ_Params2
  *
  *  The name supplied here does not have to be in persistent memory.  The
  *  maximum length of the string supplied here, including the '\\0' terminator,
  *  is '32' by default.
  *
  *  There are no verifications to ensure that the name supplied in
- *  MessageQ_create2() is unique across all processors. Caution must be exercised
- *  to ensure that each processor uses a unique name.
+ *  MessageQ_create2() is unique across all processors. Caution must
+ *  be exercised to ensure that each processor uses a unique name.
+ *
+ *  @deprecated This function has been deprecated. It will be removed
+ *  in a future release. Please use MessageQ_create() instead.
  *
  *  @param[in]  name        Name of the queue
  *  @param[in]  params      Initialized MessageQ_Params2
@@ -652,33 +715,38 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr);
 Int MessageQ_open(String name, MessageQ_QueueId *queueId);
 
 /*!
- *  @brief      Opens a MessageQ given the queue index and remote processor id
+ *  @brief      Opens a MessageQ given the queue index and remote processor ID
  *
- *  This function can be used instead of MessageQ_open() if the queue was created
- *  with a specified QueueIndex.
+ *  This function can be used instead of MessageQ_open() if the queue
+ *  was created with a specified QueueIndex. In the example below, the
+ *  serverFxn function must be running on the processor with PROCID 2.
  *
  *      @code
- *      #define SERVERQUEUEINDEX  1
- *      #define SERVERMULTIPROCID 2
+ *      #define SERVER_QUEIDX   1
+ *      #define SERVER_PROCID   2
  *
- *      serverFxn() {
- *          MessageQ_Params2 params2;
+ *      serverFxn()
+ *      {
+ *          MessageQ_Params params;
  *
- *          MessageQ_Params2_init(&params2);
- *          params2.queueIndex = SERVERQUEUEINDEX;
- *          messageQ = MessageQ_create2("server", &params2);
+ *          MessageQ_Params_init(&params);
+ *          params.queueIndex = SERVER_QIDX;
+ *          messageQ = MessageQ_create("server", &params);
  *          ...
+ *      }
  *
- *      clientFxn() {
+ *      clientFxn()
+ *      {
  *          MessageQ_QueueId serverQueue;
- *          serverQueue = MessageQ_openQueueId(SERVERQUEUEINDEX, SERVERMULTIPROCID);
+ *          serverQueue = MessageQ_openQueueId(SERVER_QUEIDX, SERVER_PROCID);
+ *      }
  *      @endcode
  *
- *  It is up to the application to guarantee that the queue that is being opened
- *  has already been created.  MessageQ_openQueueId() does not validate that
- *  the queue has been created (unlike the MessageQ_open() function).
+ *  It is up to the application to guarantee that the queue which is being
+ *  opened has already been created. MessageQ_openQueueId() does not validate
+ *  that the queue has been created (unlike the MessageQ_open() function).
  *
- *  @param[in] queueIndex   QueueIndex specified in MessageQ_Params2
+ *  @param[in] queueIndex   QueueIndex specified in MessageQ_Params
  *  @param[in] remoteProcId Multiproc_Id of where the created queue resides
  *
  *  @return     The MessageQ_QueueId associated with the queueIndex

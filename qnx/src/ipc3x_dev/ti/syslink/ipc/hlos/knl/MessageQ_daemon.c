@@ -350,17 +350,6 @@ exitDestroy:
     return (status);
 }
 
-/* Function to initialize the parameters for the MessageQ instance. */
-Void MessageQ_Params_init(MessageQ_Params * params)
-{
-    memcpy(params, &(MessageQ_module->defaultInstParams),
-           sizeof(MessageQ_Params));
-
-    return;
-}
-
-
-
 /*
  *   Function to create a MessageQ object for receiving.
  */
