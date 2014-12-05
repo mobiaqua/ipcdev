@@ -138,12 +138,11 @@ Void VirtQueue_cb(Void *buf, VirtQueue_Handle vq)
  */
 Void VirtQueue_kick(VirtQueue_Handle vq)
 {
-    /* For now, simply interrupt remote processor */
-    if (vq->vring.used->flags & VRING_USED_F_NO_NOTIFY) {
-        GT_0trace(curTrace, GT_3CLASS,
-                "VirtQueue_kick: no kick because of VRING_USED_F_NO_NOTIFY");
-        return;
-    }
+    /*
+     * We need to expose available array entries before sending an
+     * interrupt.
+     */
+    asm("   DSB ST");
 
     GT_2trace(curTrace, GT_2CLASS,
             "VirtQueue_kick: Sending interrupt to proc %d with payload 0x%x",
@@ -217,6 +216,12 @@ Int VirtQueue_addAvailBuf(VirtQueue_Handle vq, Void *buf, UInt32 len, Int16 head
         vq->vring.desc[head].len = len;
         vq->vring.desc[head].flags = 0;
 
+        /*
+         * Descriptors and available array need to be set before we expose the
+         * new available array entries.
+         */
+        asm("   DMB ST");
+
         vq->vring.avail->idx++;
     }
 
@@ -237,6 +242,9 @@ Int16 VirtQueue_getUsedBuf(VirtQueue_Object *vq, Void **buf)
 
         return (-1);
     }
+
+    /* Only get used array entries after they have been exposed. */
+    asm("   DMB");
 
     /* No need to know be kicked about added buffers anymore */
     //vq->vring.avail->flags |= VRING_AVAIL_F_NO_INTERRUPT; // disabling for now, since there seems to be a race condition where an M3->A9 message is not detected because the interrupt isn't sent.
