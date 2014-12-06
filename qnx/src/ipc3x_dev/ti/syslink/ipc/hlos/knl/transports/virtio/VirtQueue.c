@@ -69,6 +69,7 @@
 #include "virtio_ring.h"
 #include "_rpmsg.h"
 #include <ipu_pm.h>
+#include <pthread.h>
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES                      2
@@ -103,6 +104,9 @@ typedef struct VirtQueue_Object {
 
     /* Private arg from user */
     void *                  arg;
+
+    /* Mutex to protect vrings from multi-thread access */
+    pthread_mutex_t         mutex;
 } VirtQueue_Object;
 
 static UInt numQueues = 0;
@@ -197,6 +201,8 @@ Int VirtQueue_addAvailBuf(VirtQueue_Handle vq, Void *buf, UInt32 len, Int16 head
 {
     UInt16 avail;
 
+    pthread_mutex_lock(&vq->mutex);
+
     if (vq->num_free == 0) {
         /* There's no more space */
         GT_setFailureReason (curTrace,
@@ -225,6 +231,8 @@ Int VirtQueue_addAvailBuf(VirtQueue_Handle vq, Void *buf, UInt32 len, Int16 head
         vq->vring.avail->idx++;
     }
 
+    pthread_mutex_unlock(&vq->mutex);
+
     return (vq->num_free);
 }
 
@@ -235,10 +243,14 @@ Int16 VirtQueue_getUsedBuf(VirtQueue_Object *vq, Void **buf)
 {
     UInt16 head;
 
+    pthread_mutex_lock(&vq->mutex);
+
     /* There's nothing available? */
     if (vq->last_used_idx == vq->vring.used->idx) {
         /* We need to know about added buffers */
         vq->vring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
+
+        pthread_mutex_unlock(&vq->mutex);
 
         return (-1);
     }
@@ -252,6 +264,8 @@ Int16 VirtQueue_getUsedBuf(VirtQueue_Object *vq, Void **buf)
     head = vq->vring.used->ring[vq->last_used_idx % vq->vring.num].id;
     vq->last_used_idx++;
     vq->num_free++;
+
+    pthread_mutex_unlock(&vq->mutex);
 
     *buf = mapPAtoVA(vq, vq->vring.desc[head].addr);
 
@@ -392,6 +406,9 @@ VirtQueue_Handle VirtQueue_create (VirtQueue_callback callback, UInt16 procId,
         Memory_free(NULL, vq, sizeof(VirtQueue_Object));
         vq = NULL;
     }
+
+    /* Initialize mutex */
+    pthread_mutex_init(&vq->mutex, NULL);
 
     return (vq);
 }
