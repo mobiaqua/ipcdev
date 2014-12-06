@@ -127,7 +127,8 @@ function module$static$init(state, mod)
 
     state.queues.length = state.numQueues;
     state.canFreeQueues = false;
-    state.freeHookFxn   = mod.freeHookFxn;
+    state.freeHookFxn = mod.freeHookFxn;
+    state.putHookFxn = mod.putHookFxn;
 
     if (mod.nameTableGate == null) {
          state.gate = null;

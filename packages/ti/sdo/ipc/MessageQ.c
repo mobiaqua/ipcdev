@@ -81,6 +81,7 @@
     #pragma FUNC_EXT_CALLED(MessageQ_put);
     #pragma FUNC_EXT_CALLED(MessageQ_registerHeap);
     #pragma FUNC_EXT_CALLED(MessageQ_setFreeHookFxn);
+    #pragma FUNC_EXT_CALLED(MessageQ_setPutHookFxn);
     #pragma FUNC_EXT_CALLED(MessageQ_setReplyQueue);
     #pragma FUNC_EXT_CALLED(MessageQ_setMsgTrace);
     #pragma FUNC_EXT_CALLED(MessageQ_staticMsgInit);
@@ -444,6 +445,11 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     msg->dstId   = (UInt16)(queueId);
     msg->dstProc = (UInt16)(queueId >> 16);
 
+    /* invoke put hook function after addressing the message */
+    if (MessageQ_module->putHookFxn != NULL) {
+        MessageQ_module->putHookFxn(queueId, (Ptr)msg);
+    }
+
     /* extract the transport ID from the message header */
     tid = MessageQ_getTransportId(msg);
 
@@ -605,6 +611,14 @@ Int MessageQ_registerHeap(Ptr heap, UInt16 heapId)
 Void MessageQ_setFreeHookFxn(MessageQ_FreeHookFxn freeHookFxn)
 {
     MessageQ_module->freeHookFxn = freeHookFxn;
+}
+
+/*
+ *  ======== MessageQ_setPutHookFxn ========
+ */
+Void MessageQ_setPutHookFxn(MessageQ_PutHookFxn putHookFxn)
+{
+    MessageQ_module->putHookFxn = (ti_sdo_ipc_MessageQ_PutHookFxn)putHookFxn;
 }
 
 /*

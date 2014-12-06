@@ -196,6 +196,8 @@ typedef struct MessageQ_ModuleObject {
     /*!< File Descriptors for sending to each remote processor */
     int                 seqNum;
     /*!< Process-specific sequence number */
+    MessageQ_PutHookFxn putHookFxn;
+    /*!< hook function for MessageQ_put method */
 } MessageQ_ModuleObject;
 
 /*!
@@ -223,8 +225,9 @@ static Bool verbose = FALSE;
  */
 static MessageQ_ModuleObject MessageQ_state =
 {
-    .refCount               = 0,
-    .nameServer             = NULL,
+    .refCount   = 0,
+    .nameServer = NULL,
+    .putHookFxn = NULL
 };
 
 /*!
@@ -522,6 +525,11 @@ Int MessageQ_put (MessageQ_QueueId queueId, MessageQ_Msg msg)
 
     msg->dstId     = queueIndex;
     msg->dstProc   = dstProcId;
+
+    /* invoke put hook function after addressing the message */
+    if (MessageQ_module->putHookFxn != NULL) {
+        MessageQ_module->putHookFxn(queueId, msg);
+    }
 
     status = transportPut(msg, queueIndex, dstProcId);
 

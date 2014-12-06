@@ -112,6 +112,7 @@ typedef struct MessageQ_ModuleObject {
     int                       seqNum;
     IMessageQTransport_Handle transports[MultiProc_MAXPROCESSORS][2];
     INetworkTransport_Handle  transInst[MessageQ_MAXTRANSPORTS];
+    MessageQ_PutHookFxn       putHookFxn;
 } MessageQ_ModuleObject;
 
 typedef struct MessageQ_CIRCLEQ_ENTRY {
@@ -142,6 +143,7 @@ static MessageQ_ModuleObject MessageQ_state =
 {
     .refCount   = 0,
     .nameServer = NULL,
+    .putHookFxn = NULL
 };
 
 /*!
@@ -669,6 +671,11 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
 
     msg->dstId     = queueIndex;
     msg->dstProc   = dstProcId;
+
+    /* invoke put hook function after addressing the message */
+    if (MessageQ_module->putHookFxn != NULL) {
+        MessageQ_module->putHookFxn(queueId, msg);
+    }
 
     if (dstProcId != MultiProc_self()) {
         tid = MessageQ_getTransportId(msg);

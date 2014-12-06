@@ -345,6 +345,15 @@ module MessageQ
      */
     typedef Void (*FreeHookFxn)(Bits16, Bits16);
 
+    /*!
+     *  ======== PutHookFxn ========
+     *  Function prototype for the MessageQ_put callback
+     *
+     *  @param(Bits32)  queueId of the destination message queue
+     *  @param(Ptr)     pointer to a message header structure
+     */
+    typedef Void (*PutHookFxn)(Bits32, Ptr);
+
     /*! MessageQ ID */
     typedef UInt32 QueueId;
 
@@ -548,6 +557,12 @@ module MessageQ
      *  Free function in MessageQ_free after message was freed back to the heap
      */
     config FreeHookFxn freeHookFxn = null;
+
+    /*!
+     *  ======== putHookFxn ========
+     *  Put function hook
+     */
+    config PutHookFxn putHookFxn = null;
 
     /*!
      *  ======== registerHeapMeta ========
@@ -775,6 +790,7 @@ internal:
         UInt16               numHeaps;
         NameServer.Handle    nameServer;
         FreeHookFxn          freeHookFxn;
+        PutHookFxn           putHookFxn;
         Bool                 canFreeQueues;
         UInt16               seqNum;
         RegisteredTransport  regTrans[8];

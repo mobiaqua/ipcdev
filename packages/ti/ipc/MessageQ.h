@@ -535,6 +535,18 @@ typedef enum {
  */
 typedef Void (*MessageQ_FreeHookFxn)(Bits16 heapId, Bits16 msgId);
 
+/*!
+ *  @brief      Put hook function definition
+ *
+ *  This function is invoked near the beginning of the MessageQ_put()
+ *  function. It allows client code to augment the addressing of the
+ *  given message before it is delivered.
+ *
+ *  @param[in]  queueId     destination message queue
+ *  @param[in]  msg         message to be sent
+ */
+typedef Void (*MessageQ_PutHookFxn)(MessageQ_QueueId queueId, MessageQ_Msg msg);
+
 #ifdef STD_H
 #include <ITransport.h>
 #include <IMessageQTransport.h>
@@ -825,6 +837,20 @@ Void MessageQ_staticMsgInit(MessageQ_Msg msg, UInt32 size);
  *  @param[in]  freeHookFxn  function to be called within MessageQ_free()
  */
 Void MessageQ_setFreeHookFxn(MessageQ_FreeHookFxn freeHookFxn);
+
+/*!
+ *  @brief      Set the function hook for the MessageQ_put() method
+ *
+ *  Register a hook function which is called from the beginning of the
+ *  MessageQ_put() function. Only one hook may be registered at a time.
+ *  Subsequent calls to register a put function will overwrite the
+ *  previously registered function.
+ *
+ *  To disable the hook function, call MessageQ_setPutHookFxn() with NULL.
+ *
+ *  @param[in]  putHookFxn  function to be called within MessageQ_put()
+ */
+Void MessageQ_setPutHookFxn(MessageQ_PutHookFxn putHookFxn);
 
 /* =============================================================================
  *  MessageQ Per-instance Functions
