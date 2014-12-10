@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2014 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -280,15 +280,6 @@ exitDestroy:
     pthread_mutex_unlock(&(MessageQ_module->gate));
 
     return (status);
-}
-
-/* Function to initialize the parameters for the MessageQ instance. */
-Void MessageQ_Params_init(MessageQ_Params * params)
-{
-    memcpy(params, &(MessageQ_module->defaultInstParams),
-           sizeof(MessageQ_Params));
-
-    return;
 }
 
 /*
