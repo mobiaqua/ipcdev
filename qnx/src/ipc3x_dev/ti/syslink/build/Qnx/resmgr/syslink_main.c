@@ -991,8 +991,9 @@ int init_syslink_trace_device(syslink_dev_t *dev)
             trace_attr->attr.mount = &dev->syslink.mattr;
             trace_attr->procid = i;
             iofunc_time_update(&trace_attr->attr);
-            snprintf (dev->syslink.device_name, _POSIX_PATH_MAX,
-                  "/dev/ipc-trace%d", syslink_firmware[i].proc_id);
+            snprintf(dev->syslink.device_name, _POSIX_PATH_MAX,
+                "%s-trace/%s", IPC_DEVICE_PATH,
+                MultiProc_getName(syslink_firmware[i].proc_id));
             dev->syslink.iofuncs_trace[i].read = syslink_read;
             snprintf (trace_name, _POSIX_PATH_MAX, "%d", 0);
             pa = 0;

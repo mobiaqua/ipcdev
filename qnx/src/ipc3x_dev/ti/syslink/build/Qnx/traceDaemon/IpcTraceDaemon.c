@@ -91,7 +91,7 @@ void printTraces (void *arg)
     fprintf (log, "\nSpawning procId %d trace thread\n ", index);
 
     /* Initialize read indexes to zero */
-    snprintf (path, _POSIX_PATH_MAX, "/dev/ipc-trace%d", index);
+    snprintf (path, _POSIX_PATH_MAX, "/dev/ipc-trace/%s", MultiProc_getName(index));
     fd = open(path, O_RDONLY);
     if (fd < 0) {
         perror("Unable to open ipc-trace");
@@ -199,8 +199,8 @@ int main (int argc, char * argv [])
     }
 
     sem_init(&semPrint, 0, 1);
-    for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
-        snprintf (names[i], _POSIX_PATH_MAX, "/dev/ipc-trace%d", i);
+    for (i = 0; i < MultiProc_getNumProcessors(); i++) {
+        snprintf (names[i], _POSIX_PATH_MAX, "/dev/ipc-trace/%s", MultiProc_getName(i));
         if (-1 != stat(names[i], &sbuf)) {
             pthread_create (&threads[i], NULL, (void *)&printTraces, (void *)i);
         }

@@ -1,4 +1,4 @@
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2014, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -44,11 +44,18 @@ INSTALLDIR = bin
 SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../..
 
 EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc
+		  $(SYSLINK_ROOT)/ti/syslink/inc \
+		  $(IPC_REPO)/qnx/include
 
 CCOPTS+=-g
 CCOPTS+= -O0
 
 LDFLAGS += -M
+
+EXTRA_SRCVPATH += $(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)
+SRCS += SystemCfg_$(SYSLINK_PLATFORM).c IpcTraceDaemon.c
+
+EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
+LIBS += utils_g
 
 include $(MKFILES_ROOT)/qtargets.mk
