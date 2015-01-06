@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -630,6 +630,7 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
     UInt i;
     Bits32 *delegateReservedMask;
     UInt32 nsValue[6];
+    Int ret;
 
     minAlign = Memory_getMaxDefaultTypeAlign();
     if (SharedRegion_getCacheLineSize(0) > minAlign) {
@@ -751,9 +752,15 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
 
     if (GateMP_module->hostSupport == TRUE) {
         /* Add special entry to store inuse arrays' location and size */
-        nsValue[0] = (UInt32)GateMP_module->remoteSystemInUse;
-        nsValue[1] = (UInt32)GateMP_module->remoteCustom1InUse;
-        nsValue[2] = (UInt32)GateMP_module->remoteCustom2InUse;
+        ret = _GateMP_virtToPhys(
+            (UInt32)GateMP_module->remoteSystemInUse, &nsValue[0]);
+        Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+        ret = _GateMP_virtToPhys(
+            (UInt32)GateMP_module->remoteCustom1InUse, &nsValue[1]);
+        Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+        ret = _GateMP_virtToPhys(
+            (UInt32)GateMP_module->remoteCustom2InUse, &nsValue[2]);
+        Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
         nsValue[3] = GateMP_module->numRemoteSystem;
         nsValue[4] = GateMP_module->numRemoteCustom1;
         nsValue[5] = GateMP_module->numRemoteCustom2;
