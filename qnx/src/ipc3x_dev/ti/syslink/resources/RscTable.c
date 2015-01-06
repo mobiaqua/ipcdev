@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2012-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2012-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -556,7 +556,8 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
                         if (ret == 0) {
 #if !ZEROINIT_CHUNKS
                             /* Map the phys mem to local */
-                            vringVA = (UInt32)mmap_device_io(vringSize, pa);
+                            vringVA = (UInt32)mmap_device_io(vringSize,
+                                obj->vringPa);
                             if (vringVA != MAP_DEVICE_FAILED) {
                                 /* Zero-init the vring */
                                 Memory_set((Ptr)vringVA, 0, vringSize);
