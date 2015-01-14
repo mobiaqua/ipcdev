@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*!
  *  @file       Ipc.c
  *
@@ -37,12 +38,13 @@
  *              module.
  */
 
-/* Standard headers */
+/* standard headers */
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 
-/* Common IPC headers: */
+/* package headers */
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
@@ -60,18 +62,37 @@
 #include <_MessageQ.h>
 #include <_NameServer.h>
 
-GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
+/* module definition */
+typedef struct {
+    Int                 refCount;
+    pthread_mutex_t     gate;
+} Ipc_Module;
 
+
+/* =============================================================================
+ *  Globals
+ * =============================================================================
+ */
+static Ipc_Module Ipc_module = {
+    .refCount   = 0,
+    .gate       = PTHREAD_MUTEX_INITIALIZER
+};
+
+GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
 static LAD_ClientHandle ladHandle;
 
-static void cleanup(int arg);
 
 /** ============================================================================
  *  Functions
  *  ============================================================================
  */
-/* Function to start Ipc */
-Int Ipc_start (Void)
+static void cleanup(int arg);
+
+
+/*
+ *  ======== Ipc_start ========
+ */
+Int Ipc_start(Void)
 {
     TransportRpmsg_Handle  transport;
     TransportRpmsg_Params  params;
@@ -86,6 +107,15 @@ Int Ipc_start (Void)
     LAD_Status             ladStatus;
     UInt16                 rprocId;
     Int32                  attachedAny;
+
+    /* function must be serialized */
+    pthread_mutex_lock(&Ipc_module.gate);
+
+    /* ensure only first thread performs startup procedure */
+    if (++Ipc_module.refCount > 1) {
+        status = Ipc_S_ALREADYSETUP;
+        goto exit;
+    }
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
@@ -231,16 +261,32 @@ gatehwspinlockstart_fail:
 #endif
 
 exit:
+    /* if error, must decrement reference count */
+    if (status < 0) {
+        Ipc_module.refCount--;
+    }
+
+    pthread_mutex_unlock(&Ipc_module.gate);
+
     return (status);
 }
 
-
-/* Function to stop Ipc */
-Int Ipc_stop (Void)
+/*
+ *  ======== Ipc_stop ========
+ */
+Int Ipc_stop(Void)
 {
     Int32             status = Ipc_S_SUCCESS;
     LAD_Status        ladStatus;
     UInt16            rprocId;
+
+    /* function must be serialized */
+    pthread_mutex_lock(&Ipc_module.gate);
+
+    /* ensure only last thread performs stop procedure */
+    if (--Ipc_module.refCount > 0) {
+        goto exit;
+    }
 
     /* Now detach from all remote processors, assuming they are up. */
     for (rprocId = 0;
@@ -283,6 +329,8 @@ Int Ipc_stop (Void)
     }
 
 exit:
+    pthread_mutex_unlock(&Ipc_module.gate);
+
     return (status);
 }
 
