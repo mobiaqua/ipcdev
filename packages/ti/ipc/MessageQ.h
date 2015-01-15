@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -600,8 +600,6 @@ typedef Void (*MessageQ_PutHookFxn)(MessageQ_QueueId queueId, MessageQ_Msg msg);
 Bool MessageQ_registerTransport(IMessageQTransport_Handle handle,
                                 UInt16 rprocId, UInt priority);
 Void MessageQ_unregisterTransport(UInt16 rprocId, UInt priority);
-Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst);
-Void MessageQ_unregisterTransportId(UInt tid);
 
 
 /* =============================================================================
@@ -834,6 +832,28 @@ Int MessageQ_free(MessageQ_Msg msg);
 Int MessageQ_registerHeap(Ptr heap, UInt16 heapId);
 
 /*!
+ *  @brief      Register a transport instance for the given ID
+ *
+ *  Additional transport instances can be registered with the MessageQ
+ *  module. This allows for message delivery over selected transports.
+ *
+ *  To arrange for a message to be delivered using a registered transport,
+ *  the corresponding transport ID must be set in the message header by
+ *  calling MessageQ_setTransportId().
+ *
+ *  @param[in]  tid         Transport ID, must be 1-7 inclusive
+ *  @param[in]  inst        Transport instance handle
+ *
+ *  @return     Status result
+ *              - TRUE: transport handle successfully registered
+ *              - FALSE: failure, most likely transport ID already in use
+ *
+ *  @sa         MessageQ_setTransportId()
+ *  @sa         MessageQ_unregisterTransportId()
+ */
+Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst);
+
+/*!
  *  @brief      Unregister a heap with MessageQ
  *
  *  This function unregisters the heap associated with the heapId.
@@ -847,6 +867,17 @@ Int MessageQ_registerHeap(Ptr heap, UInt16 heapId);
  *              - #MessageQ_S_SUCCESS: heap successfully unregistered
  */
 Int MessageQ_unregisterHeap(UInt16 heapId);
+
+/*!
+ *  @brief      Unregister the transport instance for the given ID
+ *
+ *  Remove the registered transport instance for the give transport ID.
+ *
+ *  @param[in]  tid         Transport ID, must be 1-7 inclusive
+ *
+ *  @sa         MessageQ_registerTransportId()
+ */
+Void MessageQ_unregisterTransportId(UInt tid);
 
 /*!
  *  @brief      Sets the message tracing flag on a given message

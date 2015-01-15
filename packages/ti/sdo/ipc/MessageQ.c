@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,7 @@ typedef struct {
     #pragma FUNC_EXT_CALLED(MessageQ_getQueueId);
     #pragma FUNC_EXT_CALLED(MessageQ_put);
     #pragma FUNC_EXT_CALLED(MessageQ_registerHeap);
+    #pragma FUNC_EXT_CALLED(MessageQ_registerTransportId);
     #pragma FUNC_EXT_CALLED(MessageQ_setFreeHookFxn);
     #pragma FUNC_EXT_CALLED(MessageQ_setPutHookFxn);
     #pragma FUNC_EXT_CALLED(MessageQ_setReplyQueue);
@@ -847,9 +848,9 @@ Void ti_sdo_ipc_MessageQ_unregisterTransport(UInt16 procId, UInt priority)
 }
 
 /*
- *  ======== ti_sdo_ipc_MessageQ_registerTransportId ========
+ *  ======== MessageQ_registerTransportId ========
  */
-Bool ti_sdo_ipc_MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
+Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
 {
     ti_sdo_ipc_MessageQ_TransportType type;
 
@@ -881,16 +882,16 @@ Bool ti_sdo_ipc_MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
 }
 
 /*
- *  ======== ti_sdo_ipc_MessageQ_registerTransportId ========
+ *  ======== MessageQ_unregisterTransportId ========
  */
-Bool ti_sdo_ipc_MessageQ_unregisterTransportId(UInt tid)
+Void MessageQ_unregisterTransportId(UInt tid)
 {
     /* forget the registered transport instance */
     MessageQ_module->regTrans[tid].transport = NULL;
     MessageQ_module->regTrans[tid].type =
             ti_sdo_ipc_MessageQ_TransportType_Invalid;
 
-    return (TRUE);
+    return;
 }
 
 

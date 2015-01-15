@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -586,7 +586,8 @@ module MessageQ
      *  @param(procId)      procId that transport communicaties with
      *  @param(priority)    priority of transport
      */
-     metaonly Void registerTransportMeta(IMessageQTransport.Handle transport, UInt16 procId, UInt priority);
+     metaonly Void registerTransportMeta(IMessageQTransport.Handle transport,
+             UInt16 procId, UInt priority);
 
     /*!
      *  ======== registerTransport ========
@@ -612,18 +613,6 @@ module MessageQ
      *  @param(priority)    priority of transport
      */
     Void unregisterTransport(UInt16 procId, UInt priority);
-
-    /*!
-     *  ======== registerTransportId ========
-     *  Register the transport instance for the given ID
-     */
-    Bool registerTransportId(UInt tid, ITransport.Handle inst);
-
-    /*!
-     *  ======== unregisterTransportId ========
-     *  Unregister the transport for the given ID
-     */
-    Bool unregisterTransportId(UInt tid);
 
 instance:
 
