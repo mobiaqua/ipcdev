@@ -398,7 +398,9 @@ extern "C" {
  *  @param[in]   priority Priority of message to be set.
  */
 #define MessageQ_setMsgPri(msg, priority) \
-        (((MessageQ_Msg) (msg))->flags = ((priority) & MessageQ_PRIORITYMASK))
+        ((MessageQ_Msg)(msg))->flags = \
+        (((MessageQ_Msg)(msg))->flags & ~(MessageQ_PRIORITYMASK)) \
+        | ((priority) & MessageQ_PRIORITYMASK)
 
 /*!
  *  @brief   Set the transport Id for the given message
