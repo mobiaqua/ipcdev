@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,5 +47,7 @@ MultiProc_Config _MultiProc_cfg =  {
    .nameList[1] = "CORE0",
    .rprocList[0] = -1,
    .rprocList[1] = 0,
-   .id = 0,                 /* The host is always zero */
+   .id = 0,             /* host processor must be coherent with cluster */
+   .numProcsInCluster = 2,
+   .baseIdOfCluster = 0
 };

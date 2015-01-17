@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,4 +49,6 @@ MultiProc_Config _MultiProc_cfg =  {
    .nameList[3] = "DSP2",
    .nameList[4] = "DSP1",
    .id = 0,                 /* The host is always zero */
+   .numProcsInCluster = 5,
+   .baseIdOfCluster = 0
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,6 +175,7 @@ Bool MessageQ_registerTransport(IMessageQTransport_Handle handle,
                                 UInt16 rprocId, UInt priority)
 {
     Int status = FALSE;
+    UInt16 clusterId;
 
     if (handle == NULL) {
         printf("MessageQ_registerTransport: invalid handle, must be non-NULL\n"
@@ -183,14 +184,17 @@ Bool MessageQ_registerTransport(IMessageQTransport_Handle handle,
         return status;
     }
 
-    if (rprocId >= MultiProc_MAXPROCESSORS) {
+    /* map procId to clusterId */
+    clusterId = rprocId - MultiProc_getBaseIdOfCluster();
+
+    if (clusterId >= MultiProc_MAXPROCESSORS) {
         printf("MessageQ_registerTransport: invalid procId %d\n", rprocId);
 
         return status;
     }
 
-    if (MessageQ_module->transports[rprocId][priority] == NULL) {
-        MessageQ_module->transports[rprocId][priority] = handle;
+    if (MessageQ_module->transports[clusterId][priority] == NULL) {
+        MessageQ_module->transports[clusterId][priority] = handle;
 
         status = TRUE;
     }
@@ -207,13 +211,15 @@ Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
     }
 
     if (tid >= MessageQ_MAXTRANSPORTS) {
-        printf("MessageQ_unregisterNetTransport: invalid transport id %d, must be < %d\n", tid, MessageQ_MAXTRANSPORTS);
+        printf("MessageQ_unregisterNetTransport: invalid transport id %d,"
+                "must be < %d\n", tid, MessageQ_MAXTRANSPORTS);
 
         return MessageQ_E_INVALIDARG;
     }
 
     if (MessageQ_module->transInst[tid] != NULL) {
-        printf("MessageQ_registerTransportId: transport id %d already registered\n", tid);
+        printf("MessageQ_registerTransportId: transport id %d already "
+                "registered\n", tid);
 
         return MessageQ_E_ALREADYEXISTS;
     }
@@ -225,19 +231,25 @@ Bool MessageQ_registerTransportId(UInt tid, ITransport_Handle inst)
 
 Void MessageQ_unregisterTransport(UInt16 rprocId, UInt priority)
 {
-    if (rprocId >= MultiProc_MAXPROCESSORS) {
-        printf("MessageQ_registerTransport: invalid rprocId %d\n", rprocId);
+    UInt16 clusterId;
+
+    /* map procId to clusterId */
+    clusterId = rprocId - MultiProc_getBaseIdOfCluster();
+
+    if (clusterId >= MultiProc_MAXPROCESSORS) {
+        printf("MessageQ_unregisterTransport: invalid rprocId %d\n", rprocId);
 
         return;
     }
 
-    MessageQ_module->transports[rprocId][priority] = NULL;
+    MessageQ_module->transports[clusterId][priority] = NULL;
 }
 
 Void MessageQ_unregisterTransportId(UInt tid)
 {
     if (tid >= MessageQ_MAXTRANSPORTS) {
-        printf("MessageQ_unregisterTransportId: invalid transport id %d, must be < %d\n", tid, MessageQ_MAXTRANSPORTS);
+        printf("MessageQ_unregisterTransportId: invalid transport id %d, "
+                "must be < %d\n", tid, MessageQ_MAXTRANSPORTS);
 
         return;
     }
@@ -301,7 +313,7 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
     struct LAD_CommandObj cmd;
     union LAD_ResponseObj rsp;
     Int pri;
-    Int rprocId;
+    Int i;
     Int tid;
 
     pthread_mutex_lock(&MessageQ_module->gate);
@@ -356,11 +368,12 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
 
     pthread_mutex_init(&MessageQ_module->gate, NULL);
 
-    for (rprocId = 0; rprocId < MultiProc_MAXPROCESSORS; rprocId++) {
+    for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
         for (pri = 0; pri < 2; pri++) {
-            MessageQ_module->transports[rprocId][pri] = NULL;
+            MessageQ_module->transports[i][pri] = NULL;
         }
     }
+
     for (tid = 0; tid < MessageQ_MAXTRANSPORTS; tid++) {
         MessageQ_module->transInst[tid] = NULL;
     }
@@ -451,7 +464,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
     IMessageQTransport_Handle transport;
     INetworkTransport_Handle transInst;
     UInt16                queueIndex;
-    UInt16                rprocId;
+    UInt16                clusterId;
     Int                   tid;
     Int                   priority;
     LAD_ClientHandle      handle;
@@ -546,17 +559,19 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
         return NULL;
     }
 
-    PRINTVERBOSE2("MessageQ_create: creating endpoints for '%s' queueIndex %d\n", name, queueIndex)
+    PRINTVERBOSE2("MessageQ_create: creating endpoints for '%s' "
+            "queueIndex %d\n", name, queueIndex)
 
-    for (rprocId = 0; rprocId < MultiProc_MAXPROCESSORS; rprocId++) {
+    for (clusterId = 0; clusterId < MultiProc_MAXPROCESSORS; clusterId++) {
 	for (priority = 0; priority < 2; priority++) {
-            transport = MessageQ_module->transports[rprocId][priority];
+            transport = MessageQ_module->transports[clusterId][priority];
             if (transport) {
                 /* need to check return and do something if error */
                 IMessageQTransport_bind((Void *)transport, obj->queue);
             }
         }
     }
+
     for (tid = 1; tid < MessageQ_MAXTRANSPORTS; tid++) {
         transInst = MessageQ_module->transInst[tid];
         if (transInst) {
@@ -591,7 +606,7 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr)
     INetworkTransport_Handle transInst;
     Int              status = MessageQ_S_SUCCESS;
     UInt16           queueIndex;
-    UInt16                rprocId;
+    UInt16                clusterId;
     Int                   tid;
     Int                   priority;
     LAD_ClientHandle handle;
@@ -629,14 +644,15 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr)
       "MessageQ_delete: got LAD response for client %d, status=%d\n",
       handle, status)
 
-    for (rprocId = 0; rprocId < MultiProc_MAXPROCESSORS; rprocId++) {
+    for (clusterId = 0; clusterId < MultiProc_MAXPROCESSORS; clusterId++) {
 	for (priority = 0; priority < 2; priority++) {
-            transport = MessageQ_module->transports[rprocId][priority];
+            transport = MessageQ_module->transports[clusterId][priority];
             if (transport) {
                 IMessageQTransport_unbind((Void *)transport, obj->queue);
             }
         }
     }
+
     for (tid = 1; tid < MessageQ_MAXTRANSPORTS; tid++) {
         transInst = MessageQ_module->transInst[tid];
         if (transInst) {
@@ -720,6 +736,7 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     INetworkTransport_Handle netTrans;
     Int priority;
     UInt tid;
+    UInt16 clusterId;
 
     msg->dstId     = queueIndex;
     msg->dstProc   = dstProcId;
@@ -733,7 +750,16 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
         tid = MessageQ_getTransportId(msg);
         if (tid == 0) {
             priority = MessageQ_getMsgPri(msg);
-            msgTrans = MessageQ_module->transports[dstProcId][priority];
+            clusterId = dstProcId - MultiProc_getBaseIdOfCluster();
+
+            /* primary transport can only be used for intra-cluster delivery */
+            if (clusterId > MultiProc_getNumProcsInCluster()) {
+                printf("MessageQ_put: Error: destination procId=%d is not "
+                        "in cluster. Must specify a transportId.\n", dstProcId);
+                return MessageQ_E_FAIL;
+            }
+
+            msgTrans = MessageQ_module->transports[clusterId][priority];
 
             IMessageQTransport_put(msgTrans, (Ptr)msg);
         }
@@ -741,7 +767,6 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
             if (tid >= MessageQ_MAXTRANSPORTS) {
                 printf("MessageQ_put: transport id %d too big, must be < %d\n",
                        tid, MessageQ_MAXTRANSPORTS);
-
                 return MessageQ_E_FAIL;
             }
 
@@ -753,15 +778,13 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
             switch (ITransport_itype(transport)) {
                 case INetworkTransport_TypeId:
                     INetworkTransport_put(netTrans, (Ptr)msg);
-
                     break;
 
                 default:
                     /* error */
-                    printf("MessageQ_put: transport id %d is an unsupported transport type\n", tid);
-
+                    printf("MessageQ_put: Error: transport id %d is an "
+                            "unsupported transport type\n", tid);
                     status = MessageQ_E_FAIL;
-
                     break;
             }
         }

@@ -243,8 +243,8 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
     Int               status = NameServer_E_FAIL;
     int               err;
     uint64_t          buf = 1;
-    int               numBytes;
     int               waitFd = NameServer_module->waitFd;
+    UInt16            clusterId;
 
     if (msg->request == NAMESERVER_REQUEST) {
         LOG2("NameServer Request: instanceName: %s, name: %s\n",
@@ -288,7 +288,8 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         msg->reserved = NAMESERVER_MSG_TOKEN;
 
         /* send response message to remote processor */
-        err = send(NameServer_module->sendSock[procId], msg,
+        clusterId = procId - MultiProc_getBaseIdOfCluster();
+        err = send(NameServer_module->sendSock[clusterId], msg,
                    sizeof(NameServerMsg), 0);
         if (err < 0) {
             LOG2("NameServer: send failed: %d, %s\n", errno, strerror(errno))
@@ -303,7 +304,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerMsg));
 
         /* Post the eventfd upon which NameServer_get() is waiting */
-        numBytes = write(waitFd, &buf, sizeof(uint64_t));
+        write(waitFd, &buf, sizeof(uint64_t));
     }
 }
 
@@ -312,12 +313,14 @@ static void *listener_cb(void *arg)
 {
     fd_set rfds;
     int ret = 0, maxfd;
+    int i;
     UInt16 procId;
     struct  sockaddr_rpmsg  fromAddr;
     unsigned int len;
     NameServerMsg msg;
     int     byteCount;
-    UInt16  numProcs = MultiProc_getNumProcessors();
+    UInt16  numProcs = MultiProc_getNumProcsInCluster();
+    UInt16  baseId = MultiProc_getBaseIdOfCluster();
     int     sock;
 
     LOG0("listener_cb: Entered Listener thread.\n")
@@ -327,12 +330,13 @@ static void *listener_cb(void *arg)
         FD_ZERO(&rfds);
         FD_SET(NameServer_module->unblockFd, &rfds);
         maxfd = NameServer_module->unblockFd;
-        for (procId = 0; procId < numProcs; procId++) {
-            if (procId == MultiProc_self() ||
-                NameServer_module->recvSock[procId] == INVALIDSOCKET) {
+
+        for (i = 0, procId = baseId; i < numProcs; i++, procId++) {
+            if ((MultiProc_self() == procId)
+                || (NameServer_module->recvSock[i] == INVALIDSOCKET)) {
                 continue;
             }
-            sock = NameServer_module->recvSock[procId];
+            sock = NameServer_module->recvSock[i];
             FD_SET(sock, &rfds);
             maxfd = MAX(sock, maxfd);
         }
@@ -347,12 +351,12 @@ static void *listener_cb(void *arg)
         }
         LOG0("NameServer: back from select()\n")
 
-        for (procId = 0; procId < numProcs; procId++) {
-            if (procId == MultiProc_self() ||
-                NameServer_module->recvSock[procId] == INVALIDSOCKET) {
+        for (i = 0, procId = baseId; i < numProcs; i++, procId++) {
+            if ((MultiProc_self() == procId)
+                || (NameServer_module->recvSock[i] == INVALIDSOCKET)) {
                 continue;
             }
-            sock = NameServer_module->recvSock[procId];
+            sock = NameServer_module->recvSock[i];
             if (FD_ISSET(sock, &rfds)) {
                 LOG1("NameServer: Listener got NameServer message "
                      "from sock: %d!\n", sock);
@@ -401,12 +405,15 @@ Int NameServer_setup(Void)
     int    err;
     int    sock;
     int    ret;
+    int    clId;
     UInt16 procId;
     UInt16 numProcs;
+    UInt16 baseId;
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    LOG1("NameServer_setup: entered, refCount=%d\n", NameServer_module->refCount)
+    LOG1("NameServer_setup: entered, refCount=%d\n",
+            NameServer_module->refCount)
 
     NameServer_module->refCount++;
 
@@ -415,8 +422,6 @@ Int NameServer_setup(Void)
         status = NameServer_S_ALREADYSETUP;
         goto exit;
     }
-
-    numProcs = MultiProc_getNumProcessors();
 
     NameServer_module->unblockFd = eventfd(0, 0);
     if (NameServer_module->unblockFd < 0) {
@@ -432,12 +437,15 @@ Int NameServer_setup(Void)
         goto exit;
     }
 
-    for (procId = 0; procId < numProcs; procId++) {
-        NameServer_module->sendSock[procId] = INVALIDSOCKET;
-        NameServer_module->recvSock[procId] = INVALIDSOCKET;
+    numProcs = MultiProc_getNumProcsInCluster();
+    baseId = MultiProc_getBaseIdOfCluster();
+
+    for (clId = 0, procId = baseId; clId < numProcs; clId++, procId++) {
+        NameServer_module->sendSock[clId] = INVALIDSOCKET;
+        NameServer_module->recvSock[clId] = INVALIDSOCKET;
 
         /* Only support NameServer to remote procs: */
-        if (procId == MultiProc_self()) {
+        if (MultiProc_self() == procId) {
             continue;
         }
 
@@ -453,14 +461,14 @@ Int NameServer_setup(Void)
             err = ConnectSocket(sock, procId, MESSAGEQ_RPMSG_PORT);
             if (err < 0) {
                 status = NameServer_E_FAIL;
-                LOG2("NameServer_setup: connect failed: %d, %s\n",
-                     errno, strerror(errno))
+                LOG3("NameServer_setup: connect failed: procId=%d, "
+                        "errno=%d (%s)\n", procId, errno, strerror(errno))
 
                 LOG1("    closing send socket: %d\n", sock)
                 close(sock);
             }
             else {
-                NameServer_module->sendSock[procId] = sock;
+                NameServer_module->sendSock[clId] = sock;
             }
         }
 
@@ -484,7 +492,7 @@ Int NameServer_setup(Void)
                 close(sock);
             }
             else {
-                NameServer_module->recvSock[procId] = sock;
+                NameServer_module->recvSock[clId] = sock;
             }
         }
     }
@@ -503,18 +511,18 @@ Int NameServer_setup(Void)
     }
     else {
         /* look for at least one good send/recv pair to indicate success */
-        for (procId = 0; procId < numProcs; procId++) {
-            if (NameServer_module->sendSock[procId] != INVALIDSOCKET &&
-                NameServer_module->recvSock[procId] != INVALIDSOCKET) {
+        for (clId = 0; clId < numProcs; clId++) {
+            if (NameServer_module->sendSock[clId] != INVALIDSOCKET &&
+                NameServer_module->recvSock[clId] != INVALIDSOCKET) {
                 status = NameServer_S_SUCCESS;
-
                 break;
             }
         }
     }
 
 exit:
-    LOG1("NameServer_setup: exiting, refCount=%d\n", NameServer_module->refCount)
+    LOG1("NameServer_setup: exiting, refCount=%d\n",
+            NameServer_module->refCount)
 
     pthread_mutex_unlock(&NameServer_module->modGate);
 
@@ -524,45 +532,53 @@ exit:
 /*! Function to destroy the nameserver module. */
 Int NameServer_destroy(void)
 {
-    Int      status    = NameServer_S_SUCCESS;
-    UInt16   numProcs = MultiProc_getNumProcessors();
+    Int      status = NameServer_S_SUCCESS;
+    UInt16   numProcs;
+    UInt16   baseId;
     UInt16   procId;
+    int      clId;
     int      sock;
     uint64_t buf = 1;
-    int      numBytes;
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    LOG1("NameServer_destroy: entered, refCount=%d\n", NameServer_module->refCount)
+    LOG1("NameServer_destroy: entered, refCount=%d\n",
+            NameServer_module->refCount)
 
     NameServer_module->refCount--;
 
     if (NameServer_module->refCount > 0) {
-        LOG1("NameServer_destroy(): refCount(%d) > 0, exiting\n", NameServer_module->refCount)
+        LOG1("NameServer_destroy(): refCount(%d) > 0, exiting\n",
+                NameServer_module->refCount)
         status = NameServer_S_SUCCESS;
-
         goto exit;
     }
 
-    for (procId = 0; procId < numProcs; procId++) {
+    numProcs = MultiProc_getNumProcsInCluster();
+    baseId = MultiProc_getBaseIdOfCluster();
+
+    LOG2("NameServer_destroy: numProcs=%d, baseId=%d\n", numProcs, baseId);
+
+    for (clId = 0, procId = baseId; clId < numProcs; clId++, procId++) {
+
         /* Only support NameServer to remote procs: */
-        if (procId == MultiProc_self()) {
+        if (MultiProc_self() == procId) {
             continue;
         }
 
         /* Close the socket: */
-        sock = NameServer_module->sendSock[procId];
+        sock = NameServer_module->sendSock[clId];
         if (sock != INVALIDSOCKET) {
             LOG1("NameServer_destroy: closing socket: %d\n", sock)
             close(sock);
-            NameServer_module->sendSock[procId] = INVALIDSOCKET;
+            NameServer_module->sendSock[clId] = INVALIDSOCKET;
         }
         /* Close the socket: */
-        sock = NameServer_module->recvSock[procId];
+        sock = NameServer_module->recvSock[clId];
         if (sock != INVALIDSOCKET) {
             LOG1("NameServer_destroy: closing socket: %d\n", sock)
             close(sock);
-            NameServer_module->recvSock[procId] = INVALIDSOCKET;
+            NameServer_module->recvSock[clId] = INVALIDSOCKET;
         }
     }
 
@@ -570,7 +586,7 @@ Int NameServer_destroy(void)
 
     /* Unblock the NameServer listener thread: */
     LOG0("NameServer_destroy: unblocking listener...\n")
-    numBytes = write(NameServer_module->unblockFd, &buf, sizeof(uint64_t));
+    write(NameServer_module->unblockFd, &buf, sizeof(uint64_t));
 
     /* Join: */
     LOG0("NameServer_destroy: joining listener thread...\n")
@@ -580,7 +596,8 @@ Int NameServer_destroy(void)
     close(NameServer_module->waitFd);
 
 exit:
-    LOG1("NameServer_destroy: exiting, refCount=%d\n", NameServer_module->refCount)
+    LOG1("NameServer_destroy: exiting, refCount=%d\n",
+            NameServer_module->refCount)
 
     pthread_mutex_unlock(&NameServer_module->modGate);
 
@@ -966,18 +983,19 @@ Int NameServer_getRemote(NameServer_Handle handle,
     int ret = 0, sock, maxfd, waitFd;
     struct timeval tv;
     uint64_t buf = 1;
-    int numBytes;
     int err;
     int i;
     static int seqNum = 0;
     Bool done = FALSE;
+    UInt16 clusterId;
 
     /* Set Timeout to wait: */
     tv.tv_sec = 0;
     tv.tv_usec = NAMESERVER_GET_TIMEOUT;
 
     /* Create request message and send to remote: */
-    sock = NameServer_module->sendSock[procId];
+    clusterId = procId - MultiProc_getBaseIdOfCluster();
+    sock = NameServer_module->sendSock[clusterId];
     if (sock == INVALIDSOCKET) {
         LOG1("NameServer_getRemote: no socket connection to processor %d\n",
              procId);
@@ -1030,7 +1048,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
         if (FD_ISSET(waitFd, &rfds)) {
             /* Read, just to balance the write: */
-            numBytes = read(waitFd, &buf, sizeof(uint64_t));
+            read(waitFd, &buf, sizeof(uint64_t));
 
             /* Process response: */
             replyMsg = &NameServer_module->nsMsg;
@@ -1092,8 +1110,13 @@ Int NameServer_get(NameServer_Handle handle,
                UInt16            procId[])
 {
     Int status = NameServer_S_SUCCESS;
-    UInt16 numProcs = MultiProc_getNumProcessors();
+    UInt16 numProcs;
     UInt32 i;
+    UInt16 clusterId;
+    UInt16 baseId;
+
+    numProcs = MultiProc_getNumProcsInCluster();
+    baseId = MultiProc_getBaseIdOfCluster();
 
     /*
      * BIOS side uses a gate (mutex) to protect NameServer_module->nsMsg, but
@@ -1103,13 +1126,15 @@ Int NameServer_get(NameServer_Handle handle,
     if (procId == NULL) {
         status = NameServer_getLocal(handle, name, value, len);
         if (status == NameServer_E_NOTFOUND) {
-            for (i = 0; i < numProcs; i++) {
+            for (clusterId = 0; clusterId < numProcs; clusterId++) {
+
                 /* getLocal call already covers "self", keep going */
-                if (i == MultiProc_self()) {
+                if ((baseId + clusterId) == MultiProc_self()) {
                     continue;
                 }
 
-                status = NameServer_getRemote(handle, name, value, len, i);
+                status = NameServer_getRemote(handle, name, value, len,
+                        baseId + clusterId);
 
                 if ((status >= 0) ||
                     ((status < 0) && (status != NameServer_E_NOTFOUND) &&

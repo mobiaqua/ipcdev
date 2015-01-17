@@ -29,7 +29,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*!
  *  @file       Ipc.c
  *
@@ -105,8 +104,11 @@ Int Ipc_start(Void)
     Int                    attachStatus;
     Int32                  status;
     LAD_Status             ladStatus;
-    UInt16                 rprocId;
+    Int                    i;
+    UInt16                 procId;
     Int32                  attachedAny;
+    UInt16                 clusterSize;
+    UInt16                 clusterBase;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
@@ -162,51 +164,49 @@ Int Ipc_start(Void)
         goto exit;
     }
 
-    /*
-     * Get MultiProc configuration from LAD and initialize local MultiProc
-     * config structure.
+    /*  Get MultiProc configuration from LAD and initialize local
+     *  MultiProc config structure.
      */
     MultiProc_getConfig(&mpCfg);
     _MultiProc_initCfg(&mpCfg);
 
     status = NameServer_setup();
+
     if (status >= 0) {
         MessageQ_getConfig(&msgqCfg);
         MessageQ_setup(&msgqCfg);
 
-        /*
-         * Attach to all remote processors.  We need to attach to
-         * at least one, so tolerate MessageQ_E_RESOURCE failures for
-         * now.
+        /*  Attach to all remote processors. For now, must attach to
+         *  at least one to tolerate MessageQ_E_RESOURCE failures.
          */
         status = Ipc_S_SUCCESS;
         attachedAny = FALSE;
 
-        for (rprocId = 0; rprocId < MultiProc_getNumProcessors(); rprocId++) {
-            if (0 == rprocId) {
-                /* Skip host, which should always be 0th entry. */
+        /* needed to enumerate processors in cluster */
+        clusterSize = MultiProc_getNumProcsInCluster();
+        clusterBase = MultiProc_getBaseIdOfCluster();
+
+        for (i = 0, procId = clusterBase; i < clusterSize; i++, procId++) {
+
+            if (MultiProc_self() == procId) {
                 continue;
             }
 
-            params.rprocId = rprocId;
+            params.rprocId = procId;
             transport = TransportRpmsg_create(&params, &attachStatus);
 
             if (transport) {
                 iMsgQTrans = TransportRpmsg_upCast(transport);
-                MessageQ_registerTransport(iMsgQTrans, rprocId, 0);
-
+                MessageQ_registerTransport(iMsgQTrans, procId, 0);
                 attachedAny = TRUE;
             }
             else {
                 if (attachStatus == MessageQ_E_RESOURCE) {
                     continue;
                 }
-
-                printf("Ipc_start: failed to attach to %d: %d\n",
-                       rprocId, attachStatus);
-
+                printf("Ipc_start: failed to attach to procId=%d status=%d\n",
+                       procId, attachStatus);
                 status = Ipc_E_FAIL;
-
                 break;
             }
         }
@@ -254,8 +254,8 @@ gatempstart_fail:
     GateHWSpinlock_stop();
 gatehwspinlockstart_fail:
 #if 0
-    for (rprocId = rprocId - 1; (rprocId > 0) && (status >= 0); rprocId--) {
-        MessageQ_detach(rprocId);
+    for (procId = procId - 1; (procId > 0) && (status >= 0); procId--) {
+        MessageQ_detach(procId);
     }
 #endif
 #endif
@@ -276,9 +276,12 @@ exit:
  */
 Int Ipc_stop(Void)
 {
-    Int32             status = Ipc_S_SUCCESS;
-    LAD_Status        ladStatus;
-    UInt16            rprocId;
+    Int32       status = Ipc_S_SUCCESS;
+    LAD_Status  ladStatus;
+    Int         i;
+    UInt16      procId;
+    UInt16      clusterSize;
+    UInt16      clusterBase;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
@@ -288,19 +291,22 @@ Int Ipc_stop(Void)
         goto exit;
     }
 
-    /* Now detach from all remote processors, assuming they are up. */
-    for (rprocId = 0;
-         (rprocId < MultiProc_getNumProcessors()) && (status >= 0);
-         rprocId++) {
-        if (0 == rprocId) {
-          /* Skip host, which should always be 0th entry. */
-          continue;
+    /* needed to enumerate processors in cluster */
+    clusterSize = MultiProc_getNumProcsInCluster();
+    clusterBase = MultiProc_getBaseIdOfCluster();
+
+    /* detach from all remote processors, assuming they are up */
+    for (i = 0, procId = clusterBase; i < clusterSize; i++, procId++) {
+
+        /*  no need to detach from myself */
+        if (MultiProc_self() == procId) {
+            continue;
         }
 #if 0
-        status = MessageQ_detach(rprocId);
+        status = MessageQ_detach(procId);
         if (status < 0) {
             printf("Ipc_stop: MessageQ_detach(%d) failed: %d\n",
-                rprocId, status);
+                procId, status);
             status = Ipc_E_FAIL;
             goto exit;
        }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,6 +91,16 @@ extern struct timeval start_tv;
         fprintf(logPtr, "[%d.%06d] " a, \
                 (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
                 (unsigned int)tv.tv_usec, b, c); \
+        fflush(logPtr); \
+    }
+
+#define LOG3(a, b, c, d)  \
+    if (logFile == TRUE) { \
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        fprintf(logPtr, "[%d.%06d] " a, \
+                (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
+                (unsigned int)tv.tv_usec, b, c, d); \
         fflush(logPtr); \
     }
 

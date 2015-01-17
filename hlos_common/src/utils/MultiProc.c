@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,14 @@
 #include <_MultiProc.h>
 
 /*
+ *  ======== MultiProc_getBaseIdOfCluster ========
+ */
+UInt16 MultiProc_getBaseIdOfCluster()
+{
+    return (_MultiProc_cfg.baseIdOfCluster);
+}
+
+/*
  *  ======== MultiProc_getId ========
  */
 UInt16 MultiProc_getId(String name)
@@ -54,10 +62,10 @@ UInt16 MultiProc_getId(String name)
     assert(name != NULL);
 
     id = MultiProc_INVALIDID;
-    for (i = 0; i < _MultiProc_cfg.numProcessors; i++) {
+    for (i = 0; i < _MultiProc_cfg.numProcsInCluster; i++) {
         if ((_MultiProc_cfg.nameList[i] != NULL) &&
                 (strcmp(name, _MultiProc_cfg.nameList[i]) == 0)) {
-            id = i;
+            id = _MultiProc_cfg.baseIdOfCluster + i;
         }
     }
     return (id);
@@ -70,7 +78,7 @@ String MultiProc_getName(UInt16 id)
 {
     assert(id < _MultiProc_cfg.numProcessors);
 
-    return (_MultiProc_cfg.nameList[id]);
+    return (_MultiProc_cfg.nameList[id - _MultiProc_cfg.baseIdOfCluster]);
 }
 
 /*
@@ -81,6 +89,13 @@ UInt16 MultiProc_getNumProcessors()
     return (_MultiProc_cfg.numProcessors);
 }
 
+/*
+ *  ======== MultiProc_getNumProcsInCluster ========
+ */
+UInt16 MultiProc_getNumProcsInCluster()
+{
+    return (_MultiProc_cfg.numProcsInCluster);
+}
 
 /*
  *  ======== MultiProc_self ========

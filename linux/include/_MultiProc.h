@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015 Texas Instruments Incorporated - http://www.ti.com
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,10 @@ typedef struct MultiProc_Config_tag {
     /*!< Linux "remoteproc index" for processors in the system */
     UInt16 id;
     /*!< Local Proc ID. This needs to be set before calling any other APIs */
+    UInt16 numProcsInCluster;
+    /*!< number of processors in the cluster */
+    UInt16 baseIdOfCluster;
+    /*!< processor ID of first entry in cluster */
 } MultiProc_Config;
 
 /* =============================================================================

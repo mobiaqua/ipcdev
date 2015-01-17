@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,7 +137,6 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params,
                                             Int *attachStatus)
 {
     TransportRpmsg_Object *obj;
-    Int *queues;
     Int rv;
 
     rv = attach(params->rprocId);
@@ -176,8 +175,12 @@ Void TransportRpmsg_delete(TransportRpmsg_Handle *handlep)
 
 static Int attach(UInt16 rprocId)
 {
-    Int    status = MessageQ_S_SUCCESS;
-    int    sock;
+    Int     status = MessageQ_S_SUCCESS;
+    int     sock;
+    UInt16  clusterId;
+
+
+    clusterId = rprocId - MultiProc_getBaseIdOfCluster();
 
     /* Create the socket for sending messages to the remote proc: */
     sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
@@ -203,7 +206,7 @@ static Int attach(UInt16 rprocId)
         goto exitSock;
     }
 
-    TransportRpmsg_module->sock[rprocId] = sock;
+    TransportRpmsg_module->sock[clusterId] = sock;
 
     if (TransportRpmsg_module->threadStarted == FALSE) {
         /* create a module wide event to unblock the socket select thread */
@@ -250,7 +253,7 @@ exitEvent:
 
 exitSock:
     close(sock);
-    TransportRpmsg_module->sock[rprocId] = 0;
+    TransportRpmsg_module->sock[clusterId] = 0;
 
 exit:
     return status;
@@ -259,10 +262,12 @@ exit:
 static Int detach(UInt16 rprocId)
 {
 
-    Int status = -1;
-    int sock;
+    Int     status = -1;
+    int     sock;
+    UInt16  clusterId;
 
-    sock = TransportRpmsg_module->sock[rprocId];
+    clusterId = rprocId - MultiProc_getBaseIdOfCluster();
+    sock = TransportRpmsg_module->sock[clusterId];
 
     if (sock) {
         PRINTVERBOSE1("detach: closing socket: %d\n", sock)
@@ -284,7 +289,8 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
 
     rprocId = obj->rprocId;
 
-    PRINTVERBOSE2("TransportRpmsg_bind: creating endpoint for rprocId %d queueIndex %d\n", rprocId, queueIndex)
+    PRINTVERBOSE2("TransportRpmsg_bind: creating endpoint for rprocId %d "
+            "queueIndex %d\n", rprocId, queueIndex)
 
     /*  Create the socket to receive messages for this messageQ. */
     fd = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
@@ -409,13 +415,14 @@ Bool TransportRpmsg_put(Void *handle, Ptr pmsg)
     Int     status    = TRUE;
     int     sock;
     int     err;
-    UInt16  dstProcId = msg->dstProc;
+    UInt16  clusterId;
 
     /*
      * Retrieve the socket for the AF_SYSLINK protocol associated with this
      * transport.
      */
-    sock = TransportRpmsg_module->sock[dstProcId];
+    clusterId = msg->dstProc - MultiProc_getBaseIdOfCluster();
+    sock = TransportRpmsg_module->sock[clusterId];
     if (!sock) {
         return FALSE;
     }
@@ -517,7 +524,8 @@ void *rpmsgThreadFxn(void *arg)
                         else {
                             queueId = MessageQ_getDstQueue(retMsg);
 
-                            PRINTVERBOSE1("rpmsgThreadFxn: got message, delivering to queueId 0x%x\n", queueId)
+                            PRINTVERBOSE1("rpmsgThreadFxn: got message, "
+                                    "delivering to queueId 0x%x\n", queueId)
 
                             MessageQ_put(queueId, retMsg);
                         }
@@ -593,8 +601,10 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
     }
 
     PRINTVERBOSE1("transportGet: recvfrom socket: fd: %d\n", sock)
-    PRINTVERBOSE3("\tReceived a msg: byteCount: %d, rpmsg addr: %d, rpmsg proc: %d\n", byteCount, fromAddr.addr, fromAddr.vproc_id)
-    PRINTVERBOSE2("\tMessage Id: %d, Message size: %d\n", msg->msgId, msg->msgSize)
+    PRINTVERBOSE3("\tReceived a msg: byteCount: %d, rpmsg addr: %d, rpmsg "
+            "proc: %d\n", byteCount, fromAddr.addr, fromAddr.vproc_id)
+    PRINTVERBOSE2("\tMessage Id: %d, Message size: %d\n", msg->msgId,
+            msg->msgSize)
 
     *retMsg = msg;
 

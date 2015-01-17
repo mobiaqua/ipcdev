@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,8 +67,10 @@ Void MultiProc_getConfig (MultiProc_Config * cfg)
     memcpy (cfg, &_MultiProc_cfg, sizeof(MultiProc_Config));
 
     LOG1("MultiProc_getConfig() - %d procs\n", _MultiProc_cfg.numProcessors);
+    LOG1("# processors in cluster - %d\n", _MultiProc_cfg.numProcsInCluster);
+    LOG1("base procId of cluster - %d\n", _MultiProc_cfg.baseIdOfCluster);
 
-    for (i = 0; i < _MultiProc_cfg.numProcessors; i++) {
+    for (i = 0; i < _MultiProc_cfg.numProcsInCluster; i++) {
         LOG2("\tProc %d - \"%s\"\n", i, _MultiProc_cfg.nameList[i]);
     }
 }
