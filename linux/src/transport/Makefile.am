@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2014, Texas Instruments Incorporated
+##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -45,20 +45,20 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
 ###############################################################################
 
 # the library names to build (note we are building shared libs)
-lib_LTLIBRARIES = libtransport.la
+lib_LTLIBRARIES = libtitransportrpmsg.la
 
 # where to install the headers on the system
-libtransport_ladir = $(includedir)/ti/ipc
+libtitransportrpmsg_ladir = $(includedir)/ti/ipc
 
 # the list of header files that belong to the library (to be installed later)
-libtransport_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
+libtitransportrpmsg_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
 
 # the sources to add to the library and to add to the source distribution
-libtransport_la_SOURCES =    \
+libtitransportrpmsg_la_SOURCES =    \
                         TransportRpmsg.c
 
 # Add version info to the shared library
-libtransport_la_LDFLAGS = -version-info 1:0:0
+libtitransportrpmsg_la_LDFLAGS = -version-info 1:0:0
 
 #pkgconfig_DATA          = libtiipc.pc
 #pkgconfigdir            = $(libdir)/pkgconfig

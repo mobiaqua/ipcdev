@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2014, Texas Instruments Incorporated
+##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -179,7 +179,7 @@ GateMPApp_SOURCES = $(common_sources) \
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la \
-                $(top_builddir)/linux/src/transport/libtransport.la
+                $(top_builddir)/linux/src/transport/libtitransportrpmsg.la
 
 
 # the additional libraries to link ping_rpmsg

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
+#include <TransportRpmsg.h>
 
 #define HEAPID                  0               /* not actually used */
 #define SLAVE_MSGQNAME          "SLAVE"
@@ -94,6 +95,9 @@ int main(int argc, char *argv[])
     UInt16 procId;
     UInt16 numProcs;
     String name;
+
+    /* configure the transport factory */
+    Ipc_transportConfig(&TransportRpmsg_Factory);
 
     /* parse the command line options (e.g. -h) */
     for (arg = 1; (arg < argc) && (argv[arg][0] == '-'); arg++) {

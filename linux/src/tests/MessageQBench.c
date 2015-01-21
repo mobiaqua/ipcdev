@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
+#include <TransportRpmsg.h>
 
 #define MINPAYLOADSIZE      (2 * sizeof(UInt32))
 
@@ -229,7 +230,16 @@ int main (int argc, char * argv[])
         exit(0);
     }
 
+    /* configure the transport factory */
+    Ipc_transportConfig(&TransportRpmsg_Factory);
+
+    /* IPC initialization */
     status = Ipc_start();
+
+    if (status < 0) {
+        printf("Error: Ipc_start failed, error=%d\n", status);
+        goto exit;
+    }
 
     if (procId >= MultiProc_getNumProcessors()) {
         printf("ProcId must be less than %d\n", MultiProc_getNumProcessors());
@@ -247,5 +257,6 @@ int main (int argc, char * argv[])
         printf("Ipc_start failed: status = %d\n", status);
     }
 
+exit:
     return (status);
 }

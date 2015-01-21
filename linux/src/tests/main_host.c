@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@
 /* package header files */
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
-
 #include <ti/ipc/MultiProc.h>
+#include <TransportRpmsg.h>
 
 #include <ti/cmem.h>
 
@@ -93,7 +93,10 @@ Int main(Int argc, Char* argv[])
         printf("CMEM_init success\n");
     }
 
-    /* Ipc initialization */
+    /* configure the transport factory */
+    Ipc_transportConfig(&TransportRpmsg_Factory);
+
+    /* IPC initialization */
     status = Ipc_start();
 
     if (status >= 0) {

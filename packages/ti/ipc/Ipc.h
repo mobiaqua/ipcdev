@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,6 +128,26 @@ extern "C" {
  *  @brief  Operation was not ready.
  */
 #define Ipc_E_NOTREADY         (-11)
+
+
+/* =============================================================================
+ *  Structures & Enums
+ * =============================================================================
+ */
+
+/*!
+ *  @brief  Factory virtual function table
+ *
+ *  This virtual function table defines the interface which must
+ *  be implemented by the transport factory. The Ipc module will
+ *  use this factory to create and delete this transport. The
+ *  factory is responsible for managing the details of creation
+ *  and deletion.
+ */
+typedef struct {
+    Int (*createFxn)(Void);             /*!< factory create method      */
+    Void (*deleteFxn)(Void);            /*!< factory finalize method    */
+} Ipc_TransportFactoryFxns;
 
 
 /* =============================================================================
@@ -304,6 +324,7 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size);
  *              - #Ipc_S_ALREADYSETUP: already successfully called
  *              - #Ipc_E_NOTREADY: shared memory is not ready
  *              - #Ipc_E_FAIL: operation failed
+ *              - #Ipc_E_INVALIDSTATE: transport factory not configured
  *
  *  @sa         Ipc_stop()
  */
@@ -322,6 +343,28 @@ Int Ipc_start(Void);
  *  @sa         Ipc_start()
  */
 Int Ipc_stop(Void);
+
+/*!
+ *  @brief      Configure the primary transport factory
+ *
+ *  Configure IPC with the factory to use for the primary transport
+ *  The transport factory will be invoked by IPC during the start
+ *  phase (i.e. Ipc_start()) to create the transport instances. IPC
+ *  will also use the factory during the stop phase (i.e. Ipc_stop())
+ *  to finalize the transport instances.
+ *
+ *  By configuring the transport factory at run-time, the application
+ *  is able to pick which transport implementation will be used. It is
+ *  expected that each transport implementation provides a suitable
+ *  factory for use by the application.
+ *
+ *  This function is only available on Linux systems.
+ *
+ *  @return     Status
+ *              - #Ipc_S_SUCCESS: operation was successful
+ *              - #Ipc_E_INVALIDSTATE: IPC already running, must be stopped
+ */
+Int Ipc_transportConfig(Ipc_TransportFactoryFxns *factory);
 
 /*!
  *  @brief      Writes the config entry to the config area.

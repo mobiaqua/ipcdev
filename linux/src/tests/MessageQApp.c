@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
+#include <TransportRpmsg.h>
 
 /* App defines:  Must match on remote proc side: */
 #define HEAPID              0u
@@ -181,8 +182,8 @@ exit:
 
 int main (int argc, char ** argv)
 {
-    Int32 status = 0;
-    UInt32 numLoops = NUM_LOOPS_DFLT;
+    Int status = 0;
+    UInt numLoops = NUM_LOOPS_DFLT;
     UInt16 procId = PROC_ID_DFLT;
 
     /* Parse Args: */
@@ -204,7 +205,16 @@ int main (int argc, char ** argv)
            exit(0);
     }
 
+    /* configure the transport factory */
+    Ipc_transportConfig(&TransportRpmsg_Factory);
+
+    /* IPC initialization */
     status = Ipc_start();
+
+    if (status < 0) {
+        printf("Error: Ipc_start failed, error=%d\n", status);
+        goto exit;
+    }
 
     if ((procId == 0) || (procId >= MultiProc_getNumProcessors())) {
         printf("ProcId (%d) must be nonzero and less than %d\n",
@@ -222,5 +232,6 @@ int main (int argc, char ** argv)
         printf("Ipc_start failed: status = %d\n", status);
     }
 
-    return(0);
+exit:
+    return (status);
 }

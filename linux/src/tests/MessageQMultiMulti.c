@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /* =============================================================================
- *  @file   MessageQApp.c
+ *  @file   MessageQMultiMulti.c
  *
  *  @brief  Sample application for MessageQ module between MPU and Remote Proc
  *
@@ -48,6 +48,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
+#include <TransportRpmsg.h>
 
 /* App defines: Must match on remote proc side: */
 #define MSGSIZE                     64u
@@ -232,7 +233,12 @@ int main (int argc, char ** argv)
         printf("ProcNum: %d\n", procNum);
     }
 
+    /* configure the transport factory */
+    Ipc_transportConfig(&TransportRpmsg_Factory);
+
+    /* IPC initialization */
     status = Ipc_start();
+
     if (status < 0) {
         printf ("Ipc_start failed: status = 0x%x\n", status);
         goto exit;
@@ -264,6 +270,5 @@ int main (int argc, char ** argv)
     Ipc_stop();
 
 exit:
-
-    return (0);
+    return (status);
 }

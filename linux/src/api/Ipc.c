@@ -47,8 +47,6 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
-#include <IMessageQTransport.h>
-#include <TransportRpmsg.h>
 
 /* User side headers */
 #include <ladclient.h>
@@ -63,8 +61,9 @@
 
 /* module definition */
 typedef struct {
-    Int                 refCount;
-    pthread_mutex_t     gate;
+    Int                         refCount;
+    pthread_mutex_t             gate;
+    Ipc_TransportFactoryFxns   *transportFactory;
 } Ipc_Module;
 
 
@@ -73,8 +72,9 @@ typedef struct {
  * =============================================================================
  */
 static Ipc_Module Ipc_module = {
-    .refCount   = 0,
-    .gate       = PTHREAD_MUTEX_INITIALIZER
+    .refCount           = 0,
+    .gate               = PTHREAD_MUTEX_INITIALIZER,
+    .transportFactory   = NULL
 };
 
 GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
@@ -93,22 +93,13 @@ static void cleanup(int arg);
  */
 Int Ipc_start(Void)
 {
-    TransportRpmsg_Handle  transport;
-    TransportRpmsg_Params  params;
-    IMessageQTransport_Handle iMsgQTrans;
-    MessageQ_Config        msgqCfg;
-    MultiProc_Config       mpCfg;
+    MessageQ_Config         msgqCfg;
+    MultiProc_Config        mpCfg;
 #if defined(GATEMP_SUPPORT)
-    GateHWSpinlock_Config  gateHWCfg;
+    GateHWSpinlock_Config   gateHWCfg;
 #endif
-    Int                    attachStatus;
-    Int32                  status;
-    LAD_Status             ladStatus;
-    Int                    i;
-    UInt16                 procId;
-    Int32                  attachedAny;
-    UInt16                 clusterSize;
-    UInt16                 clusterBase;
+    Int         status;
+    LAD_Status  ladStatus;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
@@ -116,6 +107,12 @@ Int Ipc_start(Void)
     /* ensure only first thread performs startup procedure */
     if (++Ipc_module.refCount > 1) {
         status = Ipc_S_ALREADYSETUP;
+        goto exit;
+    }
+
+    /* make sure transport factory has been configured */
+    if (Ipc_module.transportFactory == NULL) {
+        status = Ipc_E_INVALIDSTATE;
         goto exit;
     }
 
@@ -176,42 +173,11 @@ Int Ipc_start(Void)
         MessageQ_getConfig(&msgqCfg);
         MessageQ_setup(&msgqCfg);
 
-        /*  Attach to all remote processors. For now, must attach to
-         *  at least one to tolerate MessageQ_E_RESOURCE failures.
-         */
-        status = Ipc_S_SUCCESS;
-        attachedAny = FALSE;
+        /* invoke the transport factory create method */
+        status = Ipc_module.transportFactory->createFxn();
 
-        /* needed to enumerate processors in cluster */
-        clusterSize = MultiProc_getNumProcsInCluster();
-        clusterBase = MultiProc_getBaseIdOfCluster();
-
-        for (i = 0, procId = clusterBase; i < clusterSize; i++, procId++) {
-
-            if (MultiProc_self() == procId) {
-                continue;
-            }
-
-            params.rprocId = procId;
-            transport = TransportRpmsg_create(&params, &attachStatus);
-
-            if (transport) {
-                iMsgQTrans = TransportRpmsg_upCast(transport);
-                MessageQ_registerTransport(iMsgQTrans, procId, 0);
-                attachedAny = TRUE;
-            }
-            else {
-                if (attachStatus == MessageQ_E_RESOURCE) {
-                    continue;
-                }
-                printf("Ipc_start: failed to attach to procId=%d status=%d\n",
-                       procId, attachStatus);
-                status = Ipc_E_FAIL;
-                break;
-            }
-        }
-        if (!attachedAny) {
-            status = Ipc_E_FAIL;
+        if (status < 0) {
+            goto exit;
         }
     }
     else {
@@ -291,6 +257,9 @@ Int Ipc_stop(Void)
         goto exit;
     }
 
+    /* invoke the transport factory delete method */
+    Ipc_module.transportFactory->deleteFxn();
+
     /* needed to enumerate processors in cluster */
     clusterSize = MultiProc_getNumProcsInCluster();
     clusterBase = MultiProc_getBaseIdOfCluster();
@@ -333,6 +302,31 @@ Int Ipc_stop(Void)
         status = Ipc_E_FAIL;
         goto exit;
     }
+
+exit:
+    pthread_mutex_unlock(&Ipc_module.gate);
+
+    return (status);
+}
+
+/*
+ *  ======== Ipc_transportConfig ========
+ */
+Int Ipc_transportConfig(Ipc_TransportFactoryFxns *factory)
+{
+    Int status;
+
+    pthread_mutex_lock(&Ipc_module.gate);
+    status = Ipc_S_SUCCESS;
+
+    /* transport configuration must happen before start phase */
+    if (Ipc_module.refCount != 0) {
+        status = Ipc_E_INVALIDSTATE;
+        goto exit;
+    }
+
+    /* store factory address in module state */
+    Ipc_module.transportFactory = factory;
 
 exit:
     pthread_mutex_unlock(&Ipc_module.gate);

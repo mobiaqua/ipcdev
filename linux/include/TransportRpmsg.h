@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,10 @@ extern "C" {
 #endif
 
 #include <ti/ipc/Std.h>
+#include <ti/ipc/Ipc.h>
 #include <IMessageQTransport.h>
+
+extern Ipc_TransportFactoryFxns TransportRpmsg_Factory;
 
 struct TransportRpmsg_Params {
     UInt16 rprocId;
