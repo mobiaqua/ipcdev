@@ -26,3 +26,7 @@
 
  1.0.0 - 17 July 2009	- Initial release of dynamic loader API and loader
                           core sources.
+
+ 2.0.0 - 1 Feb 2013     - Add client handle to several DLIF functions.
+                        - Add DLIF_exit() for loader abort.
+			- Mandate that unsuccessful call to DLIF_malloc() must not return

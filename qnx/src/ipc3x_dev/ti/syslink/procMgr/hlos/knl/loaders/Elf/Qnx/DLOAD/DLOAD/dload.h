@@ -3,7 +3,7 @@
 *
 * Define internal data structures used by core dynamic loader.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,13 @@
 #include "dload_api.h"
 #include "util.h"
 
+/*---------------------------------------------------------------------------*/
+/* Contains strings with names of files the loader is in process of loading. */
+/* This list is used to keep track of what objects are in the process of     */
+/* loading while their dependents are being loaded so that we can detect     */
+/* circular dependencies.                                                    */
+/*---------------------------------------------------------------------------*/
+extern Array_List DLIMP_module_dependency_list;
 
 /*---------------------------------------------------------------------------*/
 /* DLIMP_Loaded_Segment                                                      */
@@ -62,25 +69,9 @@ typedef struct
    struct Elf32_Phdr            phdr;
    Elf32_Addr                   input_vaddr;  /* original segment load addr  */
    BOOL                         modified;
-   int32_t                      reloc_offset; /* used by load_program        */
    struct DLOAD_MEMORY_SEGMENT *obj_desc;
+   void *                       host_address;
 } DLIMP_Loaded_Segment;
-
-/*---------------------------------------------------------------------------*/
-/* DLIMP_Section_Info                                                        */
-/*                                                                           */
-/*    This structure represents section info from ELF file.                  */
-/*                                                                           */
-/*    This data structure should be created using host memory when a module  */
-/*    is being loaded into target memory.  The data structure should persist */
-/*    as long as the module stays resident in target memory.  It should be   */
-/*    removed when the last use of the module is unloaded from the target.   */
-/*---------------------------------------------------------------------------*/
-typedef struct
-{
-   struct Elf32_Shdr            shdr;
-   char*                        sh_name;
-} DLIMP_Section_Info;
 
 /*---------------------------------------------------------------------------*/
 /* DLIMP_Loaded_Module                                                       */
@@ -106,13 +97,14 @@ typedef struct
    char                *gstrtab;         /* Module's global symbol names    */
    Elf32_Word           gstrsz;          /* Size of global string table     */
    Array_List           loaded_segments; /* List of DLIMP_Loaded_Segment(s) */
-   Array_List           sections;        /* List of DLIMP_Section_Info(s) */
    Array_List           dependencies;    /* List of dependent file handles  */
    BOOL                 direct_dependent_only;
 
    Elf32_Addr           fini;            /* .fini function/section address  */
    Elf32_Addr           fini_array;      /* .fini_array term fcn ary addr   */
    int32_t              fini_arraysz;    /* sizeof .fini_array              */
+   uint8_t              *c_args;         /* address of module's .args sect  */
+   uint8_t              *static_base;    /* address of module's STATIC_BASE */
 
 } DLIMP_Loaded_Module;
 
@@ -123,6 +115,7 @@ typedef struct
 /*    loader has placed into target memory.                                  */
 /*---------------------------------------------------------------------------*/
 TYPE_QUEUE_DEFINITION(DLIMP_Loaded_Module*, loaded_module_ptr)
+extern loaded_module_ptr_Queue DLIMP_loaded_objects;
 
 /*---------------------------------------------------------------------------*/
 /* DLIMP_Dynamic_Module                                                      */
@@ -154,10 +147,6 @@ typedef struct
    struct Elf32_Ehdr    fhdr;          /* ELF Object File Header             */
    struct Elf32_Phdr   *phdr;          /* ELF Program Header Table           */
    Elf32_Word           phnum;         /* # entries in program header table  */
-   struct Elf32_Shdr   *shdr;          /* ELF Section Header Table (Optional)*/
-   Elf32_Word           shnum;         /* # entries in section header table  */
-   char*                shstrtab;      /* Section String Table               */
-   Elf32_Word           shstrsz;       /* String Table size in bytes         */
    char*                strtab;        /* String Table                       */
    Elf32_Word           strsz;         /* String Table size in bytes         */
    struct Elf32_Dyn    *dyntab;        /* Elf Dynamic Table (.dynamic scn)   */
@@ -172,6 +161,7 @@ typedef struct
                                        /* global symbol names start.         */
 
    uint8_t             *c_args;
+   uint8_t             *static_base;    /* address of module's STATIC_BASE */
    int32_t              argc;
    char               **argv;
    DLIMP_Loaded_Module *loaded_module;
@@ -206,6 +196,7 @@ typedef struct
 /*    or library. When relocation is completed, this stack should be empty.  */
 /*---------------------------------------------------------------------------*/
 TYPE_STACK_DEFINITION(DLIMP_Dynamic_Module*, dynamic_module_ptr)
+extern dynamic_module_ptr_Stack DLIMP_dependency_stack;
 
 /*---------------------------------------------------------------------------*/
 /* Private Loader Object instance.                                           */
@@ -238,19 +229,40 @@ typedef struct
     /*         when the modules are unloaded. It is conceivable that a loader*/
     /*         running for a long time and loading and unloading modules     */
     /*         could wrap-around. The loader generates error in this case.   */
+    /* Presumably each loader instance has a list of file handles, one for   */
+    /* each file that it loads, and the file handle serves as an index into  */
+    /* the list. Therefore even if the same file is loaded by two loader     */
+    /* instances, both loader instances have a different file handle for the */
+    /* file - the file is mapped uniquely to it's appopriate file handle per */
+    /* loader instance.                                                      */
     /*-----------------------------------------------------------------------*/
     int32_t                  file_handle;
-
-    /*-----------------------------------------------------------------------*/
-    /* Identify target supported by this implementation of the core loader.  */
-    /*-----------------------------------------------------------------------*/
-    int                      DLOAD_TARGET_MACHINE;
 
     /*-----------------------------------------------------------------------*/
     /* Client token, passed in via DLOAD_create()                            */
     /*-----------------------------------------------------------------------*/
     void *                   client_handle;
 } LOADER_OBJECT;
+
+
+/*****************************************************************************/
+/* IF data : Below are the data structures used to store init-fini data.     */
+/*****************************************************************************/
+typedef struct
+{
+  TARGET_ADDRESS sect_addr;
+  int32_t size;
+}
+IF_single_record;
+
+TYPE_QUEUE_DEFINITION(IF_single_record*, IF_table)
+extern IF_table_Queue TI_init_table;
+
+
+/*****************************************************************************/
+/* Container used to read in argc, argv from the .srgs section.              */
+/*****************************************************************************/
+typedef struct { int argc; char *argv[1]; } ARGS_CONTAINER;
 
 
 /*****************************************************************************/
@@ -284,31 +296,6 @@ static inline BOOL is_c60_module(struct Elf32_Ehdr* fhdr)
 }
 
 /*---------------------------------------------------------------------------*/
-/* Identifies the current supported target.  This is reset by the default    */
-/* value when all loaded objects have been unloaded.                         */
-/*---------------------------------------------------------------------------*/
-extern int DLOAD_TARGET_MACHINE;
-
-/*---------------------------------------------------------------------------*/
-/* Identify target which is supported by the core loader.  If set to EM_NONE */
-/* the target will be determined by the first loaded module.                 */
-/*---------------------------------------------------------------------------*/
-#if defined(ARM_TARGET) && defined(C60_TARGET)
-#define DLOAD_DEFAULT_TARGET_MACHINE  (EM_NONE)
-#elif defined(ARM_TARGET)
-#define DLOAD_DEFAULT_TARGET_MACHINE  (EM_ARM)
-#elif defined(C60_TARGET)
-#define DLOAD_DEFAULT_TARGET_MACHINE  (EM_TI_C6000)
-#else
-#error "ARM_TARGET and/or C60_TARGET must be defined"
-#endif
-
-/* =============================================================================
- *  APIs
- * =============================================================================
- */
-
-/*---------------------------------------------------------------------------*/
 /* DLIMP_update_dyntag_section_address()                                     */
 /*                                                                           */
 /*    Given the index of a dynamic tag which we happen to know points to a   */
@@ -317,8 +304,7 @@ extern int DLOAD_TARGET_MACHINE;
 /*    of the section.                                                        */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
-extern BOOL DLIMP_update_dyntag_section_address(
-                                               DLIMP_Dynamic_Module *dyn_module,
+extern BOOL DLIMP_update_dyntag_section_address(DLIMP_Dynamic_Module *dyn_module,
                                                 int32_t i);
 
 extern uint32_t DLIMP_get_first_dyntag(int tag, struct Elf32_Dyn* dyn_table);
@@ -326,28 +312,14 @@ extern uint32_t DLIMP_get_first_dyntag(int tag, struct Elf32_Dyn* dyn_table);
 /*---------------------------------------------------------------------------*/
 /* Global flags to help manage internal debug and profiling efforts.         */
 /*---------------------------------------------------------------------------*/
-#ifndef __TI_COMPILER_VERSION__
-#define LOADER_DEBUG 1
-#else
-#define LOADER_DEBUG 0
-#endif
-
-#undef LOADER_DEBUG
-
-#if !defined (__KERNEL__)
-#define LOADER_DEBUG 1
+#define LOADER_DEBUG   0
 #define LOADER_PROFILE 0
-#else
-// Leave LOADER_PROFILE == 0, otherwise time.h, cstdio.h pulled into Kernel!
-#define LOADER_DEBUG 1
-#define LOADER_PROFILE 0
-#endif
 
 #if LOADER_DEBUG
 extern BOOL debugging_on;
 #endif
 
-#if LOADER_DEBUG && LOADER_PROFILE
+#if LOADER_DEBUG || LOADER_PROFILE
 extern BOOL profiling_on;
 #endif
 

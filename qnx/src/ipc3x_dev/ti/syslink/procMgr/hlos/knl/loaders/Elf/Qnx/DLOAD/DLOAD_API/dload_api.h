@@ -10,7 +10,7 @@
 * Core Loader side of API is assumed to be platform independent, but
 * object file format dependent and target dependent.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -48,18 +48,16 @@
 #include <ti/syslink/Std.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include "util.h"
+
+/* extern int debugging_on; */
 
 /*****************************************************************************/
 /* Specification of Loader File Descriptor.  If client side of the loader    */
 /* supports virtual memory, this may need to be updated to facilitate the    */
 /* use of mmap().                                                            */
 /*****************************************************************************/
-
-#if defined (__KERNEL__)
-typedef struct file LOADER_FILE_DESC;
-#else
 typedef FILE LOADER_FILE_DESC;
-#endif
 
 static const int LOADER_SEEK_SET = SEEK_SET;
 static const int LOADER_SEEK_CUR = SEEK_CUR;
@@ -68,10 +66,10 @@ static const int LOADER_SEEK_END = SEEK_END;
 /*****************************************************************************/
 /* TARGET_ADDRESS - type suitable for storing target memory address values.  */
 /*****************************************************************************/
-typedef void* TARGET_ADDRESS;
+typedef uint32_t TARGET_ADDRESS;
 
 /*****************************************************************************/
-/* DLOAD_HANDLE - defines the DLoad object handle.                           */
+/* Define DLOAD Object Handle                                                */
 /*****************************************************************************/
 typedef void * DLOAD_HANDLE;
 
@@ -86,14 +84,13 @@ typedef void * DLOAD_HANDLE;
 /*    dynamic loader's core loader source code.                              */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
-#define VERSION 1.2
+#include "version.h"
 #define DLOAD_version() VERSION
 
 /*---------------------------------------------------------------------------*/
 /* DLOAD_create()                                                            */
 /*                                                                           */
-/*    Create an instance of the dynamic loader, passing a handle to the      */
-/*    client-specific handle for this instance.                              */
+/*    Construct and initialize the dynamic loader core's handle.             */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 DLOAD_HANDLE  DLOAD_create(void * client_handle);
@@ -101,7 +98,7 @@ DLOAD_HANDLE  DLOAD_create(void * client_handle);
 /*---------------------------------------------------------------------------*/
 /* DLOAD_destroy()                                                           */
 /*                                                                           */
-/*    Destroy the specified dynamic loader instance.                         */
+/*    Destroy and finalize the dynamic loader core's handle.                 */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 void     DLOAD_destroy(DLOAD_HANDLE handle);
@@ -118,7 +115,8 @@ void     DLOAD_initialize(DLOAD_HANDLE handle);
 /*---------------------------------------------------------------------------*/
 /* DLOAD_finalize()                                                          */
 /*                                                                           */
-/*    Finalize the dynamic loader core.                                      */
+/*    Destroy and finalize data structures internal to the dynamic           */
+/*    loader core.                                                           */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 void     DLOAD_finalize(DLOAD_HANDLE handle);
@@ -143,8 +141,7 @@ int32_t  DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp);
 /*    The core loader must have read access to the file pointed by fp.       */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
-int      DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp, int argc,
-                    char** argv);
+int      DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp);
 
 /*---------------------------------------------------------------------------*/
 /* DLOAD_unload()                                                            */
@@ -159,12 +156,13 @@ BOOL     DLOAD_unload(DLOAD_HANDLE handle, uint32_t pseudopid);
 /*---------------------------------------------------------------------------*/
 /* DLOAD_get_entry_names_info()                                              */
 /*                                                                           */
-/*    Given a file handle, get the information needed to create an array of  */
-/*    sufficient size to call DLOAD_get_entry_names.                         */
+/*    Given a file handle, return the number entry points that are           */
+/*    available in the specified file as well as the max name length.  This  */
+/*    can then be used by the client to allocate the appropriate amount of   */
+/*    memory needed to call DLOAD_get_entry_names()                          */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
-BOOL     DLOAD_get_entry_names_info(DLOAD_HANDLE handle,
-                                    uint32_t file_handle,
+BOOL     DLOAD_get_entry_names_info(DLOAD_HANDLE handle, uint32_t file_handle,
                                     int32_t *entry_pt_cnt,
                                     int32_t *entry_pt_max_name_len);
 
@@ -225,6 +223,40 @@ BOOL     DLOAD_get_section_offset(LOADER_FILE_DESC *fd, char * sect_name,
 /*---------------------------------------------------------------------------*/
 BOOL     DLOAD_get_entry_point(DLOAD_HANDLE handle, uint32_t file_handle,
                                TARGET_ADDRESS *sym_val);
+
+/*---------------------------------------------------------------------------*/
+/* DLOAD_load_arguments()                                                    */
+/*                                                                           */
+/*    Given a file handle, find the object file associated with that handle  */
+/*    and copy the argc/argv information from the client into that object    */
+/*    file's .args section. The return value indicates whether the operation */
+/*    was successful. If there are no loaded object files which match the    */
+/*    handle or if there is insufficient space in the .args section to hold  */
+/*    the specified argc/argv information, the function will return false.   */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+BOOL DLOAD_load_arguments(DLOAD_HANDLE handle, uint32_t file_handle,
+                           int argc, char** argv);
+
+/*---------------------------------------------------------------------------*/
+/* DLOAD_prepare_for_execution()                                             */
+/*                                                                           */
+/*    Given a file handle, prepare for execution :                           */
+/*     - Return entry point associated with that module in the *sym_val      */
+/*       output parameter.                                                   */
+/*     - Write out the given arguments to the .args section contained in the */
+/*       same module.                                                        */
+/*     - As a test (for the Reference implementation) read the arguments     */
+/*       using the DLIF_read_arguments() function and set global argc,argv.  */
+/*                                                                           */
+/*    The return value of the function indicates whether the file with the   */
+/*    specified handle was found or not.                                     */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+BOOL     DLOAD_prepare_for_execution(DLOAD_HANDLE handle, uint32_t file_handle,
+                               TARGET_ADDRESS *sym_val,
+                               int argc, char** argv);
+
 
 /*****************************************************************************/
 /* Client Provided API Functions                                             */
@@ -301,6 +333,8 @@ int      DLIF_fclose(LOADER_FILE_DESC *fd);
 /*    (appropriate for the loader's internal data structures) by the dynamic */
 /*    loader.                                                                */
 /*                                                                           */
+/*    If allocation fails, this function must not return.                    */
+/*                                                                           */
 /*---------------------------------------------------------------------------*/
 void*    DLIF_malloc(size_t size);
 
@@ -341,11 +375,11 @@ static const int DLOAD_SF_relocatable = 0x2; /* Segment must be relocatable  */
 /*---------------------------------------------------------------------------*/
 struct DLOAD_MEMORY_SEGMENT
 {
-   uint32_t            target_page;     /* requested/returned memory page    */
-   TARGET_ADDRESS      target_address;  /* requested/returned address        */
-   uint32_t            objsz_in_bytes;  /* size of init'd part of segment    */
-   uint32_t            memsz_in_bytes;  /* size of memory block for segment  */
-   DLOAD_SEGMENT_FLAGS flags;           /* allocation request flags    */
+   uint32_t       target_page;          /* requested/returned memory page    */
+   TARGET_ADDRESS target_address;       /* requested/returned address        */
+   uint32_t       objsz_in_bytes;       /* size of init'd part of segment    */
+   uint32_t       memsz_in_bytes;       /* size of memory block for segment  */
+//   DLOAD_SEGMENT_FLAGS flags;           /* allocation request flags          */
 };
 
 /*---------------------------------------------------------------------------*/
@@ -366,6 +400,24 @@ struct DLOAD_MEMORY_REQUEST
    DLOAD_SEGMENT_FLAGS          flags;        /* allocation request flags    */
    uint32_t                     align;        /* align of trg memory block   */
 };
+
+/*---------------------------------------------------------------------------*/
+/* DLIF_initMem()                                                            */
+/*                                                                           */
+/*    Given an address and size, initialize the memory used to load the      */
+/*    dynamic segments.  This should be called by the client before          */
+/*    beginning dynamic loading.                                             */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+BOOL     DLIF_initMem(void* client_handle, uint32_t dynMemAddr, uint32_t size);
+
+/*---------------------------------------------------------------------------*/
+/* DLIF_deinitMem()                                                          */
+/*                                                                           */
+/*    De-initialize the memory used to load the dynamic segments.            */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+BOOL     DLIF_deinitMem(void* client_handle);
 
 /*---------------------------------------------------------------------------*/
 /* DLIF_allocate()                                                           */
@@ -442,8 +494,16 @@ BOOL     DLIF_write(void* client_handle, struct DLOAD_MEMORY_REQUEST* req);
 /*    Given a host accessible buffer, read content of indicated target       */
 /*    memory address into the buffer.                                        */
 /*---------------------------------------------------------------------------*/
-BOOL     DLIF_read(void* client_handle, void *ptr, size_t size, size_t nmemb,
-                   TARGET_ADDRESS src);
+BOOL     DLIF_read(void* client_handle,
+                   void *ptr, size_t size, size_t nmemb, TARGET_ADDRESS src);
+
+/*---------------------------------------------------------------------------*/
+/* DLIF_memcpy()                                                             */
+/*                                                                           */
+/*    Given a host accessible buffer, copy content from specified buffer     */
+/*    into target memory.                                                    */
+/*---------------------------------------------------------------------------*/
+BOOL     DLIF_memcpy(void* client_handle, void *to, void *from, size_t size);
 
 /*---------------------------------------------------------------------------*/
 /* DLIF_execute()                                                            */
@@ -500,13 +560,6 @@ void     DLIF_unload_dependent(void* client_handle, uint32_t file_handle);
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------*/
-/* DLIF_trace()                                                              */
-/*                                                                           */
-/*    Client implementation of Trace message output, alternative to printf.  */
-/*                                                                           */
-/*---------------------------------------------------------------------------*/
-void     DLIF_trace(const char *fmt, ...);
 
 /*---------------------------------------------------------------------------*/
 /* Loader Warning Types                                                      */
@@ -547,6 +600,21 @@ typedef enum {
 /*---------------------------------------------------------------------------*/
 void     DLIF_error(LOADER_ERROR_TYPE etype, const char *fmt, ...);
 
+/*---------------------------------------------------------------------------*/
+/* DLIF_exit()                                                               */
+/*                                                                           */
+/*    Abort the loader following a fatal error.                              */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+void     DLIF_exit(int code);
+
+/*---------------------------------------------------------------------------*/
+/* DLIF_trace()                                                              */
+/*                                                                           */
+/*    Log a message with the client's trace handling infrastructure.         */
+/*                                                                           */
+/*---------------------------------------------------------------------------*/
+void     DLIF_trace(const char *fmt, ...);
 
 /*---------------------------------------------------------------------------*/
 /* Dynamic Static Base Table (DSBT) Support Functions                        */

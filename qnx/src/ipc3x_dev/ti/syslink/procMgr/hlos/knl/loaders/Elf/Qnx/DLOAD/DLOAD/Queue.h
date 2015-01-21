@@ -36,7 +36,7 @@
 *   predecessor_node->next_ptr = deleted_node->next_ptr;
 *   name.size--;
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -72,11 +72,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
 #include <inttypes.h>
-#endif
 #include "dload_api.h"
 
 /*****************************************************************************/
@@ -102,6 +98,11 @@ extern void t_name##_initialize_queue(t_name##_Queue* queue);             \
 extern void t_name##_enqueue(t_name##_Queue* queue, t to_enqueue);        \
 extern t    t_name##_dequeue(t_name##_Queue* queue);                      \
 extern void t_name##_remove(t_name##_Queue* queue, t to_remove);
+
+/*****************************************************************************/
+/* TYPE_QUEUE_INITIALIZER() - Define the initializer to initialize Queues.   */
+/*****************************************************************************/
+#define TYPE_QUEUE_INITIALIZER   {NULL, NULL, 0}
 
 
 /*****************************************************************************/
@@ -147,7 +148,7 @@ t t_name##_dequeue(t_name##_Queue* queue)                                \
      t to_ret;                                                           \
      t_name##_Queue_Node* next_ptr = NULL;                               \
                                                                          \
-     if (!queue->size) return ((t)(NULL));                               \
+     if (!queue->size) return (t) NULL;                                  \
                                                                          \
      next_ptr = queue->front_ptr->next_ptr;                              \
      queue->size--;                                                      \
@@ -170,15 +171,15 @@ void t_name##_remove(t_name##_Queue* queue, t to_remove)                 \
                                                                          \
      for (; curr_ptr; curr_ptr = next_ptr)                               \
      {                                                                   \
-	next_ptr = curr_ptr->next_ptr;                                   \
+    next_ptr = curr_ptr->next_ptr;                                   \
         if (curr_ptr->value == to_remove) break;                         \
-	prev_ptr = curr_ptr;                                             \
+    prev_ptr = curr_ptr;                                             \
      }                                                                   \
                                                                          \
      if (curr_ptr)                                                       \
      {                                                                   \
         if (prev_ptr) prev_ptr->next_ptr = next_ptr;                     \
-	queue->size--;                                                   \
+    queue->size--;                                                   \
         DLIF_free((void*)(curr_ptr));                                    \
      }                                                                   \
                                                                          \

@@ -3,7 +3,7 @@
 *
 * Process ARM-specific dynamic relocations for core dynamic loader.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,15 @@
 *
 */
 
-#if defined (__KERNEL__)
-#include <linux/limits.h>
-#else
 #include <limits.h>
-#endif
 #include "relocate.h"
 #include "dload_api.h"
 #include "util.h"
 #include "dload_endian.h"
 #include "symtab.h"
 #include "arm_elf32.h"
+#include "dload.h"
+#include "arm_reloc.h"
 
 #define EXTRACT(field, lsb_offset, field_size) \
    ( (field >> lsb_offset) & ((1U << field_size) - 1) )
@@ -97,8 +95,6 @@ static BOOL is_data_relocation(ARM_RELOC_TYPE r_type)
         default:
             return FALSE;
     }
-
-    return FALSE;
 }
 
 /*****************************************************************************/
@@ -158,7 +154,6 @@ static BOOL rel_concludes_group(ARM_RELOC_TYPE r_type)
         default:
             return FALSE;
     }
-    return FALSE;
 }
 
 /*****************************************************************************/
@@ -191,8 +186,6 @@ static int rel_group_num(ARM_RELOC_TYPE r_type)
       default:
          return 0;
     }
-
-    return 0;
 }
 
 /*****************************************************************************/
@@ -209,7 +202,7 @@ static uint32_t rel_alu_mask_offset(int32_t residual, int bit_align)
 
     if (bit_align == 0) bit_align = 1;
 
-    if ((mask_offset & bit_align) !=0)
+    if (mask_offset % bit_align != 0)
         mask_offset += (bit_align - (mask_offset % bit_align));
 
     return mask_offset;
@@ -1074,8 +1067,12 @@ static BOOL rel_overflow(ARM_RELOC_TYPE r_type, int32_t reloc_value)
         default:
             return FALSE;
     }
-    return FALSE;
 }
+
+#if LOADER_DEBUG && LOADER_PROFILE
+extern int DLREL_relocations;
+extern time_t DLREL_total_reloc_time;
+#endif
 
 /*****************************************************************************/
 /* RELOC_DO() - Process a single relocation entry.                           */
@@ -1091,7 +1088,7 @@ static void reloc_do(ARM_RELOC_TYPE r_type, uint8_t* address,
    /* In debug mode, keep a count of the number of relocations processed.    */
    /* In profile mode, start the clock on a given relocation.                */
    /*------------------------------------------------------------------------*/
-   int start_time;
+   int start_time = 0;
    if (debugging_on || profiling_on)
    {
       DLREL_relocations++;
@@ -1593,6 +1590,8 @@ static BOOL process_rel_table(DLOAD_HANDLE handle,
 
     for ( ; rid < relnum; rid++)
     {
+        int32_t r_symid = ELF32_R_SYM(rel_table[rid].r_info);
+
         /*---------------------------------------------------------------*/
         /* If the relocation offset falls within the segment, process it */
         /*---------------------------------------------------------------*/
@@ -1600,9 +1599,11 @@ static BOOL process_rel_table(DLOAD_HANDLE handle,
             rel_table[rid].r_offset < seg_end_addr)
         {
             Elf32_Addr r_symval;
-            ARM_RELOC_TYPE r_type = ELF32_R_TYPE(rel_table[rid].r_info);
+            ARM_RELOC_TYPE r_type =
+                       (ARM_RELOC_TYPE) ELF32_R_TYPE(rel_table[rid].r_info);
             int32_t r_symid = ELF32_R_SYM(rel_table[rid].r_info);
             uint8_t* reloc_address;
+            uint32_t offset;
             uint32_t pc;
             uint32_t addend = 0;
             BOOL change_endian;
@@ -1617,17 +1618,15 @@ static BOOL process_rel_table(DLOAD_HANDLE handle,
             if (!DLSYM_canonical_lookup(handle, r_symid, dyn_module, &r_symval))
                 continue;
 
-            reloc_address =
-                (((uint8_t*)(seg->phdr.p_vaddr) + seg->reloc_offset) +
-                 rel_table[rid].r_offset - seg->input_vaddr);
-            pc = (uint32_t) reloc_address;
+            offset        = rel_table[rid].r_offset - seg->input_vaddr;
+            pc            = seg->phdr.p_vaddr + offset;
+            reloc_address = (uint8_t*)seg->host_address + offset;
+
             change_endian = rel_swap_endian(dyn_module, r_type);
             if (change_endian)
                 rel_change_endian(r_type, reloc_address);
 
-            rel_unpack_addend(ELF32_R_TYPE(rel_table[rid].r_info),
-                              reloc_address,
-                              &addend);
+            rel_unpack_addend(r_type, reloc_address, &addend);
 
 #if LOADER_DEBUG && LOADER_PROFILE
             if (debugging_on)
@@ -1669,6 +1668,12 @@ static BOOL process_rel_table(DLOAD_HANDLE handle,
     return found;
 }
 
+/*****************************************************************************/
+/* PROCESS_RELA_TABLE()                                                      */
+/*                                                                           */
+/*    Process a table of Elf32_Rela type relocations.                        */
+/*                                                                           */
+/*****************************************************************************/
 static BOOL process_rela_table(DLOAD_HANDLE handle,
                                DLIMP_Loaded_Segment* seg,
                                struct Elf32_Rela* rela_table,
@@ -1692,9 +1697,11 @@ static BOOL process_rela_table(DLOAD_HANDLE handle,
             rela_table[rid].r_offset < seg_end_addr)
         {
             Elf32_Addr r_symval;
-            ARM_RELOC_TYPE r_type = ELF32_R_TYPE(rela_table[rid].r_info);
+            ARM_RELOC_TYPE r_type =
+                        (ARM_RELOC_TYPE)ELF32_R_TYPE(rela_table[rid].r_info);
             int32_t r_symid = ELF32_R_SYM(rela_table[rid].r_info);
             uint8_t* reloc_address;
+            uint32_t offset;
             uint32_t pc;
             uint32_t addend;
             BOOL change_endian;
@@ -1709,9 +1716,9 @@ static BOOL process_rela_table(DLOAD_HANDLE handle,
             if (!DLSYM_canonical_lookup(handle, r_symid, dyn_module, &r_symval))
                 continue;
 
-            reloc_address = (((uint8_t*)(seg->phdr.p_vaddr) + seg->reloc_offset) +
-                             rela_table[rid].r_offset - seg->input_vaddr);
-            pc = (uint32_t) reloc_address;
+            offset        = rela_table[rid].r_offset - seg->input_vaddr;
+            pc            = seg->phdr.p_vaddr + offset;
+            reloc_address = (uint8_t*)seg->host_address + offset;
             addend = rela_table[rid].r_addend;
 
             change_endian = rel_swap_endian(dyn_module, r_type);
@@ -1740,7 +1747,7 @@ static BOOL process_rela_table(DLOAD_HANDLE handle,
             /* function interface and could do with some encapsulation. */
             /*----------------------------------------------------------*/
 
-            reloc_do(ELF32_R_TYPE(rela_table[rid].r_info),
+            reloc_do((ARM_RELOC_TYPE)ELF32_R_TYPE(rela_table[rid].r_info),
                      reloc_address,
                      addend,
                      r_symval,
@@ -1772,11 +1779,14 @@ static void read_rel_table(struct Elf32_Rel** rel_table,
                            BOOL wrong_endian)
 {
    int i;
+
+   if (relnum == 0) { *rel_table = NULL; return; }
+
    *rel_table = (struct Elf32_Rel*) DLIF_malloc(relnum*relent);
-    if (NULL == *rel_table) {
+   if (NULL == *rel_table) {
         DLIF_error(DLET_MEMORY,"Failed to Allocate read_rel_table\n");
         return;
-    }
+   }
    DLIF_fseek(elf_file, table_offset, LOADER_SEEK_SET);
    DLIF_fread(*rel_table, relnum, relent, elf_file);
 
@@ -1798,11 +1808,14 @@ static void read_rela_table(struct Elf32_Rela** rela_table,
                             BOOL wrong_endian)
 {
    int i;
+
+   if (relanum == 0) { *rela_table = NULL; return; }
+
    *rela_table = DLIF_malloc(relanum*relaent);
-    if (NULL == *rela_table) {
+   if (NULL == *rela_table) {
         DLIF_error(DLET_MEMORY,"Failed to Allocate read_rela_table\n");
         return;
-    }
+   }
    DLIF_fseek(elf_file, table_offset, LOADER_SEEK_SET);
    DLIF_fread(*rela_table, relanum, relaent, elf_file);
 
@@ -1843,14 +1856,14 @@ static void process_got_relocs(DLOAD_HANDLE handle,
       if (debugging_on)
       {
          DLIF_trace("Reloc segment %d:\n", s);
-         DLIF_trace("addr=0x%x, old_addr=0x%x, r_offset=0x%x\n",
-                seg[s].phdr.p_vaddr, seg[s].input_vaddr, seg[s].reloc_offset);
+         DLIF_trace("addr=0x%x, old_addr=0x%x, host=0x%x\n",
+                seg[s].phdr.p_vaddr, seg[s].input_vaddr, seg[s].host_address);
       }
 #endif
 
       if (rela_table)
-          process_rela_table(handle, (seg + s), rela_table, relanum,
-                             &rela_rid, dyn_module);
+          process_rela_table(handle, (seg + s), rela_table, relanum, &rela_rid,
+                             dyn_module);
 
       if (rel_table)
           process_rel_table(handle, (seg + s), rel_table, relnum, &rel_rid,
@@ -1918,7 +1931,7 @@ static void process_pltgot_relocs(DLOAD_HANDLE handle,
 /* RELOCATE() - Perform RELA and REL type relocations for given ELF object   */
 /*      file that we are in the process of loading and relocating.           */
 /*****************************************************************************/
-void DLREL_relocate(DLOAD_HANDLE handle,
+void DLREL_arm_relocate(DLOAD_HANDLE handle,
                     LOADER_FILE_DESC* elf_file,
                     DLIMP_Dynamic_Module* dyn_module)
 
@@ -1926,7 +1939,8 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    struct Elf32_Dyn* dyn_nugget = dyn_module->dyntab;
    struct Elf32_Rela* rela_table = NULL;
    struct Elf32_Rel*  rel_table = NULL;
-   void*              plt_table = NULL;
+   struct Elf32_Rela* rela_plt_table = NULL;
+   struct Elf32_Rel*  rel_plt_table = NULL;
 
    /*------------------------------------------------------------------------*/
    /* Read the size of the relocation table (DT_RELASZ) and the size per     */
@@ -1959,13 +1973,13 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    /* includes the size of the PLTGOT table.  So it must be adjusted so that */
    /* the GOT relocation tables only contain actual GOT relocations.         */
    /*------------------------------------------------------------------------*/
-   if (pltrelsz != INT_MAX)
+   if (pltrelsz != INT_MAX && pltrelsz != 0)
    {
        if (pltreltype == DT_REL)
        {
           pltnum = pltrelsz/relent;
           relsz -= pltrelsz;
-          read_rel_table(((struct Elf32_Rel**) &plt_table),
+          read_rel_table(&rel_plt_table,
                          DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
                          pltnum, relent, elf_file,
                          dyn_module->wrong_endian);
@@ -1974,7 +1988,7 @@ void DLREL_relocate(DLOAD_HANDLE handle,
        {
            pltnum = pltrelsz/relaent;
            relasz -= pltrelsz;
-           read_rela_table(((struct Elf32_Rela**) &plt_table),
+           read_rela_table(&rela_plt_table,
                            DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
                            pltnum, relaent, elf_file,
                            dyn_module->wrong_endian);
@@ -1990,7 +2004,7 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    /*------------------------------------------------------------------------*/
    /* Read the DT_RELA GOT relocation table from the file                    */
    /*------------------------------------------------------------------------*/
-   if (relasz != INT_MAX)
+   if (relasz != INT_MAX && relasz != 0)
    {
       relanum = relasz/relaent;
       read_rela_table(&rela_table, DLIMP_get_first_dyntag(DT_RELA, dyn_nugget),
@@ -2000,7 +2014,7 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    /*------------------------------------------------------------------------*/
    /* Read the DT_REL GOT relocation table from the file                     */
    /*------------------------------------------------------------------------*/
-   if (relsz != INT_MAX)
+   if (relsz != INT_MAX && relsz != 0)
    {
       relnum = relsz/relent;
       read_rel_table(&rel_table, DLIMP_get_first_dyntag(DT_REL, dyn_nugget),
@@ -2010,8 +2024,13 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    /*------------------------------------------------------------------------*/
    /* Process the PLTGOT relocations                                         */
    /*------------------------------------------------------------------------*/
-   if (plt_table)
-      process_pltgot_relocs(handle, plt_table, pltreltype, pltnum, dyn_module);
+   if (rela_plt_table)
+      process_pltgot_relocs(handle, rela_plt_table, pltreltype, pltnum,
+                            dyn_module);
+
+   if (rel_plt_table)
+      process_pltgot_relocs(handle, rel_plt_table, pltreltype, pltnum,
+                            dyn_module);
 
    /*------------------------------------------------------------------------*/
    /* Process the GOT relocations                                            */
@@ -2025,7 +2044,8 @@ void DLREL_relocate(DLOAD_HANDLE handle,
    /*-------------------------------------------------------------------------*/
    if (rela_table) DLIF_free(rela_table);
    if (rel_table)  DLIF_free(rel_table);
-   if (plt_table)  DLIF_free(plt_table);
+   if (rel_plt_table)  DLIF_free(rel_plt_table);
+   if (rela_plt_table) DLIF_free(rela_plt_table);
 }
 
 /*****************************************************************************/

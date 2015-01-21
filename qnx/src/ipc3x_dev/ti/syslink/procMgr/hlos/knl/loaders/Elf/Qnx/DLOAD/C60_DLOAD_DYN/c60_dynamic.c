@@ -3,7 +3,7 @@
 *
 * C6x-specific dynamic loader functionality
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,7 @@
 
 #ifdef C60_TARGET
 #include "c60_elf32.h"
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
 #include <inttypes.h>
-#include <stdlib.h>
-#endif
 #include "dload.h"
 
 /*****************************************************************************/

@@ -4,7 +4,7 @@
 * Definition of some useful string comparison routines (not
 * not provided on all platforms) and a few generic macros.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#if defined(__KERNEL__)
-#include <linux/ctype.h>
-#else
 #include <ctype.h>
-#endif
 
 #if 0
 !defined(__linux)
@@ -81,8 +77,8 @@ static int strncasecmp(const char* s1, const char* s2, size_t n)
 /*****************************************************************************/
 /* Define MIN and MAX macros.                                                */
 /*****************************************************************************/
-#define MIN(x,y)	(((x) > (y)) ? (y) : (x))
-#define MAX(x,y)	(((x) >= (y)) ? (x) : (y))
+#define MIN(x,y)    (((x) > (y)) ? (y) : (x))
+#define MAX(x,y)    (((x) >= (y)) ? (x) : (y))
 
 /*****************************************************************************/
 /* C implementation of 'bool' type.                                          */

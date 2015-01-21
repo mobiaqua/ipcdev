@@ -4,7 +4,7 @@
 * Specification of functions used by the core loader to create, maintain,
 * and destroy internal symbol tables.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -68,9 +68,5 @@ BOOL DLSYM_lookup_local_symtab(const char       *sym_name,
                                Elf32_Addr       *sym_value);
 
 void DLSYM_copy_globals(DLIMP_Dynamic_Module *dyn_module);
-
-
-BOOL DLSYM_lookup_global_symtab(const char *sym_name, struct Elf32_Sym *symtab,
-                                Elf32_Word symnum, Elf32_Addr *sym_value);
 
 #endif

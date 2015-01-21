@@ -3,7 +3,7 @@
 *
 * ARM-specific dynamic loader functionality.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,6 @@
 #ifdef ARM_TARGET
 
 #include "arm_elf32.h"
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
-#include <inttypes.h>
-#include <stdlib.h>
-#endif
 #include "dload.h"
 
 /*****************************************************************************/
@@ -59,10 +53,10 @@ BOOL DLDYN_arm_process_dynamic_tag(DLIMP_Dynamic_Module* dyn_module, int i)
       case DT_ARM_SYMTABSZ:
       {
          dyn_module->symnum = dyn_module->dyntab[i].d_un.d_val;
-#if 0
+#if LOADER_DEBUG
          if (debugging_on)
-            DLIF_trace("Found global string table: %d\n",
-                   dyn_module->gstrtab_offset);
+            DLIF_trace("Found symbol table size: %d\n",
+                   dyn_module->symnum);
 #endif
          return TRUE;
       }

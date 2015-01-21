@@ -13,7 +13,7 @@
 /*                                                                           */
 /*****************************************************************************/
 /*
-* Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2012-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,12 @@
 #define LOADER_DEBUG 1
 #if LOADER_DEBUG
 BOOL debugging_on = 1;
+#if LOADER_PROFILE
+BOOL profiling_on = 1;
+#else
+BOOL profiling_on = 0;
 #endif
-
+#endif
 
 /*****************************************************************************/
 /* Client Provided File I/O                                                  */
@@ -102,6 +106,14 @@ size_t DLIF_fread(void *ptr, size_t size, size_t nmemb,
 int32_t DLIF_fclose(LOADER_FILE_DESC *fd)
 {
    return ElfLoaderFile_close(NULL, fd);
+}
+
+/*****************************************************************************/
+/* DLIF_EXIT() - Abort the loader after a fatal error.                       */
+/*****************************************************************************/
+void DLIF_exit(int code)
+{
+   exit(code);
 }
 
 /*****************************************************************************/
@@ -207,6 +219,33 @@ BOOL DLIF_write(void* client_handle, struct DLOAD_MEMORY_REQUEST* req)
     BOOL retval = TRUE;
 
     if (ElfLoaderTrgWrite_write (client_handle, req) < 0) {
+        retval = FALSE;
+    }
+
+    return retval;
+}
+
+/*****************************************************************************/
+/* DLIF_MEMCPY() - Write updated (relocated) segment contents to target      */
+/*      memory.                                                              */
+/*****************************************************************************/
+BOOL DLIF_memcpy(void* client_handle, void *to, void *from, size_t size)
+{
+    BOOL retval = TRUE;
+
+    struct DLOAD_MEMORY_REQUEST memReq;
+    struct DLOAD_MEMORY_SEGMENT memSeg;
+
+    /*
+     * Fake up a memReq record, setting only those fields used by ElfLoaderTrgWrite_write()
+     */
+    memReq.is_loaded = FALSE;
+    memReq.segment = &memSeg;
+    memReq.host_address = from;
+    memSeg.target_address = (TARGET_ADDRESS)to;
+    memSeg.objsz_in_bytes = size;
+
+    if (ElfLoaderTrgWrite_write (client_handle, &memReq) < 0) {
         retval = FALSE;
     }
 

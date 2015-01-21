@@ -7,7 +7,7 @@
 * (assumed to be DSP Bridge or Linux model, indicated by
 * direct_dependent_only flag in a given Module).
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -52,21 +52,18 @@ TYPE_QUEUE_IMPLEMENTATION(int32_t, Int32)
 
 #include "symtab.h"
 #include "dload_api.h"
-#include "dload.h"
-#if defined (__KERNEL__)
-#include <linux/string.h>
-#else
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#endif
 
-#undef LOADER_DEBUG
-#define LOADER_DEBUG 0
 /*---------------------------------------------------------------------------*/
 /* Holds the handle of the ET_EXEC-type mmodule loaded, if any.              */
 /*---------------------------------------------------------------------------*/
 int32_t DLIMP_application_handle = 0;
+
+/*---------------------------------------------------------------------------*/
+/* Function prototypes                                                       */
+/*---------------------------------------------------------------------------*/
+BOOL DLSYM_lookup_global_symtab(const char *sym_name, struct Elf32_Sym *symtab,
+                                Elf32_Word symnum, Elf32_Addr *sym_value);
 
 /*****************************************************************************/
 /* DLSYM_COPY_GLOBALS() - Copy global symbols from the dynamic module's      */
@@ -96,28 +93,39 @@ void DLSYM_copy_globals(DLIMP_Dynamic_Module *dyn_module)
    /*------------------------------------------------------------------------*/
 
    if (module->gsymtab)
+   {
        DLIF_free(module->gsymtab);
-   module->gsymtab = DLIF_malloc(sizeof(struct Elf32_Sym) * global_symnum);
-   module->gsymnum = global_symnum;
+       module->gsymtab = NULL;
+   }
 
-   if (module->gsymtab)
+   if (global_symnum > 0)
+   {
+      module->gsymtab = DLIF_malloc(sizeof(struct Elf32_Sym) * global_symnum);
+
       memcpy(module->gsymtab,
              &dyn_module->symtab[global_index],
              sizeof(struct Elf32_Sym) * global_symnum);
+   }
+   module->gsymnum = global_symnum;
 
    /*------------------------------------------------------------------------*/
    /* Copy the string table part that contains the global symbol names.      */
    /*------------------------------------------------------------------------*/
    if (module->gstrtab)
+   {
        DLIF_free(module->gstrtab);
+       module->gstrtab = NULL;
+   }
 
    module->gstrsz  = dyn_module->strsz - dyn_module->gstrtab_offset;
-   module->gstrtab = DLIF_malloc(module->gstrsz);
+   if (module->gstrsz)
+   {
+      module->gstrtab = DLIF_malloc(module->gstrsz);
 
-   if (module->gstrtab)
       memcpy(module->gstrtab,
              dyn_module->strtab + dyn_module->gstrtab_offset,
              module->gstrsz);
+   }
 
    /*------------------------------------------------------------------------*/
    /* Update the symbol names of the global symbol entries to point to       */
@@ -132,13 +140,12 @@ void DLSYM_copy_globals(DLIMP_Dynamic_Module *dyn_module)
       Elf32_Word old_offset = dyn_module->symtab[i + global_index].st_name -
                               (Elf32_Addr) dyn_module->strtab;
       Elf32_Word new_offset = old_offset - dyn_module->gstrtab_offset;
-      if(module->gsymtab) {
-         struct Elf32_Sym *sym = &((struct Elf32_Sym*)(module->gsymtab))[i];
-         sym->st_name = new_offset + (Elf32_Addr)module->gstrtab;
-      }
+      struct Elf32_Sym *sym = &((struct Elf32_Sym*)(module->gsymtab))[i];
+      sym->st_name = new_offset + (Elf32_Addr)module->gstrtab;
+
 #if LOADER_DEBUG
-      if (debugging_on) DLIF_trace("Copying symbol: %s\n", (char *)
-                                 dyn_module->symtab[i + global_index].st_name);
+      if (debugging_on) DLIF_trace("Copying symbol: %s\n",
+                          (char*)dyn_module->symtab[i + global_index].st_name);
 #endif
    }
 }
@@ -156,10 +163,9 @@ static BOOL breadth_first_lookup(DLOAD_HANDLE phandle,
    /* We start this function by putting the specified file handle on the     */
    /* file_handle_queue.                                                     */
    /*------------------------------------------------------------------------*/
-   Int32_Queue file_handle_queue;
-   Int32_initialize_queue(&file_handle_queue);
-   Int32_enqueue(&file_handle_queue, handle);
    LOADER_OBJECT *dHandle = (LOADER_OBJECT *)phandle;
+   Int32_Queue file_handle_queue = TYPE_QUEUE_INITIALIZER;
+   Int32_enqueue(&file_handle_queue, handle);
 
    /*------------------------------------------------------------------------*/
    /* While the queue is not empty, keep looking for the symbol.             */
@@ -293,19 +299,24 @@ static BOOL DLSYM_lookup_symtab(const char *sym_name, struct Elf32_Sym *symtab,
                                 BOOL require_local_binding)
 {
    Elf32_Addr sym_idx;
+
+#if LOADER_DEBUG
+      if (debugging_on)
+         DLIF_trace("DLSYM_lookup_symtab, sym to find : %s\n", sym_name);
+#endif
+
    for (sym_idx = 0; sym_idx < symnum; sym_idx++)
    {
 #if LOADER_DEBUG
       if (debugging_on)
-         DLIF_trace("DLSYM_lookup_symtab %s\n",
-                    (char *)symtab[sym_idx].st_name);
+         DLIF_trace("\tPotential symbol match : %s\n",
+                 (char*)symtab[sym_idx].st_name);
 #endif
 
-      if ((symtab[sym_idx].st_shndx != SHN_UNDEF) &&
-          ((require_local_binding &&
-            (ELF32_ST_BIND(symtab[sym_idx].st_info) == STB_LOCAL)) ||
-	   (!require_local_binding &&
-	    (ELF32_ST_BIND(symtab[sym_idx].st_info) != STB_LOCAL))) &&
+      if ((symtab[sym_idx].st_shndx != SHN_UNDEF) && ((require_local_binding &&
+          (ELF32_ST_BIND(symtab[sym_idx].st_info) == STB_LOCAL)) ||
+      (!require_local_binding &&
+      (ELF32_ST_BIND(symtab[sym_idx].st_info) != STB_LOCAL))) &&
           !strcmp(sym_name,(char*)(symtab[sym_idx].st_name)))
       {
          if (sym_value) *sym_value = symtab[sym_idx].st_value;
@@ -349,8 +360,7 @@ BOOL DLSYM_lookup_local_symtab(const char *sym_name, struct Elf32_Sym *symtab,
 /*                             symbol table that contains the symbol tables  */
 /*                             from all the necessary modules.               */
 /*****************************************************************************/
-BOOL DLSYM_canonical_lookup(DLOAD_HANDLE handle,
-                            int sym_index,
+BOOL DLSYM_canonical_lookup(DLOAD_HANDLE handle, int sym_index,
                             DLIMP_Dynamic_Module *dyn_module,
                             Elf32_Addr *sym_value)
 {
@@ -362,7 +372,9 @@ BOOL DLSYM_canonical_lookup(DLOAD_HANDLE handle,
    int32_t           st_vis  = ELF32_ST_VISIBILITY(sym->st_other);
    BOOL              is_def  = (sym->st_shndx != SHN_UNDEF &&
                                (sym->st_shndx < SHN_LORESERVE ||
-                               sym->st_shndx == SHN_XINDEX));
+                                sym->st_shndx == SHN_ABS ||
+                                sym->st_shndx == SHN_COMMON ||
+                                sym->st_shndx == SHN_XINDEX));
    const char *sym_name = (char *)sym->st_name;
 
 #if LOADER_DEBUG

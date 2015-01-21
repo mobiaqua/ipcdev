@@ -26,7 +26,7 @@
 *
 * AL_destroy(&obj);
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -62,11 +62,7 @@
 #ifndef ARRAYLIST_H
 #define ARRAYLIST_H
 
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
 #include <inttypes.h>
-#endif
 
 /**********************************************************************/
 /* Array_List - structure type specification.                         */

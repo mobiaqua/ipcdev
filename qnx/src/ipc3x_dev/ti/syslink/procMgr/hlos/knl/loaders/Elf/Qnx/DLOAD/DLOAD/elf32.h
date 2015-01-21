@@ -21,7 +21,7 @@
 *    http://sco.com/developers/gabi/2003-12-17/contents.html
 *
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -57,11 +57,7 @@
 #ifndef ELF32_H
 #define ELF32_H
 
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
 #include <inttypes.h>
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* 32-Bit Data Types (Figure 1-2, page 1-2)                                  */

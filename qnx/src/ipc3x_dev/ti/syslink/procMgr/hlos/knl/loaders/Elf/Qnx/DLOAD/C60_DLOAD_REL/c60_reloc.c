@@ -3,7 +3,7 @@
 *
 * Process C6x-specific dynamic relocations for core dynamic loader.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,14 @@
 *
 */
 
-#if defined (__KERNEL__)
-#include <linux/limits.h>
-#else
 #include <limits.h>
-#endif
 #include "relocate.h"
+#include "symtab.h"
 #include "c60_elf32.h"
 #include "dload_api.h"
 #include "util.h"
 #include "dload_endian.h"
-#include "symtab.h"
+#include "c60_reloc.h"
 
 #define MASK(n,s) (((1 << n) - 1) << s)
 
@@ -104,8 +101,9 @@ static void write_reloc_r(uint8_t* buffered_segment,
    if(debugging_on)
    {
           DLIF_trace("RWRT: segment_offset: %d\n", segment_offset);
-          DLIF_trace("RWRT: buffered_segment: 0x%x\n", buffered_segment);
-          DLIF_trace("RWRT: rel_field_ptr: 0x%x\n", rel_field_ptr);
+          DLIF_trace("RWRT: buffered_segment: 0x%x\n",
+                                             (uint32_t)buffered_segment);
+          DLIF_trace("RWRT: rel_field_ptr: 0x%x\n", (uint32_t)rel_field_ptr);
           DLIF_trace("RWRT: result: 0x%x\n", r);
    }
 #endif
@@ -358,22 +356,29 @@ static BOOL rel_overflow(C60_RELOC_TYPE r_type, int32_t reloc_value)
       case R_C6000_PREL31:
          return 0;
 
-      /*----------------------------------------------------------------------*/
-      /* If relocation type did not appear in the above cases, then we didn't */
-      /* expect to see it.                                                    */
-      /*----------------------------------------------------------------------*/
+      /*---------------------------------------------------------------------*/
+      /* If relocation type did not appear in the above switch, then we      */
+      /* didn't expect to see it.                                            */
+      /*---------------------------------------------------------------------*/
       default:
-        DLIF_error(DLET_RELOC,
-                 "rel_overflow called with invalid relocation type!\n");
-        return 1;
-        }
+         DLIF_error(DLET_RELOC,
+                    "rel_overflow called with invalid relocation type!\n");
+   }
+
+   return 1;
 }
+
+#if LOADER_DEBUG || LOADER_PROFILE
+extern int DLREL_relocations;
+extern time_t DLREL_total_reloc_time;
+#endif
 
 /*****************************************************************************/
 /* RELOC_DO() - Process a single relocation entry.                           */
 /*****************************************************************************/
 static void reloc_do(C60_RELOC_TYPE r_type,
-                     uint8_t *segment_address,
+                     uint32_t segment_vaddr,
+                     uint8_t *segment_buffer,
                      uint32_t addend,
                      uint32_t symval,
                      uint32_t spc,
@@ -388,7 +393,7 @@ static void reloc_do(C60_RELOC_TYPE r_type,
    /* In debug mode, keep a count of the number of relocations processed.    */
    /* In profile mode, start the clock on a given relocation.                */
    /*------------------------------------------------------------------------*/
-   int start_time;
+   int start_time = 0;
    if (debugging_on || profiling_on)
    {
       DLREL_relocations++;
@@ -426,7 +431,7 @@ static void reloc_do(C60_RELOC_TYPE r_type,
          /* Add SPC to segment address to get the PC. Mask for exec-packet   */
          /* boundary.                                                        */
          /*------------------------------------------------------------------*/
-         int32_t opnd_p = (spc + (int32_t)segment_address) & 0xffffffe0;
+         int32_t opnd_p = (spc + segment_vaddr) & 0xffffffe0;
          reloc_value = symval + addend - opnd_p;
          break;
       }
@@ -454,7 +459,7 @@ static void reloc_do(C60_RELOC_TYPE r_type,
          /*------------------------------------------------------------------*/
          /* Offset is not fetch-packet relative; doesn't need to be masked.  */
          /*------------------------------------------------------------------*/
-         int32_t opnd_p = (spc + (int32_t)segment_address);
+         int32_t opnd_p = (spc + segment_vaddr);
          reloc_value = symval + addend - opnd_p;
          break;
       }
@@ -526,18 +531,18 @@ static void reloc_do(C60_RELOC_TYPE r_type,
    /* If necessary, Swap endianness of data at relocation address.           */
    /*------------------------------------------------------------------------*/
    if (wrong_endian)
-      DLIMP_change_endian32((int32_t*)(segment_address + spc));
+      DLIMP_change_endian32((int32_t*)(segment_buffer + spc));
 
    /*------------------------------------------------------------------------*/
    /* Write the relocated 4-byte packet back to the segment buffer.          */
    /*------------------------------------------------------------------------*/
-   write_reloc_r(segment_address, spc, r_type, reloc_value);
+   write_reloc_r(segment_buffer, spc, r_type, reloc_value);
 
    /*------------------------------------------------------------------------*/
    /* Change endianness of segment address back to original.                 */
    /*------------------------------------------------------------------------*/
    if (wrong_endian)
-      DLIMP_change_endian32((int32_t*)(segment_address + spc));
+      DLIMP_change_endian32((int32_t*)(segment_buffer + spc));
 
 #if LOADER_DEBUG && LOADER_PROFILE
    /*------------------------------------------------------------------------*/
@@ -549,7 +554,6 @@ static void reloc_do(C60_RELOC_TYPE r_type,
    if (debugging_on)
       DLIF_trace("reloc_value = 0x%x\n", reloc_value);
 #endif
-
 }
 
 /*****************************************************************************/
@@ -560,7 +564,7 @@ static void reloc_do(C60_RELOC_TYPE r_type,
 /*****************************************************************************/
 static void rel_unpack_addend(C60_RELOC_TYPE r_type,
                               uint8_t *address,
-			      uint32_t *addend)
+                  uint32_t *addend)
 {
    /*------------------------------------------------------------------------*/
    /* C6000 does not support Elf32_Rel type relocations in the dynamic       */
@@ -572,11 +576,9 @@ static void rel_unpack_addend(C60_RELOC_TYPE r_type,
 
    DLIF_error(DLET_RELOC,
               "Internal Error: unpacking addend values from the relocation "
-	      "field is not supported in the C6000 dynamic loader at this "
-	      "time; aborting\n");
-#if !defined (__KERNEL__)
-   exit(1);
-#endif
+          "field is not supported in the C6000 dynamic loader at this "
+          "time; aborting\n");
+   DLIF_exit(1);
 }
 
 /*****************************************************************************/
@@ -617,9 +619,11 @@ static void rel_change_endian(C60_RELOC_TYPE r_type, uint8_t *address)
 /*****************************************************************************/
 static void read_rel_table(struct Elf32_Rel **rel_table,
                            int32_t table_offset,
-			   uint32_t relnum, uint32_t relent,
-			   LOADER_FILE_DESC *fd, BOOL wrong_endian)
+               uint32_t relnum, uint32_t relent,
+               LOADER_FILE_DESC *fd, BOOL wrong_endian)
 {
+   if (relnum == 0) { *rel_table = NULL; return; }
+
    *rel_table = (struct Elf32_Rel *)DLIF_malloc(relnum * relent);
    if (NULL == *rel_table) {
        DLIF_error(DLET_MEMORY, "Failed to Allocate read_rel_table\n");
@@ -642,12 +646,13 @@ static void read_rel_table(struct Elf32_Rel **rel_table,
 /*    Process table of Elf32_Rel type relocations.                           */
 /*                                                                           */
 /*****************************************************************************/
-static void process_rel_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment* seg,
+static void process_rel_table(DLOAD_HANDLE handle,
+                              DLIMP_Loaded_Segment* seg,
                               struct Elf32_Rel *rel_table,
-			      uint32_t relnum,
-			      int32_t *start_relidx,
-			      uint32_t ti_static_base,
-			      DLIMP_Dynamic_Module* dyn_module)
+                  uint32_t relnum,
+                  int32_t *start_relidx,
+                  uint32_t ti_static_base,
+                  DLIMP_Dynamic_Module* dyn_module)
 {
    Elf32_Addr seg_start_addr = seg->input_vaddr;
    Elf32_Addr seg_end_addr   = seg_start_addr + seg->phdr.p_memsz;
@@ -672,49 +677,48 @@ static void process_rel_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment* seg,
           rel_table[relidx].r_offset < seg_end_addr)
       {
          Elf32_Addr     r_symval = 0;
-	 C60_RELOC_TYPE r_type  =
-	               (C60_RELOC_TYPE)ELF32_R_TYPE(rel_table[relidx].r_info);
-	 int32_t        r_symid = ELF32_R_SYM(rel_table[relidx].r_info);
+     C60_RELOC_TYPE r_type  =
+                   (C60_RELOC_TYPE)ELF32_R_TYPE(rel_table[relidx].r_info);
+     int32_t        r_symid = ELF32_R_SYM(rel_table[relidx].r_info);
 
-	 uint8_t *reloc_address = NULL;
-	 uint32_t pc     = 0;
-	 uint32_t addend = 0;
+     uint8_t *reloc_address = NULL;
+     uint32_t pc     = 0;
+     uint32_t addend = 0;
 
-	 BOOL     change_endian = FALSE;
+     BOOL     change_endian = FALSE;
 
-	 found = TRUE;
+     found = TRUE;
 
          /*------------------------------------------------------------------*/
-	 /* If symbol definition is not found, don't do the relocation.      */
-	 /* An error is generated by the lookup function.                    */
-	 /*------------------------------------------------------------------*/
+     /* If symbol definition is not found, don't do the relocation.      */
+     /* An error is generated by the lookup function.                    */
+     /*------------------------------------------------------------------*/
          if (!DLSYM_canonical_lookup(handle, r_symid, dyn_module, &r_symval))
             continue;
 
          /*------------------------------------------------------------------*/
-	 /* Addend value is stored in the relocation field.                  */
-	 /* We'll need to unpack it from the data for the segment that is    */
-	 /* currently being relocated.                                       */
+     /* Addend value is stored in the relocation field.                  */
+     /* We'll need to unpack it from the data for the segment that is    */
+     /* currently being relocated.                                       */
          /*------------------------------------------------------------------*/
-	 reloc_address =
-	               (((uint8_t *)(seg->phdr.p_vaddr) + seg->reloc_offset) +
-		        rel_table[relidx].r_offset - seg->input_vaddr);
-         pc = (uint32_t)reloc_address;
+         pc            = rel_table[relidx].r_offset - seg->input_vaddr;
+     reloc_address = (uint8_t *)seg->host_address + pc;
 
-	 change_endian = rel_swap_endian(dyn_module, r_type);
-	 if (change_endian)
-	    rel_change_endian(r_type, reloc_address);
+     change_endian = rel_swap_endian(dyn_module, r_type);
+     if (change_endian)
+        rel_change_endian(r_type, reloc_address);
 
-	 rel_unpack_addend(
-	                (C60_RELOC_TYPE)ELF32_R_TYPE(rel_table[relidx].r_info),
-	                                               reloc_address, &addend);
+     rel_unpack_addend(
+                    (C60_RELOC_TYPE)ELF32_R_TYPE(rel_table[relidx].r_info),
+                                                   reloc_address, &addend);
 
          /*------------------------------------------------------------------*/
-	 /* Perform actual relocation.  This is a really wide function       */
-	 /* interface and could do with some encapsulation.                  */
-	 /*------------------------------------------------------------------*/
+     /* Perform actual relocation.  This is a really wide function       */
+     /* interface and could do with some encapsulation.                  */
+     /*------------------------------------------------------------------*/
          reloc_do(r_type,
-                  reloc_address,
+                  seg->phdr.p_vaddr,
+                  seg->host_address,
                   addend,
                   r_symval,
                   pc,
@@ -738,9 +742,10 @@ static void process_rel_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment* seg,
 /*****************************************************************************/
 static void read_rela_table(struct Elf32_Rela **rela_table,
                             int32_t table_offset,
-			    uint32_t relanum, uint32_t relaent,
-			    LOADER_FILE_DESC *fd, BOOL wrong_endian)
+                uint32_t relanum, uint32_t relaent,
+                LOADER_FILE_DESC *fd, BOOL wrong_endian)
 {
+   if (relanum == 0) { *rela_table = NULL; return; }
    *rela_table = (struct Elf32_Rela *)DLIF_malloc(relanum * relaent);
    if (NULL == *rela_table) {
        DLIF_error(DLET_MEMORY, "Failed to Allocate read_rela_table\n");
@@ -763,12 +768,13 @@ static void read_rela_table(struct Elf32_Rela **rela_table,
 /*    Process a table of Elf32_Rela type relocations.                        */
 /*                                                                           */
 /*****************************************************************************/
-static void process_rela_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment *seg,
+static void process_rela_table(DLOAD_HANDLE handle,
+                               DLIMP_Loaded_Segment *seg,
                                struct Elf32_Rela *rela_table,
-			       uint32_t relanum,
-			       int32_t *start_relidx,
-			       uint32_t ti_static_base,
-			       DLIMP_Dynamic_Module *dyn_module)
+                   uint32_t relanum,
+                   int32_t *start_relidx,
+                   uint32_t ti_static_base,
+                   DLIMP_Dynamic_Module *dyn_module)
 {
     Elf32_Addr seg_start_addr = seg->input_vaddr;
     Elf32_Addr seg_end_addr   = seg_start_addr + seg->phdr.p_memsz;
@@ -792,16 +798,16 @@ static void process_rela_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment *seg,
         if (rela_table[relidx].r_offset >= seg_start_addr &&
             rela_table[relidx].r_offset < seg_end_addr)
         {
-	    Elf32_Addr     r_symval;
-	    C60_RELOC_TYPE r_type  =
-	              (C60_RELOC_TYPE)ELF32_R_TYPE(rela_table[relidx].r_info);
-	    int32_t        r_symid = ELF32_R_SYM(rela_table[relidx].r_info);
+        Elf32_Addr     r_symval;
+        C60_RELOC_TYPE r_type  =
+                  (C60_RELOC_TYPE)ELF32_R_TYPE(rela_table[relidx].r_info);
+        int32_t        r_symid = ELF32_R_SYM(rela_table[relidx].r_info);
 
-	    found = TRUE;
+        found = TRUE;
 
             /*---------------------------------------------------------------*/
-	    /* If symbol definition is not found, don't do the relocation.   */
-	    /* An error is generated by the lookup function.                 */
+        /* If symbol definition is not found, don't do the relocation.   */
+        /* An error is generated by the lookup function.                 */
             /*---------------------------------------------------------------*/
             if (!DLSYM_canonical_lookup(handle, r_symid, dyn_module, &r_symval))
                 continue;
@@ -811,7 +817,8 @@ static void process_rela_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment *seg,
             /* interface and could do with some encapsulation.               */
             /*---------------------------------------------------------------*/
             reloc_do(r_type,
-                     (uint8_t*)(seg->phdr.p_vaddr) + seg->reloc_offset,
+                     seg->phdr.p_vaddr,
+                     seg->host_address,
                      rela_table[relidx].r_addend,
                      r_symval,
                      rela_table[relidx].r_offset - seg->input_vaddr,
@@ -836,7 +843,7 @@ static void process_rela_table(DLOAD_HANDLE handle, DLIMP_Loaded_Segment *seg,
 static void process_got_relocs(DLOAD_HANDLE handle,
                                struct Elf32_Rel* rel_table, uint32_t relnum,
                                struct Elf32_Rela* rela_table, uint32_t relanum,
-			       DLIMP_Dynamic_Module* dyn_module)
+                   DLIMP_Dynamic_Module* dyn_module)
 {
    DLIMP_Loaded_Segment *seg =
        (DLIMP_Loaded_Segment*)(dyn_module->loaded_module->loaded_segments.buf);
@@ -866,13 +873,13 @@ static void process_got_relocs(DLOAD_HANDLE handle,
 
       if (rela_table)
          process_rela_table(handle, (seg + seg_idx),
-	                    rela_table, relanum, &rela_relidx,
-			    ti_static_base, dyn_module);
+                        rela_table, relanum, &rela_relidx,
+                ti_static_base, dyn_module);
 
       if (rel_table)
          process_rel_table(handle, (seg + seg_idx),
-	                    rel_table, relnum, &rel_relidx,
-			    ti_static_base, dyn_module);
+                        rel_table, relnum, &rel_relidx,
+                ti_static_base, dyn_module);
    }
 }
 
@@ -884,14 +891,15 @@ static void process_got_relocs(DLOAD_HANDLE handle,
 /*    ar guaranteed to belong to the same segment.                           */
 /*                                                                           */
 /*****************************************************************************/
-static void process_pltgot_relocs(DLOAD_HANDLE handle, void* plt_reloc_table,
+static void process_pltgot_relocs(DLOAD_HANDLE handle,
+                                  void* plt_reloc_table,
                                   int reltype,
                                   uint32_t pltnum,
-				  DLIMP_Dynamic_Module* dyn_module)
+                  DLIMP_Dynamic_Module* dyn_module)
 {
    Elf32_Addr r_offset = (reltype == DT_REL) ?
                              ((struct Elf32_Rel *)plt_reloc_table)->r_offset :
-			     ((struct Elf32_Rela *)plt_reloc_table)->r_offset;
+                 ((struct Elf32_Rela *)plt_reloc_table)->r_offset;
 
    DLIMP_Loaded_Segment* seg =
       (DLIMP_Loaded_Segment*)(dyn_module->loaded_module->loaded_segments.buf);
@@ -928,15 +936,15 @@ static void process_pltgot_relocs(DLOAD_HANDLE handle, void* plt_reloc_table,
           r_offset < seg_end_addr)
       {
          if (reltype == DT_REL)
-	    process_rel_table(handle, (seg + seg_idx),
-	                      (struct Elf32_Rel *)plt_reloc_table,
-			      pltnum, &plt_relidx,
-			      ti_static_base, dyn_module);
-	 else
-	    process_rela_table(handle, (seg + seg_idx),
-	                       (struct Elf32_Rela *)plt_reloc_table,
-			       pltnum, &plt_relidx,
-			       ti_static_base, dyn_module);
+        process_rel_table(handle, (seg + seg_idx),
+                          (struct Elf32_Rel *)plt_reloc_table,
+                  pltnum, &plt_relidx,
+                  ti_static_base, dyn_module);
+     else
+        process_rela_table(handle, (seg + seg_idx),
+                           (struct Elf32_Rela *)plt_reloc_table,
+                   pltnum, &plt_relidx,
+                   ti_static_base, dyn_module);
 
          break;
       }
@@ -947,13 +955,14 @@ static void process_pltgot_relocs(DLOAD_HANDLE handle, void* plt_reloc_table,
 /* RELOCATE() - Perform RELA and REL type relocations for given ELF object   */
 /*      file that we are in the process of loading and relocating.           */
 /*****************************************************************************/
-void DLREL_relocate_c60(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
-                        DLIMP_Dynamic_Module *dyn_module)
+void DLREL_c60_relocate(DLOAD_HANDLE handle,
+                        LOADER_FILE_DESC *fd, DLIMP_Dynamic_Module *dyn_module)
 {
    struct Elf32_Dyn  *dyn_nugget = dyn_module->dyntab;
    struct Elf32_Rela *rela_table = NULL;
    struct Elf32_Rel  *rel_table  = NULL;
-   void              *plt_table  = NULL;
+   struct Elf32_Rela *rela_plt_table = NULL;
+   struct Elf32_Rel  *rel_plt_table  = NULL;
 
    /*------------------------------------------------------------------------*/
    /* Read the size of the relocation table (DT_RELASZ) and the size per     */
@@ -994,38 +1003,38 @@ void DLREL_relocate_c60(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
    /* includes the size of the PLTGOT table.  So it must be adjusted so that */
    /* the GOT relocation tables only contain actual GOT relocations.         */
    /*------------------------------------------------------------------------*/
-   if (pltrelsz != INT_MAX)
+   if (pltrelsz != INT_MAX && pltrelsz != 0)
    {
       if (pltreltyp == DT_REL)
       {
          pltnum = pltrelsz/relent;
-	 relsz -= pltrelsz;
-	 read_rel_table(((struct Elf32_Rel**) &plt_table),
-	                DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
-			pltnum, relent, fd, dyn_module->wrong_endian);
+         relsz -= pltrelsz;
+         read_rel_table((&rel_plt_table),
+             DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
+             pltnum, relent, fd, dyn_module->wrong_endian);
       }
 
       else if (pltreltyp == DT_RELA)
       {
          pltnum = pltrelsz/relaent;
-	 relasz -= pltrelsz;
-	 read_rela_table(((struct Elf32_Rela**) &plt_table),
-	                 DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
-			 pltnum, relaent, fd, dyn_module->wrong_endian);
+         relasz -= pltrelsz;
+         read_rela_table((&rela_plt_table),
+             DLIMP_get_first_dyntag(DT_JMPREL, dyn_nugget),
+             pltnum, relaent, fd, dyn_module->wrong_endian);
       }
 
       else
       {
          DLIF_error(DLET_RELOC,
-	            "DT_PLTREL is invalid: must be either %d or %d\n",
-		    DT_REL, DT_RELA);
+             "DT_PLTREL is invalid: must be either %d or %d\n",
+             DT_REL, DT_RELA);
       }
    }
 
    /*------------------------------------------------------------------------*/
    /* Read the DT_RELA GOT relocation table from the file                    */
    /*------------------------------------------------------------------------*/
-   if (relasz != INT_MAX)
+   if (relasz != INT_MAX && relasz != 0)
    {
       relanum = relasz/relaent;
       read_rela_table(&rela_table, DLIMP_get_first_dyntag(DT_RELA, dyn_nugget),
@@ -1035,7 +1044,7 @@ void DLREL_relocate_c60(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
    /*------------------------------------------------------------------------*/
    /* Read the DT_REL GOT relocation table from the file                     */
    /*------------------------------------------------------------------------*/
-   if (relsz != INT_MAX)
+   if (relsz != INT_MAX && relsz != 0)
    {
       relnum = relsz/relent;
       read_rel_table(&rel_table, DLIMP_get_first_dyntag(DT_REL, dyn_nugget),
@@ -1045,21 +1054,28 @@ void DLREL_relocate_c60(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
    /*------------------------------------------------------------------------*/
    /* Process the PLTGOT relocations                                         */
    /*------------------------------------------------------------------------*/
-   if (plt_table)
-      process_pltgot_relocs(handle, plt_table, pltreltyp, pltnum, dyn_module);
+   if (rela_plt_table)
+      process_pltgot_relocs(handle, rela_plt_table, pltreltyp, pltnum,
+                            dyn_module);
+
+   if (rel_plt_table)
+      process_pltgot_relocs(handle, rel_plt_table, pltreltyp, pltnum,
+                            dyn_module);
 
    /*------------------------------------------------------------------------*/
    /* Process the GOT relocations                                            */
    /*------------------------------------------------------------------------*/
    if (rel_table || rela_table)
-      process_got_relocs(handle, rel_table, relnum, rela_table, relanum, dyn_module);
+      process_got_relocs(handle, rel_table, relnum, rela_table, relanum,
+                         dyn_module);
 
    /*-------------------------------------------------------------------------*/
    /* Free memory used for ELF relocation table copies.                       */
    /*-------------------------------------------------------------------------*/
    if (rela_table) DLIF_free(rela_table);
    if (rel_table)  DLIF_free(rel_table);
-   if (plt_table)  DLIF_free(plt_table);
+   if (rela_plt_table) DLIF_free(rela_plt_table);
+   if (rel_plt_table)  DLIF_free(rel_plt_table);
 }
 
 /*****************************************************************************/
@@ -1072,13 +1088,14 @@ void unit_c60_reloc_do(C60_RELOC_TYPE r_type,
                        uint32_t static_base, int wrong_endian,
                        int32_t dsbt_index)
 {
-    reloc_do(r_type, address_space, addend, symval, pc, FALSE, static_base, dsbt_index);
+    reloc_do(r_type, (uint32_t)address_space, address_space,
+             addend, symval, pc, FALSE, static_base, dsbt_index);
 }
 
 #if 0 /* RELA TYPE RELOCATIONS HAVE ADDEND IN RELOCATION ENTRY */
 void unit_c60_rel_unpack_addend(C60_RELOC_TYPE r_type,
                                 uint8_t* address,
-				uint32_t* addend)
+                uint32_t* addend)
 {
     rel_unpack_addend(r_type, address, addend);
 }

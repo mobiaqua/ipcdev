@@ -13,7 +13,7 @@
 * DSP will likely need to re-write all of the functions contained in this
 * module.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,6 @@
 #include "dload.h"    // Needed for LOADER_DEBUG def.
 #include <string.h>
 #include "dlw_dsbt.h"
-#undef LOADER_DEBUG
-#define LOADER_DEBUG 1
 
 /*****************************************************************************/
 /* DSBT_index_request_queue - This is a holding area for DSBT index requests */
@@ -63,7 +61,7 @@
 /*    DLIF_assign_dsbt_indices().                                            */
 /*****************************************************************************/
 TYPE_QUEUE_IMPLEMENTATION(DSBT_Index_Request*, dsbt_index_request_ptr)
-dsbt_index_request_ptr_Queue DSBT_index_request_queue;
+dsbt_index_request_ptr_Queue DSBT_index_request_queue = TYPE_QUEUE_INITIALIZER;
 
 /*****************************************************************************/
 /* DSBT_Master - This is the master copy of the DSBT created by the client   */
@@ -143,32 +141,32 @@ BOOL DLIF_register_dsbt_index_request(DLOAD_HANDLE handle,
          DSBT_Index_Request *existing_request = ptr->value;
 
          /*------------------------------------------------------------------*/
-	 /* Have we seen a request for this file already? That would be a    */
-	 /* problem (likely internal).                                       */
+     /* Have we seen a request for this file already? That would be a    */
+     /* problem (likely internal).                                       */
          /*------------------------------------------------------------------*/
-	 if (requestor_file_handle == existing_request->file_handle)
-	 {
-	    DLIF_error(DLET_MISC,
-	               "A DSBT index has already been requested on behalf "
-		       "of %s; cannot make a second DSBT index request for "
-		       "the same module", existing_request->name);
-	    return FALSE;
-	 }
+     if (requestor_file_handle == existing_request->file_handle)
+     {
+        DLIF_error(DLET_MISC,
+                   "A DSBT index has already been requested on behalf "
+                   "of %s; cannot make a second DSBT index request for "
+                   "the same module", existing_request->name);
+        return FALSE;
+     }
 
          /*------------------------------------------------------------------*/
-	 /* Have we seen a specific request for this DSBT index already?     */
-	 /* Report a conflict among specific requests in the same load.      */
+     /* Have we seen a specific request for this DSBT index already?     */
+     /* Report a conflict among specific requests in the same load.      */
          /*------------------------------------------------------------------*/
-	 if (requested_dsbt_index == existing_request->requested_index)
-	 {
-	    DLIF_error(DLET_MISC,
-	               "Requested DSBT index, %d, requested by %s has "
-		       "already been requested by %s; load aborted",
-		       requested_dsbt_index,
-		       requestor_name,
-		       existing_request->name);
-	    return FALSE;
-	 }
+     if (requested_dsbt_index == existing_request->requested_index)
+     {
+        DLIF_error(DLET_MISC,
+                   "Requested DSBT index, %d, requested by %s has "
+                   "already been requested by %s; load aborted",
+                   requested_dsbt_index,
+                   requestor_name,
+                   existing_request->name);
+        return FALSE;
+     }
       }
    }
 
@@ -200,7 +198,7 @@ BOOL DLIF_register_dsbt_index_request(DLOAD_HANDLE handle,
    {
       DLIF_error(DLET_MISC,
                  "Could not resolve DSBT base value for %s",
-		 requestor_name);
+                 requestor_name);
       DLIF_free(new_request->name);
       new_request->name = NULL;
       DLIF_free(new_request);
@@ -290,7 +288,7 @@ static void assign_dsbt_entry(DSBT_Index_Request *request)
       }
 
       if (i == AL_size(&DSBT_master))
-	 add_dsbt_entry(request);
+          add_dsbt_entry(request);
 
       request->assigned_index = i;
    }
@@ -384,7 +382,7 @@ int32_t DLIF_get_dsbt_index(int32_t file_handle)
       if (curr_req == NULL) continue;
 
       if (curr_req->file_handle == file_handle)
-	 return curr_req->assigned_index;
+     return curr_req->assigned_index;
    }
 
    /*------------------------------------------------------------------------*/
@@ -472,8 +470,8 @@ BOOL DLIF_update_all_dsbts()
          if (curr_dsbt_size < master_dsbt_size)
          {
             DLIF_error(DLET_MISC,
-	               "DSBT allocated for %s is not large enough to hold "
-		       "entire DSBT", curr_req->name);
+                   "DSBT allocated for %s is not large enough to hold "
+                   "entire DSBT", curr_req->name);
             return FALSE;
          }
       }
@@ -502,13 +500,13 @@ BOOL DLIF_update_all_dsbts()
 #endif
 
          for (j = 0; j < master_dsbt_size; j++)
-	 {
+         {
             DSBT_Index_Request *j_req = client_dsbt[j].index_request;
 
             if (j_req != NULL)
                *((TARGET_ADDRESS *)(curr_req->dsbt_base) + j) =
                                       (j_req != NULL) ? j_req->static_base : 0;
-	 }
+         }
       }
    }
 

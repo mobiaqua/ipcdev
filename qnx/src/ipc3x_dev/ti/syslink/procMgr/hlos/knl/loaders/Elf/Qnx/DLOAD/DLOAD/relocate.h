@@ -4,7 +4,7 @@
 * Declare names and IDs of all C6x-specific relocation types supported
 * in the dynamic loader.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,7 @@
 #ifndef RELOCATE_H
 #define RELOCATE_H
 
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#else
 #include <inttypes.h>
-#endif
 #include "elf32.h"
 #include "dload.h"
 #include "dload_api.h"
@@ -62,10 +58,7 @@ extern time_t DLREL_total_reloc_time;
 /*---------------------------------------------------------------------------*/
 /* Landing point for core loader's relocation processor.                     */
 /*---------------------------------------------------------------------------*/
-void DLREL_relocate(DLOAD_HANDLE handle, LOADER_FILE_DESC *elf_file,
-                    DLIMP_Dynamic_Module *dyn_module);
-
-void DLREL_relocate_c60(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
-                    DLIMP_Dynamic_Module *dyn_module);
+void DLREL_relocate(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
+                                            DLIMP_Dynamic_Module *dyn_module);
 
 #endif

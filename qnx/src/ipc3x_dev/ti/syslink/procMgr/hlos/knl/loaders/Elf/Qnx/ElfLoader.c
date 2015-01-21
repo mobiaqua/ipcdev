@@ -23,11 +23,9 @@
  *              @endcode
  *
  *
- *  @ver        02.00.00.46_alpha1
- *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -1806,6 +1804,8 @@ ElfLoader_load (Loader_Handle       handle,
     ElfLoader_Object *   elfLoaderObj;
     DLOAD_HANDLE         elfObj;
     _ElfLoader_Object *  _elfLoaderObj;
+    TARGET_ADDRESS       ep;
+    Int                  argStatus;
 
     GT_5trace (curTrace, GT_ENTER, "ElfLoader_load",
                handle, imagePath, argc, argv, params);
@@ -1882,13 +1882,10 @@ ElfLoader_load (Loader_Handle       handle,
              * This cast to (LOADER_FILE_DESC *) is not ideal, but appears safe
              * as DLOAD_load does not look into fileDesc.
              */
-            *fileId = DLOAD_load(elfObj, (LOADER_FILE_DESC *)fileDesc, argc,
-                                 argv);
+            *fileId = DLOAD_load(elfObj, (LOADER_FILE_DESC *)fileDesc);
             if (*fileId == 0)  {
                  status = LOADER_E_FAIL;
             }
-
-            //status = ElfLoader_getEntryPt(handle, *fileId, (UInt32*)params);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             if (status < 0) {
@@ -1900,6 +1897,20 @@ ElfLoader_load (Loader_Handle       handle,
             }
             else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+                argStatus = DLOAD_prepare_for_execution(elfObj,
+                                                     *fileId, &ep, argc, argv);
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (argStatus == FALSE) {
+                    GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "ElfLoader_load",
+                                     argStatus,
+                                     "Failed to write args!"
+                                     " (ensure .args section is big enough)");
+                }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
                 /* Set the state of the Processor to loaded. */
                 Processor_setState (_elfLoaderObj->procHandle,
                                     ProcMgr_State_Loaded);

@@ -7,7 +7,7 @@
 * but it is object file format dependent.  In particular, this
 * implementation supports ELF object file format.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -40,23 +40,16 @@
 *
 */
 
-#if defined (__KERNEL__)
-#include <linux/kernel.h>  // For INT_MAX
-#define INT16_MAX 0x7fff
-#define UINT16_MAX (__CONCAT(INT16_MAX, U) * 2U + 1U)
-#include <linux/types.h>   // For uintNN_t types
-#include <linux/string.h>  // For strc* fxns.
-#else
 #include <limits.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#endif
 
 #include "ArrayList.h"
 #include "Queue.h"
+#include "Stack.h"
 
 #include "symtab.h"
 #include "dload_endian.h"
@@ -73,14 +66,28 @@
 #include "c60_dynamic.h"
 #endif
 
-#undef LOADER_DEBUG
-#define LOADER_DEBUG 0
+#include "virtual_targets.h"
+
+/* #undef LOADER_DEBUG
+#define LOADER_DEBUG 0*/
+/*---------------------------------------------------------------------------*/
+/* These globals are used only to test the reference client implementation.  */
+/*---------------------------------------------------------------------------*/
+int global_argc;
+char **global_argv;
+
+/*---------------------------------------------------------------------------*/
+/* Contains filenames (type const char*) the system is in the process of     */
+/* loading.  Used to detect cycles in incorrectly compiled ELF binaries.     */
+/*---------------------------------------------------------------------------*/
+Array_List DLIMP_module_dependency_list;
+
 /*---------------------------------------------------------------------------*/
 /* Contains objects (type DLIMP_Loaded_Module) that the system has loaded into     */
 /* target memory.                                                            */
 /*---------------------------------------------------------------------------*/
 TYPE_QUEUE_IMPLEMENTATION(DLIMP_Loaded_Module*, loaded_module_ptr)
-
+loaded_module_ptr_Queue DLIMP_loaded_objects = TYPE_QUEUE_INITIALIZER;
 
 /*---------------------------------------------------------------------------*/
 /* Dependency Graph Queue - FIFO queue of dynamic modules that are loaded    */
@@ -89,6 +96,13 @@ TYPE_QUEUE_IMPLEMENTATION(DLIMP_Loaded_Module*, loaded_module_ptr)
 /* appear on this queue.                                                     */
 /*---------------------------------------------------------------------------*/
 TYPE_STACK_IMPLEMENTATION(DLIMP_Dynamic_Module*, dynamic_module_ptr)
+dynamic_module_ptr_Stack DLIMP_dependency_stack = TYPE_STACK_INITIALIZER;
+
+/*---------------------------------------------------------------------------*/
+/* Current virtual target set after reading the file headers. This is used   */
+/* to access target specific functions.                                      */
+/*---------------------------------------------------------------------------*/
+VIRTUAL_TARGET *cur_target = NULL;
 
 /*---------------------------------------------------------------------------*/
 /* Support for profiling performance of dynamic loader core.                 */
@@ -102,6 +116,23 @@ static clock_t cycle_end = 0;
 #endif
 
 /*---------------------------------------------------------------------------*/
+/* The dynamic loader will now create a table TI_init_table to store         */
+/* pre-init and init data. This is done because pre-init and                 */
+/* init functions could reference as-yet unrelocated symbols from other      */
+/* modules. As such it is safer to store relevant function addresses and     */
+/* execute them only after all modules are relocated.                        */
+/*---------------------------------------------------------------------------*/
+TYPE_QUEUE_IMPLEMENTATION(IF_single_record*, IF_table)
+IF_table_Queue TI_init_table = TYPE_QUEUE_INITIALIZER;
+
+static VIRTUAL_TARGET *get_vt_obj(int given_id);
+static void read_args_from_section(DLIMP_Loaded_Module* ep_module);
+static BOOL seg_has_space_for_write(DLIMP_Loaded_Module* lmodule, int sz);
+static BOOL write_arguments_to_args_section(DLOAD_HANDLE handle,
+                                            int argc, char** argv,
+                        DLIMP_Loaded_Module *ep_module);
+
+/*****************************************************************************/
 /* DLOAD_create()                                                            */
 /*                                                                           */
 /*    Create an instance of the dynamic loader core.                         */
@@ -111,8 +142,8 @@ static clock_t cycle_end = 0;
 /*                                                                           */
 /*    returns: an opaque DLOAD core loader handle, identifying this instance.*/
 /*                                                                           */
-/*---------------------------------------------------------------------------*/
-DLOAD_HANDLE  DLOAD_create(void * client_handle)
+/*****************************************************************************/
+DLOAD_HANDLE DLOAD_create(void *client_handle)
 {
     LOADER_OBJECT     * pLoaderObject;
 
@@ -134,8 +165,6 @@ DLOAD_HANDLE  DLOAD_create(void * client_handle)
 
         pLoaderObject->file_handle = 1;
 
-        pLoaderObject->DLOAD_TARGET_MACHINE = DLOAD_DEFAULT_TARGET_MACHINE;
-
         /* Store client token, so it can be handed back during DLIF calls */
         pLoaderObject->client_handle = client_handle;
     }
@@ -143,7 +172,7 @@ DLOAD_HANDLE  DLOAD_create(void * client_handle)
     return((DLOAD_HANDLE)pLoaderObject);
 }
 
-/*---------------------------------------------------------------------------*/
+/*****************************************************************************/
 /* DLOAD_destroy()                                                           */
 /*                                                                           */
 /*    Remove an instance of the dynamic loader core, and free all resources  */
@@ -154,7 +183,7 @@ DLOAD_HANDLE  DLOAD_create(void * client_handle)
 /*    Preconditions: 1) handle must be valid.                                */
 /*                   2) Loader instance must be in "UNLOADED" state.         */
 /*                                                                           */
-/*---------------------------------------------------------------------------*/
+/*****************************************************************************/
 void  DLOAD_destroy(DLOAD_HANDLE handle)
 {
     LOADER_OBJECT     * pLoaderObject;
@@ -163,7 +192,9 @@ void  DLOAD_destroy(DLOAD_HANDLE handle)
 
     AL_destroy(&(pLoaderObject->DLIMP_module_dependency_list));
 
+    /*--------------------------*/
     /* Free the instance object */
+    /*--------------------------*/
     DLIF_free (pLoaderObject);
 }
 
@@ -297,6 +328,185 @@ static int load_object(LOADER_FILE_DESC *fd, DLIMP_Dynamic_Module *dyn_module)
 }
 
 /*****************************************************************************/
+/* write_arguments_to_args_section()                                         */
+/*                                                                           */
+/*    Write argv and argc to .args section.                                  */
+/*                                                                           */
+/*****************************************************************************/
+static BOOL write_arguments_to_args_section(DLOAD_HANDLE handle,
+                                            int argc, char** argv,
+                                            DLIMP_Loaded_Module *ep_module)
+{
+   int mem_inc   = MEM_INC;
+   int ptr_sz    = PTR_SZ;
+   int p_size    = ptr_sz / mem_inc;
+   int i_size    = T_INTSZ / mem_inc;
+   int c_size    = T_CHARSZ /mem_inc;
+   int argv_offset = 0;
+   int str_offset  = 0;
+   int size        = 0;
+   int arg;
+   int *targ_argv_pointers = NULL;
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+
+   uint8_t *c_args = NULL;
+
+#if LOADER_DEBUG
+   if (debugging_on)
+      DLIF_trace("Write_arguments_to_args_section:\n");
+#endif
+
+   /*-----------------------------------------------------------------------*/
+   /* IF NO ARGUMENTS, ABORT QUIETLY, WITH a SUCCESSFUL CODE.               */
+   /*-----------------------------------------------------------------------*/
+   if (argc == 0) return TRUE;
+
+   /*-----------------------------------------------------------------------*/
+   /* __c_args__ points to the beginning of the .args section, if there     */
+   /* is one.  This is stored in the Loaded Module, and must have a         */
+   /* legitimate address. If not, abort with Warning.                       */
+   /*-----------------------------------------------------------------------*/
+   c_args = ep_module->c_args;
+   if (!c_args || c_args == (uint8_t *)0xFFFFFFFF)
+   {
+      DLIF_warning(DLWT_MISC, "__c_args__ does not have valid value.\n");
+      return FALSE;
+   }
+
+   /*-----------------------------------------------------------------------*/
+   /* WE OUGHT TO WORRY ABOUT ALIGNMENT: IF SECTION ISN'T PROPERLY ALIGNED, */
+   /* ABORT THE PROCESSING OF ARGUMENTS WITH A NICE ERROR MESSAGE.          */
+   /*-----------------------------------------------------------------------*/
+   if (c_args && ((Elf32_Addr)c_args & (MAX(p_size, i_size) - 1)))
+   {
+      DLIF_warning(DLWT_MISC, ".args section not properly aligned\n");
+      return FALSE;
+   }
+
+   /*-----------------------------------------------------------------------*/
+   /* CALCULATE OFFSET IN TABLE WHERE ARGV AND THE STRINGS WILL BE STORED.  */
+   /* NOTE THAT argv MAY NEED MORE ALIGNMENT THAN AN INTEGER, SO ITS OFFSET */
+   /* IS REALLY THE MAXIMUM OF A POINTER SIZE AND INTEGER SIZE.  ALSO NOTE  */
+   /* WE NEED TO ALLOCATE AN EXTRA POINTER FOR argv[argc].                  */
+   /*-----------------------------------------------------------------------*/
+   argv_offset = MAX(p_size, i_size);
+   str_offset  = argv_offset + (argc * p_size) + p_size ;
+
+   /*-----------------------------------------------------------------------*/
+   /* CALCULATE SPACE REQUIRED FOR WRITING OUT .args SECTION. CHECK IF THE  */
+   /* SEGMENT HAS ENOUGH SPACE AVAILABLE. IF NOT, RETURN WITH ERROR CODE.   */
+   /*-----------------------------------------------------------------------*/
+   size = str_offset;
+
+   for (arg = 0; arg < argc; arg++)
+        size += (c_size * (strlen(argv[arg]) + 1));
+
+   if (!seg_has_space_for_write(ep_module, size))
+   {
+      DLIF_warning(DLWT_MISC,
+                 "Segment has insufficient space for .args contents\n");
+      return FALSE;
+   }
+
+   /*-----------------------------------------------------------------------*/
+   /* OVERALL, WE NEED TO CREATE A TARGET IMAGE THAT CORRESPONDS TO:        */
+   /*     int argc;                                                         */
+   /*     char *argv[argc];                                                 */
+   /*     <strings pointed to by argv>                                      */
+   /* So say, for C6x, for "-v -d", we would need 22 bytes:                 */
+   /*     4 bytes // argc                                                   */
+   /*     4 bytes // argv[0] pointer value                                  */
+   /*     4 bytes // argv[1] pointer value                                  */
+   /*     4 bytes // argv[argc] end of pointer value array, normally 0      */
+   /*     3 bytes // "-v"                                                   */
+   /*     3 bytes // "-d"                                                   */
+   /*-----------------------------------------------------------------------*/
+
+   /*-----------------------------------------------------------------------*/
+   /* FIRST WRITE OUT ARGC.                                                 */
+   /*-----------------------------------------------------------------------*/
+#if LOADER_DEBUG
+   if (debugging_on)
+      DLIF_trace ("-- Copy %d bytes from 0x%x to 0x%x\n",
+                  i_size, (uint32_t) &argc, (uint32_t) c_args);
+#endif
+
+   DLIF_memcpy(pHandle->client_handle, c_args, &argc, i_size);
+
+   /*-----------------------------------------------------------------------*/
+   /* CREATE AN INTERNAL ARRAY OF ARGV POINTER VALUES, THEN WRITE THEM OUT  */
+   /*-----------------------------------------------------------------------*/
+   targ_argv_pointers = (int *)DLIF_malloc((argc + 1) * sizeof(int));
+   for (arg = 0; arg < argc ; arg++)
+   {
+       targ_argv_pointers[arg] = (int)(str_offset + c_args);
+       str_offset += (strlen(argv[arg]) + 1) * c_size;
+
+#if LOADER_DEBUG
+   if (debugging_on)
+       DLIF_trace ("\t\ttarg_argv_pointers[%d] : 0x%x\n",
+                   arg, targ_argv_pointers[arg]);
+#endif
+   }
+
+   targ_argv_pointers[argc] = 0;
+
+   /*-----------------------------------------------------------------------*/
+   /* WRITE OUT THIS INTERNAL ARRAY OF ARGV POINTER VALUES                  */
+   /*-----------------------------------------------------------------------*/
+   for (arg = 0; arg <= argc; arg++)
+   {
+#if LOADER_DEBUG
+   if (debugging_on)
+       DLIF_trace ("-- Copy %d bytes from 0x%x to 0x%x\n",
+                   p_size, (uint32_t) &targ_argv_pointers[arg],
+                   (uint32_t) (c_args + argv_offset));
+#endif
+       DLIF_memcpy(pHandle->client_handle,
+                   (void *)(c_args + argv_offset),
+                   &targ_argv_pointers[arg],
+           p_size);
+       argv_offset += p_size;
+   }
+
+#if LOADER_DEBUG
+if (debugging_on)
+{
+   DLIF_trace ("\t\targv being copied : 0x%x\n",(uint32_t)argv);
+   for (arg = 0; arg < argc; arg++)
+   {
+       DLIF_trace ("\t\t---\n\t\t&argv[%d] being copied : 0x%x\n", arg,
+                   (uint32_t)&argv[arg]);
+       DLIF_trace ("\t\targv[%d] being copied : 0x%x\n",arg,
+                   (uint32_t)argv[arg]);
+       DLIF_trace ("\t\targv[%d] being copied : %s\n",arg, (char *)argv[arg]);
+   }
+}
+#endif
+
+   /*-----------------------------------------------------------------------*/
+   /* LASTLY WRITE OUT ALL THE STRINGS.                                     */
+   /*-----------------------------------------------------------------------*/
+   for (arg = 0; arg < argc; arg++)
+   {
+#if LOADER_DEBUG
+   if (debugging_on)
+      DLIF_trace ("-- Copy %d bytes from 0x%x to 0x%x\n",
+                  (uint32_t)strlen(argv[arg]) + 1,
+                  (uint32_t)&argv[arg],
+                  (uint32_t)(targ_argv_pointers[arg]));
+#endif
+      DLIF_memcpy(pHandle->client_handle,
+                  (void *)(targ_argv_pointers[arg]),
+                  argv[arg],
+                  strlen(argv[arg]) + 1);
+   }
+
+  return TRUE;
+}
+
+
+/*****************************************************************************/
 /* initialize_loaded_module()                                                */
 /*                                                                           */
 /*    Initialize DLIMP_Loaded_Module internal data object associated with a  */
@@ -346,21 +556,27 @@ static void initialize_loaded_module(DLOAD_HANDLE handle,
    }
 #endif
 
-   loaded_module->name = DLIF_malloc(strlen(dyn_module->name) + 1);
-   if (NULL == loaded_module->name) {
-      DLIF_error(DLET_MISC, "Error allocating memory %d...\n",__LINE__);
-      return;
+   if (dyn_module->name)
+   {
+      loaded_module->name = DLIF_malloc(strlen(dyn_module->name) + 1);
+      if (NULL == loaded_module->name) {
+          DLIF_error(DLET_MISC, "Error allocating memory %d...\n",__LINE__);
+          return;
+      }
+      strcpy(loaded_module->name, dyn_module->name);
    }
-   strcpy(loaded_module->name, dyn_module->name);
+   else
+      loaded_module->name = "<unknown>";
 
-    loaded_module->file_handle = pHandle->file_handle++;
+   loaded_module->file_handle = pHandle->file_handle++;
    loaded_module->direct_dependent_only = dyn_module->direct_dependent_only;
    loaded_module->use_count = 1;
+   loaded_module->c_args = 0;
 
    /*------------------------------------------------------------------------*/
    /* In case we wrapped around the file handle, return error.               */
    /*------------------------------------------------------------------------*/
-    if (pHandle->file_handle == 0)
+   if (pHandle->file_handle == 0)
       DLIF_error(DLET_MISC, "DLOAD File handle overflowed.\n");
 
    /*------------------------------------------------------------------------*/
@@ -413,46 +629,8 @@ static void initialize_loaded_module(DLOAD_HANDLE handle,
          }
          seg.phdr.p_align = dyn_module->phdr[i].p_align;
          seg.phdr.p_flags = dyn_module->phdr[i].p_flags;
-         seg.input_vaddr = 0;
-         seg.phdr.p_paddr = 0;
-         seg.phdr.p_type = PT_LOAD;
-         seg.reloc_offset = 0;
          AL_append(&(loaded_module->loaded_segments), &seg);
       }
-
-   /*------------------------------------------------------------------------*/
-   /* Initialize the module sections Array_List.                             */
-   /*------------------------------------------------------------------------*/
-   AL_initialize(&(loaded_module->sections),
-                 sizeof(DLIMP_Section_Info), dyn_module->shnum);
-
-   /*------------------------------------------------------------------------*/
-   /* Spin thru section headers and process each section encountered.   */
-   /*------------------------------------------------------------------------*/
-   for (i = 0; i < dyn_module->shnum; i++) {
-         /*------------------------------------------------------------------*/
-         /* Note that this is parallel to and does not supplant the ELF      */
-         /* shdr tables.                                                     */
-         /*------------------------------------------------------------------*/
-         DLIMP_Section_Info sect;
-         sect.shdr.sh_name = dyn_module->shdr[i].sh_name;
-         sect.sh_name = (char *)(sect.shdr.sh_name + (Elf32_Word) dyn_module->shstrtab);
-         sect.shdr.sh_type = dyn_module->shdr[i].sh_type;
-         sect.shdr.sh_flags = dyn_module->shdr[i].sh_flags;
-         sect.shdr.sh_addr = dyn_module->shdr[i].sh_addr;
-         sect.shdr.sh_offset = dyn_module->shdr[i].sh_offset;
-         sect.shdr.sh_size = dyn_module->shdr[i].sh_size;
-         sect.shdr.sh_link = dyn_module->shdr[i].sh_link;
-         sect.shdr.sh_info = dyn_module->shdr[i].sh_info;
-         sect.shdr.sh_addralign = dyn_module->shdr[i].sh_addralign;
-         sect.shdr.sh_entsize = dyn_module->shdr[i].sh_entsize;
-#if LOADER_DEBUG
-         if (debugging_on) {
-            DLIF_trace("Found section name %s @ addr 0x%08x\n", sect.sh_name ? : "(no name)", sect.shdr.sh_addr);
-         }
-#endif
-         AL_append(&(loaded_module->sections), &sect);
-   }
 
    /*------------------------------------------------------------------------*/
    /* Initialize the DSO termination information for this module.            */
@@ -471,7 +649,8 @@ static void initialize_loaded_module(DLOAD_HANDLE handle,
       if (profiling_on)
       {
          profile_stop_clock();
-         DLIF_trace("Took %d cycles.\n", (int32_t)profile_cycle_count());
+         DLIF_trace("Took %lu cycles.\n",
+                (unsigned long)profile_cycle_count());
       }
    }
 #endif
@@ -572,17 +751,7 @@ static BOOL load_static_segment(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
 static BOOL relocate_target_dynamic_tag_info(DLIMP_Dynamic_Module *dyn_module,
                                              int i)
 {
-#ifdef ARM_TARGET
-   if (is_arm_module(&dyn_module->fhdr))
-       return DLDYN_arm_relocate_dynamic_tag_info(dyn_module, i);
-#endif
-
-#ifdef C60_TARGET
-   if (is_c60_module(&dyn_module->fhdr))
-      return DLDYN_c60_relocate_dynamic_tag_info(dyn_module, i);
-#endif
-
-   return FALSE;
+   return cur_target->relocate_dynamic_tag_info(dyn_module, i);
 }
 
 /*****************************************************************************/
@@ -600,6 +769,14 @@ BOOL DLIMP_update_dyntag_section_address(DLIMP_Dynamic_Module *dyn_module,
    int j;
    DLIMP_Loaded_Segment *seg = (DLIMP_Loaded_Segment *)
                               (dyn_module->loaded_module->loaded_segments.buf);
+
+   /*------------------------------------------------------------------------*/
+   /* If dynamic tag does not access an existing section, then no update     */
+   /* is required.                                                           */
+   /*------------------------------------------------------------------------*/
+   if (dyn_module->dyntab[i].d_un.d_ptr == (Elf32_Addr)0)
+      { return TRUE; }
+
    for (j = 0; j < dyn_module->loaded_module->loaded_segments.size; j++)
    {
       if ((dyn_module->dyntab[i].d_un.d_ptr >= seg[j].input_vaddr) &&
@@ -773,7 +950,8 @@ static BOOL allocate_dynamic_segments_and_relocate_symbols
    if (debugging_on || profiling_on)
    {
       DLIF_trace("Dynamic executable found.\n"
-             "Starting allocate_dynamic_segments_and_relocate_symbols() ...\n");
+                 "Starting allocate_dynamic_segments_and_relocate_symbols()"
+                 "...\n");
       if (profiling_on) profile_start_clock();
    }
 #endif
@@ -800,10 +978,6 @@ static BOOL allocate_dynamic_segments_and_relocate_symbols
       targ_req.offset = seg[i].phdr.p_offset;
       targ_req.flip_endian = dyn_module->wrong_endian;
 
-#if LOADER_DEBUG
-        if (debugging_on)
-            DLIF_trace("Segment %d flags 0x%x\n", i, targ_req.flags);
-#endif
       if (!DLIF_allocate(pHandle->client_handle, &targ_req))
       {
          DLIF_error(DLET_MEMORY, "DLIF allocation failure.\n");
@@ -834,8 +1008,9 @@ static BOOL allocate_dynamic_segments_and_relocate_symbols
       /*--------------------------------------------------------------------*/
       if (dyn_module->relocate_entry_point &&
           fhdr->e_entry >= (Elf32_Addr)(seg[i].phdr.p_vaddr) &&
-          fhdr->e_entry < (Elf32_Addr)((uint8_t*)(seg[i].phdr.p_vaddr) +
-                                       (uint32_t)(seg[i].phdr.p_memsz)))
+          fhdr->e_entry <
+            (Elf32_Addr)((uint8_t*)(seg[i].phdr.p_vaddr) +
+                                             (uint32_t)(seg[i].phdr.p_memsz)))
       {
 #if LOADER_DEBUG
          if (debugging_on)
@@ -931,11 +1106,11 @@ static BOOL allocate_dynamic_segments_and_relocate_symbols
 #if LOADER_DEBUG && LOADER_PROFILE
    if (debugging_on || profiling_on)
    {
-      DLIF_trace("allocate_dynamic_segments_and_relocate_symbols() Done\n");
+      DLIF_trace("Finished allocate_dynamic_segments_and_relocate_symbols()\n");
       if (profiling_on)
       {
          profile_stop_clock();
-         DLIF_trace("Took %d cycles.\n", (int)profile_cycle_count());
+         DLIF_trace("Took %lu cycles.\n", (unsigned long) profile_cycle_count());
       }
    }
 #endif
@@ -987,7 +1162,6 @@ static void delete_DLIMP_Loaded_Module(DLOAD_HANDLE handle,
     loaded_module->gsymnum = 0;
     if (loaded_module->gstrtab) DLIF_free(loaded_module->gstrtab);
     loaded_module->gstrsz = 0;
-    AL_destroy(&(loaded_module->sections));
     AL_destroy(&(loaded_module->loaded_segments));
     AL_destroy(&(loaded_module->dependencies));
 
@@ -1024,8 +1198,6 @@ static DLIMP_Dynamic_Module *new_DLIMP_Dynamic_Module(LOADER_FILE_DESC *fd)
     dyn_module->fd = fd;
     dyn_module->phdr = NULL;
     dyn_module->phnum = 0;
-    dyn_module->shdr = NULL;
-    dyn_module->shnum = 0;
     dyn_module->strtab = NULL;
     dyn_module->strsz = 0;
     dyn_module->dyntab = NULL;
@@ -1067,7 +1239,8 @@ static DLIMP_Dynamic_Module *new_DLIMP_Dynamic_Module(LOADER_FILE_DESC *fd)
 /*    be released as part of the destruction of the dynamic module.          */
 /*                                                                           */
 /*****************************************************************************/
-static DLIMP_Loaded_Module *detach_loaded_module(DLIMP_Dynamic_Module *dyn_module)
+static
+DLIMP_Loaded_Module *detach_loaded_module(DLIMP_Dynamic_Module *dyn_module)
 {
     if (dyn_module && dyn_module->loaded_module)
     {
@@ -1095,9 +1268,7 @@ static void delete_DLIMP_Dynamic_Module(DLOAD_HANDLE handle,
       DLIF_error(DLET_MISC,
                  "Internal Error: invalid argument to dynamic module "
          "destructor function; aborting loader\n");
-#if !defined (__KERNEL__)
-      exit(1);
-#endif
+      DLIF_exit(1);
    }
 
    dyn_module = *ppdm;
@@ -1105,9 +1276,7 @@ static void delete_DLIMP_Dynamic_Module(DLOAD_HANDLE handle,
    if (dyn_module->strtab)   DLIF_free(dyn_module->strtab);
    if (dyn_module->symtab)   DLIF_free(dyn_module->symtab);
    if (dyn_module->phdr)     DLIF_free(dyn_module->phdr);
-   if (dyn_module->shdr)     DLIF_free(dyn_module->shdr);
    if (dyn_module->dyntab)   DLIF_free(dyn_module->dyntab);
-   if (dyn_module->shstrtab) DLIF_free(dyn_module->shstrtab);
 
    /*------------------------------------------------------------------------*/
    /* If we left the loaded module attached to the dynamic module, then      */
@@ -1159,17 +1328,22 @@ static BOOL file_header_magic_number_is_valid(struct Elf32_Ehdr* header)
 /*    the machine will be initially set to EM_NONE.  Once a module has been  */
 /*    loaded, all remaining modules must have the same machine value.        */
 /*****************************************************************************/
-static BOOL file_header_machine_is_valid(DLOAD_HANDLE handle, Elf32_Half e_machine)
+static int file_header_machine_is_valid(Elf32_Half e_machine)
 {
-    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+   /*------------------------------------------------------------------------*/
+   /* Currently we support only ARM or C6x                                   */
+   /*------------------------------------------------------------------------*/
+   switch(e_machine)
+   {
+#ifdef ARM_TARGET
+      case EM_ARM :      return TRUE;
+#endif
+#ifdef C60_TARGET
+      case EM_TI_C6000 : return TRUE;
+#endif
 
-    if (pHandle->DLOAD_TARGET_MACHINE == EM_NONE)
-        pHandle->DLOAD_TARGET_MACHINE = e_machine;
-
-    if (e_machine != pHandle->DLOAD_TARGET_MACHINE)
-      return FALSE;
-
-   return TRUE;
+      default :          return FALSE;
+   }
 }
 
 /*****************************************************************************/
@@ -1260,17 +1434,7 @@ static BOOL is_valid_elf_object_file(LOADER_FILE_DESC *fd,
 /*****************************************************************************/
 static BOOL process_eiosabi(DLIMP_Dynamic_Module* dyn_module)
 {
-#ifdef ARM_TARGET
-   if (is_arm_module(&dyn_module->fhdr))
-      return DLDYN_arm_process_eiosabi(dyn_module);
-#endif
-
-#ifdef C60_TARGET
-   if (is_c60_module(&dyn_module->fhdr))
-      return DLDYN_c60_process_eiosabi(dyn_module);
-#endif
-
-   return FALSE;
+   return cur_target->process_eiosabi(dyn_module);
 }
 /*****************************************************************************/
 /* dload_file_header()                                                       */
@@ -1279,7 +1443,7 @@ static BOOL process_eiosabi(DLIMP_Dynamic_Module* dyn_module)
 /*    DLIMP_Dynamic_Module record.  Check file header for validity.          */
 /*                                                                           */
 /*****************************************************************************/
-static BOOL dload_file_header(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
+static BOOL dload_file_header(LOADER_FILE_DESC *fd,
                               DLIMP_Dynamic_Module *dyn_module)
 {
    /*------------------------------------------------------------------------*/
@@ -1301,15 +1465,13 @@ static BOOL dload_file_header(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
       DLIMP_change_ehdr_endian(&(dyn_module->fhdr));
 
 #if LOADER_DEBUG
-   if (debugging_on) {
-      /*---------------------------------------------------------------------*/
-      /* Write out magic ELF information for debug purposes.                 */
-      /*---------------------------------------------------------------------*/
-      DLIF_trace("ELF: %c%c%c\n", dyn_module->fhdr.e_ident[1],
-                              dyn_module->fhdr.e_ident[2],
-                              dyn_module->fhdr.e_ident[3]);
-      DLIF_trace("ELF file header entry point: %x\n",
-                 dyn_module->fhdr.e_entry);
+   if (debugging_on)
+   {
+       DLIF_trace("ELF: %c%c%c\n", dyn_module->fhdr.e_ident[1],
+                               dyn_module->fhdr.e_ident[2],
+                               dyn_module->fhdr.e_ident[3]);
+       DLIF_trace("ELF file header entry point: %x\n",
+                               dyn_module->fhdr.e_entry);
    }
 #endif
 
@@ -1322,7 +1484,7 @@ static BOOL dload_file_header(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
       return FALSE;
    }
 
-   if (!file_header_machine_is_valid(handle, dyn_module->fhdr.e_machine))
+   if (!file_header_machine_is_valid(dyn_module->fhdr.e_machine))
    {
        DLIF_error(DLET_FILE, "Invalid ELF file target machine.\n");
        return FALSE;
@@ -1350,7 +1512,8 @@ static BOOL dload_file_header(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
       if (profiling_on)
       {
          profile_stop_clock();
-         DLIF_trace("Took %d cycles.\n", (int)profile_cycle_count());
+         DLIF_trace("Took %lu cycles.\n",
+                (unsigned long)profile_cycle_count());
          profile_start_clock();
       }
    }
@@ -1393,39 +1556,7 @@ static void dload_program_header_table(LOADER_FILE_DESC *fd,
    }
 }
 
-/*****************************************************************************/
-/* dload_section_header_table()                                              */
-/*                                                                           */
-/*    Make a local copy of the ELF object file's section header table in the */
-/*    dynamic module data structure.                                         */
-/*                                                                           */
-/*****************************************************************************/
-static void dload_section_header_table(LOADER_FILE_DESC *fd,
-                                       DLIMP_Dynamic_Module *dyn_module)
-{
-   /*------------------------------------------------------------------------*/
-   /* Read the section header tables from the object file.                   */
-   /*------------------------------------------------------------------------*/
-   struct Elf32_Ehdr *fhdr = &(dyn_module->fhdr);
-   dyn_module->shdr = (struct Elf32_Shdr*)
-                              (DLIF_malloc(fhdr->e_shnum * fhdr->e_shentsize));
-   DLIF_fseek(fd, fhdr->e_shoff, LOADER_SEEK_SET);
-   if(dyn_module->shdr) {
-      DLIF_fread(dyn_module->shdr, fhdr->e_shentsize, fhdr->e_shnum,fd);
-      dyn_module->shnum = fhdr->e_shnum;
 
-      /*---------------------------------------------------------------------*/
-      /* Byte swap the section header tables if the target endian-ness is not*/
-      /* the same as the host endian-ness.                                   */
-      /*---------------------------------------------------------------------*/
-      if (dyn_module->wrong_endian)
-      {
-         int i;
-         for (i = 0; i < dyn_module->shnum; i++)
-            DLIMP_change_shdr_endian(dyn_module->shdr + i);
-      }
-   }
-}
 
 /*****************************************************************************/
 /* dload_headers()                                                           */
@@ -1439,7 +1570,7 @@ static void dload_section_header_table(LOADER_FILE_DESC *fd,
 /*    provide some assurance that the file is not corrupted.                 */
 /*                                                                           */
 /*****************************************************************************/
-static BOOL dload_headers(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
+static BOOL dload_headers(LOADER_FILE_DESC *fd,
                           DLIMP_Dynamic_Module *dyn_module)
 {
 #if LOADER_DEBUG && LOADER_PROFILE
@@ -1457,7 +1588,7 @@ static BOOL dload_headers(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
    /* Read file header information and check vs. expected ELF object file    */
    /* header content.                                                        */
    /*------------------------------------------------------------------------*/
-    if (!dload_file_header(handle, fd, dyn_module))
+   if (!dload_file_header(fd, dyn_module))
       return FALSE;
 
    /*------------------------------------------------------------------------*/
@@ -1466,73 +1597,14 @@ static BOOL dload_headers(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd,
    dload_program_header_table(fd, dyn_module);
 
    /*------------------------------------------------------------------------*/
-   /* Read section header table information into the dynamic module object.  */
+   /* Once headers have been read in, use e_machine to set virtual target.   */
+   /* This can then be used to access target specific functions.             */
    /*------------------------------------------------------------------------*/
-   dload_section_header_table(fd, dyn_module);
-
-   return TRUE;
-}
-
-/*****************************************************************************/
-/* process_section_table()                                                   */
-/*                                                                           */
-/*    Process section tag entries from the section table.  At the conclusion */
-/*    of this function, we should have made a copy of the global symbols     */
-/*    and the global symbol names.                                           */
-/*                                                                           */
-/*****************************************************************************/
-static BOOL process_section_table(LOADER_FILE_DESC *fd,
-                                  DLIMP_Dynamic_Module *dyn_module)
-{
-   int        i;
-   Elf32_Addr shstrtab_offset = 0;
-
-   /*------------------------------------------------------------------------*/
-   /* Iterate over the section table in order to find the string table info.       */
-   /*------------------------------------------------------------------------*/
-   for (i = 0; i < dyn_module->shnum; i++)
+   cur_target = get_vt_obj(dyn_module->fhdr.e_machine);
+   if (!cur_target)
    {
-      switch(dyn_module->shdr[i].sh_type)
-      {
-         /*------------------------------------------------------------------*/
-         /* SHT_STRTAB: Contains the section information of the string table.  The    */
-         /*------------------------------------------------------------------*/
-         case SHT_STRTAB:
-            if (i == dyn_module->fhdr.e_shstrndx) {
-               dyn_module->shstrsz = dyn_module->shdr[i].sh_size;
-               shstrtab_offset = dyn_module->shdr[i].sh_offset;
-#if LOADER_DEBUG
-               if (debugging_on)
-                  DLIF_trace("Found string table Size: [0x%x]\n", dyn_module->shstrsz);
-#endif
-            }
-            break;
-
-         /*------------------------------------------------------------------*/
-         /* Unrecognized tag, may not be illegal, but is not explicitly      */
-         /* handled by this function.  Should it be?                         */
-         /*------------------------------------------------------------------*/
-         default:
-         {
-            break;
-         }
-
-      }
-   }
-
-   /*------------------------------------------------------------------------*/
-   /* If string table offset and size were found, read string table in from  */
-   /* the ELF object file.                                                   */
-   /*------------------------------------------------------------------------*/
-   if (shstrtab_offset && dyn_module->shstrsz)
-   {
-      DLIF_fseek(fd, shstrtab_offset, LOADER_SEEK_SET);
-      dyn_module->shstrtab = DLIF_malloc(dyn_module->shstrsz);
-      DLIF_fread(dyn_module->shstrtab, sizeof(uint8_t), dyn_module->shstrsz, fd);
-   }
-   else
-   {
-      DLIF_warning(DLWT_MISC, "Mandatory string section SHT_STRTAB not found!\n");
+      DLIF_error(DLET_FILE, "Attempt to load invalid ELF file, '%s'.\n",
+                    dyn_module->name);
       return FALSE;
    }
 
@@ -1563,9 +1635,7 @@ static BOOL find_dynamic_segment(DLIMP_Dynamic_Module *dyn_module,
    {
       DLIF_error(DLET_MISC, "Internal error: find_dynamic_segment() needs "
                             "non-NULL arguments.\n");
-#if !defined (__KERNEL__)
-      exit(1);
-#endif
+      DLIF_exit(1);
    }
 
    /*------------------------------------------------------------------------*/
@@ -1581,12 +1651,7 @@ static BOOL find_dynamic_segment(DLIMP_Dynamic_Module *dyn_module,
    /* and warn the user.                                                     */
    /*------------------------------------------------------------------------*/
    dyn_module->relocatable = FALSE;
-#if LOADER_DEBUG
-   if (debugging_on)
-      DLIF_warning("'%s' does not have a dynamic segment; assuming "
-                   "that it is a static executable and it cannot "
-                   "be relocated.\n", dyn_module->name ? : "");
-#endif
+
    return FALSE;
 }
 
@@ -1608,8 +1673,7 @@ static void copy_dynamic_table(LOADER_FILE_DESC *fd,
    /*------------------------------------------------------------------------*/
    Elf32_Word num_elem;
    dyn_module->dyntab = DLIF_malloc(dyn_module->phdr[dyn_seg_idx].p_filesz);
-   num_elem =
-        dyn_module->phdr[dyn_seg_idx].p_filesz / sizeof(struct Elf32_Dyn);
+   num_elem = dyn_module->phdr[dyn_seg_idx].p_filesz / sizeof(struct Elf32_Dyn);
    DLIF_fseek(fd, dyn_module->phdr[dyn_seg_idx].p_offset, LOADER_SEEK_SET);
    if(dyn_module->dyntab) {
       DLIF_fread(dyn_module->dyntab, sizeof(struct Elf32_Dyn), num_elem, fd);
@@ -1634,17 +1698,7 @@ static void copy_dynamic_table(LOADER_FILE_DESC *fd,
 /*****************************************************************************/
 static BOOL process_target_dynamic_tag(DLIMP_Dynamic_Module* dyn_module, int i)
 {
-#ifdef ARM_TARGET
-   if (is_arm_module(&dyn_module->fhdr))
-       return DLDYN_arm_process_dynamic_tag(dyn_module, i);
-#endif
-
-#ifdef C60_TARGET
-   if (is_c60_module(&dyn_module->fhdr))
-      return DLDYN_c60_process_dynamic_tag(dyn_module, i);
-#endif
-
-   return FALSE;
+   return cur_target->process_dynamic_tag(dyn_module, i);
 }
 
 /*****************************************************************************/
@@ -1880,8 +1934,7 @@ static BOOL process_dynamic_table(LOADER_FILE_DESC *fd,
    }
    else
    {
-      DLIF_warning(DLWT_MISC,
-                   "Mandatory dynamic tag DT_HASH is not found!\n");
+      DLIF_warning(DLWT_MISC, "Mandatory dynamic tag DT_HASH is not found!\n");
       return FALSE;
    }
 
@@ -2070,20 +2123,13 @@ static BOOL dload_dynamic_segment(DLOAD_HANDLE handle,
 /*   Copy all segments into host memory.                                     */
 /*****************************************************************************/
 static void copy_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
-                          DLIMP_Dynamic_Module* dyn_module, int* data)
+                          DLIMP_Dynamic_Module* dyn_module)
 {
-    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
    DLIMP_Loaded_Segment* seg =
       (DLIMP_Loaded_Segment*)(dyn_module->loaded_module->loaded_segments.buf);
    int s, seg_size = dyn_module->loaded_module->loaded_segments.size;
-   void **va = DLIF_malloc(seg_size * sizeof(void*));
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
 
-   if (!va) {
-      DLIF_error(DLET_MISC, "Failed to allocate va in copy_segments.\n");
-      return;
-   }
-   else
-      *data = (int)va;
 
    for (s=0; s<seg_size; s++)
    {
@@ -2100,15 +2146,8 @@ static void copy_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
       /* Copy segment data from the file into host buffer where it can       */
       /* be relocated.                                                       */
       /*---------------------------------------------------------------------*/
-        DLIF_copy(pHandle->client_handle, &targ_req);
-
-      va[s] = targ_req.host_address;
-
-      /*---------------------------------------------------------------------*/
-      /* Calculate offset for relocations.                                   */
-      /*---------------------------------------------------------------------*/
-      seg[s].reloc_offset = (int32_t)(targ_req.host_address) -
-                            (int32_t)(seg[s].obj_desc->target_address);
+      DLIF_copy(pHandle->client_handle, &targ_req);
+      seg[s].host_address = targ_req.host_address;
    }
 }
 
@@ -2117,20 +2156,14 @@ static void copy_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
 /*                                                                           */
 /*   Write all segments to target memory.                                    */
 /*****************************************************************************/
-static void write_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
-                          DLIMP_Dynamic_Module* dyn_module, int* data)
+static void write_segments(DLOAD_HANDLE handle,
+                          LOADER_FILE_DESC* fp,
+                          DLIMP_Dynamic_Module* dyn_module)
 {
-    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
    DLIMP_Loaded_Segment* seg =
       (DLIMP_Loaded_Segment*)(dyn_module->loaded_module->loaded_segments.buf);
    int s, seg_size = dyn_module->loaded_module->loaded_segments.size;
-   void **va = (void *)*data;
-
-   if (!va) {
-      DLIF_error(DLET_MISC, "Invalid host virtual address array passed into"
-                 "write_segments.\n");
-      return;
-   }
 
    for (s=0; s<seg_size; s++)
    {
@@ -2142,16 +2175,60 @@ static void write_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
       if (seg[s].phdr.p_flags & PF_X)
          seg[s].phdr.p_flags |= DLOAD_SF_executable;
       targ_req.align = seg[s].phdr.p_align;
-      targ_req.host_address = va[s];
+      targ_req.host_address = seg[s].host_address;
 
       /*---------------------------------------------------------------------*/
       /* Copy segment data from the file into host buffer where it can       */
       /* be relocated.                                                       */
       /*---------------------------------------------------------------------*/
-        DLIF_write(pHandle->client_handle, &targ_req);
+      DLIF_write(pHandle->client_handle, &targ_req);
    }
+}
 
-   DLIF_free(va);
+/*****************************************************************************/
+/* SEG_HAS_SPACE_FOR_WRITE() -                                               */
+/*                                                                           */
+/*   Check if segment has enough space to recieve contents of .args section. */
+/*****************************************************************************/
+static BOOL seg_has_space_for_write(DLIMP_Loaded_Module* lmodule, int sz)
+{
+   DLIMP_Loaded_Segment* seg =
+                  (DLIMP_Loaded_Segment*)(lmodule->loaded_segments.buf);
+   int s, seg_size = lmodule->loaded_segments.size;
+
+   Elf32_Addr write_address = (Elf32_Addr)lmodule->c_args;
+
+   for (s=0; s<seg_size; s++)
+   {
+      Elf32_Addr seg_boundary =
+            seg[s].phdr.p_vaddr + seg[s].obj_desc->memsz_in_bytes;
+
+      /*---------------------------------------------------------------------*/
+      /* If address to write to is greater than segment addr and less than   */
+      /* segment end, it must lie in current segment.                        */
+      /*---------------------------------------------------------------------*/
+      if ((write_address >= seg[s].phdr.p_vaddr) &&
+          (write_address < seg_boundary))
+      {
+         if ((write_address + sz) > seg_boundary)
+         {
+#if LOADER_DEBUG
+        if (debugging_on)
+        {
+           DLIF_trace("Write requires 0x%x bytes\n",write_address + sz);
+           DLIF_trace("Seg boundary at : 0x%x\n",seg_boundary);
+           DLIF_trace("WARNING - Not enough space in segment\n");
+        }
+#endif
+            return FALSE;
+         }
+         else return TRUE;
+      }
+   }
+   /*------------------------------------------------------------------------*/
+   /* Given address doesn't belong to any known segment.                     */
+   /*------------------------------------------------------------------------*/
+   return FALSE;
 }
 
 /*****************************************************************************/
@@ -2162,23 +2239,11 @@ static void write_segments(DLOAD_HANDLE handle, LOADER_FILE_DESC* fp,
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
-/*    This implementation of DLOAD_initialize() will set up the list of      */
-/*    dependency modules maintained by the loader core.  This list contains  */
-/*    the names of the files that the loader is in the process of loading.   */
-/*    The list is used to keep track of what objects are waiting on their    */
-/*    dependents to be loaded so thath circular dependencies can be detected */
-/*    and reported by the core loader.                                       */
+/*    This function is deprecated, replaced by DLOAD_create().               */
 /*                                                                           */
 /*****************************************************************************/
 void DLOAD_initialize(DLOAD_HANDLE handle)
 {
-     LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-
-   /*------------------------------------------------------------------------*/
-   /* Set up initial objects_loading queue.                                  */
-   /*------------------------------------------------------------------------*/
-    AL_initialize(&pHandle->DLIMP_module_dependency_list,
-                  sizeof (const char*), 1);
 }
 
 
@@ -2190,19 +2255,11 @@ void DLOAD_initialize(DLOAD_HANDLE handle)
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
-/*    This implementation of DLOAD_finalize() will destroy the list of       */
-/*    dependency modules maintained by the loader core that is created       */
-/*    during DLOAD_initialize().                                             */
+/*    This function is deprecated, replaced by DLOAD_destroy().              */
 /*                                                                           */
 /*****************************************************************************/
 void DLOAD_finalize(DLOAD_HANDLE handle)
 {
-    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-
-    /*-----------------------------------------------------------------------*/
-    /* Destroy initial objects_loading queue.                                */
-    /*-----------------------------------------------------------------------*/
-    AL_destroy(&pHandle->DLIMP_module_dependency_list);
 }
 
 
@@ -2228,8 +2285,8 @@ static int32_t dload_static_executable(DLOAD_HANDLE handle,
    /* memory for the static executable.                                      */
    /*------------------------------------------------------------------------*/
    dyn_module->loaded_module->entry_point = dyn_module->fhdr.e_entry;
-    if (load_static_segment(handle, fd, dyn_module) &&
-        load_object(fd, dyn_module))
+   if (load_static_segment(handle, fd, dyn_module) &&
+       load_object(fd, dyn_module))
    {
       /*---------------------------------------------------------------------*/
       /* If successful, we'll want to detach the loaded module object from   */
@@ -2250,11 +2307,11 @@ static int32_t dload_static_executable(DLOAD_HANDLE handle,
    /* Static load failed.  Flag an error.                                    */
    /*------------------------------------------------------------------------*/
    else
-    {
-        DLIF_trace("%s:%d EMEMORY\n",__func__,__LINE__);
+   {
+      DLIF_trace("%s:%d EMEMORY\n",__func__,__LINE__);
       DLIF_error(DLET_MEMORY,
                  "Failed to allocate target memory for static executable.\n");
-    }
+   }
 
    /*------------------------------------------------------------------------*/
    /* Destruct dynamic module object.                                        */
@@ -2267,6 +2324,11 @@ static int32_t dload_static_executable(DLOAD_HANDLE handle,
 
    return local_file_handle;
 }
+
+#if LOADER_DEBUG && LOADER_PROFILE
+int DLREL_relocations;
+time_t DLREL_total_reloc_time;
+#endif
 
 /*****************************************************************************/
 /* process_dynamic_module_relocations()                                      */
@@ -2281,8 +2343,6 @@ static void process_dynamic_module_relocations(DLOAD_HANDLE handle,
                                                LOADER_FILE_DESC *fd,
                                                DLIMP_Dynamic_Module *dyn_module)
 {
-    int data = 0;
-
 #if LOADER_DEBUG && LOADER_PROFILE
    if(debugging_on || profiling_on)
    {
@@ -2294,25 +2354,17 @@ static void process_dynamic_module_relocations(DLOAD_HANDLE handle,
    /*------------------------------------------------------------------------*/
    /* Copy segments from file to host memory                                 */
    /*------------------------------------------------------------------------*/
-   copy_segments(handle, fd, dyn_module, &data);
+   copy_segments(handle, fd, dyn_module);
 
    /*------------------------------------------------------------------------*/
    /* Process dynamic relocations.                                           */
    /*------------------------------------------------------------------------*/
-#if ARM_TARGET
-   if (is_arm_module(&dyn_module->fhdr))
-      DLREL_relocate(handle, fd, dyn_module);
-#endif
-
-#if C60_TARGET
-   if (is_c60_module(&dyn_module->fhdr))
-      DLREL_relocate_c60(handle, fd, dyn_module);
-#endif
+   DLREL_relocate(handle, fd, dyn_module);
 
    /*------------------------------------------------------------------------*/
    /* Write segments from host memory to target memory                       */
    /*------------------------------------------------------------------------*/
-   write_segments(handle, fd, dyn_module, &data);
+   write_segments(handle, fd, dyn_module);
 
 #if 0
    /*------------------------------------------------------------------------*/
@@ -2336,90 +2388,63 @@ static void process_dynamic_module_relocations(DLOAD_HANDLE handle,
       if (profiling_on) profile_start_clock();
    }
 #endif
+
 }
 
 /*****************************************************************************/
-/* execute_module_pre_initialization()                                       */
+/* store_preinit_data()                                                      */
 /*                                                                           */
-/*    Given a dynamic module object, execute any pre-initialization          */
-/*    functions for the specified dynamic executable module. Such functions  */
-/*    must be provided by the user and their addresses written to the        */
-/*    .preinit_array section. These functions should be executed in the      */
-/*    order that they are specified in the array before the initialization   */
-/*    process for this dynamic executable module begins.                     */
-/*                                                                           */
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*    Note that dynamic shared objects (libraries) should not have a         */
-/*    .preinit_array (should be caught during static link-time if the user   */
-/*    attempts to link a .preinit_array section into a shared object.        */
+/*    Given a dynamic module object, store pre-initialization function       */
+/*    information. The user may also provide a custom iniitialization        */
+/*    function that needs to be executed before the compiler                 */
+/*    generated static initialization functions are executed.                */
+/*    The dynamic loader will now create a table TI_init_table to store      */
+/*    pre-init and init data. This is done because pre-init and              */
+/*    init functions could reference as-yet unrelocated symbols from other   */
+/*    modules. As such it is safer to store relevant function addresses and  */
+/*    execute them only after all modules are relocated (CQ34088).           */
 /*                                                                           */
 /*****************************************************************************/
-static void execute_module_pre_initialization(DLOAD_HANDLE handle, DLIMP_Dynamic_Module *dyn_module)
+static void store_preinit_data(DLIMP_Dynamic_Module *dyn_module)
 {
-   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-
+   IF_single_record *preinit_rec = NULL;
    /*------------------------------------------------------------------------*/
    /* Check for presence of DT_PREINIT_ARRAY and DT_PREINIT_ARRAYSZ          */
    /* dynamic tags associated with this module. The dyn_module object will   */
    /* hold the relevant indices into the local copy of the dynamic table.    */
    /* The value of the DT_INIT_ARRAY tag will have been updated after        */
-   /* placement of the  module was completed.                                */
+   /* placement of the  module was completed. Arrays of size 0 will be       */
+   /* ignored (CQ36935).                                                     */
    /*------------------------------------------------------------------------*/
-   if (dyn_module->preinit_arraysz != 0)
+   if (dyn_module->preinit_arraysz > 0)
    {
+      preinit_rec = (IF_single_record *)DLIF_malloc(sizeof(IF_single_record));
       /*---------------------------------------------------------------------*/
       /* Retrieve the address of the .preinit_array section from the value   */
-      /* of the DT_PREINIT_ARRAY tag.                                        */
+      /* of the DT_PREINIT_ARRAY tag, and store it in the TI_init_table.     */
       /*---------------------------------------------------------------------*/
-      TARGET_ADDRESS preinit_array_loc = (TARGET_ADDRESS)
+      preinit_rec->size = dyn_module->preinit_arraysz;
+      preinit_rec->sect_addr = (TARGET_ADDRESS)
                 (dyn_module->dyntab[dyn_module->preinit_array_idx].d_un.d_ptr);
-
-      /*---------------------------------------------------------------------*/
-      /* Now make a loader-accessible copy of the .preinit_array section.    */
-      /*---------------------------------------------------------------------*/
-      int32_t i;
-      int32_t num_preinit_fcns =
-                            dyn_module->preinit_arraysz/sizeof(TARGET_ADDRESS);
-      TARGET_ADDRESS *preinit_array_buf = (TARGET_ADDRESS *)
-                                      DLIF_malloc(dyn_module->preinit_arraysz);
-      if(preinit_array_buf) {
-         DLIF_read(pHandle->client_handle, preinit_array_buf, 1,
-                                            dyn_module->preinit_arraysz,
-                                            (TARGET_ADDRESS)preinit_array_loc);
-
-         /*------------------------------------------------------------------*/
-         /* Call each function whose address occupies an entry in the array  */
-         /* in the order that it appears in the array. The sizeof the array  */
-         /* is provided by the preinit_arraysz field in the dynamic module   */
-         /* (copied) earlier when the dynamic table was read in). We need to */
-         /* divide the sizeof value down to get the number of actual entries */
-         /* in the array.                                                    */
-         /*------------------------------------------------------------------*/
-         for (i = 0; i < num_preinit_fcns; i++)
-            DLIF_execute(pHandle->client_handle,
-                         (TARGET_ADDRESS)(preinit_array_buf[i]));
-
-         DLIF_free(preinit_array_buf);
-      }
    }
+
+   if (preinit_rec) IF_table_enqueue(&TI_init_table, preinit_rec);
 }
 
 /*****************************************************************************/
-/* execute_module_initialization()                                           */
+/* store_init_data()                                                         */
 /*                                                                           */
-/*    Given a dynamic module object, execute initialization function(s) for  */
+/*    Given a dynamic module object, save off initialization function(s) for */
 /*    all global and static data objects that are defined in the module      */
-/*    which require construction. The user may also provide a custom         */
-/*    iniitialization function that needs to be executed before the compiler */
-/*    generated static initialization functions are executed.                */
+/*    which require construction. The dynamic loader will now create a table */
+/*    TI_init_table to store pre-init and init data. This is done because    */
+/*    pre-init and init functions could reference as-yet unrelocated symbols */
+/*    from other modules. As such it is safer to store relevant function     */
+/*    addresses and execute them only after all modules are relocated.       */
 /*                                                                           */
 /*****************************************************************************/
-static void execute_module_initialization(DLOAD_HANDLE handle,
-                                          DLIMP_Dynamic_Module *dyn_module)
+static void store_init_data(DLIMP_Dynamic_Module *dyn_module)
 {
-   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-
    /*------------------------------------------------------------------------*/
    /* Check for presence of a DT_INIT dynamic tag associated with this       */
    /* module. The dynamic module will hold the index into the local copy of  */
@@ -2428,13 +2453,17 @@ static void execute_module_initialization(DLOAD_HANDLE handle,
    /*------------------------------------------------------------------------*/
    if (dyn_module->init_idx != -1)
    {
+      IF_single_record *init_rec =
+                   (IF_single_record *)DLIF_malloc(sizeof(IF_single_record));
       /*---------------------------------------------------------------------*/
       /* Retrieve the address of the initialization function from the value  */
       /* of the DT_INIT tag, and get the client to execute the function.     */
       /*---------------------------------------------------------------------*/
-      TARGET_ADDRESS init_fcn = (TARGET_ADDRESS)
+      init_rec->size = 0;
+      init_rec->sect_addr = (TARGET_ADDRESS)
                          (dyn_module->dyntab[dyn_module->init_idx].d_un.d_ptr);
-      DLIF_execute(pHandle->client_handle, init_fcn);
+
+      IF_table_enqueue(&TI_init_table, init_rec);
    }
 
    /*------------------------------------------------------------------------*/
@@ -2442,40 +2471,127 @@ static void execute_module_initialization(DLOAD_HANDLE handle,
    /* associated with this module. The dyn_module object will hold the       */
    /* relevant indices into the local copy of the dynamic table. The value   */
    /* of the DT_INIT_ARRAY tag will have been updated after placement of the */
-   /* module was completed.                                                  */
+   /* module was completed. Arraysz must be a postive number > 0, else it    */
+   /* be ignored (CQ36935).                                                  */
    /*------------------------------------------------------------------------*/
-   if (dyn_module->init_arraysz != 0)
+   if (dyn_module->init_arraysz > 0)
    {
+      IF_single_record *arr_rec =
+                   (IF_single_record *)DLIF_malloc(sizeof(IF_single_record));
       /*---------------------------------------------------------------------*/
       /* Retrieve the address of the .init_array section from the value of   */
       /* DT_INIT_ARRAY tag.                                                  */
       /*---------------------------------------------------------------------*/
-      TARGET_ADDRESS init_array_loc = (TARGET_ADDRESS)
+      arr_rec->size = dyn_module->init_arraysz;
+      arr_rec->sect_addr = (TARGET_ADDRESS)
                    (dyn_module->dyntab[dyn_module->init_array_idx].d_un.d_ptr);
 
+      IF_table_enqueue(&TI_init_table, arr_rec);
+   }
+}
+
+/*****************************************************************************/
+/* execute_module_initialization()                                           */
+/*                                                                           */
+/*    Given a dynamic module object, execute pre-initialization and          */
+/*    initialization function(s) for all global and static data objects that */
+/*    are defined in the module which require construction. The user may     */
+/*    also provide a custom iniitialization function that needs to be        */
+/*    executed before the compiler generated static initialization functions */
+/*    are executed.                                                          */
+/*    Note that the functions to be executed have already been saved off in  */
+/*    the TI_init_table, by store_preinit_data() and store_init_data().      */
+/*                                                                           */
+/*****************************************************************************/
+static void execute_module_initialization(DLOAD_HANDLE handle)
+{
+   IF_single_record *val = NULL;
+   IF_table_Queue_Node *curr_ptr = TI_init_table.front_ptr;
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+
+   for (; curr_ptr; curr_ptr = curr_ptr->next_ptr)
+   {
+      val = curr_ptr->value;
+
       /*---------------------------------------------------------------------*/
-      /* Now make a loader-accessible copy of the .init_array section.       */
+      /* A size of 0 indicates DT_INIT, otherwise this is an ARRAY.         */
       /*---------------------------------------------------------------------*/
-      int32_t i;
-      int32_t num_init_fcns = dyn_module->init_arraysz/sizeof(TARGET_ADDRESS);
-      TARGET_ADDRESS *init_array_buf = (TARGET_ADDRESS *)
-                                         DLIF_malloc(dyn_module->init_arraysz);
-      if(init_array_buf) {
-         DLIF_read(pHandle->client_handle, init_array_buf, 1,
-                   dyn_module->init_arraysz, (TARGET_ADDRESS)init_array_loc);
+      if (val->size != 0)
+      {
+         /*------------------------------------------------------------------*/
+         /* Now make a loader-accessible copy of the .init_array section.    */
+         /*------------------------------------------------------------------*/
+         int32_t i;
+         int32_t num_init_fcns = val->size/sizeof(TARGET_ADDRESS);
+         TARGET_ADDRESS *init_array_buf = (TARGET_ADDRESS *)
+                                            DLIF_malloc(val->size);
+
+         DLIF_read(pHandle->client_handle,
+               init_array_buf, 1, val->size,
+           (TARGET_ADDRESS)val->sect_addr);
 
          /*------------------------------------------------------------------*/
-         /* Call each function whose address occupies an entry in the array  */
-         /* in the order that they appear in the array. The size of the array*/
-         /* is provided by the init_arraysz field in the dynamic module      */
-         /* (copied earlier when the dynamic table was read in).             */
+         /* Call each function whose address occupies an entry in array in   */
+         /* the order that they appear in the array. The size of the array is*/
+         /* provided by the init_arraysz field in the dynamic module (copied */
+         /* earlier when the dynamic table was read in). Make sure that      */
+         /* function addresses are valid before execution.                   */
          /*------------------------------------------------------------------*/
          for (i = 0; i < num_init_fcns; i++)
-            DLIF_execute(pHandle->client_handle,
-                         (TARGET_ADDRESS)(init_array_buf[i]));
+            if (init_array_buf[i])
+               DLIF_execute(pHandle->client_handle,
+                        (TARGET_ADDRESS)(init_array_buf[i]));
+            else
+               DLIF_warning(DLWT_MISC,
+                  "DT_INIT_ARRAY/DT_PREINIT_ARRAY function address is NULL!");
 
          DLIF_free(init_array_buf);
       }
+      else
+      {
+         if (val->sect_addr)
+            DLIF_execute(pHandle->client_handle,
+                     (TARGET_ADDRESS)(val->sect_addr));
+         else
+            DLIF_warning(DLWT_MISC, "DT_INIT function address is NULL!");
+      }
+   }
+}
+
+/*****************************************************************************/
+/* adjust_module_init_fini()                                                 */
+/*    If the dynamic loader need not process the module initialization       */
+/*    and termination (fini section) then adjust the module info so that     */
+/*    the respective sizes become zero.                                      */
+/*****************************************************************************/
+static void adjust_module_init_fini(DLIMP_Dynamic_Module *dm)
+{
+   /*------------------------------------------------------------------------*/
+   /* The C6x RTS boot code has the function _c_int00 which performs         */
+   /* the C/C++ initialization. This function processes the .init_array      */
+   /* to perform the C/C++ initialization and handles termination through    */
+   /* the at_exit functionality. If the dynamic executable we are loading    */
+   /* includes _c_int00, the loader assumes that the application code takes  */
+   /* care of all initialization and termination. Hence the loader won't     */
+   /* perform the initialization and termination.                            */
+   /* NOTE: Use of __TI_STACK_SIZE is a hack. The _c_int00 symbol is not     */
+   /*       in the dynamic symbol table. The right fix is for the linker     */
+   /*       not to generate the init array tags if the build includes RTS    */
+   /*       boot routine.                                                    */
+   /*------------------------------------------------------------------------*/
+   if (dm->fhdr.e_type == ET_EXEC &&
+       DLSYM_lookup_local_symtab("__TI_STACK_SIZE", dm->symtab, dm->symnum,
+                                 NULL))
+   {
+      dm->init_arraysz   = 0;
+      dm->init_array_idx = -1;
+
+      dm->preinit_arraysz   = 0;
+      dm->preinit_array_idx = -1;
+
+      dm->loaded_module->fini_arraysz = 0;
+      dm->loaded_module->fini_array   = (Elf32_Addr) NULL;
+      dm->loaded_module->fini         = (Elf32_Addr) NULL;
    }
 }
 
@@ -2492,9 +2608,10 @@ static void execute_module_initialization(DLOAD_HANDLE handle,
 /*    module, the dynamic module object is destructed.                       */
 /*                                                                           */
 /*****************************************************************************/
-static int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
-                                                 LOADER_FILE_DESC *fd,
-                                                 DLIMP_Dynamic_Module *dyn_module)
+static
+int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
+                                          LOADER_FILE_DESC *fd,
+                                          DLIMP_Dynamic_Module *dyn_module)
 {
    /*------------------------------------------------------------------------*/
    /* Processing of relocations will only be triggered when this function    */
@@ -2504,19 +2621,22 @@ static int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
    int32_t local_file_handle = dyn_module->loaded_module->file_handle;
    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
    dynamic_module_ptr_Stack_Node *ptr =
-      pHandle->DLIMP_dependency_stack.bottom_ptr;
-   if (ptr && (ptr->value != dyn_module)) {return local_file_handle;}
+                           pHandle->DLIMP_dependency_stack.bottom_ptr;
+   if (ptr && (ptr->value != dyn_module)) return local_file_handle;
 
-   /*------------------------------------------------------------------------*/
-   /* Assign DSBT indices.                                                   */
-   /*------------------------------------------------------------------------*/
-   DLIF_assign_dsbt_indices();
+   if (is_dsbt_module(dyn_module))
+   {
+       /*--------------------------------------------------------------------*/
+       /* Assign DSBT indices.                                               */
+       /*--------------------------------------------------------------------*/
+       DLIF_assign_dsbt_indices();
 
-   /*------------------------------------------------------------------------*/
-   /* Update the content of all DSBTs for any module that uses the DSBT      */
-   /* model.                                                                 */
-   /*------------------------------------------------------------------------*/
-   DLIF_update_all_dsbts();
+       /*--------------------------------------------------------------------*/
+       /* Update the content of all DSBTs for any module that uses the       */
+       /* DSBT model.                                                        */
+       /*--------------------------------------------------------------------*/
+       DLIF_update_all_dsbts();
+   }
 
    /*------------------------------------------------------------------------*/
    /* Ok, we are ready to process relocations. The relocation tables         */
@@ -2532,16 +2652,18 @@ static int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
       /*---------------------------------------------------------------------*/
       /* Process dynamic relocations associated with this module.            */
       /*---------------------------------------------------------------------*/
-      process_dynamic_module_relocations(handle, dyn_mod_ptr->fd,
-                                         dyn_mod_ptr);
+      process_dynamic_module_relocations(handle, dyn_mod_ptr->fd, dyn_mod_ptr);
 
       /*---------------------------------------------------------------------*/
       /* __c_args__ points to the beginning of the .args section, if there   */
       /* is one.  Record this pointer in the ELF file internal data object.  */
+      /* Also store this in the loaded module, since this will be needed to  */
+      /* write argv, argc to .args at execution time.                        */
       /*---------------------------------------------------------------------*/
       DLSYM_lookup_local_symtab("__c_args__", dyn_mod_ptr->symtab,
                                 dyn_mod_ptr->symnum,
                                 (Elf32_Addr *)&dyn_mod_ptr->c_args);
+      dyn_mod_ptr->loaded_module->c_args = dyn_mod_ptr->c_args;
 
       /*---------------------------------------------------------------------*/
       /* Pick up entry point address from ELF file header.                   */
@@ -2556,13 +2678,15 @@ static int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
       /*---------------------------------------------------------------------*/
       /* Copy command-line arguments into args section and deal with DSBT    */
       /* issues (copy DSBT to its run location).                             */
+      /* Note that below function is commented out because this doesn't do   */
+      /* much as of now.                                                     */
       /*---------------------------------------------------------------------*/
-      load_object(dyn_mod_ptr->fd, dyn_mod_ptr);
+      //load_object(dyn_mod_ptr->fd, dyn_mod_ptr);
 
       /*---------------------------------------------------------------------*/
       /* Perform initialization, if needed, for this module.                 */
       /*---------------------------------------------------------------------*/
-      execute_module_initialization(handle, dyn_mod_ptr);
+      store_init_data(dyn_mod_ptr);
 
       /*---------------------------------------------------------------------*/
       /* Free all dependent file pointers.                                   */
@@ -2594,9 +2718,10 @@ static int32_t relocate_dependency_graph_modules(DLOAD_HANDLE handle,
 /*    The core loader must have read access to the file pointed to by fd.    */
 /*                                                                           */
 /*****************************************************************************/
-int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
-                   char** argv)
+int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
 {
+    int32_t fl_handle;
+
     LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
     DLIMP_Dynamic_Module *dyn_module = new_DLIMP_Dynamic_Module(fd);
 
@@ -2624,7 +2749,8 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    /*------------------------------------------------------------------------*/
    /* Read file headers and dynamic information into dynamic module.         */
    /*------------------------------------------------------------------------*/
-   if (!dload_headers(handle, fd, dyn_module)) {
+   if (!dload_headers(fd, dyn_module))
+   {
       delete_DLIMP_Dynamic_Module(handle, &dyn_module);
       return 0;
    }
@@ -2634,25 +2760,9 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    /* information from the ELF object file into the dynamic module data      */
    /* structure associated with this file.                                   */
    /*------------------------------------------------------------------------*/
-   if (!dload_dynamic_segment(handle, fd, dyn_module)) {
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
+   if (!dload_dynamic_segment(handle, fd, dyn_module))
       return 0;
-   }
 
-   /*------------------------------------------------------------------------*/
-   /* ??? We currently don't have a way of finding the .args section.  So    */
-   /*    we are hard-wiring the address of the .args section.  The proposed  */
-   /*    solution for this problem is to invent a special segment type or    */
-   /*    dynamic tag(s) that identify the location and size of the .args     */
-   /*    section for the dynamic loader.                                     */
-   /*------------------------------------------------------------------------*/
-   /*HACK ---> */dyn_module->c_args = (uint8_t*)(0x02204000); /* <--- HACK*/
-
-   /*------------------------------------------------------------------------*/
-   /* Record argc and argv pointers with the dynamic module record.          */
-   /*------------------------------------------------------------------------*/
-   dyn_module->argc = argc;
-   dyn_module->argv = argv;
    if (dyn_module->name == NULL) {
       dyn_module->name = DLIF_malloc(sizeof(char));
       if(dyn_module->name)
@@ -2670,7 +2780,6 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    {
       DLIF_error(DLET_FILE, "Attempt to load invalid ELF file, '%s'.\n",
                     dyn_module->name);
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
       return 0;
    }
 
@@ -2685,15 +2794,11 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
       if (profiling_on)
       {
          profile_stop_clock();
-         DLIF_trace("Took %d cycles.\n", (int)profile_cycle_count());
+         DLIF_trace("Took %lu cycles.\n",
+                (unsigned long) profile_cycle_count());
       }
    }
 #endif
-
-   if (!process_section_table(fd, dyn_module)) {
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
-      return 0;
-   }
 
    /*------------------------------------------------------------------------*/
    /* Initialize internal ELF module and segment structures.  Sets           */
@@ -2721,18 +2826,37 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    /* structure.  Note that this step needs to be performed prior and in     */
    /* addition to the relocation entry processing.                           */
    /*------------------------------------------------------------------------*/
-   if (!allocate_dynamic_segments_and_relocate_symbols(handle, fd, dyn_module)) {
-      loaded_module_ptr_remove(&pHandle->DLIMP_loaded_objects,
-                               dyn_module->loaded_module);
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
+   if (!allocate_dynamic_segments_and_relocate_symbols(handle, fd, dyn_module))
       return 0;
-   }
+
+   /*------------------------------------------------------------------------*/
+   /* __c_args__ points to the beginning of the .args section, if there is   */
+   /* one.  __TI_STATIC_BASE points to the beginning of the DP-relative data */
+   /* segment (value to initialize DP). Record these addresses in the ELF    */
+   /* file internal data object.                                             */
+   /*------------------------------------------------------------------------*/
+   DLSYM_lookup_local_symtab("__c_args__", dyn_module->symtab,
+                             dyn_module->symnum,
+                             (Elf32_Addr *)&dyn_module->c_args);
+
+   DLSYM_lookup_local_symtab("__TI_STATIC_BASE", dyn_module->symtab,
+                             dyn_module->symnum,
+                             (Elf32_Addr *)&dyn_module->static_base);
+   dyn_module->loaded_module->static_base = dyn_module->static_base;
+
+   /*------------------------------------------------------------------------*/
+   /* If the user application performs initialization and termination,       */
+   /* the dynamic loader shouldn't process the init/fini sections.           */
+   /* Check and adjust the init/fini information accordingly.                */
+   /*------------------------------------------------------------------------*/
+   adjust_module_init_fini(dyn_module);
+
    /*------------------------------------------------------------------------*/
    /* Execute any user defined pre-initialization functions that may be      */
    /* associated with a dynamic executable module.                           */
    /*------------------------------------------------------------------------*/
    if (dyn_module->fhdr.e_type == ET_EXEC)
-      execute_module_pre_initialization(handle, dyn_module);
+      store_preinit_data(dyn_module);
 
    /*------------------------------------------------------------------------*/
    /* Append current ELF file to list of objects currently loading.          */
@@ -2753,29 +2877,19 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    /* request with the client's DSBT support management.                     */
    /*------------------------------------------------------------------------*/
    if (is_dsbt_module(dyn_module) &&
-      !DLIF_register_dsbt_index_request(handle,
-                                        dyn_module->name,
-                                        dyn_module->loaded_module->file_handle,
-                                        dyn_module->dsbt_index)) {
-      dynamic_module_ptr_pop(&pHandle->DLIMP_dependency_stack);
-      loaded_module_ptr_remove(&pHandle->DLIMP_loaded_objects,
-				  dyn_module->loaded_module);
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
+       !DLIF_register_dsbt_index_request(handle,
+                                         dyn_module->name,
+                                         dyn_module->loaded_module->file_handle,
+                                         dyn_module->dsbt_index))
       return 0;
-   }
 
    /*------------------------------------------------------------------------*/
-   /* Load this ELF file's dependents (all files on its DT_NEEDED list).     */
-   /* Do not process relocation entries for anyone in the dependency graph   */
-   /* until all modules in the graph are loaded and allocated.               */
+   /* Load this ELF file's dependees (all files on its DT_NEEDED list).      */
+   /* Dependees must be loaded and relocated before processing this module's */
+   /* relocations.                                                           */
    /*------------------------------------------------------------------------*/
-   if (!dload_and_allocate_dependencies(handle, dyn_module)) {
-      dynamic_module_ptr_pop(&pHandle->DLIMP_dependency_stack);
-      loaded_module_ptr_remove(&pHandle->DLIMP_loaded_objects,
-				  dyn_module->loaded_module);
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
+   if (!dload_and_allocate_dependencies(handle, dyn_module))
       return 0;
-   }
 
    /*------------------------------------------------------------------------*/
    /* Remove the current ELF file from the list of files that are in the     */
@@ -2784,62 +2898,17 @@ int32_t DLOAD_load(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd, int argc,
    pHandle->DLIMP_module_dependency_list.size--;
 
    /*------------------------------------------------------------------------*/
-   /* __c_args__ points to the beginning of the .args section, if there is   */
-   /* one.  Record this pointer in the ELF file internal data object.        */
+   /* Process relocation entries.                                            */
    /*------------------------------------------------------------------------*/
-   DLSYM_lookup_local_symtab("__c_args__", dyn_module->symtab,
-                             dyn_module->symnum,
-                             (Elf32_Addr *)&dyn_module->c_args);
-
-
-   return relocate_dependency_graph_modules(handle, fd, dyn_module);
-}
-
-BOOL DLOAD_get_entry_names_info(DLOAD_HANDLE handle,
-                                uint32_t file_handle,
-                                int32_t *entry_pt_cnt,
-                                int32_t *entry_pt_max_name_len)
-{
-   /*------------------------------------------------------------------------*/
-   /* Spin through list of loaded files until we find the file handle we     */
-   /* are looking for.  Then build a list of entry points from that file's   */
-   /* symbol table.                                                          */
-   /*------------------------------------------------------------------------*/
-   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-   loaded_module_ptr_Queue_Node* ptr;
-   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr;
-       ptr != NULL;
-       ptr = ptr->next_ptr)
-   {
-      if (ptr->value->file_handle == file_handle)
-      {
-         DLIMP_Loaded_Module *module = ptr->value;
-         struct Elf32_Sym *symtab;
-         int i;
-
-         /*------------------------------------------------------------------*/
-         /* Any symbol in our file's symbol table is considered a valid      */
-         /* entry point.                                                     */
-         /*------------------------------------------------------------------*/
-         symtab = (struct Elf32_Sym*)module->gsymtab;
-         *entry_pt_cnt = module->gsymnum;
-         *entry_pt_max_name_len = 0;
-         for (i = 0; i < module->gsymnum; i++)
-         {
-            const char *sym_name = (const char *)symtab[i].st_name;
-
-            if ((strlen(sym_name) + 1) > *entry_pt_max_name_len)
-               *entry_pt_max_name_len = strlen(sym_name) + 1;
-         }
-
-         return TRUE;
-      }
-   }
+   fl_handle = relocate_dependency_graph_modules(handle, fd, dyn_module);
 
    /*------------------------------------------------------------------------*/
-   /* We didn't find the file we were looking for, return false.             */
+   /* With initialization complete, and all relocations having been resolved */
+   /* do module initialization.                                              */
    /*------------------------------------------------------------------------*/
-   return FALSE;
+   execute_module_initialization(handle);
+
+   return fl_handle;
 }
 
 /*****************************************************************************/
@@ -2863,12 +2932,10 @@ BOOL DLOAD_get_entry_names(DLOAD_HANDLE handle,
    /* are looking for.  Then build a list of entry points from that file's   */
    /* symbol table.                                                          */
    /*------------------------------------------------------------------------*/
-   char **names;
    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
    loaded_module_ptr_Queue_Node* ptr;
-   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr;
-        ptr != NULL;
-        ptr = ptr->next_ptr)
+   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr; ptr != NULL;
+                                                          ptr = ptr->next_ptr)
    {
       if (ptr->value->file_handle == file_handle)
       {
@@ -2881,22 +2948,118 @@ BOOL DLOAD_get_entry_names(DLOAD_HANDLE handle,
          /* entry point.                                                     */
          /*------------------------------------------------------------------*/
          symtab = (struct Elf32_Sym*)module->gsymtab;
-         if (*entry_pt_cnt < module->gsymnum) {
-            DLIF_error(DLET_MEMORY, "There are %d entry points, "
-                       "only %d spaces provided.\n",
-                       module->gsymnum,*entry_pt_cnt);
-            return FALSE;
-         }
-         names = *entry_pt_names;
+         *entry_pt_cnt = module->gsymnum;
+         *entry_pt_names = DLIF_malloc(*entry_pt_cnt * sizeof(char*));
          for (i = 0; i < module->gsymnum; i++)
          {
             const char *sym_name = (const char *)symtab[i].st_name;
-            strcpy(names[i],sym_name);
+            **entry_pt_names = DLIF_malloc(strlen(sym_name) + 1);
+            strcpy(**entry_pt_names,sym_name);
          }
 
          return TRUE;
       }
    }
+
+   /*------------------------------------------------------------------------*/
+   /* We didn't find the file we were looking for, return false.             */
+   /*------------------------------------------------------------------------*/
+   return FALSE;
+}
+
+/*****************************************************************************/
+/* DLOAD_prepare_for_execution()                                             */
+/*                                                                           */
+/*    Given a file handle, prepare for execution :                           */
+/*     - Return entry point associated with that module in the *sym_val      */
+/*       output parameter.                                                   */
+/*     - Write out the given arguments to the .args section contained in the */
+/*       same module.                                                        */
+/*     - As a test (for the Reference implementation) read the arguments     */
+/*       using the DLIF_read_arguments() function and set global argc,argv.  */
+/*                                                                           */
+/*****************************************************************************/
+BOOL DLOAD_prepare_for_execution(DLOAD_HANDLE handle, uint32_t file_handle,
+                           TARGET_ADDRESS *sym_val,
+                           int argc, char** argv)
+{
+   /*------------------------------------------------------------------------*/
+   /* Spin through list of loaded files until we find the file handle we     */
+   /* are looking for.  Then return the entry point address associated with  */
+   /* that module.                                                           */
+   /*------------------------------------------------------------------------*/
+   DLIMP_Loaded_Module *ep_loaded_module;
+   loaded_module_ptr_Queue_Node* ptr;
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+
+   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr; ptr != NULL;
+                                                       ptr = ptr->next_ptr)
+      if (ptr->value->file_handle == file_handle)
+      {
+         *sym_val = (TARGET_ADDRESS)(ptr->value->entry_point);
+         ep_loaded_module = ptr->value;
+
+         /*------------------------------------------------------------------*/
+         /* Write argc, argv to the .args section in this module.            */
+         /*------------------------------------------------------------------*/
+         if (!write_arguments_to_args_section(handle, argc, argv,
+                                          ep_loaded_module))
+         {
+            DLIF_error(DLET_MISC, "Couldn't write to .args section\n");
+            return FALSE;
+         }
+
+         /*------------------------------------------------------------------*/
+         /* For the Reference Implementation we simulate a "boot" (rts boot  */
+         /* routine reads argc, argv from .args), by reading argc, argv from */
+         /* .args section. Note that we just wrote these values to the .args */
+         /* so this read serves as a test for the Reference Implementation.  */
+         /*------------------------------------------------------------------*/
+         read_args_from_section(ep_loaded_module);
+         return TRUE;
+      }
+
+   /*------------------------------------------------------------------------*/
+   /* We didn't find the file we were looking for, return false.             */
+   /*------------------------------------------------------------------------*/
+   return FALSE;
+}
+
+/*****************************************************************************/
+/* DLOAD_load_arguments()                                                    */
+/*                                                                           */
+/*    Write out the given arguments to the .args section contained in the    */
+/*    same module.                                                           */
+/*                                                                           */
+/*****************************************************************************/
+BOOL DLOAD_load_arguments(DLOAD_HANDLE handle, uint32_t file_handle,
+                           int argc, char** argv)
+{
+   /*------------------------------------------------------------------------*/
+   /* Spin through list of loaded files until we find the file handle we     */
+   /* are looking for.  Then return the entry point address associated with  */
+   /* that module.                                                           */
+   /*------------------------------------------------------------------------*/
+   DLIMP_Loaded_Module *ep_loaded_module;
+   loaded_module_ptr_Queue_Node* ptr;
+   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+
+   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr; ptr != NULL;
+                                                       ptr = ptr->next_ptr)
+      if (ptr->value->file_handle == file_handle)
+      {
+         ep_loaded_module = ptr->value;
+
+         /*------------------------------------------------------------------*/
+         /* Write argc, argv to the .args section in this module.            */
+         /*------------------------------------------------------------------*/
+         if (!write_arguments_to_args_section(handle, argc, argv,
+                                          ep_loaded_module))
+         {
+            DLIF_error(DLET_MISC, "Couldn't write to .args section\n");
+            return FALSE;
+         }
+      }
 
    /*------------------------------------------------------------------------*/
    /* We didn't find the file we were looking for, return false.             */
@@ -2982,7 +3145,7 @@ BOOL DLOAD_query_symbol(DLOAD_HANDLE handle,
    }
 
    /*------------------------------------------------------------------------*/
-   /* We didn't find the file we were looking for, return false.             */
+   /* We didn't find the symbol we were looking for, return false.           */
    /*------------------------------------------------------------------------*/
    return FALSE;
 }
@@ -3000,53 +3163,7 @@ BOOL DLOAD_get_section_info(DLOAD_HANDLE handle, uint32_t file_handle,
                             uint32_t *sect_size)
 {
    /*------------------------------------------------------------------------*/
-   /* Spin through list of loaded files until we find the file handle we     */
-   /* are looking for.  Then return the value (target address) associated    */
-   /* with the symbol we are looking for in that file.                       */
-   /*------------------------------------------------------------------------*/
-   loaded_module_ptr_Queue_Node* ptr;
-   LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr;
-        ptr != NULL;
-        ptr = ptr->next_ptr)
-   {
-      if (ptr->value->file_handle == file_handle)
-      {
-         DLIMP_Loaded_Module *module = ptr->value;
-         DLIMP_Section_Info *sections = (DLIMP_Section_Info*)
-                                               (module->sections.buf);
-         int size = module->sections.size;
-         int i;
-
-         /*------------------------------------------------------------------*/
-         /* Search through the symbol table by name.                         */
-         /*------------------------------------------------------------------*/
-         for(i=0; i < size; i++)
-         {
-            if (!strcmp(sect_name, (const char *)sections[i].sh_name))
-            {
-               *sect_val = (TARGET_ADDRESS) sections[i].shdr.sh_addr;
-               *sect_size = sections[i].shdr.sh_size;
-#if LOADER_DEBUG
-               if (debugging_on)  {
-                  DLIF_trace(
-                  "DLOAD_get_section_info: Found section %s of size 0x%x at addr 0x%x.\n", sect_name, *sect_size, *sect_val);
-               }
-#endif
-               return TRUE;
-            }
-         }
-      }
-   }
-#if LOADER_DEBUG
-         if (debugging_on)  {
-            DLIF_trace(
-            "DLOAD_get_section_info: Section %s not found.\n", sect_name);
-         }
-#endif
-
-   /*------------------------------------------------------------------------*/
-   /* We didn't find the file we were looking for, return false.             */
+   /* Not implemented. return false.                                         */
    /*------------------------------------------------------------------------*/
    return FALSE;
 }
@@ -3335,15 +3452,9 @@ BOOL DLOAD_unload(DLOAD_HANDLE handle, uint32_t file_handle)
             remove_loaded_module(handle, lm_node);
 
             /*---------------------------------------------------------------*/
-            /* If all loaded objects have been unloaded (including the       */
-            /* base image), then reset the machine to the default target     */
-            /* machine.  This only has an effect when multiple targets are   */
-            /* supported, in which case the machine is set to EM_NONE.       */
+            /* Once unloading is done, reset virtual target to NULL.         */
             /*---------------------------------------------------------------*/
-            if (pHandle->DLIMP_loaded_objects.front_ptr == NULL)
-            {
-               pHandle->DLOAD_TARGET_MACHINE = DLOAD_DEFAULT_TARGET_MACHINE;
-            }
+            cur_target = NULL;
 
             return TRUE;
          }
@@ -3362,9 +3473,15 @@ BOOL DLOAD_unload(DLOAD_HANDLE handle, uint32_t file_handle)
 /*****************************************************************************/
 int32_t DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
 {
-   DLIMP_Dynamic_Module *dyn_module = NULL;
+   DLIMP_Dynamic_Module *dyn_module = new_DLIMP_Dynamic_Module(fd);
    DLIMP_Loaded_Module *loaded_module = NULL;
    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
+
+   /*------------------------------------------------------------------------*/
+   /* Ensure we have a valid dynamic module object from the constructor.     */
+   /*------------------------------------------------------------------------*/
+   if (!dyn_module)
+       return 0;
 
    /*------------------------------------------------------------------------*/
    /* If no access to a program was provided, there is nothing to do.        */
@@ -3375,14 +3492,6 @@ int32_t DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
       return 0;
    }
 
-   dyn_module = new_DLIMP_Dynamic_Module(fd);
-
-   /*------------------------------------------------------------------------*/
-   /* Ensure we have a valid dynamic module object from the constructor.     */
-   /*------------------------------------------------------------------------*/
-   if (!dyn_module)
-      return 0;
-
    /*------------------------------------------------------------------------*/
    /* Record argc and argv pointers with the dynamic module record.          */
    /*------------------------------------------------------------------------*/
@@ -3392,7 +3501,8 @@ int32_t DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
    /*------------------------------------------------------------------------*/
    /* Read file headers and dynamic information into dynamic module.         */
    /*------------------------------------------------------------------------*/
-   if (!dload_headers(handle, fd, dyn_module)) {
+   if (!dload_headers(fd, dyn_module))
+   {
       delete_DLIMP_Dynamic_Module(handle, &dyn_module);
       return 0;
    }
@@ -3402,7 +3512,8 @@ int32_t DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
    /* information from the ELF object file into the dynamic module data      */
    /* structure associated with this file.                                   */
    /*------------------------------------------------------------------------*/
-   if (!dload_dynamic_segment(handle, fd, dyn_module)) {
+   if (!dload_dynamic_segment(handle, fd, dyn_module))
+   {
       delete_DLIMP_Dynamic_Module(handle, &dyn_module);
       return 0;
    }
@@ -3414,11 +3525,6 @@ int32_t DLOAD_load_symbols(DLOAD_HANDLE handle, LOADER_FILE_DESC *fd)
    {
       DLIF_error(DLET_FILE, "Attempt to load invalid ELF file, '%s'.\n",
                     dyn_module->name);
-      delete_DLIMP_Dynamic_Module(handle, &dyn_module);
-      return 0;
-   }
-
-   if (!process_section_table(fd, dyn_module)) {
       delete_DLIMP_Dynamic_Module(handle, &dyn_module);
       return 0;
    }
@@ -3513,19 +3619,17 @@ uint32_t DLOAD_get_dsbt_size(DLOAD_HANDLE handle, int32_t file_handle)
 BOOL DLOAD_get_static_base(DLOAD_HANDLE handle, int32_t file_handle,
                            TARGET_ADDRESS *static_base)
 {
-   dynamic_module_ptr_Stack_Node *ptr;
+   loaded_module_ptr_Queue_Node* ptr;
    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
-   for (ptr = pHandle->DLIMP_dependency_stack.top_ptr;
-        ptr != NULL;
-        ptr = ptr->next_ptr)
+
+   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr; ptr != NULL;
+              ptr = ptr->next_ptr)
    {
-      DLIMP_Dynamic_Module *dmp = ptr->value;
-      if (dmp->loaded_module->file_handle == file_handle)
+      DLIMP_Loaded_Module *lmp = ptr->value;
+      if (lmp->file_handle == file_handle)
       {
-         BOOL stat = DLSYM_lookup_local_symtab("__TI_STATIC_BASE",
-                                               dmp->symtab, dmp->symnum,
-                                               (Elf32_Addr *)static_base);
-         return stat;
+          *static_base = (TARGET_ADDRESS)lmp->static_base;
+          return TRUE;
       }
    }
 
@@ -3538,8 +3642,7 @@ BOOL DLOAD_get_static_base(DLOAD_HANDLE handle, int32_t file_handle,
 /*    Look up address of DSBT for the specified module.                      */
 /*                                                                           */
 /*****************************************************************************/
-BOOL DLOAD_get_dsbt_base(DLOAD_HANDLE handle, int32_t file_handle,
-                         TARGET_ADDRESS *dsbt_base)
+BOOL DLOAD_get_dsbt_base(DLOAD_HANDLE handle, int32_t file_handle, TARGET_ADDRESS *dsbt_base)
 {
    dynamic_module_ptr_Stack_Node *ptr;
    LOADER_OBJECT *pHandle = (LOADER_OBJECT *)handle;
@@ -3557,4 +3660,77 @@ BOOL DLOAD_get_dsbt_base(DLOAD_HANDLE handle, int32_t file_handle,
    }
 
    return FALSE;
+}
+
+/*****************************************************************************/
+/* RELOCATE() - Perform RELA and REL type relocations for given ELF object   */
+/*      file that we are in the process of loading and relocating.           */
+/*****************************************************************************/
+void DLREL_relocate(DLOAD_HANDLE handle, LOADER_FILE_DESC* elf_file,
+                    DLIMP_Dynamic_Module* dyn_module)
+
+{
+   cur_target->relocate(handle, elf_file, dyn_module);
+}
+
+/*****************************************************************************/
+/* GET_VT_OBJ() - Once file headers have been read, use the e_machine id to  */
+/*        figure out the virtul target, so we can access trg specific funcs. */
+/*****************************************************************************/
+static VIRTUAL_TARGET *get_vt_obj(int given_id)
+{
+   VIRTUAL_TARGET *ptr;
+
+   for(ptr = vt_arr; ptr->machine_id != EM_NONE ; ptr++)
+      if (ptr->machine_id == given_id) return ptr;
+
+   return NULL;
+}
+
+#if 0 && LOADER_DEBUG   // enable to make available in debugger
+/*****************************************************************************/
+/* DEBUG_QUEUE() - Debug function.                                           */
+/*****************************************************************************/
+static void debug_queue(LOADER_OBJECT *pHandle, char* position)
+{
+   loaded_module_ptr_Queue_Node* ptr;
+
+   if (!debugging_on) return;
+
+   DLIF_trace ("\nDEBUG QUEUE : %s, pHandle : 0x%x\n\n", position,
+           (uint32_t)pHandle);
+
+   for (ptr = pHandle->DLIMP_loaded_objects.front_ptr; ptr != NULL;
+              ptr = ptr->next_ptr)
+   {
+      DLIF_trace ("ptr->value->name : %s\n",ptr->value->name);
+   }
+   DLIF_trace ("\n");
+}
+#endif
+
+/*****************************************************************************/
+/* READ_ARGS_FROM_SECTION() - This function reads the argc, argv from the    */
+/*         .args section, and is used to test Reference implementation.      */
+/*****************************************************************************/
+static void read_args_from_section(DLIMP_Loaded_Module* ep_module)
+{
+#if 0  /* TBD: not working. c_args is target address and cannot be dereferenced. */
+   /*------------------------------------------------------------------------*/
+   /* Before this function in called, the loader has gotten argv/argc from   */
+   /* the module and written it out to the .args section. c_args points to   */
+   /* the .args section.                                                     */
+   /*------------------------------------------------------------------------*/
+   ARGS_CONTAINER *pargs = (ARGS_CONTAINER *)(ep_module->c_args);
+   if (!pargs || pargs == (ARGS_CONTAINER *)0xFFFFFFFF)
+   {
+      global_argc = 0;
+      global_argv = NULL;
+   }
+   else
+   {
+      global_argc = pargs->argc;
+      global_argv = pargs->argv;
+   }
+#endif
 }

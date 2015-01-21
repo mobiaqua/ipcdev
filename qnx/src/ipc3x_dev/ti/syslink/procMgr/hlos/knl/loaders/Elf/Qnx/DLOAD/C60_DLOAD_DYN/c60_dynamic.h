@@ -3,7 +3,7 @@
 *
 * Interface into C6x-specific dynamic loader functionality
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,11 @@
 
 BOOL DLDYN_c60_process_dynamic_tag(DLIMP_Dynamic_Module* dyn_module, int i);
 BOOL DLDYN_c60_process_eiosabi(DLIMP_Dynamic_Module* dyn_module);
-BOOL DLDYN_c60_relocate_dynamic_tag_info(DLIMP_Dynamic_Module *dyn_module,
-                                         int32_t i);
+BOOL DLDYN_c60_relocate_dynamic_tag_info(DLIMP_Dynamic_Module *dyn_module, int32_t i);
+
+#define T_INTSZ 32
+#define T_CHARSZ 8
+#define MEM_INC 8
+#define PTR_SZ  32
 
 #endif

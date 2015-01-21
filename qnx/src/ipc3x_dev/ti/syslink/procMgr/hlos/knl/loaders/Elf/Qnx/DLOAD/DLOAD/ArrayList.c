@@ -26,7 +26,7 @@
 * AL_destroy(&obj);
 *
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -59,14 +59,8 @@
 *
 */
 
-#if defined (__KERNEL__)
-#include <linux/types.h>
-#include <linux/string.h>
-#else
 #include <inttypes.h>
-#include <stdlib.h>
 #include <string.h>
-#endif
 #include "ArrayList.h"
 #include "dload_api.h"
 
