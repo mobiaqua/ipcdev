@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ LOCAL_MODULE_TAGS:= optional
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQApp.c
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog libtiipcutils libtiipc
+    liblog libtiipcutils libtiipc libtitransportrpmsg
 
 LOCAL_MODULE:= messageQApp
 include $(BUILD_EXECUTABLE)
@@ -64,7 +64,7 @@ LOCAL_MODULE_TAGS:= optional
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQBench.c
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog libtiipcutils libtiipc
+    liblog libtiipcutils libtiipc libtitransportrpmsg
 
 LOCAL_MODULE:= messageQBench
 include $(BUILD_EXECUTABLE)
@@ -83,7 +83,7 @@ LOCAL_MODULE_TAGS:= optional
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQMulti.c
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog libtiipcutils libtiipc
+    liblog libtiipcutils libtiipc libtitransportrpmsg
 
 LOCAL_MODULE:= messageQMulti
 include $(BUILD_EXECUTABLE)
@@ -103,7 +103,7 @@ LOCAL_MODULE_TAGS:= optional
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/NameServerApp.c
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog libtiipcutils libtiipc
+    liblog libtiipcutils libtiipc libtitransportrpmsg
 
 LOCAL_MODULE:= nameServerApp
 include $(BUILD_EXECUTABLE)
