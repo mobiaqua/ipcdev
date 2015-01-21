@@ -100,7 +100,7 @@ am_GateMPApp_OBJECTS = $(am__objects_1) main_host.$(OBJEXT) \
 GateMPApp_OBJECTS = $(am_GateMPApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la \
-	$(top_builddir)/linux/src/transport/libtransport.la
+	$(top_builddir)/linux/src/transport/libtitransportrpmsg.la
 am__DEPENDENCIES_2 =
 GateMPApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
@@ -350,7 +350,7 @@ GateMPApp_SOURCES = $(common_sources) \
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la \
-                $(top_builddir)/linux/src/transport/libtransport.la
+                $(top_builddir)/linux/src/transport/libtitransportrpmsg.la
 
 
 # the additional libraries to link ping_rpmsg

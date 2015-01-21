@@ -38,7 +38,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = linux/src/transport
-DIST_COMMON = $(libtransport_la_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(libtitransportrpmsg_la_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -53,12 +53,12 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(libtransport_ladir)"
+	"$(DESTDIR)$(libtitransportrpmsg_ladir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libtransport_la_LIBADD =
-am_libtransport_la_OBJECTS = TransportRpmsg.lo
-libtransport_la_OBJECTS = $(am_libtransport_la_OBJECTS)
+libtitransportrpmsg_la_LIBADD =
+am_libtitransportrpmsg_la_OBJECTS = TransportRpmsg.lo
+libtitransportrpmsg_la_OBJECTS = $(am_libtitransportrpmsg_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -70,10 +70,10 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libtransport_la_SOURCES)
-DIST_SOURCES = $(libtransport_la_SOURCES)
-libtransport_laHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(libtransport_la_HEADERS)
+SOURCES = $(libtitransportrpmsg_la_SOURCES)
+DIST_SOURCES = $(libtitransportrpmsg_la_SOURCES)
+libtitransportrpmsg_laHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(libtitransportrpmsg_la_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -216,21 +216,21 @@ target_alias = @target_alias@
 ###############################################################################
 
 # the library names to build (note we are building shared libs)
-lib_LTLIBRARIES = libtransport.la
+lib_LTLIBRARIES = libtitransportrpmsg.la
 
 # where to install the headers on the system
-libtransport_ladir = $(includedir)/ti/ipc
+libtitransportrpmsg_ladir = $(includedir)/ti/ipc
 
 # the list of header files that belong to the library (to be installed later)
-libtransport_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
+libtitransportrpmsg_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
 
 # the sources to add to the library and to add to the source distribution
-libtransport_la_SOURCES = \
+libtitransportrpmsg_la_SOURCES = \
                         TransportRpmsg.c
 
 
 # Add version info to the shared library
-libtransport_la_LDFLAGS = -version-info 1:0:0
+libtitransportrpmsg_la_LDFLAGS = -version-info 1:0:0
 all: all-am
 
 .SUFFIXES:
@@ -291,8 +291,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libtransport.la: $(libtransport_la_OBJECTS) $(libtransport_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libtransport_la_LDFLAGS) $(libtransport_la_OBJECTS) $(libtransport_la_LIBADD) $(LIBS)
+libtitransportrpmsg.la: $(libtitransportrpmsg_la_OBJECTS) $(libtitransportrpmsg_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libtitransportrpmsg_la_LDFLAGS) $(libtitransportrpmsg_la_OBJECTS) $(libtitransportrpmsg_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -332,22 +332,22 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-libtransport_laHEADERS: $(libtransport_la_HEADERS)
+install-libtitransportrpmsg_laHEADERS: $(libtitransportrpmsg_la_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(libtransport_ladir)" || $(mkdir_p) "$(DESTDIR)$(libtransport_ladir)"
-	@list='$(libtransport_la_HEADERS)'; for p in $$list; do \
+	test -z "$(libtitransportrpmsg_ladir)" || $(mkdir_p) "$(DESTDIR)$(libtitransportrpmsg_ladir)"
+	@list='$(libtitransportrpmsg_la_HEADERS)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(libtransport_laHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libtransport_ladir)/$$f'"; \
-	  $(libtransport_laHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libtransport_ladir)/$$f"; \
+	  echo " $(libtitransportrpmsg_laHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(libtitransportrpmsg_ladir)/$$f'"; \
+	  $(libtitransportrpmsg_laHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(libtitransportrpmsg_ladir)/$$f"; \
 	done
 
-uninstall-libtransport_laHEADERS:
+uninstall-libtitransportrpmsg_laHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libtransport_la_HEADERS)'; for p in $$list; do \
+	@list='$(libtitransportrpmsg_la_HEADERS)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(libtransport_ladir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(libtransport_ladir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(libtitransportrpmsg_ladir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libtitransportrpmsg_ladir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -430,7 +430,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libtransport_ladir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libtitransportrpmsg_ladir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -478,7 +478,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libtransport_laHEADERS
+install-data-am: install-libtitransportrpmsg_laHEADERS
 
 install-exec-am: install-libLTLIBRARIES
 
@@ -507,7 +507,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libtransport_laHEADERS
+	uninstall-libtitransportrpmsg_laHEADERS
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
@@ -515,13 +515,13 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-exec \
 	install-exec-am install-info install-info-am \
-	install-libLTLIBRARIES install-libtransport_laHEADERS \
+	install-libLTLIBRARIES install-libtitransportrpmsg_laHEADERS \
 	install-man install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libtransport_laHEADERS
+	uninstall-libtitransportrpmsg_laHEADERS
 
 
 #pkgconfig_DATA          = libtiipc.pc
