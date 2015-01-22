@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
  *
  *  @brief      Multiple processor gate that provides local and remote context
  *              protection.
- *
- *  @note       GateMP is currently only available for SYS/BIOS.
  *
  *  A GateMP instance can be used to enforce both local and remote context
  *  context protection.  That is, entering a GateMP can prevent preemption by
