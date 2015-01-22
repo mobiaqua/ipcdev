@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@
 
 #define  NUM_LOOPS_DFLT   1000
 #define  NUM_THREADS_DFLT 10
-#define  MAX_NUM_THREADS  55
+#define  MAX_NUM_THREADS  25
 #define  ONE_PROCESS_ONLY (-1)
 
 /** ============================================================================
