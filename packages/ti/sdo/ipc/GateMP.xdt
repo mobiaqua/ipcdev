@@ -43,9 +43,9 @@
 /* Convert a virtual address to its physical address */
 Int _GateMP_virtToPhys(UInt32 va, UInt32 *pa)
 {
+%if (resource.$used) {
     Int ret;
 
-%if (resource.$used) {
     ret = ti_ipc_remoteproc_Resource_virtToPhys(va, pa);
     if (ret < 0) {
         return (GateMP_E_FAIL);
