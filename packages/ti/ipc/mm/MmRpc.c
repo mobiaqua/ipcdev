@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@
 #undef _linux_
 #endif
 
-#elif defined(SYSLINK_BUILDOS_QNX)
+#elif defined(IPC_BUILDOS_QNX)
 
 #include <ti/ipc/rpmsg_rpc.h>
 
@@ -315,7 +315,7 @@ int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
             stat = MmRpc_bufHandle(handle, RPPC_IOC_BUFUNREGISTER, num, desc);
             break;
 
-#elif defined(SYSLINK_BUILDOS_QNX)
+#elif defined(IPC_BUILDOS_QNX)
         case MmRpc_BufType_Ptr:
             break;
 #endif
@@ -347,7 +347,7 @@ int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
             stat = MmRpc_bufHandle(handle, RPPC_IOC_BUFREGISTER, num, desc);
             break;
 
-#elif defined(SYSLINK_BUILDOS_QNX)
+#elif defined(IPC_BUILDOS_QNX)
         case MmRpc_BufType_Ptr:
             break;
 #endif

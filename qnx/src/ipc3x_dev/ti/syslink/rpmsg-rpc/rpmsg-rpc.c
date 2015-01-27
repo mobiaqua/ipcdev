@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -372,7 +372,7 @@ static rpmsg_rpc_ModuleObject rpmsg_rpc_state =
 
 static uint16_t msg_id = 0xFFFF;
 
-extern dispatch_t * syslink_dpp;
+extern dispatch_t * ipc_dpp;
 
 
 static MsgList_t *find_nl(int index)
@@ -937,7 +937,7 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
     }
     IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (flag != TRUE) {
         /*! @retval ENOMEM Could not find a registered handler
                                       for this process. */
@@ -950,13 +950,13 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
                              "for this process.!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Allocate memory for the buf */
         pthread_mutex_lock(&rpmsg_rpc_state.lock);
         uBuf = get_uBuf();
         pthread_mutex_unlock(&rpmsg_rpc_state.lock);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (uBuf == NULL) {
             /*! @retval Notify_E_MEMORY Failed to allocate memory for event
                                 packet for received callback. */
@@ -969,7 +969,7 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
                                  " packet for received callback.!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             key = IGateProvider_enter (rpmsg_rpc_state.gateHandle);
             List_traverse_safe(elem, temp, rpmsg_rpc_state.eventState [i].fxnList) {
                 if (((rpmsg_rpc_FxnInfo *)elem)->msgId == msgId) {
@@ -1030,10 +1030,10 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
                     pthread_mutex_unlock(&rpmsg_rpc_state.lock);
                 }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_rpmsgDrv_addBufByPid", status);
 
@@ -1059,9 +1059,9 @@ Void
 _rpmsg_rpc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
                UInt32 src, UInt16 srcProc)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int32                   status = 0;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     rpmsg_rpc_object * rpc = NULL;
     struct rppc_msg_header * msg_hdr = NULL;
     struct rppc_instance_handle * instance;
@@ -1144,16 +1144,16 @@ _rpmsg_rpc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
                 GT_setFailureReason(curTrace, GT_4CLASS, "_rpmsg_rpc_cb",
                                     status, "msg_len is invalid");
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             _rpmsg_rpc_addBufByPid (rpc,
                                     src,
                                     rpc->pid,
                                     packet->msg_id,
                                     &packet->fxn_id,
                                     sizeof(packet->fxn_id) + sizeof(packet->result));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1161,7 +1161,7 @@ _rpmsg_rpc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
                                      status,
                                      "Failed to add callback packet for pid");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             break;
         default:
             break;
@@ -1328,7 +1328,7 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
     }
 
     if (flag != TRUE) {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (i == MAX_PROCESSES) {
             /*! @retval Notify_E_NOTFOUND The specified user process was
                      not found registered with Notify Driver module. */
@@ -1340,7 +1340,7 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
                               "The specified user process was not found"
                               " registered with rpmsg Driver module.");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         if (bufList != NULL) {
@@ -1391,7 +1391,7 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
             List_delete (&fxnList);
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status =  tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1400,7 +1400,7 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
                              status,
                              "Failed to delete termination semaphore!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "rpmsg_rpc_detach", status);
@@ -1976,7 +1976,7 @@ static
 Void
 _deinit_rpmsg_rpc_device (rpmsg_rpc_dev_t * dev)
 {
-    resmgr_detach(syslink_dpp, dev->rpmsg_rpc.resmgr_id, _RESMGR_DETACH_CLOSE);
+    resmgr_detach(ipc_dpp, dev->rpmsg_rpc.resmgr_id, _RESMGR_DETACH_CLOSE);
 
     pthread_mutex_destroy(&dev->rpmsg_rpc.mutex);
 
@@ -2035,7 +2035,7 @@ _init_rpmsg_rpc_device (char * name)
 
     snprintf (dev->rpmsg_rpc.device_name, _POSIX_PATH_MAX, "/dev/%s", name);
     if (-1 == (dev->rpmsg_rpc.resmgr_id =
-        resmgr_attach(syslink_dpp, &resmgr_attr,
+        resmgr_attach(ipc_dpp, &resmgr_attr,
                       dev->rpmsg_rpc.device_name, _FTYPE_ANY, 0,
                       &dev->rpmsg_rpc.cfuncs,
                       &dev->rpmsg_rpc.iofuncs, attr))) {
@@ -2208,7 +2208,7 @@ rpmsg_rpc_setup (Void)
     List_Params_init (&listparams);
     rpmsg_rpc_state.gateHandle = (IGateProvider_Handle)
                      GateSpinlock_create ((GateSpinlock_Handle) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (rpmsg_rpc_state.gateHandle == NULL) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
@@ -2218,7 +2218,7 @@ rpmsg_rpc_setup (Void)
                              "Failed to create spinlock gate!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         for (i = 0 ; i < MAX_PROCESSES ; i++) {
             rpmsg_rpc_state.eventState [i].bufList = NULL;
             rpmsg_rpc_state.eventState [i].rpc = NULL;
@@ -2304,9 +2304,9 @@ rpmsg_rpc_setup (Void)
             rpmsg_rpc_state.run = FALSE;
         }
         pthread_attr_destroy(&thread_attr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "rpmsg_rpc_setup");
     return status;

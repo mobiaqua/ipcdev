@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@ EXCLUDE_OSLIST=ipc procmgr utils
 EARLY_DIRS=build
 LATE_DIRS=samples
 
-SYSLINK_ROOT=$(CURDIR)
+IPC_ROOT=$(CURDIR)
 
 include recurse.mk
 

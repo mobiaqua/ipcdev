@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -218,7 +218,7 @@ typedef Int (*PwrMgr_UnregisterConstraintFxn) (PwrMgr_Handle handle,
 /*!
  *  @brief  Function pointer type for the function to signal an external power
  *          event, from the Container, or the  Master Power Manager directly,
- *          into to the SysLink Power Manager.
+ *          into to the Ipc Power Manager.
  */
 typedef Void (*PwrMgr_MasterNotifyReceiveFxn) (UInt16 eventType,
                                                UArg   eventArgs);

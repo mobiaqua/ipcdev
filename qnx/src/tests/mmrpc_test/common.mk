@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ endef
 
 INSTALLDIR = bin/tests
 
-CCOPTS += -DSYSLINK_BUILDOS_QNX
+CCOPTS += -DIPC_BUILDOS_QNX
 
 # source path
 EXTRA_SRCVPATH = $(IPC_REPO)/packages/ti/ipc/tests

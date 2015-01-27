@@ -159,9 +159,9 @@ typedef struct _ElfLoader_Object_tag {
  *
  *  @brief  ElfLoader state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 ElfLoader_ModuleObject ElfLoader_state =
 {
     .isSetup = FALSE,
@@ -509,7 +509,7 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
         status = Processor_translateAddr (elfLoaderObject->procHandle,
                                           &dstAddr,
                                           (UInt32)memReq->segment->target_address);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -518,7 +518,7 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                  "Processor_translateAddr failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             aInfo.addr [ProcMgr_AddrType_MasterPhys] = dstAddr;
             aInfo.addr [ProcMgr_AddrType_SlaveVirt]  =
                                        (UInt32) memReq->segment->target_address;
@@ -533,7 +533,7 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                     | ProcMgr_SLAVEVIRT),
                                    &aInfo,
                                    ProcMgr_AddrType_MasterPhys);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -542,12 +542,12 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                      "ProcMgr_map failed!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 sectData = (Ptr) aInfo.addr [ProcMgr_AddrType_MasterKnlVirt];
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         if (status >= 0) {
             /* Zero out unitialized data: */
@@ -563,7 +563,7 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                               memReq->fp,
                                               memReq->offset,
                                               LoaderFile_Pos_SeekSet);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -572,14 +572,14 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                  "Failed to seek to location of section data!");
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     /* Read from file if the loader is file-based. */
                     numBytes = ElfLoaderFile_read (clientHandle,
                                                 memReq->fp,
                                                 sectData,
                                                 memReq->segment->objsz_in_bytes,
                                                 sizeof (UInt8));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (numBytes == 0u) {
                         /*! @retval LOADER_E_FILE Failed to read from file */
                         status = LOADER_E_FILE;
@@ -590,14 +590,14 @@ ElfLoaderTrgWrite_copy (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                       "Failed to read section data from file!");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         /* Return section data address. */
                         memReq->host_address = sectData;
                         memReq->is_loaded = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     }
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
             else {  // if (memReq->segment->objsz_in_bytes)
                 memReq->host_address = sectData;
@@ -656,7 +656,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
             status = Processor_translateAddr (elfLoaderObject->procHandle,
                                       &dstAddr,
                                       (UInt32)memReq->segment->target_address);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -665,7 +665,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                      "Processor_translateAddr failed!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 aInfo.addr [ProcMgr_AddrType_MasterPhys] = dstAddr;
                 aInfo.addr [ProcMgr_AddrType_SlaveVirt]  =
                                         (UInt32)memReq->segment->target_address;
@@ -679,7 +679,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                         | ProcMgr_SLAVEVIRT),
                                        &aInfo,
                                        ProcMgr_AddrType_MasterPhys);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -688,7 +688,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                          "ProcMgr_map failed!");
                 }
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
             /* Write to target memory. */
             status = ProcMgr_write (elfLoaderObject->pmHandle,
@@ -696,7 +696,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                       &numBytes,
                                       memReq->host_address);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -704,7 +704,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                      status,
                                      "Failed to write to target memory!");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -715,7 +715,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
         status = Processor_translateAddr (elfLoaderObject->procHandle,
                                           &dstAddr,
                                           (UInt32)memReq->segment->target_address);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -724,7 +724,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                  "Processor_translateAddr failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Un-map the target memory. */
             aInfo.size = numBytes;
             aInfo.isCached = FALSE;
@@ -736,7 +736,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                      | ProcMgr_SLAVEVIRT),
                                     &aInfo,
                                     ProcMgr_AddrType_MasterPhys);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -745,7 +745,7 @@ ElfLoaderTrgWrite_write (Ptr clientHandle, struct DLOAD_MEMORY_REQUEST * memReq)
                                      "_ProcMgr_unmap failed!");
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoaderTrgWrite_write", status);
@@ -821,7 +821,7 @@ ElfLoaderTrgWrite_map (Ptr                clientHandle,
                            aInfo,
                            srcAddrType);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -829,7 +829,7 @@ ElfLoaderTrgWrite_map (Ptr                clientHandle,
                              status,
                              "ProcMgr_map failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoaderTrgWrite_map", status);
 
@@ -875,7 +875,7 @@ ElfLoaderTrgWrite_unmap (Ptr                clientHandle,
                              aInfo,
                              srcAddrType);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -883,7 +883,7 @@ ElfLoaderTrgWrite_unmap (Ptr                clientHandle,
                              status,
                              "ProcMgr_unmap failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoaderTrgWrite_unmap", status);
 
@@ -927,7 +927,7 @@ ElfLoaderTrgWrite_translate (Ptr              clientHandle,
                                     srcAddr,
                                     srcAddrType);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -935,7 +935,7 @@ ElfLoaderTrgWrite_translate (Ptr              clientHandle,
                              status,
                              "ProcMgr_translateAddr failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoaderTrgWrite_translate", status);
 
@@ -1060,7 +1060,7 @@ ElfLoader_getConfig (ElfLoader_Config * cfg)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1070,13 +1070,13 @@ ElfLoader_getConfig (ElfLoader_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Memory_copy (cfg,
                      &ElfLoader_state.defCfg,
                      sizeof (ElfLoader_Config));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ElfLoader_getConfig");
 }
@@ -1136,7 +1136,7 @@ ElfLoader_setup (ElfLoader_Config * cfg)
         /* Create a default gate handle for local module protection. */
         ElfLoader_state.gateHandle = (IGateProvider_Handle)
                               GateMutex_create ((GateMutex_Params *) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (ElfLoader_state.gateHandle == NULL) {
             /*! @retval LOADER_E_FAIL Failed to create GateMutex! */
             status = LOADER_E_FAIL;
@@ -1147,7 +1147,7 @@ ElfLoader_setup (ElfLoader_Config * cfg)
                                  "Failed to create GateMutex!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Copy the user provided values into the state object. */
             Memory_copy (&ElfLoader_state.cfg,
                          cfg,
@@ -1159,9 +1159,9 @@ ElfLoader_setup (ElfLoader_Config * cfg)
                         (sizeof (ElfLoader_Handle) * MultiProc_MAXPROCESSORS));
 
             ElfLoader_state.isSetup = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_setup", status);
@@ -1188,7 +1188,7 @@ ElfLoader_destroy (Void)
 
     GT_0trace (curTrace, GT_ENTER, "ElfLoader_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ElfLoader_state.refCount),
                                   LOADER_MAKE_MAGICSTAMP(0),
                                   LOADER_MAKE_MAGICSTAMP(1))
@@ -1202,7 +1202,7 @@ ElfLoader_destroy (Void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (   Atomic_dec_return (&ElfLoader_state.refCount)
             == LOADER_MAKE_MAGICSTAMP(0)) {
             /* Check if any ElfLoader instances have not been deleted so far. If not,
@@ -1222,9 +1222,9 @@ ElfLoader_destroy (Void)
 
             ElfLoader_state.isSetup = FALSE;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_destroy", status);
 
@@ -1253,7 +1253,7 @@ ElfLoader_Params_init (ElfLoader_Handle handle, ElfLoader_Params * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (params == NULL) {
         GT_setFailureReason (curTrace,
                           GT_4CLASS,
@@ -1263,7 +1263,7 @@ ElfLoader_Params_init (ElfLoader_Handle handle, ElfLoader_Params * params)
                           "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             params->reserved = 0;
         }
@@ -1277,9 +1277,9 @@ ElfLoader_Params_init (ElfLoader_Handle handle, ElfLoader_Params * params)
                          &(elfLoaderObject->params),
                          sizeof (ElfLoader_Params));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ElfLoader_Params_init");
 }
@@ -1296,9 +1296,9 @@ ElfLoader_Handle
 ElfLoader_create (      UInt16              procId,
                    const ElfLoader_Params * params)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int                 status  = LOADER_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     Loader_Object *     handle  = NULL;
     IArg                key;
 
@@ -1307,7 +1307,7 @@ ElfLoader_create (      UInt16              procId,
     GT_assert (curTrace, IS_VALID_PROCID (procId));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (!IS_VALID_PROCID (procId)) {
         /*! @retval NULL Function failed */
         status = LOADER_E_INVALIDARG;
@@ -1326,10 +1326,10 @@ ElfLoader_create (      UInt16              procId,
                              "params passed is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ElfLoader_state.gateHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         /* Check if the loader already exists for specified procId. */
         if (ElfLoader_state.loaderHandles [procId] != NULL) {
             status = LOADER_E_ALREADYEXIST;
@@ -1340,13 +1340,13 @@ ElfLoader_create (      UInt16              procId,
                              "Loader already exists for specified procId!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Allocate memory for the handle */
             handle = (Loader_Object *) Memory_calloc (NULL,
                                                       sizeof (Loader_Object),
                                                       0,
                                                       NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (handle == NULL) {
                 status = LOADER_E_MEMORY;
                 GT_setFailureReason (curTrace,
@@ -1356,7 +1356,7 @@ ElfLoader_create (      UInt16              procId,
                                      "Memory allocation failed for handle!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
                 /* Populate the handle fields */
                 /* Loader functions. */
@@ -1408,7 +1408,7 @@ ElfLoader_create (      UInt16              procId,
                                                  sizeof (ElfLoader_Object),
                                                  0,
                                                  NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (handle->object == NULL) {
                     status = LOADER_E_MEMORY;
                     GT_setFailureReason (curTrace,
@@ -1418,7 +1418,7 @@ ElfLoader_create (      UInt16              procId,
                          "Memory allocation failed for ElfLoader object!");
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     /* Allocate memory for the internal ElfLoader object */
                     ((ElfLoader_Object *) (handle->object))->elfLoaderObject =
                            (_ElfLoader_Object *)
@@ -1426,7 +1426,7 @@ ElfLoader_create (      UInt16              procId,
                                                 sizeof (_ElfLoader_Object),
                                                 0,
                                                 NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (((ElfLoader_Object *)
                             (handle->object))->elfLoaderObject == NULL) {
                         status = LOADER_E_MEMORY;
@@ -1438,11 +1438,11 @@ ElfLoader_create (      UInt16              procId,
                                     " ElfLoader object!");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         ((ElfLoader_Object *) (handle->object))->elfObject =
                               DLOAD_create(((ElfLoader_Object *)
                                             (handle->object))->elfLoaderObject);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (((ElfLoader_Object *)
                                  (handle->object))->elfObject == NULL) {
                             status = LOADER_E_MEMORY;
@@ -1453,24 +1453,24 @@ ElfLoader_create (      UInt16              procId,
                                         "DLOAD_create failed!");
                         }
                         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                             handle->procId = procId;
                             ElfLoader_state.loaderHandles [procId] =
                                                     (ElfLoader_Handle) handle;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         }
                     }
                 }
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ElfLoader_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         if (NULL != handle) {
             if (NULL != handle->object) {
@@ -1487,7 +1487,7 @@ ElfLoader_create (      UInt16              procId,
         /*! @retval NULL Function failed */
         handle = NULL;
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_create", handle);
 
@@ -1521,7 +1521,7 @@ ElfLoader_delete (ElfLoader_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval LOADER_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -1542,7 +1542,7 @@ ElfLoader_delete (ElfLoader_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         handle = (Loader_Object *) (*handlePtr);
         /* Enter critical section protection. */
         key = IGateProvider_enter (ElfLoader_state.gateHandle);
@@ -1581,9 +1581,9 @@ ElfLoader_delete (ElfLoader_Handle * handlePtr)
 
         /* Leave critical section protection. */
         IGateProvider_leave (ElfLoader_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ElfLoader_delete");
 
@@ -1612,7 +1612,7 @@ ElfLoader_open (ElfLoader_Handle * handlePtr, UInt16 procId)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, IS_VALID_PROCID (procId));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval LOADER_E_HANDLE Invalid MULL handlePtr specified */
         status = LOADER_E_HANDLE;
@@ -1632,7 +1632,7 @@ ElfLoader_open (ElfLoader_Handle * handlePtr, UInt16 procId)
                              "Invalid procId specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Initialize return parameter handle. */
         *handlePtr = NULL;
 
@@ -1649,9 +1649,9 @@ ElfLoader_open (ElfLoader_Handle * handlePtr, UInt16 procId)
         else {
             *handlePtr = ElfLoader_state.loaderHandles [procId];
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_open", status);
 
@@ -1677,7 +1677,7 @@ ElfLoader_close (ElfLoader_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval LOADER_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -1698,12 +1698,12 @@ ElfLoader_close (ElfLoader_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Nothing to be done for close. */
         *handlePtr = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_close", status);
 
@@ -1818,7 +1818,7 @@ ElfLoader_load (Loader_Handle       handle,
                 || ((argc != 0) && (argv != NULL)))) ;
     GT_assert (curTrace, (fileId   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval LOADER_E_HANDLE NULL provided for argument handle. */
         status = LOADER_E_HANDLE;
@@ -1857,9 +1857,9 @@ ElfLoader_load (Loader_Handle       handle,
                              "NULL provided for argument fileId");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         status = OsalKfile_open (imagePath, mode, &fileDesc);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1868,7 +1868,7 @@ ElfLoader_load (Loader_Handle       handle,
                                  "Failed to open file!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             GT_assert (curTrace, (fileDesc != NULL));
             elfLoaderObj = (ElfLoader_Object *) loaderObj->object;
             GT_assert (curTrace, (elfLoaderObj != NULL));
@@ -1887,7 +1887,7 @@ ElfLoader_load (Loader_Handle       handle,
                  status = LOADER_E_FAIL;
             }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1896,11 +1896,11 @@ ElfLoader_load (Loader_Handle       handle,
                                      "Failed to load ELF file!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 argStatus = DLOAD_prepare_for_execution(elfObj,
                                                      *fileId, &ep, argc, argv);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (argStatus == FALSE) {
                     GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1909,16 +1909,16 @@ ElfLoader_load (Loader_Handle       handle,
                                      "Failed to write args!"
                                      " (ensure .args section is big enough)");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
                 /* Set the state of the Processor to loaded. */
                 Processor_setState (_elfLoaderObj->procHandle,
                                     ProcMgr_State_Loaded);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_load", status);
 
@@ -1987,7 +1987,7 @@ ElfLoader_unload (Loader_Handle handle, UInt32 fileId)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval LOADER_E_HANDLE NULL provided for argument handle. */
         status = LOADER_E_HANDLE;
@@ -1998,7 +1998,7 @@ ElfLoader_unload (Loader_Handle handle, UInt32 fileId)
                              "NULL provided for argument handle");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         elfLoaderObj = (ElfLoader_Object *) loaderObj->object;
         GT_assert (curTrace, (elfLoaderObj != NULL));
         _elfLoaderObj = elfLoaderObj->elfLoaderObject;
@@ -2010,7 +2010,7 @@ ElfLoader_unload (Loader_Handle handle, UInt32 fileId)
             status = LOADER_E_FAIL;
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -2018,23 +2018,23 @@ ElfLoader_unload (Loader_Handle handle, UInt32 fileId)
                                  status,
                                  "Failed to unload ELF file!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         tmpStatus = OsalKfile_close ((OsalKfile_Handle *)
                                                  &(_elfLoaderObj->fileDesc));
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "ElfLoader_unload",
                                  status,
                                  "Failed to close the file!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_unload", status);
 
@@ -2124,7 +2124,7 @@ ElfLoader_getEntryPt (Loader_Handle     handle,
        status = LOADER_E_FAIL;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -2132,7 +2132,7 @@ ElfLoader_getEntryPt (Loader_Handle     handle,
                              status,
                              "Failed to get ELF file entry point!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_getEntryPt", status);
 
@@ -2148,9 +2148,9 @@ ElfLoader_getEntryPt (Loader_Handle     handle,
  *              exported (into the .dynsym table) symbols named
  *              "<section_name>_Start" and "<section_name>_End" respectively.
  *              For Example, given:
- *                ".<section_name>"         = ".SysLink_SysMgr_Config"
- *                "<section_name>_Start"    = "SysLink_SysMgr_Config_Start"
- *                "<section_name>_End"      = "SysLink_SysMgr_Config_End"
+ *                ".<section_name>"         = ".Ipc_SysMgr_Config"
+ *                "<section_name>_Start"    = "Ipc_SysMgr_Config_Start"
+ *                "<section_name>_End"      = "Ipc_SysMgr_Config_End"
  *              if "<section_name>_End" is missing, this implies zero data size,
  *              in which case only the section start address is of interest.
  *              The "<section_name>_Start" symbol is assumed to have the same
@@ -2205,7 +2205,7 @@ Int ElfLoader_getSectionInfo (Loader_Handle         handle,
         sectionInfo->sectId = 0; // Not needed
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -2213,7 +2213,7 @@ Int ElfLoader_getSectionInfo (Loader_Handle         handle,
                              status,
                              "Failed to get ELF file section information!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_getSectionInfo", status);
 
@@ -2230,9 +2230,9 @@ Int ElfLoader_getSectionInfo (Loader_Handle         handle,
  *              exported (into the .dynsym table) symbols named
  *              "<section_name>_Start" and "<section_name>_End" respectively.
  *              For Example, given:
- *                ".<section_name>"         = ".SysLink_ResetVector"
- *                "<section_name>_Start"    = "SysLink_ResetVector_Start"
- *                "<section_name>_End"      = "SysLink_ResetVector_End"
+ *                ".<section_name>"         = ".Ipc_ResetVector"
+ *                "<section_name>_Start"    = "Ipc_ResetVector_Start"
+ *                "<section_name>_End"      = "Ipc_ResetVector_End"
  *              if "<section_name>_End" is missing, this implies zero data size,
  *              in which case only the section start address is of interest.
  *
@@ -2353,7 +2353,7 @@ Int ElfLoader_getSectionData (Loader_Handle        handle,
     } /* if (status >= 0) */
 
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -2361,7 +2361,7 @@ Int ElfLoader_getSectionData (Loader_Handle        handle,
                              status,
                              "No ELF file section information!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ElfLoader_getSectionData", status);
 

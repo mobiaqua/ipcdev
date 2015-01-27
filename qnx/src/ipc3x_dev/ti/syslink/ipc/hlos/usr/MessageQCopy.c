@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -92,9 +92,9 @@ typedef struct MessageQCopy_ModuleObject_tag {
  *
  *  @brief  MessageQCopy state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MessageQCopy_ModuleObject MessageQCopy_state =
 {
     .setupRefCount = 0
@@ -105,9 +105,9 @@ MessageQCopy_ModuleObject MessageQCopy_state =
  *
  *  @brief  Pointer to the MessageQCopy module state.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MessageQCopy_ModuleObject * MessageQCopy_module = &MessageQCopy_state;
 
 
@@ -125,7 +125,7 @@ MessageQCopy_setup (const MessageQCopy_Config * config)
 
     /* TBD: Protect from multiple threads. */
     MessageQCopy_module->setupRefCount++;
-    /* This is needed at runtime so should not be in SYSLINK_BUILD_OPTIMIZE. */
+    /* This is needed at runtime so should not be in IPC_BUILD_OPTIMIZE. */
     if (MessageQCopy_module->setupRefCount > 1) {
         status = MessageQCopy_S_ALREADYSETUP;
         GT_1trace (curTrace,
@@ -137,7 +137,7 @@ MessageQCopy_setup (const MessageQCopy_Config * config)
     else {
         /* Open the driver handle. */
         status = MessageQCopyDrv_open ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -145,7 +145,7 @@ MessageQCopy_setup (const MessageQCopy_Config * config)
                                  status,
                                  "Failed to open driver handle!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_setup", status);
@@ -164,7 +164,7 @@ MessageQCopy_destroy (void)
 
     /* TBD: Protect from multiple threads. */
     MessageQCopy_module->setupRefCount--;
-    /* This is needed at runtime so should not be in SYSLINK_BUILD_OPTIMIZE. */
+    /* This is needed at runtime so should not be in IPC_BUILD_OPTIMIZE. */
     if (MessageQCopy_module->setupRefCount >= 1) {
         status = MessageQCopy_S_ALREADYSETUP;
         GT_1trace (curTrace,
@@ -207,7 +207,7 @@ MessageQCopy_runtest (UInt32 testNo)
     cmdArgs.args.runtest.testNo = testNo;
 
     status = MessageQCopyDrv_ioctl (CMD_MESSAGEQCOPY_RUNTEST, &cmdArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -215,7 +215,7 @@ MessageQCopy_runtest (UInt32 testNo)
                              status,
                              "API (through IOCTL) failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_runtest", status);
 

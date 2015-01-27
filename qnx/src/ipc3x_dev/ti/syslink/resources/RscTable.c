@@ -130,7 +130,7 @@ struct RscTable_Object_tag {
     /*!< Resource table length. */
     UInt32                 rscTableDA;
     /*!< Resource table device address. */
-    SysLink_MemEntry       memEntries[SYSLINK_MAX_MEMENTRIES];
+    Ipc_MemEntry           memEntries[IPC_MAX_MEMENTRIES];
     /*!< Memory Entries for the remote processor. */
     UInt32                 numMemEntries;
     /*!< Number of Memory Entries in the memEntries array. */
@@ -160,9 +160,9 @@ typedef struct RscTable_Object_tag RscTable_Object;
  *
  *  @brief  RscTable state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 RscTable_ModuleObject RscTable_state;
 
 
@@ -449,7 +449,7 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
                 }
 
                 if (ret == 0) {
-                    if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
+                    if (obj->numMemEntries == IPC_MAX_MEMENTRIES) {
                         ret = -1;
                     }
                     else {
@@ -475,7 +475,7 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
             {
                 struct fw_rsc_intmem * cout = (struct fw_rsc_intmem *)entry;
 
-                if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
+                if (obj->numMemEntries == IPC_MAX_MEMENTRIES) {
                     ret = -1;
                 }
                 else {
@@ -594,7 +594,7 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
                     }
                 }
                 if (!ret) {
-                    if (obj->numMemEntries == SYSLINK_MAX_MEMENTRIES) {
+                    if (obj->numMemEntries == IPC_MAX_MEMENTRIES) {
                         ret = -1;
                     }
                     else {
@@ -707,7 +707,7 @@ RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
 }
 
 Int
-RscTable_getMemEntries (UInt16 procId, SysLink_MemEntry *memEntries,
+RscTable_getMemEntries (UInt16 procId, Ipc_MemEntry *memEntries,
                         UInt32 * numMemEntries)
 {
     Int status = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 /* IPC Headers */
 #include <ti/ipc/Std.h>
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
 #include <ti/ipc/Ipc.h>
 #include <ti/shmemallocator/SharedMemoryAllocatorUsr.h>
 #else  /* Linux HLOS */
@@ -58,7 +58,7 @@
  * HLOS specific shared memory buffer allocation methods.
  */
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
 
 static int callCompute_QnX()
 {
@@ -349,7 +349,7 @@ int main(int argc, char **argv)
            exit(0);
     }
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     /* Need to start IPC for MultiProc */
     status = Ipc_start();
     if (status < 0) {
@@ -390,7 +390,7 @@ int main(int argc, char **argv)
         goto leave;
     }
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     ret = callCompute_QnX();
 #else
     ret = callCompute_Linux();
@@ -404,7 +404,7 @@ leave:
     /* finalize Mx module (destroy rpc connection) */
     Mx_finalize();
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     Ipc_stop();
 #endif
 

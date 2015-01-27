@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014, Texas Instruments Incorporated
+ * Copyright (c) 2010-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,7 +150,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
         {
             switch (halObject->procId) {
                 case PROCTYPE_IPU0:
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
                     /* Put IPU core 1 into reset */
                     SETBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
 #endif
@@ -177,7 +177,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                              "Failed to disable gpt 3");
                     }
                     break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
                     /* Put IPU core 1 into reset */
                     SETBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
@@ -235,7 +235,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                     /* Disable the IPU clock */
                     OUTREG32(IPUClkCtrl, 0x01);
                     break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
                     break;
 #endif
@@ -344,7 +344,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                             }
                         }
                         break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
                     case PROCTYPE_IPU1:
                         break;
 #endif
@@ -520,7 +520,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                 reg &= ~CM_IPU_CLKSTCTRL_CTRL_BITMASK;
                                 reg |= CM_IPU_CLKSTCTRL_CTRL_HW_AUTO;
                                 OUTREG32(IPUClkStCtrl, reg);
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
                                 /* De-assert RST2, and clear the Reset status */
                                 CLRBITREG32(IPURstCtrl, RM_IPU_RST2_BIT);
 
@@ -540,12 +540,12 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
                                     Osal_printf("RST2 released!");
                                     SETBITREG32(IPURstSt, RM_IPU_RST2ST_BIT);
                                 }
-#endif // ifdef SYSLINK_SYSBIOS_SMP
+#endif // ifdef IPC_SYSBIOS_SMP
                             }
                         }
                     }
                     break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
                     /* Enable the GPT4 clock, which is used by CORE1 */
                     ret = ipu_pm_gpt_enable(GPTIMER_4);

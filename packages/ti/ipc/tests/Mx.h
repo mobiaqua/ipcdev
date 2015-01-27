@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ int32_t Mx_triple(uint32_t a);
  */
 int32_t Mx_add(int32_t a, int32_t b);
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
 /*!
  *  @brief      Sample function which has pointer parameter to
  *              a structure with two embedded pointers.

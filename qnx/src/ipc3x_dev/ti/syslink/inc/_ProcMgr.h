@@ -10,7 +10,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -85,8 +85,8 @@ extern "C" {
  *  @brief  Module configuration structure.
  */
 typedef struct ProcMgr_Config {
-    SysLink_MemoryMap * sysMemMap;
-    /*!< Syslink memory map. */
+    Ipc_MemoryMap * sysMemMap;
+    /*!< Ipc memory map. */
 } ProcMgr_Config;
 
 /*!

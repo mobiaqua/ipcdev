@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -254,7 +254,7 @@ MessageQCopy_setup (const MessageQCopy_Config * cfg)
         /* Create a default gate handle for local module protection. */
         MessageQCopy_module->gateHandle = (IGateProvider_Handle)
                         GateSpinlock_create ((GateSpinlock_Params *) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (MessageQCopy_module->gateHandle == NULL) {
             /*! @retval MessageQCopy_E_FAIL Failed to create GateSpinlock! */
             status = MessageQCopy_E_FAIL;
@@ -265,7 +265,7 @@ MessageQCopy_setup (const MessageQCopy_Config * cfg)
                                  "Failed to create GateSpinlock!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Initialize the driver mapping array. */
             Memory_set (MessageQCopy_module->transport,
                         0,
@@ -276,9 +276,9 @@ MessageQCopy_setup (const MessageQCopy_Config * cfg)
             Memory_set (&MessageQCopy_module->mq,
                         0,
                         (sizeof (MessageQCopy_Handle) * MessageQCopy_MAXMQS));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         MessageQCopy_module->mq[MessageQCopy_NS_PORT] =
                                      MessageQCopy_create (MessageQCopy_NS_PORT,
@@ -303,9 +303,9 @@ MessageQCopy_setup (const MessageQCopy_Config * cfg)
         if (status < 0) {
             MessageQCopy_destroy();
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_setup", status);
 
@@ -332,7 +332,7 @@ MessageQCopy_destroy (Void)
 
     GT_0trace (curTrace, GT_ENTER, "MessageQCopy_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -346,7 +346,7 @@ MessageQCopy_destroy (Void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (Atomic_dec_return (&MessageQCopy_module->refCount)
             == MessageQCopy_MAKE_MAGICSTAMP(0)) {
             /* Temporarily increment refCount here. */
@@ -380,9 +380,9 @@ MessageQCopy_destroy (Void)
                                      &(MessageQCopy_module->gateHandle));
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_destroy", status);
 
@@ -408,7 +408,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                sharedAddr);
 
     if (EXPECT_TRUE (MultiProc_getNumProcessors () > 1)) {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (remoteProcId >= MultiProc_getNumProcessors()) {
             /*! @retval MessageQCopy_E_INVALIDPROCID ProcId is invalid! */
             status = MessageQCopy_E_INVALIDPROCID;
@@ -429,13 +429,13 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                  "Transport is already attached!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
             /* Allocate memory for the MessageQCopyTransport object. */
             obj = Memory_calloc (NULL,
                                  sizeof (MessageQCopyTransport_Object), 0u,
                                  NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (obj == NULL) {
                 /*! @retval MessageQCopy_E_MEMORY Failed to allocate memory
                                         for MessageQCopyTransport_Object! */
@@ -448,11 +448,11 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                      "MessageQCopyTransport_Object!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 obj->procId = remoteProcId;
 
                 status = ProcMgr_open(&obj->procHandle, obj->procId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                         Memory_free(NULL, obj,
                                     sizeof (MessageQCopyTransport_Object));
@@ -468,7 +468,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                              "specified remoteProcId!");
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     status = ProcMgr_translateAddr(obj->procHandle,
                                                    (Ptr *)&vqPAddr,
                                                    ProcMgr_AddrType_MasterPhys,
@@ -547,7 +547,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                                 MessageQCopy_VRINGALIGN,
                                                 (void *)obj);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                             if (obj->vq[i] == NULL) {
                                 for (; i >= 0; --i) {
                                     VirtQueue_delete (&obj->vq[i]);
@@ -572,7 +572,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                                      "virtqueue!");
                                 break;
                             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                             vqVAddr += ROUND_UP(MessageQCopy_RINGSIZE, 0x4000);
                             vqPAddr += ROUND_UP(MessageQCopy_RINGSIZE, 0x4000);
                         }
@@ -599,7 +599,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                         MessageQCopy_module->transport [obj->procId] = obj;
                     }
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
         if (status < 0) {
@@ -609,7 +609,7 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                                  status,
                                  "Failed in transport setup!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         status = MessageQCopy_E_FAIL;
@@ -638,7 +638,7 @@ MessageQCopy_detach (UInt16 remoteProcId)
     GT_1trace (curTrace, GT_ENTER, "MessageQCopy_detach", remoteProcId);
 
     if (EXPECT_TRUE (MultiProc_getNumProcessors () > 1)) {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (remoteProcId >= MultiProc_getNumProcessors()) {
             /*! @retval MessageQCopy_E_INVALIDPROCID ProcId is invalid! */
             status = MessageQCopy_E_INVALIDPROCID;
@@ -659,7 +659,7 @@ MessageQCopy_detach (UInt16 remoteProcId)
                                  "Transport is not setup!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             obj = MessageQCopy_module->transport[remoteProcId];
 
             /* Check if any MessageQ instances have not been deleted so far.
@@ -695,9 +695,9 @@ MessageQCopy_detach (UInt16 remoteProcId)
             ProcMgr_close(&obj->procHandle);
             /* Allocate memory for the MessageQCopyTransport object. */
             Memory_free (NULL, obj, sizeof (MessageQCopyTransport_Object));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         status = MessageQCopy_E_FAIL;
@@ -740,7 +740,7 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
     /* desc is optional and may be NULL. */
     /* handle is optional and may be NULL. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -784,7 +784,7 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
                              "Invalid desc argument provided");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             mq = MessageQCopy_module->mq;
             if (reserved != MessageQCopy_ADDRANY && name != NULL)
@@ -898,9 +898,9 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
 
         /* Leave critical section protection. */
         IGateProvider_leave (MessageQCopy_module->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_MessageQCopy_create", status);
 
@@ -924,7 +924,7 @@ MessageQCopy_create (UInt32 reserved, String name,
     GT_assert (curTrace, (endpoint != NULL));
     /* name is optional and may be NULL. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -948,12 +948,12 @@ MessageQCopy_create (UInt32 reserved, String name,
                              "Invalid cb argument provided");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         obj = _MessageQCopy_create (NULL, reserved, name, NULL, cb, priv,
                                     endpoint);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (obj == NULL) {
             /*! @retval  MessageQCopy_E_FAIL Failed to create handle. */
             status = MessageQCopy_E_FAIL;
@@ -964,7 +964,7 @@ MessageQCopy_create (UInt32 reserved, String name,
                                  "Failed to create handle");
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_create", status);
 
@@ -989,7 +989,7 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
 
     GT_assert (curTrace, (handlePtr != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -1023,7 +1023,7 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
                              "Invalid *handlePtr argument provided");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         obj = (MessageQCopy_Object *)(*handlePtr);
         /* Search through all transports for this handle to validate that it is real */
         mq = MessageQCopy_module->mq;
@@ -1122,9 +1122,9 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
                                  status,
                                  "Invalid *handlePtr argument provided");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_delete", status);
 
@@ -1150,7 +1150,7 @@ MessageQCopy_registerNotify (MessageQCopy_Handle handle,
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (cb != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -1184,7 +1184,7 @@ MessageQCopy_registerNotify (MessageQCopy_Handle handle,
                              "Invalid callback argument provided.");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (MessageQCopy_module->gateHandle);
 
@@ -1247,9 +1247,9 @@ MessageQCopy_registerNotify (MessageQCopy_Handle handle,
 
         /* Leave critical section protection. */
         IGateProvider_leave (MessageQCopy_module->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_registerNotify", status);
 
@@ -1282,7 +1282,7 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
     GT_assert (curTrace, (len <= (MessageQCopy_BUFSIZE -\
                                   sizeof(struct rpmsg_hdr))));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -1362,7 +1362,7 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
                              "Invalid srcEndpt.");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         if (dstProc != MultiProc_self()) {
             /* Enter critical section protection. */
@@ -1420,9 +1420,9 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
                                  status,
                                  "sending to local proc not supported.");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MessageQCopy_send", status);
 
@@ -1452,7 +1452,7 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
     GT_assert (curTrace, (len >= sizeof(struct rpmsg_ns_msg)));
     GT_assert (curTrace, (srcProc < MultiProc_MAXPROCESSORS));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(MessageQCopy_module->refCount),
                                MessageQCopy_MAKE_MAGICSTAMP(0),
                                MessageQCopy_MAKE_MAGICSTAMP(1))
@@ -1485,7 +1485,7 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
                              "Invalid srcProc argument provided");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         transport = MessageQCopy_module->transport[srcProc];
 
         if (transport) {
@@ -1501,9 +1501,9 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
                 }
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 }
 
 

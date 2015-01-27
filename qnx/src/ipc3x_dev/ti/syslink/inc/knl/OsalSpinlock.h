@@ -5,14 +5,14 @@
  *
  *              This abstracts the kernel side Spin Lock which is used in
  *              halting the CPU for some specified amout of time. this
- *              interface covers all aspects of SpinLock required in Syslink.
+ *              interface covers all aspects of SpinLock required in Ipc.
  *
  *
  *  @ver        02.00.00.46_alpha1
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions

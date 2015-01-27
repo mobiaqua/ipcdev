@@ -5,13 +5,13 @@
  *
  *              This abstracts the kernel side Spin Lock which is used in
  *              halting the CPU for some specified amout of time. this
- *              interface covers all aspects of SpinLock required in Syslink.
+ *              interface covers all aspects of SpinLock required in Ipc.
  *
  *  @ver        02.00.00.46_alpha1
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -100,7 +100,7 @@ OsalSpinlock_create (OsalSpinlock_Type type)
 
     GT_assert (curTrace, (type < OsalSpinlock_Type_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (type >= OsalSpinlock_Type_EndValue) {
         /*! @retval NULL Invalid type provided */
         GT_setFailureReason (curTrace,
@@ -110,9 +110,9 @@ OsalSpinlock_create (OsalSpinlock_Type type)
                              "Invalid type provided");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         lockObject = Memory_alloc (NULL, sizeof (OsalSpinlock_Object), 0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (lockObject == NULL) {
             /*! @retval NULL Failed to allocate memory for spinlock object. */
             GT_setFailureReason (curTrace,
@@ -122,12 +122,12 @@ OsalSpinlock_create (OsalSpinlock_Type type)
                               "Failed to allocate memory for spinlock object.");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             pthread_mutex_init(&(lockObject->lock), NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSpinlock_create", lockObject);
 
@@ -152,7 +152,7 @@ OsalSpinlock_delete (OsalSpinlock_Handle * lockHandle)
 
     GT_assert (curTrace, (lockHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (lockHandle == NULL) {
         /*! @retval OSALSPINLOCK_E_INVALIDARG NULL provided for argument
                                               lockHandle.*/
@@ -173,14 +173,14 @@ OsalSpinlock_delete (OsalSpinlock_Handle * lockHandle)
                              "NULL spinlock handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         lockObject = (OsalSpinlock_Object*) (*lockHandle);
                 pthread_mutex_destroy(&lockObject->lock);
         Memory_free (NULL, lockObject, sizeof (OsalSpinlock_Object));
         *lockHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSpinlock_delete", status);
 
@@ -209,7 +209,7 @@ OsalSpinlock_enter (OsalSpinlock_Handle lockHandle)
 
     GT_assert (curTrace, (lockHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (lockHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -218,11 +218,11 @@ OsalSpinlock_enter (OsalSpinlock_Handle lockHandle)
                              "NULL spinlock handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         pthread_mutex_lock (&(lockObject->lock));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSpinlock_enter", flags);
 
@@ -248,7 +248,7 @@ OsalSpinlock_leave (OsalSpinlock_Handle lockHandle, UInt32 key)
 
     GT_assert (curTrace, (lockHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (lockHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -257,11 +257,11 @@ OsalSpinlock_leave (OsalSpinlock_Handle lockHandle, UInt32 key)
                              "NULL spinlock handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         pthread_mutex_unlock (&(lockObject->lock));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalSpinlock_leave");
 }

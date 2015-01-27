@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -150,9 +150,9 @@ static ProcMgr_AddrInfo * AddrTable[NUM_IPUS] =
  *
  *  @brief  VAYUIPUCORE0PROC state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 VAYUIPUCORE0PROC_ModuleObject VAYUIPUCORE0PROC_state =
 {
     .isSetup = FALSE,
@@ -161,8 +161,6 @@ VAYUIPUCORE0PROC_ModuleObject VAYUIPUCORE0PROC_state =
     .defInstParams.numMemEntries = 0,
 };
 
-/* config override specified in SysLinkCfg.c, defined in ProcMgr.c */
-extern String ProcMgr_sysLinkCfgParams;
 
 /* =============================================================================
  * APIs directly called by applications
@@ -191,7 +189,7 @@ VAYUIPUCORE0PROC_getConfig (VAYUIPUCORE0PROC_Config * cfg)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -201,13 +199,13 @@ VAYUIPUCORE0PROC_getConfig (VAYUIPUCORE0PROC_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         Memory_copy (cfg,
                      &(VAYUIPUCORE0PROC_state.defCfg),
                      sizeof (VAYUIPUCORE0PROC_Config));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_getConfig");
 }
@@ -253,7 +251,7 @@ VAYUIPUCORE0PROC_setup (VAYUIPUCORE0PROC_Config * cfg)
     /* Create a default gate handle for local module protection. */
     VAYUIPUCORE0PROC_state.gateHandle = (IGateProvider_Handle)
                                 GateMutex_create ((GateMutex_Params*)NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (VAYUIPUCORE0PROC_state.gateHandle == NULL) {
         /*! @retval PROCESSOR_E_FAIL Failed to create GateMutex! */
         status = PROCESSOR_E_FAIL;
@@ -264,7 +262,7 @@ VAYUIPUCORE0PROC_setup (VAYUIPUCORE0PROC_Config * cfg)
                              "Failed to create GateMutex!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Copy the user provided values into the state object. */
         Memory_copy (&VAYUIPUCORE0PROC_state.cfg,
                      cfg,
@@ -277,9 +275,9 @@ VAYUIPUCORE0PROC_setup (VAYUIPUCORE0PROC_Config * cfg)
 
         VAYUIPUCORE0PROC_state.ipu1ProcId = MultiProc_getId("IPU1");
         VAYUIPUCORE0PROC_state.isSetup = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_setup", status);
 
@@ -350,7 +348,7 @@ VAYUIPUCORE0PROC_Params_init(
 
     GT_assert(curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (params == NULL) {
         GT_setFailureReason(curTrace, GT_4CLASS,
                             "VAYUIPUCORE0PROC_Params_init",
@@ -370,7 +368,7 @@ VAYUIPUCORE0PROC_Params_init(
             Memory_copy(params, &(procObject->params),
                         sizeof(VAYUIPUCORE0PROC_Params));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
 #endif
 
@@ -402,7 +400,7 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
     GT_assert (curTrace, IS_VALID_PROCID (procId));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (!IS_VALID_PROCID (procId)) {
         /* Not setting status here since this function does not return status.*/
         GT_setFailureReason (curTrace,
@@ -419,10 +417,10 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                              "params passed is NULL!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (VAYUIPUCORE0PROC_state.gateHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         /* Check if the Processor already exists for specified procId. */
         if (VAYUIPUCORE0PROC_state.procHandles [procId] != NULL) {
             status = PROCESSOR_E_ALREADYEXIST;
@@ -433,7 +431,7 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                               "Processor already exists for specified procId!");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             /* Allocate memory for the handle */
             handle = (Processor_Object *) Memory_calloc (NULL,
                                                       sizeof (Processor_Object),
@@ -518,7 +516,7 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                     List_Params_init(&listParams);
                     handle->registeredNotifiers = List_create(&listParams);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (handle->registeredNotifiers == NULL) {
                         /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed */
                         status = PROCESSOR_E_FAIL;
@@ -529,12 +527,12 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                                              "List_create failed");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
                         handle->notifiersLock =
                                  OsalMutex_create(OsalMutex_Type_Interruptible);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (handle->notifiersLock == NULL) {
                             /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed*/
                             status = PROCESSOR_E_FAIL;
@@ -545,18 +543,18 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                                                  "OsalMutex_create failed");
                         }
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
         /* Leave critical section protection. */
         IGateProvider_leave (VAYUIPUCORE0PROC_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     if (status < 0) {
         if (handle !=  NULL) {
@@ -606,7 +604,7 @@ VAYUIPUCORE0PROC_delete (VAYUIPUCORE0PROC_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -627,7 +625,7 @@ VAYUIPUCORE0PROC_delete (VAYUIPUCORE0PROC_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         handle = (Processor_Object *) (*handlePtr);
         /* Enter critical section protection. */
         key = IGateProvider_enter (VAYUIPUCORE0PROC_state.gateHandle);
@@ -687,9 +685,9 @@ VAYUIPUCORE0PROC_delete (VAYUIPUCORE0PROC_Handle * handlePtr)
 
         /* Leave critical section protection. */
         IGateProvider_leave (VAYUIPUCORE0PROC_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_delete", status);
 
@@ -718,7 +716,7 @@ VAYUIPUCORE0PROC_open (VAYUIPUCORE0PROC_Handle * handlePtr, UInt16 procId)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, IS_VALID_PROCID (procId));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid NULL handlePtr specified */
         status = PROCESSOR_E_HANDLE;
@@ -738,7 +736,7 @@ VAYUIPUCORE0PROC_open (VAYUIPUCORE0PROC_Handle * handlePtr, UInt16 procId)
                              "Invalid procId specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Initialize return parameter handle. */
         *handlePtr = NULL;
 
@@ -755,9 +753,9 @@ VAYUIPUCORE0PROC_open (VAYUIPUCORE0PROC_Handle * handlePtr, UInt16 procId)
         else {
             *handlePtr = VAYUIPUCORE0PROC_state.procHandles [procId];
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_open", status);
 
@@ -783,7 +781,7 @@ VAYUIPUCORE0PROC_close (VAYUIPUCORE0PROC_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -804,11 +802,11 @@ VAYUIPUCORE0PROC_close (VAYUIPUCORE0PROC_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Nothing to be done for close. */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_close", status);
 
@@ -841,8 +839,8 @@ VAYUIPUCORE0PROC_attach(
     UInt32                      i = 0;
     UInt32                      index = 0;
     ProcMgr_AddrInfo *          me;
-    SysLink_MemEntry *          entry;
-    SysLink_MemEntry_Block      memBlock;
+    Ipc_MemEntry *              entry;
+    Ipc_MemEntry_Block          memBlock;
     VAYUIPU_HalMmuCtrlArgs_Enable mmuEnableArgs;
     VAYUIPU_HalParams           halParams;
 
@@ -851,7 +849,7 @@ VAYUIPUCORE0PROC_attach(
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -899,7 +897,7 @@ VAYUIPUCORE0PROC_attach(
                                   &memBlock.numEntries,
                                   procHandle,
                                   procHandle->bootMode);
-            if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
+            if (status < 0 || memBlock.numEntries > IPC_MAX_MEMENTRIES) {
                 /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
                 status = PROCESSOR_E_INVALIDARG;
                 GT_setFailureReason (curTrace,
@@ -1005,7 +1003,7 @@ VAYUIPUCORE0PROC_attach(
             if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
                 || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason(curTrace, GT_4CLASS,
                         "VAYUIPUCORE0PROC_attach", status,
@@ -1032,7 +1030,7 @@ VAYUIPUCORE0PROC_attach(
                             status,
                             "Reset MMU_Release failed");
                     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 }
 #endif
             }
@@ -1044,7 +1042,7 @@ VAYUIPUCORE0PROC_attach(
                  */
                 rproc_enable_fault_interrupt(object->halObject);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason(curTrace, GT_4CLASS,
                         "VAYUIPUCORE0PROC_attach", status,
@@ -1055,12 +1053,12 @@ VAYUIPUCORE0PROC_attach(
                     GT_0trace(curTrace, GT_1CLASS,
                         "VAYUIPUCORE0PROC_attach: Slave MMU interrupt is "
                         "configured");
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 }
 #endif
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
 #endif
 
@@ -1092,7 +1090,7 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
     GT_1trace (curTrace, GT_ENTER, "VAYUIPUCORE0PROC_detach", handle);
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1115,7 +1113,7 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
 
             status = VAYUIPUCORE0_halResetCtrl(object->halObject,
                 Processor_ResetCtrlCmd_MMU_Reset);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval status */
                 GT_setFailureReason (curTrace,
@@ -1124,11 +1122,11 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
                                      status,
                                      "Reset MMU failed");
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
         else {
             status = rproc_disable_fault_interrupt(object->halObject);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval status */
                 GT_setFailureReason (curTrace,
@@ -1137,13 +1135,13 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
                                      status,
                                      "rproc_disable_fault_interrupt failed");
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
         if (status >= 0) {
              status = VAYUIPU_halMmuCtrl(object->halObject,
                                     Processor_MmuCtrlCmd_Disable, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason(curTrace, GT_4CLASS,
                     "VAYUIPUCORE0PROC_detach", status,
@@ -1177,7 +1175,7 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
         GT_0trace(curTrace, GT_2CLASS,
             "VAYUIPUCORE0PROC_detach: Slave processor is now in reset");*/
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1193,7 +1191,7 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
                    "    VAYUIPUCORE0PROC_detach: Unmapping memory regions\n");
 
         tmpStatus = VAYUIPU_halExit (object->halObject);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1240,7 +1238,7 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1260,7 +1258,7 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
                                  "Invalid params specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         object = (VAYUIPUCORE0PROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
@@ -1271,7 +1269,7 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
             status = VAYUIPU_halBootCtrl (object->halObject,
                                           Processor_BootCtrlCmd_SetEntryPoint,
                                           (Ptr) entryPt);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1280,7 +1278,7 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
                                      "Failed to set slave boot entry point");
             }
             else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
                 status = rproc_ipu_setup(object->halObject,
                                          object->params.memEntries,
                                          object->params.numMemEntries);
@@ -1296,7 +1294,7 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
                 if (status >= 0) {
                     status = VAYUIPUCORE0_halResetCtrl(object->halObject,
                                                 Processor_ResetCtrlCmd_Release);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                           GT_4CLASS,
@@ -1304,16 +1302,16 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
                                           status,
                                           "Failed to release slave from reset");
                     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     if (status >= 0) {
         GT_0trace (curTrace,
@@ -1354,7 +1352,7 @@ VAYUIPUCORE0PROC_stop (Processor_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1365,7 +1363,7 @@ VAYUIPUCORE0PROC_stop (Processor_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         object = (VAYUIPUCORE0PROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
@@ -1379,7 +1377,7 @@ VAYUIPUCORE0PROC_stop (Processor_Handle handle)
             GT_0trace (curTrace,
                        GT_1CLASS,
                        "    VAYUIPUCORE0PROC_stop: Slave is now in reset!\n");
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1387,12 +1385,12 @@ VAYUIPUCORE0PROC_stop (Processor_Handle handle)
                                      status,
                                      "Failed to place slave in reset");
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             rproc_ipu_destroy(object->halObject);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_stop", status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -1434,7 +1432,7 @@ VAYUIPUCORE0PROC_read (Processor_Handle   handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1463,11 +1461,11 @@ VAYUIPUCORE0PROC_read (Processor_Handle   handle,
                                  "Invalid buffer specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         procPtr8 = (UInt8 *) procAddr ;
         buffer = memcpy (buffer, procPtr8, *numBytes);
         GT_assert (curTrace, (buffer != (UInt32) NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == (UInt32) NULL) {
             /*! @retval PROCESSOR_E_FAIL Failed in memcpy */
             status = PROCESSOR_E_FAIL;
@@ -1479,7 +1477,7 @@ VAYUIPUCORE0PROC_read (Processor_Handle   handle,
             *numBytes = 0;
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_read",status);
 
@@ -1527,7 +1525,7 @@ VAYUIPUCORE0PROC_write (Processor_Handle handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1556,14 +1554,14 @@ VAYUIPUCORE0PROC_write (Processor_Handle handle,
                                  "Invalid buffer specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         if (*numBytes != sizeof (UInt32)) {
             procPtr8 = (UInt8 *) procAddr ;
             procAddr = (UInt32) Memory_copy (procPtr8,
                                              buffer,
                                              *numBytes);
             GT_assert (curTrace, (procAddr != (UInt32) NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
             if (procAddr == (UInt32) NULL) {
                 /*! @retval PROCESSOR_E_FAIL Failed in Memory_copy */
                 status = PROCESSOR_E_FAIL;
@@ -1574,7 +1572,7 @@ VAYUIPUCORE0PROC_write (Processor_Handle handle,
                                      "Failed in Memory_copy");
                 *numBytes = 0;
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
         else  {
              /* For 4 bytes, directly write as a UInt32 */
@@ -1588,9 +1586,9 @@ VAYUIPUCORE0PROC_write (Processor_Handle handle,
                              |   ((UInt32) temp8_1));
             *((UInt32*) procAddr) = temp;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_write", status);
 
@@ -1621,7 +1619,7 @@ VAYUIPUCORE0PROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
     GT_assert (curTrace, (handle   != NULL));
     /* cmd and arg can be 0/NULL, so cannot check for validity. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1632,14 +1630,14 @@ VAYUIPUCORE0PROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* No control operations currently implemented. */
         /*! @retval PROCESSOR_E_NOTSUPPORTED No control operations are supported
                                              for this device. */
         status = PROCESSOR_E_NOTSUPPORTED;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_control",status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -1677,7 +1675,7 @@ VAYUIPUCORE0PROC_translate(
     GT_assert (curTrace, (handle  != NULL));
     GT_assert (curTrace, (dstAddr != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1726,7 +1724,7 @@ VAYUIPUCORE0PROC_translate(
                 "VAYUIPUCORE0PROC_translate", status,
                 "srcAddr not found in slave address space");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
 #endif
     GT_1trace(curTrace, GT_LEAVE,
@@ -1762,7 +1760,7 @@ VAYUIPUCORE0PROC_translateFromPte(
     GT_assert (curTrace, (handle  != NULL));
     GT_assert (curTrace, (dstAddr != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1796,7 +1794,7 @@ VAYUIPUCORE0PROC_translateFromPte(
                 "VAYUIPUCORE0PROC_translateFromPte", status,
                 "srcAddr not found in slave address space");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
 #endif
     GT_1trace(curTrace, GT_LEAVE,
@@ -1840,7 +1838,7 @@ VAYUIPUCORE0PROC_map(
     GT_assert (curTrace, (sglist != NULL));
     GT_assert (curTrace, (nSegs > 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1924,7 +1922,7 @@ VAYUIPUCORE0PROC_map(
                 }
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
 #endif
     GT_1trace(curTrace, GT_LEAVE, "VAYUIPUCORE0PROC_map", status);
@@ -1965,7 +1963,7 @@ VAYUIPUCORE0PROC_unmap(
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (size   != 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -2029,7 +2027,7 @@ VAYUIPUCORE0PROC_unmap(
 
                     status = VAYUIPU_halMmuCtrl(object->halObject,
                         Processor_MmuCtrlCmd_DeleteEntry, &deleteEntryArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason(curTrace, GT_4CLASS,
                             "VAYUIPUCORE0PROC_unmap", status,
@@ -2039,7 +2037,7 @@ VAYUIPUCORE0PROC_unmap(
                 }
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
 #endif
     GT_1trace(curTrace, GT_LEAVE,

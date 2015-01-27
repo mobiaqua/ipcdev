@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,6 @@
 #if !defined(STD_H)
 #define STD_H
 
-#ifdef SYSLINK_BUILDOS_LINUX
-#include <std_linux.h>
-#endif
 #include <unistd.h>
 #include <stdbool.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include <ti/ipc/mm/MmRpc.h>
 #include <ti/ipc/MultiProc.h>
 
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
 #include <ti/shmemallocator/SharedMemoryAllocatorUsr.h>
 #endif
 
@@ -165,7 +165,7 @@ int32_t Mx_add(int32_t a, int32_t b)
 /*
  *  ======== Mx_compute ========
  */
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
 int32_t Mx_compute_QnX(Mx_Compute *compute)
 #else
 int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
@@ -180,7 +180,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     int num = 0;
 
     /* make the output buffer persistent */
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     desc[0].ptr.addr = (size_t)compute->outBuf;
     desc[0].ptr.size = compute->size * sizeof(uint32_t);
     num = 1;
@@ -208,7 +208,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->params[0].type = MmRpc_ParamType_Ptr;
     fxnCtx->params[0].param.ptr.size = sizeof(Mx_Compute);
     fxnCtx->params[0].param.ptr.addr = (size_t)compute;
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     fxnCtx->params[0].param.ptr.handle = NULL;
 #else
     fxnCtx->params[0].param.ptr.handle = fd;
@@ -220,7 +220,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->xltAry[0].index = 0;
     fxnCtx->xltAry[0].offset = MmRpc_OFFSET(compute, &compute->inBuf);
     fxnCtx->xltAry[0].base = (size_t)compute->inBuf;
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     fxnCtx->xltAry[0].handle = NULL;
 #else
     fxnCtx->xltAry[0].handle = fdIn;
@@ -229,7 +229,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->xltAry[1].index = 0;
     fxnCtx->xltAry[1].offset = MmRpc_OFFSET(compute, &compute->outBuf);
     fxnCtx->xltAry[1].base = (size_t)compute->outBuf;
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
     fxnCtx->xltAry[1].handle = NULL;
 #else
     fxnCtx->xltAry[1].handle = fdOut;
@@ -247,7 +247,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
 leave:
     /* release the output buffer */
     if (num > 0) {
-#if defined(SYSLINK_BUILDOS_QNX)
+#if defined(IPC_BUILDOS_QNX)
         status = MmRpc_release(Mx_rpcIpu, MmRpc_BufType_Ptr, num, desc);
 #else
         status = MmRpc_release(Mx_rpcIpu, MmRpc_BufType_Handle, num, desc);

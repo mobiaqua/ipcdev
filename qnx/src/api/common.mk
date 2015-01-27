@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,9 @@ endef
 
 INSTALLDIR = /usr/lib
 
-CCOPTS += -DSYSLINK_BUILDOS_QNX
+CCOPTS += -DIPC_BUILDOS_QNX
 
-ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+ifeq ("$(IPC_PLATFORM)", "vayu")
 CCOPTS += -DGATEMP_SUPPORT
 endif
 

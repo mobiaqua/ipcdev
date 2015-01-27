@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -81,7 +81,7 @@ Void VAYUIPUMMU_enable(PwrMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (handle == NULL) {
             /*! @retval PWRMGR_E_HANDLE Invalid argument */
             GT_setFailureReason (curTrace,
@@ -91,7 +91,7 @@ Void VAYUIPUMMU_enable(PwrMgr_Handle handle)
                                  "Invalid handle specified");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             object = (VAYUIPUPWR_Object *) pwrMgrHandle->object;
             GT_assert (curTrace, (object != NULL));
 #if 0 // TODO: move enabling of MMU to this phase?
@@ -107,10 +107,10 @@ Void VAYUIPUMMU_enable(PwrMgr_Handle handle)
             /* M4_0 and M4_1 should be taken out of reset after this
                and that is done is reset code*/
 #endif
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
 
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_0trace (curTrace, GT_LEAVE, "VAYUIPUMMU_enable");
 }
 
@@ -124,7 +124,7 @@ Void VAYUIPUMMU_disable(PwrMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (handle == NULL) {
             /*! @retval PWRMGR_E_HANDLE Invalid argument */
             GT_setFailureReason (curTrace,
@@ -134,7 +134,7 @@ Void VAYUIPUMMU_disable(PwrMgr_Handle handle)
                                  "Invalid handle specified");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             object = (VAYUIPUPWR_Object *) pwrMgrHandle->object;
             GT_assert (curTrace, (object != NULL));
 #if 0 // TODO: Move disabling of MMU to here?
@@ -147,10 +147,10 @@ Void VAYUIPUMMU_disable(PwrMgr_Handle handle)
 
             /* DO NOT Disable the Ipu Logic*/
 #endif
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
 
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_0trace (curTrace, GT_LEAVE, "VAYUIPUMMU_disable");
 }
 

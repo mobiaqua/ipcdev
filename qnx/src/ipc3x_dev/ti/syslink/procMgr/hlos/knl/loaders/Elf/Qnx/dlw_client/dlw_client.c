@@ -46,7 +46,7 @@
 *
 */
 
-/* Standard headers for SysLink */
+/* Standard headers for Ipc */
 #include <ti/syslink/Std.h>
 
 #include "ArrayList.h"
@@ -422,7 +422,7 @@ void DLIF_unload_dependent(void* client_handle, uint32_t file_handle)
 /*---------------------------------------------------------------------------*/
 void     DLIF_trace(const char *fmt, ...)
 {
-#if defined (SYSLINK_TRACE_ENABLE)
+#if defined (IPC_TRACE_ENABLE)
    va_list ap;
 
    if ((((curTrace & GT_TRACESTATE_MASK) >> GT_TRACESTATE_SHIFT)
@@ -434,7 +434,7 @@ void     DLIF_trace(const char *fmt, ...)
       vprintf(fmt,ap);
       va_end(ap);
    }
-#endif /* if defined (SYSLINK_TRACE_ENABLE) */
+#endif /* if defined (IPC_TRACE_ENABLE) */
 }
 
 /*****************************************************************************/

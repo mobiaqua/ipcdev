@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -123,7 +123,7 @@ OsalDrv_ioMap (UInt32 addr, UInt32 size)
     tsize = tsize + (taddr % pageSize);
     taddr = taddr - (taddr % pageSize);
     userAddr = (uintptr_t *)mmap_device_io(tsize, taddr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (userAddr == (uintptr_t *) MAP_FAILED) {
         userAddr = NULL;
         taddr = 0;
@@ -134,16 +134,16 @@ OsalDrv_ioMap (UInt32 addr, UInt32 size)
                              "Failed to map memory to user space!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Change the user address to reflect the actual user address of
          * memory block mapped. This is done since during mmap memory block
          * was shifted (+-) so that it is aligned to page boundary.
          */
         taddr = (UInt32)userAddr;
         taddr = taddr + (addr % pageSize);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalDrv_map", userAddr);
 

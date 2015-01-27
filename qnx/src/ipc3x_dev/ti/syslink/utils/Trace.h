@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -184,11 +184,11 @@ typedef enum {
     /*!< End delimiter indicating start of invalid values for this enum */
 } GT_TraceType;
 
-#define SYSLINK_BUILD_DEBUG 1
-#define SYSLINK_TRACE_ENABLE 1
+#define IPC_BUILD_DEBUG 1
+#define IPC_TRACE_ENABLE 1
 
 
-#if defined(SYSLINK_BUILD_DEBUG)
+#if defined(IPC_BUILD_DEBUG)
 /*!
  *  @brief   Prints assertion information when the specified condition is not
  *           met.
@@ -200,19 +200,19 @@ do {                                                                    \
                      __LINE__, __FILE__, #y);                           \
     }                                                                   \
 } while (0)
-#else /* if defined(SYSLINK_BUILD_DEBUG) */
+#else /* if defined(IPC_BUILD_DEBUG) */
 #define GT_assert(x, y)
-#endif /* if defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if defined(IPC_BUILD_DEBUG) */
 
 
-#if defined (SYSLINK_TRACE_ENABLE)
+#if defined (IPC_TRACE_ENABLE)
 /* The global trace variable containing current trace configuration. */
 extern Int curTrace;
 
 UInt32 _GT_setTrace (UInt32 mask, GT_TraceType type);
 #define GT_setTrace(mask,type) _GT_setTrace(mask, type)
 
-/* Function to report the syslink failure and log the trace. */
+/* Function to report the ipc failure and log the trace. */
 Void _GT_setFailureReason (Int enableMask,
                            Char * func,
                            Char * fileName,
@@ -543,7 +543,7 @@ do {                                                            \
     }                                                           \
 } while (0)
 
-#else /* if defined (SYSLINK_TRACE_ENABLE) */
+#else /* if defined (IPC_TRACE_ENABLE) */
 
 #define GT_setFailureReason(mask, classId, func, status, msg)
 #define GT_0trace(mask, classId, format)
@@ -556,7 +556,7 @@ do {                                                            \
 #define GT_7trace(mask, classId, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 #define GT_setTrace(mask, type) 0
 
-#endif /* if defined (SYSLINK_TRACE_ENABLE) */
+#endif /* if defined (IPC_TRACE_ENABLE) */
 
 
 #if defined (__cplusplus)

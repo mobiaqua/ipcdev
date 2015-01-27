@@ -12,7 +12,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -204,7 +204,6 @@ struct iotlb_entry
 /*!
  *  @brief  Hardware Abstraction object for MMU module.
  */
-#if defined(SYSLINK_BUILD_HLOS)
 typedef struct VAYUDSP_HalMmuObject_tag {
     UInt32          entriesCount [NUM_SIZE_ENTRIES_TLB];
     /*!< TLB entry counter in MMU. */
@@ -218,12 +217,6 @@ typedef struct VAYUDSP_HalMmuObject_tag {
     /*!< Pointer to IsrObject. */
     struct clk *           clkHandle;
     /*!< Enables and disables the iva2_ck clock. */
-#if defined(SYSLINK_BUILDOS_LINUX)
-    struct platform_device iva2Device;
-    /*!< Pltdorm device defined for iva2 sub system. */
-    struct iommu *         dspMmuHandler;
-    /*!< Mmu handle returned by iommu_get. */
-#endif /* #if defined(SYSLINK_BUILDOS_LINUX) */
     UInt32          tlbIndex;
     /*!< Next available MMU TLB index */
     Bool            isDynamic;
@@ -236,19 +229,6 @@ typedef struct VAYUDSP_HalMmuObject_tag {
     /*!< Number of TLBs saved in tlbs[]. */
     UInt32          mmuRegs[MMU_REGS_SIZE];
 } VAYUDSP_HalMmuObject;
-#endif /* #if defined(SYSLINK_BUILD_HLOS) */
-#if defined(SYSLINK_BUILD_RTOS)
-typedef struct VAYUDSP_HalMmuObject_tag {
-    UInt32                 mmuFaultAddr;
-    /*!< Pointer to IsrObject. */
-    Ptr                    clkHandle;
-    /*!< Enables and disables the iva2_ck clock. */
-    UInt32                 iva2Device;
-    /*!< Pltdorm device defined for iva2 sub system. */
-    Ptr                    dspMmuHandler;
-    /*!< Mmu handle returned by iommu_get. */
-} VAYUDSP_HalMmuObject;
-#endif /* #if defined(SYSLINK_BUILD_RTOS) */
 
 /*!
  *  @brief  Args type for Processor_MmuCtrlCmd_Enable

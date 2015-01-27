@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -110,7 +110,7 @@ Processor_attach (Processor_Handle handle, Processor_AttachParams * params)
 
     procHandle->bootMode = params->params->bootMode;
     status = procHandle->procFxnTable.attach (handle, params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -119,7 +119,7 @@ Processor_attach (Processor_Handle handle, Processor_AttachParams * params)
                              "Failed to attach to the specific Processor!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (procHandle->bootMode == ProcMgr_BootMode_Boot) {
             Processor_setState(handle, ProcMgr_State_Powered);
         }
@@ -131,9 +131,9 @@ Processor_attach (Processor_Handle handle, Processor_AttachParams * params)
             Processor_setState(handle, ProcMgr_State_Running);
             /* TBD: Check actual state from h/w. */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_attach", status);
 
@@ -173,7 +173,7 @@ Processor_detach (Processor_Handle handle)
      */
     GT_assert (curTrace, (procHandle->procFxnTable.detach != NULL));
     status = procHandle->procFxnTable.detach (handle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -182,14 +182,14 @@ Processor_detach (Processor_Handle handle)
                              "Failed to detach from the specific Processor!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* For all boot modes, at the end of detach, the Processor is in
          * unknown state.
          */
         Processor_setState(handle, ProcMgr_State_Unknown);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_detach", status);
 
@@ -233,7 +233,7 @@ Processor_start (Processor_Handle        handle,
      */
     GT_assert (curTrace, (procHandle->procFxnTable.start != NULL));
     status = procHandle->procFxnTable.start (handle, entryPt, params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -242,15 +242,15 @@ Processor_start (Processor_Handle        handle,
                              "Failed to start the slave processor!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_NoPwr)) {
             Processor_setState(handle, ProcMgr_State_Running);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_start", status);
 
@@ -296,7 +296,7 @@ Processor_stop (Processor_Handle handle)
     else if (Processor_getState(handle) != ProcMgr_State_Suspended) {
         status = PROCESSOR_E_INVALIDSTATE;
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -305,15 +305,15 @@ Processor_stop (Processor_Handle handle)
                              "Failed to stop the slave processor!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_NoPwr)) {
             Processor_setState(handle, ProcMgr_State_Reset);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_stop", status);
 
@@ -370,7 +370,7 @@ Processor_read (Processor_Handle handle,
      */
     GT_assert (curTrace, (procHandle->procFxnTable.read != NULL));
     status = procHandle->procFxnTable.read (handle, procAddr, numBytes, buffer);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -378,7 +378,7 @@ Processor_read (Processor_Handle handle,
                              status,
                              "Failed to read from the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_read", status);
 
@@ -438,7 +438,7 @@ Processor_write (Processor_Handle handle,
                                              procAddr,
                                              numBytes,
                                              buffer);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -446,7 +446,7 @@ Processor_write (Processor_Handle handle,
                              status,
                              "Failed to write into the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_write", status);
 
@@ -632,7 +632,7 @@ Processor_control (Processor_Handle handle, Int32 cmd, Ptr arg)
      */
     GT_assert (curTrace, (procHandle->procFxnTable.control != NULL));
     status = procHandle->procFxnTable.control (handle, cmd, arg);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -640,7 +640,7 @@ Processor_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                              status,
                              "Processor control command failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_control", status);
 
@@ -681,7 +681,7 @@ Processor_translateAddr (Processor_Handle handle,
     status = procHandle->procFxnTable.translateAddr (handle,
                                                      dstAddr,
                                                      srcAddr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -689,7 +689,7 @@ Processor_translateAddr (Processor_Handle handle,
                              status,
                              "Processor address translation failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_translateAddr", status);
 
@@ -733,7 +733,7 @@ Processor_translateFromPte(Processor_Handle handle,
         status = PROCESSOR_E_NOTSUPPORTED;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -741,7 +741,7 @@ Processor_translateFromPte(Processor_Handle handle,
                              status,
                              "Processor address translation failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_translateFromPte", status);
 
@@ -789,7 +789,7 @@ Processor_map (Processor_Handle handle,
                                            dstAddr,
                                            nSegs,
                                            sglist);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -797,7 +797,7 @@ Processor_map (Processor_Handle handle,
                              status,
                              "Processor address map operation failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_map", status);
 
@@ -838,7 +838,7 @@ Processor_unmap (Processor_Handle handle,
     status = procHandle->procFxnTable.unmap (handle,
                                              addr,
                                              size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -846,7 +846,7 @@ Processor_unmap (Processor_Handle handle,
                              status,
                              "Processor address unmap operation failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_unmap", status);
 
@@ -912,7 +912,7 @@ Processor_registerNotify (Processor_Handle    handle,
      * validation has already happened at the ProcMgr level.
      */
     elem = Memory_alloc(NULL, sizeof(Processor_RegisterElem), 0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (elem == NULL) {
         /*! @retval PROCESSOR_E_FAIL Failed to configure DSP MMU. */
         status = PROCESSOR_E_MEMORY;
@@ -923,11 +923,11 @@ Processor_registerNotify (Processor_Handle    handle,
                              "Failed to allocate memory");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         elem->info = Memory_alloc(NULL,
             sizeof(Processor_Register) + (sizeof(ProcMgr_State) * ProcMgr_State_EndValue),
             0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (elem->info == NULL) {
             /*! @retval PROCESSOR_E_FAIL Failed to configure DSP MMU. */
             status = PROCESSOR_E_MEMORY;
@@ -938,7 +938,7 @@ Processor_registerNotify (Processor_Handle    handle,
                                  "Failed to allocate memory");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             List_elemClear((List_Elem *)elem);
             for (i = 0; state[i] != ProcMgr_State_EndValue; i++)
                 elem->info->state[i] = state[i];
@@ -960,7 +960,7 @@ Processor_registerNotify (Processor_Handle    handle,
                 SIGEV_THREAD_INIT (&event, Processor_EventTimerExpirationFxn, elem, &thread_attrs);
                 pthread_attr_destroy(&thread_attrs);
                 status = timer_create(CLOCK_REALTIME,&event,&elem->timer);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status != NULL) {
                     /*! @retval PROCESSOR_E_FAIL Failed to create timer. */
                     status = PROCESSOR_E_MEMORY;
@@ -973,7 +973,7 @@ Processor_registerNotify (Processor_Handle    handle,
             }
 
             if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 key = OsalMutex_enter(procHandle->notifiersLock);
                 List_enqueue(procHandle->registeredNotifiers, (List_Elem *)elem);
                 OsalMutex_leave(procHandle->notifiersLock, key);
@@ -987,11 +987,11 @@ Processor_registerNotify (Processor_Handle    handle,
                     value.it_interval.tv_nsec = 0;
                     timer_settime(elem->timer,0, &value, NULL);
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Processor_registerNotify", status);
 

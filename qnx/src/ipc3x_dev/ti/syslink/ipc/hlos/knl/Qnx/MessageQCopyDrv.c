@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -81,7 +81,7 @@
  *  ============================================================================
  */
 int MessageQCopyDrv_runtest (resmgr_context_t * ctp, io_devctl_t * msg,
-                             syslink_ocb_t * ocb);
+                             ipc_ocb_t * ocb);
 
 
 /** ============================================================================
@@ -129,7 +129,7 @@ OsalSemaphore_Handle mqcopy_test_sem = NULL;
  */
 Int
 MessageQCopyDrv_devctl (resmgr_context_t * ctp, io_devctl_t * msg,
-                        syslink_ocb_t * ocb)
+                        ipc_ocb_t * ocb)
 {
     Int status = _RESMGR_ERRNO (EOK);
     Int32 dcmd = msg->i.dcmd;
@@ -717,7 +717,7 @@ int run_mqcopy_error_test()
 }
 
 int MessageQCopyDrv_runtest (resmgr_context_t * ctp, io_devctl_t * msg,
-                             syslink_ocb_t * ocb)
+                             ipc_ocb_t * ocb)
 {
     MessageQCopyDrv_CmdArgs *       cargs       =
                              (MessageQCopyDrv_CmdArgs *)(_DEVCTL_DATA (msg->i));

@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -55,12 +55,8 @@
 /* Utilities headers */
 #include <IpcCmdBase.h>
 
-/*Linux specific headers*/
-#ifdef SYSLINK_BUILDOS_LINUX
-#include <linux/ioctl.h>
-#elif SYSLINK_BUILDOS_QNX
+/* QNX specific headers*/
 #include <sys/ioctl.h>
-#endif
 
 
 #if defined (__cplusplus)

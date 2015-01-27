@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 20010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -129,9 +129,9 @@ static UInt32 ioremap_nocache(UInt32 src, UInt32 size)
 /*!
  *  @brief  Object containing state of the Memory OS module.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MemoryOS_ModuleObject MemoryOS_state;
 
 
@@ -171,7 +171,7 @@ MemoryOS_setup (void)
         /* Create the Gate handle */
         MemoryOS_state.gateHandle = (IGateProvider_Handle)
                               GateMutex_create ((GateMutex_Params *) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (MemoryOS_state.gateHandle == NULL) {
             Atomic_set (&MemoryOS_state.refCount, MEMORYOS_MAKE_MAGICSTAMP(0));
             /*! @retval MEMORYOS_E_FAIL Failed to create the local gate */
@@ -183,13 +183,13 @@ MemoryOS_setup (void)
                                  "Failed to create the local gate");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             List_Params_init (&listparams);
             /* Construct the map table.Not passing gate as MemoryOs module
              *  takes care of protection over list operations
              */
             List_construct (&MemoryOS_state.mapTable, &listparams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
 #endif
 
@@ -214,7 +214,7 @@ MemoryOS_destroy (void)
 
     GT_0trace (curTrace, GT_ENTER, "MemoryOS_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -228,7 +228,7 @@ MemoryOS_destroy (void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (   Atomic_dec_return (&MemoryOS_state.refCount)
             == MEMORYOS_MAKE_MAGICSTAMP(0)) {
             /* Free any remaining regions */
@@ -248,18 +248,18 @@ MemoryOS_destroy (void)
                                           &MemoryOS_state.gateHandle);
             if ((status >= 0) && (tmpStatus < 0)) {
                 status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "MemoryOS_destroy",
                                      status,
                                      "GateMutex_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_destroy", status);
 
@@ -284,7 +284,7 @@ Ptr MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
     /* check whether the right paramaters are passed or not.*/
     GT_assert (curTrace, (size > 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -296,7 +296,7 @@ Ptr MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         if (flags == MemoryOS_MemTypeFlags_Default) {
             /* Call the kernel API for memory allocation */
@@ -310,7 +310,7 @@ Ptr MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
                                  MEMORYOS_E_MEMORY,
                                  "Memory allocation type is invalid");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (NULL == ptr) {
             /*! @retval NULL Memory allocation failed */
             GT_setFailureReason (curTrace,
@@ -320,7 +320,7 @@ Ptr MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
                                  "Could not allocate memory");
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_alloc", ptr);
 
@@ -344,7 +344,7 @@ MemoryOS_calloc (UInt32 size, UInt32 align, UInt32 flags)
     GT_3trace (curTrace, GT_ENTER, "MemoryOS_calloc", size, align, flags);
 
     ptr = MemoryOS_alloc (size, align, flags);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (NULL == ptr) {
         /*! @retval NULL Memory allocation failed */
         GT_setFailureReason (curTrace,
@@ -354,11 +354,11 @@ MemoryOS_calloc (UInt32 size, UInt32 align, UInt32 flags)
                              "Could not allocate memory");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         memset (ptr, 0, size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_calloc", ptr);
 
@@ -380,7 +380,7 @@ MemoryOS_free (Ptr ptr, UInt32 size, UInt32 flags)
 
     GT_assert (GT_1CLASS, (ptr != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (NULL == ptr) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -389,7 +389,7 @@ MemoryOS_free (Ptr ptr, UInt32 size, UInt32 flags)
                              "Pointer NULL for free");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         if (flags == MemoryOS_MemTypeFlags_Default) {
             /*! free the memory pointed by ptr */
             free (ptr);
@@ -401,9 +401,9 @@ MemoryOS_free (Ptr ptr, UInt32 size, UInt32 flags)
                                  MEMORYOS_E_MEMORY,
                                  "Memory free type is invalid");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "MemoryOS_free");
 }
@@ -428,7 +428,7 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
 
     GT_assert (curTrace, (NULL != mapInfo));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -461,7 +461,7 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
                              "NULL provided for argument mapInfo->src");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter the critical section */
         key = IGateProvider_enter (MemoryOS_state.gateHandle);
 
@@ -499,7 +499,7 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
                                                             mapInfo->size);
             }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (mapInfo->dst == (UInt32)MAP_FAILED) {
                 /*! @retval MEMORYOS_E_MAP Failed to map to host address space. */
                 status = MEMORYOS_E_MAP;
@@ -510,9 +510,9 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
                                      "Failed to map to host address space!");
             }
             else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
                 info = MemoryOS_alloc (sizeof (MemoryOS_MapTableInfo), 0, 0);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (info == NULL) {
                     /*! @retval MEMORYOS_E_MEMORY Failed to allocate memory. */
                     status = MEMORYOS_E_MEMORY;
@@ -523,7 +523,7 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
                                          "Failed to allocate memory!");
                 }
                 else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
                     /* Initialize the list element */
                     List_elemClear ((List_Elem *) info);
                     /* Populate the info */
@@ -535,17 +535,17 @@ MemoryOS_map (Memory_MapInfo * mapInfo)
                     /* Put the info into the list */
                     List_putHead ((List_Handle) &MemoryOS_state.mapTable,
                                   (List_Elem *) info);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 }
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
         /* Leave the crtical section */
         IGateProvider_leave (MemoryOS_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_map", status);
 
@@ -572,7 +572,7 @@ MemoryOS_unmap (Memory_UnmapInfo * unmapInfo)
 
     GT_assert (curTrace, (NULL != unmapInfo));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -606,7 +606,7 @@ MemoryOS_unmap (Memory_UnmapInfo * unmapInfo)
                              "NULL provided for argument unmapInfo->addr");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         key = IGateProvider_enter (MemoryOS_state.gateHandle);
 
         /* Find the node in the map table */
@@ -629,7 +629,7 @@ MemoryOS_unmap (Memory_UnmapInfo * unmapInfo)
             }
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (!found) {
             status = MEMORYOS_E_UNMAP;
             GT_setFailureReason (curTrace,
@@ -639,7 +639,7 @@ MemoryOS_unmap (Memory_UnmapInfo * unmapInfo)
                                  "Could not find specified entry to unmap!");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             /* Unmap if refCount is 0. */
             if (((MemoryOS_MapTableInfo *) info)->refCount == 0) {
                 List_remove ((List_Handle) &MemoryOS_state.mapTable,
@@ -647,14 +647,14 @@ MemoryOS_unmap (Memory_UnmapInfo * unmapInfo)
                 MemoryOS_free (info, sizeof (MemoryOS_MapTableInfo), 0);
                 munmap ((unsigned int *) unmapInfo->addr, unmapInfo->size);
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
         IGateProvider_leave (MemoryOS_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_unmap", status);
 
@@ -679,7 +679,7 @@ MemoryOS_copy (Ptr dst, Ptr src, UInt32 len)
 
     GT_assert (curTrace, ((NULL != dst) && (NULL != src)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -699,13 +699,13 @@ MemoryOS_copy (Ptr dst, Ptr src, UInt32 len)
                              "Invalid argument");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
             dst = memcpy (dst, src, len);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_copy", dst);
 
@@ -728,7 +728,7 @@ MemoryOS_set (Ptr buf, Int value, UInt32 len)
 
     GT_assert (curTrace, (NULL != buf) && (len > 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -748,11 +748,11 @@ MemoryOS_set (Ptr buf, Int value, UInt32 len)
                              "Invalid argument");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         buf = memset (buf, value, len);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_set", buf);
 
@@ -779,7 +779,7 @@ MemoryOS_translate (Ptr srcAddr, Memory_XltFlags flags)
 
     GT_2trace (curTrace, GT_ENTER, "MemoryOS_translate", srcAddr, flags);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MemoryOS_state.refCount),
                                   MEMORYOS_MAKE_MAGICSTAMP(0),
                                   MEMORYOS_MAKE_MAGICSTAMP(1))
@@ -791,7 +791,7 @@ MemoryOS_translate (Ptr srcAddr, Memory_XltFlags flags)
                              "Module was not initialized!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         key = IGateProvider_enter (MemoryOS_state.gateHandle);
 
         /* Traverse to the node in the map table */
@@ -810,9 +810,9 @@ MemoryOS_translate (Ptr srcAddr, Memory_XltFlags flags)
 
         IGateProvider_leave (MemoryOS_state.gateHandle, key);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_translate", buf);
 

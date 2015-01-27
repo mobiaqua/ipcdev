@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -50,14 +50,7 @@
  */
 
 
-#if defined(SYSLINK_BUILD_RTOS)
-#include <xdc/std.h>
-#include <xdc/runtime/Error.h>
-#endif /* #if defined(SYSLINK_BUILD_RTOS) */
-
-#if defined(SYSLINK_BUILD_HLOS)
 #include <ti/syslink/Std.h>
-#endif /* #if defined(SYSLINK_BUILD_HLOS) */
 
 /* OSAL & Utils headers */
 #include <ti/syslink/utils/Trace.h>

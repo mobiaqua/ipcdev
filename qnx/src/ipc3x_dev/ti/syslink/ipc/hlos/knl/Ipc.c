@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 /*  ----------------------------------- Standard headers   */
 #include <ti/syslink/Std.h>
 
-/*  ----------------------------------- SysLink IPC module Headers   */
+/*  ----------------------------------- IPC module Headers   */
 #include <ti/ipc/Ipc.h>
 #include <_Ipc.h>
 #include <IpcKnl.h>
@@ -43,11 +43,11 @@
 #include <_MessageQCopy.h>
 #include <ti/ipc/MessageQCopy.h>
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
 #include <gptimers.h>
 #endif
 
-/*  ----------------------------------- SysLink utils Headers   */
+/*  ----------------------------------- utils Headers   */
 #include <ti/syslink/inc/_MultiProc.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/syslink/utils/Gate.h>
@@ -55,7 +55,7 @@
 #include <ti/syslink/utils/Cache.h>
 #include <ti/syslink/utils/Memory.h>
 
-#if defined(SYSLINK_USE_IPU_PM)
+#if defined(IPC_USE_IPU_PM)
 #include <ipu_pm.h>
 #endif
 
@@ -205,7 +205,7 @@ Int Ipc_attach (UInt16 remoteProcId)
             ProcMgr_close(&procHandle);
         }
 
-#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(IPC_USE_IPU_PM) && defined(IPC_PLATFORM_OMAP5430)
         if (status >= 0) {
             status = ipu_pm_attach(remoteProcId);
             if (status < 0) {
@@ -214,7 +214,7 @@ Int Ipc_attach (UInt16 remoteProcId)
         }
 #endif
 
-#if !defined(IPC_DISABLE_WATCHDOG) && defined(SYSLINK_PLATFORM_VAYU)
+#if !defined(IPC_DISABLE_WATCHDOG) && defined(IPC_PLATFORM_VAYU)
         if (status >= 0) {
             status = gpt_wdt_attach(remoteProcId);
             if (status < 0) {
@@ -257,11 +257,11 @@ Int Ipc_detach (UInt16 remoteProcId)
     else {
         Gate_leaveSystem (key);
 
-#if defined(SYSLINK_USE_IPU_PM) && defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(IPC_USE_IPU_PM) && defined(IPC_PLATFORM_OMAP5430)
         status = ipu_pm_detach (remoteProcId);
 #endif
 
-#if !defined(IPC_DISABLE_WATCHDOG) && defined(SYSLINK_PLATFORM_VAYU)
+#if !defined(IPC_DISABLE_WATCHDOG) && defined(IPC_PLATFORM_VAYU)
         status = gpt_wdt_detach(remoteProcId);
 #endif
 
@@ -288,7 +288,7 @@ Void Ipc_getConfig (Ipc_Config * cfgParams)
 
     GT_assert (curTrace, (cfgParams != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfgParams == NULL) {
         /* No retVal since this is a Void function. */
         GT_setFailureReason (curTrace,
@@ -299,7 +299,7 @@ Void Ipc_getConfig (Ipc_Config * cfgParams)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         key = Gate_enterSystem ();
         if (Ipc_module->refCount != 0) {
             Memory_copy ((Ptr) cfgParams,
@@ -307,9 +307,9 @@ Void Ipc_getConfig (Ipc_Config * cfgParams)
                          sizeof (Ipc_Config));
         }
         Gate_leaveSystem (key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Ipc_getConfig");
 }
@@ -387,7 +387,7 @@ Ipc_destroy (Void)
 
     key = Gate_enterSystem ();
     Ipc_module->refCount--;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Ipc_module->refCount < 0) {
         Gate_leaveSystem (key);
         /*! @retval Ipc_E_INVALIDSTATE Module was not initialized */
@@ -399,7 +399,7 @@ Ipc_destroy (Void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (Ipc_module->refCount == 0) {
             Gate_leaveSystem (key);
             status = Platform_destroy ();
@@ -415,9 +415,9 @@ Ipc_destroy (Void)
         else {
             Gate_leaveSystem (key);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Ipc_destroy", status);
 

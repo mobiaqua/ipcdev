@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@
 extern "C" {
 #endif
 
-#ifdef SYSLINK_PLATFORM_VAYU
+#ifdef IPC_PLATFORM_VAYU
 /* TODO: implement these to handle config passed in through Platform.c */
 Void GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
 {
@@ -142,9 +142,9 @@ struct GateHWSpinlock_Object {
  *
  *  @brief  GateHWSpinlock Module state object.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 GateHWSpinlock_Module_State GateHWSpinlock_state =
 {
     .defaultCfg.defaultProtection  = GateHWSpinlock_LocalProtect_INTERRUPT,
@@ -157,9 +157,9 @@ GateHWSpinlock_Module_State GateHWSpinlock_state =
  *
  *  @brief  GateHWSpinlock Module state object.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 GateHWSpinlock_Module_State * GateHWSpinlock_module = &GateHWSpinlock_state;
 
 
@@ -190,7 +190,7 @@ GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
 
     GT_assert (curTrace, (cfgParams != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfgParams == NULL) {
         /* No retVal since this is a Void function. */
         GT_setFailureReason (curTrace,
@@ -201,7 +201,7 @@ GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* This sets the refCount variable is not initialized, upper 16 bits is
          * written with module Id to ensure correctness of refCount variable.
          */
@@ -222,9 +222,9 @@ GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
                          (Ptr) &GateHWSpinlock_module->cfg,
                          sizeof (GateHWSpinlock_Config));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_ENTER, "GateHWSpinlock_getConfig");
 }
@@ -305,7 +305,7 @@ GateHWSpinlock_destroy (void)
 
     GT_0trace (curTrace, GT_ENTER, "GateHWSpinlock_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (Atomic_cmpmask_and_lt (&(GateHWSpinlock_module->refCount),
                                GATEHWSPINLOCK_MAKE_MAGICSTAMP(0),
                                GATEHWSPINLOCK_MAKE_MAGICSTAMP(1))
@@ -319,7 +319,7 @@ GateHWSpinlock_destroy (void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (Atomic_dec_return (&GateHWSpinlock_module->refCount)
             == GATEHWSPINLOCK_MAKE_MAGICSTAMP(0)) {
             if(!GateHWSpinlock_deleteAll()) {
@@ -339,9 +339,9 @@ GateHWSpinlock_destroy (void)
                         0,
                         sizeof (GateHWSpinlock_Config));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "GateHWSpinlock_destroy", status);
 
@@ -597,7 +597,7 @@ Int GateHWSpinlockDrv_devctl(resmgr_context_t * ctp, io_devctl_t * msg,
             if(handle) {
                 obj = (GateHWSpinlock_Object *) handle;
                 obj->token = token ++;
-                obj->pid = ((syslink_ocb_t *)ocb)->pid;
+                obj->pid = ((ipc_ocb_t *)ocb)->pid;
                 obj->keys = NULL;
                 result->handleID = obj->token;
             }
@@ -740,7 +740,7 @@ Int GateHWSpinlock_deleteAll ()
 
     return GateHWSpinlock_S_SUCCESS;
 }
-#endif /* SYSLINK_PLATFORM_VAYU */
+#endif /* IPC_PLATFORM_VAYU */
 
 #if defined (__cplusplus)
 }

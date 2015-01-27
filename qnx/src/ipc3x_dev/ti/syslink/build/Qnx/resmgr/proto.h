@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -48,17 +48,17 @@
  */
 
 
-#ifndef _SYSLINK_PROTO_H_INCLUDED
-#define _SYSLINK_PROTO_H_INCLUDED
+#ifndef _IPC_PROTO_H_INCLUDED
+#define _IPC_PROTO_H_INCLUDED
 
 struct _iofunc_attr;
 #define RESMGR_HANDLE_T struct _iofunc_attr
-struct syslink_ocb;
-#define IOFUNC_OCB_T struct syslink_ocb
-#define RESMGR_OCB_T struct syslink_ocb
+struct ipc_ocb;
+#define IOFUNC_OCB_T struct ipc_ocb
+#define RESMGR_OCB_T struct ipc_ocb
 #define THREAD_POOL_PARAM_T dispatch_context_t
-struct syslink_attr;
-#define IOFUNC_ATTR_T struct syslink_attr
+struct ipc_attr;
+#define IOFUNC_ATTR_T struct ipc_attr
 
 /* QNX specific header files */
 
@@ -91,17 +91,17 @@ struct syslink_attr;
  *  Define our device attributes structure.
 */
 
-typedef struct syslink_attr {
+typedef struct ipc_attr {
     iofunc_attr_t   attr;
     uint16_t        procid;
     Ptr             dev;
-} syslink_attr_t;
+} ipc_attr_t;
 
 typedef struct named_device {
     iofunc_mount_t      mattr;
     iofunc_attr_t       cattr;
-    syslink_attr_t      cattr_trace[MultiProc_MAXPROCESSORS];
-    syslink_attr_t      cattr_slave[MultiProc_MAXPROCESSORS];
+    ipc_attr_t          cattr_trace[MultiProc_MAXPROCESSORS];
+    ipc_attr_t          cattr_slave[MultiProc_MAXPROCESSORS];
     int                 resmgr_id;
     int                 resmgr_id_trace[MultiProc_MAXPROCESSORS];
     int                 resmgr_id_state[MultiProc_MAXPROCESSORS];
@@ -118,25 +118,25 @@ typedef struct named_device {
     char device_name[_POSIX_PATH_MAX];
 } named_device_t;
 
-typedef struct syslink_dev {
+typedef struct ipc_dev {
     dispatch_t       * dpp;
     thread_pool_t    * tpool;
-    named_device_t     syslink;
+    named_device_t     ipc;
     void             * da_virt;
     void             * da_tesla_virt;
     pthread_mutex_t    firmwareLock;  /* lock for load/unload firmware */
     pthread_mutex_t    lock;
     Bool               recover;
     OsalThread_Handle  ipc_recovery_work;
-} syslink_dev_t;
+} ipc_dev_t;
 
-typedef struct syslink_ocb {
+typedef struct ipc_ocb {
     iofunc_ocb_t       ocb;
     pid_t              pid;
     uint32_t           ridx;
     uint32_t           widx;
-} syslink_ocb_t;
+} ipc_ocb_t;
 
-int  syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb);
+int  ipc_devctl(resmgr_context_t *ctp, io_devctl_t *msg, ipc_ocb_t *ocb);
 
 #endif

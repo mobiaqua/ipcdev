@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -130,7 +130,7 @@ Memory_alloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
     if (heap == NULL) {
         /* Call the kernel API for memory allocation */
         buffer = MemoryOS_alloc (size, align, 0);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -138,7 +138,7 @@ Memory_alloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
                                  Memory_E_MEMORY,
                                  "Failed to allocate memory!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         /* if align == 0, use default alignment */
@@ -147,7 +147,7 @@ Memory_alloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
         }
 
         buffer = IHeap_alloc (heap, size, align);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Heap_alloc failed */
             GT_setFailureReason (curTrace,
@@ -156,7 +156,7 @@ Memory_alloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
                                  Memory_E_MEMORY,
                                  "IHeap_alloc failed!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "Memory_alloc", buffer);
@@ -179,7 +179,7 @@ Memory_calloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
 
     if (heap == NULL) {
         buffer = MemoryOS_calloc (size, align, 0);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Failed to allocate memory */
             GT_setFailureReason (curTrace,
@@ -188,11 +188,11 @@ Memory_calloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
                                  Memory_E_MEMORY,
                                  "Failed to allocate memory!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         buffer = Memory_valloc (heap, size, align, 0u, eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Memory_valloc failed */
             GT_setFailureReason (curTrace,
@@ -201,7 +201,7 @@ Memory_calloc (IHeap_Handle heap, SizeT size, SizeT align, Ptr eb)
                                  Memory_E_MEMORY,
                                  "Memory_valloc failed!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_0trace (curTrace, GT_LEAVE, "Memory_calloc");
@@ -312,7 +312,7 @@ Memory_valloc (IHeap_Handle heap, SizeT size, SizeT align, Char value, Ptr eb)
 
     if (heap == NULL) {
         buffer = MemoryOS_alloc (size, align, 0);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Failed to allocate memory */
             GT_setFailureReason (curTrace,
@@ -321,11 +321,11 @@ Memory_valloc (IHeap_Handle heap, SizeT size, SizeT align, Char value, Ptr eb)
                                  Memory_E_MEMORY,
                                  "Failed to allocate memory!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         buffer = IHeap_alloc (heap, size, align);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Heap_alloc failed */
             GT_setFailureReason (curTrace,
@@ -334,14 +334,14 @@ Memory_valloc (IHeap_Handle heap, SizeT size, SizeT align, Char value, Ptr eb)
                                  Memory_E_MEMORY,
                                  "IHeap_alloc failed!");
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (buffer != NULL) {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         buffer = Memory_set (buffer, value, size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == NULL) {
             /*! @retval NULL Memory_set to 0 failed */
             GT_setFailureReason (curTrace,
@@ -351,7 +351,7 @@ Memory_valloc (IHeap_Handle heap, SizeT size, SizeT align, Char value, Ptr eb)
                                  "Memory_set to 0 failed!");
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Memory_valloc");
 

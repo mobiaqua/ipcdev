@@ -4,7 +4,7 @@
  *  @brief      Memory manager interface definitions.
  *
  *              This abstracts the Memory management interface to be used with
- *              SysLink code. Allocation, Freeing-up, copy and address translate
+ *              Ipc code. Allocation, Freeing-up, copy and address translate
  *              are supported for the memory management.
  *
  *
@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions

@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -82,7 +82,7 @@ extern "C" {
  * =============================================================================
  */
 
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
 /*!
  *  @def    OMAP5430_NUMPROCS
  *  @brief  Number of processors supported on this platform
@@ -131,7 +131,7 @@ extern "C" {
 #define OMAP5430_INDEX_HOST 3
 #endif
 
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
 #define CORE0    "CORE0"
 #else
 #define CORE0    "IPU"
@@ -460,9 +460,9 @@ int mailbox_context[MAILBOX_SIZE];
 Void
 Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int            status = OMAP5430IPCINT_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     Int i = 0;
     Memory_MapInfo mapInfo;
     List_Params listParams;
@@ -475,7 +475,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
 
     /* The setup will be called only once. Hence it does not need to be atomic.
      */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                         GT_4CLASS,
@@ -484,17 +484,17 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                         "config for driver specific setup can not be NULL");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Map general control base */
         mapInfo.src      = AINTC_BASE_ADDR;
         mapInfo.size     = AINTC_BASE_SIZE;
         mapInfo.isCached = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -504,17 +504,17 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
             Omap5430IpcInt_state.archCoreCmBase = 0;
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Omap5430IpcInt_state.archCoreCmBase = mapInfo.dst;
             /* Map mailboxBase */
             mapInfo.src      = MAILBOX_BASE;
             mapInfo.size     = MAILBOX_SIZE;
             mapInfo.isCached = FALSE;
- #if !defined(SYSLINK_BUILD_OPTIMIZE)
+ #if !defined(IPC_BUILD_OPTIMIZE)
             status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -524,16 +524,16 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                 Omap5430IpcInt_state.mailboxBase = 0;
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 Omap5430IpcInt_state.mailboxBase = mapInfo.dst;
                 /*Set Mailbox to Smart Idle */
                 REG(Omap5430IpcInt_state.mailboxBase + 0x10) = 0x8;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
         if (status >= 0) {
             /*Registering omap5430 platform with ArchIpcInt*/
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             ArchIpcInt_object.fxnTable = &Omap5430IpcInt_fxnTable;
             ArchIpcInt_object.obj      = &Omap5430IpcInt_state;
 
@@ -561,7 +561,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
              */
             Omap5430IpcInt_state.procIds [OMAP5430_INDEX_DSP] =
                                                         MultiProc_getId ("DSP");
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
             Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE1] =
                                                       MultiProc_getId ("CORE1");
 #endif
@@ -613,7 +613,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                                 MAILBOX_MESSAGE_m_OFFSET(3));
                 }
                 /* The below seems to be needed for OMAP5 Virtio for
-                 * slaying/restarting syslink properly
+                 * slaying/restarting ipc properly
                  */
                 /* Disables interrupts from HOST->CORE0 */
                 SET_BIT(REG(Omap5430IpcInt_state.mailboxBase + \
@@ -635,10 +635,10 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
 
                 ArchIpcInt_object.isSetup  = TRUE;
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Omap5430IpcInt_setup");
 }
@@ -731,7 +731,7 @@ Omap5430IpcInt_interruptRegister (UInt16                     procId,
                           OMAP5430IPCINT_MAKE_MAGICSTAMP(0));
 
     /* This is a normal use-case, so should not be inside
-     * SYSLINK_BUILD_OPTIMIZE.
+     * IPC_BUILD_OPTIMIZE.
      */
     if (Atomic_inc_return (&Omap5430IpcInt_state.isrObjects [procId].isrRefCount)
         != OMAP5430IPCINT_MAKE_MAGICSTAMP(1u)) {
@@ -755,7 +755,7 @@ Omap5430IpcInt_interruptRegister (UInt16                     procId,
                             OMAP5430IPCINT_MAKE_MAGICSTAMP(0));
 
     /* This is a normal use-case, so should not be inside
-     * SYSLINK_BUILD_OPTIMIZE.
+     * IPC_BUILD_OPTIMIZE.
      */
     if (   Atomic_inc_return (&Omap5430IpcInt_state.isrRefCount)
         != OMAP5430IPCINT_MAKE_MAGICSTAMP(1u)) {
@@ -774,7 +774,7 @@ Omap5430IpcInt_interruptRegister (UInt16                     procId,
         Omap5430IpcInt_state.isrHandle = OsalIsr_create (&_Omap5430IpcInt_isr,
                                                          NULL,
                                                          &isrParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (Omap5430IpcInt_state.isrHandle == NULL) {
             /*! @retval OMAP5430IPCINT_E_FAIL OsalIsr_create failed */
             status = OMAP5430IPCINT_E_FAIL;
@@ -785,9 +785,9 @@ Omap5430IpcInt_interruptRegister (UInt16                     procId,
                                  "OsalIsr_create failed");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             status = OsalIsr_install (Omap5430IpcInt_state.isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -796,7 +796,7 @@ Omap5430IpcInt_interruptRegister (UInt16                     procId,
                                      "OsalIsr_install failed");
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "Omap5430IpcInt_interruptRegister", status);
@@ -888,16 +888,16 @@ Int32
 Omap5430IpcInt_interruptUnregister  (UInt16 procId)
 {
     Int32 status = OMAP5430IPCINT_SUCCESS;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int32 tmpStatus = OMAP5430IPCINT_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace,GT_ENTER,"Omap5430IpcInt_interruptUnregister", procId);
 
     GT_assert (curTrace,(ArchIpcInt_object.isSetup == TRUE));
     GT_assert(curTrace, (procId < MultiProc_MAXPROCESSORS));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (
                             &Omap5430IpcInt_state.isrObjects [procId].isrRefCount,
                             OMAP5430IPCINT_MAKE_MAGICSTAMP(0),
@@ -912,9 +912,9 @@ Omap5430IpcInt_interruptUnregister  (UInt16 procId)
                              "ISR was not registered!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* This is a normal use-case, so should not be inside
-         * SYSLINK_BUILD_OPTIMIZE.
+         * IPC_BUILD_OPTIMIZE.
          */
         if (Atomic_dec_return(&Omap5430IpcInt_state.isrObjects[procId].isrRefCount)
             == OMAP5430IPCINT_MAKE_MAGICSTAMP(0)) {
@@ -930,7 +930,7 @@ Omap5430IpcInt_interruptUnregister  (UInt16 procId)
         if (   Atomic_dec_return (&Omap5430IpcInt_state.isrRefCount)
             == OMAP5430IPCINT_MAKE_MAGICSTAMP(0)) {
             status = OsalIsr_uninstall (Omap5430IpcInt_state.isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -938,13 +938,13 @@ Omap5430IpcInt_interruptUnregister  (UInt16 procId)
                                      status,
                                      "OsalIsr_uninstall failed");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             tmpStatus =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 OsalIsr_delete (&(Omap5430IpcInt_state.isrHandle));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if ((status >= 0) && (tmpStatus < 0)) {
                 status = tmpStatus;
                 GT_setFailureReason (curTrace,
@@ -953,11 +953,11 @@ Omap5430IpcInt_interruptUnregister  (UInt16 procId)
                                      status,
                                      "OsalIsr_delete failed");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Omap5430IpcInt_interruptUnregister",
                status);
@@ -992,7 +992,7 @@ Omap5430IpcInt_interruptEnable (UInt16 procId, UInt32 intId)
         SET_BIT(REG(Omap5430IpcInt_state.mailboxBase + MAILBOX_IRQENABLE_OFFSET),
                 ( (MAILBOX_NUMBER_2) << 1));
     }
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     else if (procId == Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE1]) {
         /*
          * Do nothing.  Interrupt is handled through CORE0 interrupt.
@@ -1008,7 +1008,7 @@ Omap5430IpcInt_interruptEnable (UInt16 procId, UInt32 intId)
         SET_BIT(REG(Omap5430IpcInt_state.mailboxBase + MAILBOX_IRQENABLE_OFFSET),
                 ( (MAILBOX_NUMBER_1) << 1));
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1016,7 +1016,7 @@ Omap5430IpcInt_interruptEnable (UInt16 procId, UInt32 intId)
                              OMAP5430IPCINT_E_FAIL,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Omap5430IpcInt_interruptEnable");
 }
@@ -1048,7 +1048,7 @@ Omap5430IpcInt_interruptDisable (UInt16 procId, UInt32 intId)
         SET_BIT(REG(Omap5430IpcInt_state.mailboxBase + MAILBOX_IRQDISABLE_OFFSET),
                 ( (MAILBOX_NUMBER_2) << 1));
     }
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     else if (procId == Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE1]) {
         /*
          * Do nothing.  Interrupt is handled through CORE0 interrupt.
@@ -1064,7 +1064,7 @@ Omap5430IpcInt_interruptDisable (UInt16 procId, UInt32 intId)
         SET_BIT(REG(Omap5430IpcInt_state.mailboxBase + MAILBOX_IRQDISABLE_OFFSET),
                 ( (MAILBOX_NUMBER_1) << 1));
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1072,7 +1072,7 @@ Omap5430IpcInt_interruptDisable (UInt16 procId, UInt32 intId)
                              OMAP5430IPCINT_E_FAIL,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Omap5430IpcInt_interruptDisable");
 }
@@ -1122,7 +1122,7 @@ Omap5430IpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
             GT_0trace(curTrace, GT_4CLASS," ** Error - Core 0 not clearing previous interrupt");
         }
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         /*! @retval OMAP5430IPCINT_E_FAIL Invalid procId specified */
         status = OMAP5430IPCINT_E_FAIL;
@@ -1132,7 +1132,7 @@ Omap5430IpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
                              status,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace,GT_LEAVE,"Omap5430IpcInt_waitClearInterrupt", status);
 
@@ -1169,7 +1169,7 @@ Omap5430IpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
          */
         REG32(Omap5430IpcInt_state.mailboxBase + MAILBOX_MESSAGE_3_OFFSET) = value;
     }
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
     else if (procId == Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE0]) {
 #else
     else if (procId == Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE0]||
@@ -1182,7 +1182,7 @@ Omap5430IpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
          */
         REG32(Omap5430IpcInt_state.mailboxBase + MAILBOX_MESSAGE_0_OFFSET) = value;
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         /*! @retval OMAP5430IPCINT_E_FAIL Invalid procId specified */
         status = OMAP5430IPCINT_E_FAIL;
@@ -1192,7 +1192,7 @@ Omap5430IpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
                              status,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Omap5430IpcInt_sendInterrupt",status);
 
@@ -1230,7 +1230,7 @@ Omap5430IpcInt_clearInterrupt (UInt16 mboxNum)
         REG32(Omap5430IpcInt_state.mailboxBase
             + MAILBOX_IRQSTATUS_CLEAR_OFFSET) = 0x1 << (mboxNum << 1);
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1238,7 +1238,7 @@ Omap5430IpcInt_clearInterrupt (UInt16 mboxNum)
                              OMAP5430IPCINT_E_FAIL,
                              "Invalid mailbox number specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Omap5430IpcInt_clearInterrupt");
 

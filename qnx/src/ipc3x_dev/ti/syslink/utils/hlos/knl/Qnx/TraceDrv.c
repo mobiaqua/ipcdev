@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -84,9 +84,6 @@ extern "C" {
 #endif /* defined (__cplusplus) */
 
 
-/* Function prototypes */
-int syslink_trace_settrace(resmgr_context_t *ctp, io_devctl_t *msg, iofunc_ocb_t *ocb);
-
 /** ============================================================================
  *  Macros and types
  *  ============================================================================
@@ -108,20 +105,20 @@ int syslink_trace_settrace(resmgr_context_t *ctp, io_devctl_t *msg, iofunc_ocb_t
 Void
 TraceDrv_ioctl (UInt32 cmd, Ptr args)
 {
-#if defined (SYSLINK_TRACE_ENABLE)
+#if defined (IPC_TRACE_ENABLE)
     TraceDrv_CmdArgs * cmdArgs = (TraceDrv_CmdArgs *) args;
-#endif /* if defined (SYSLINK_TRACE_ENABLE) */
+#endif /* if defined (IPC_TRACE_ENABLE) */
 
     GT_2trace (curTrace, GT_ENTER, "TraceDrv_ioctl", cmd, args);
 
-#if defined (SYSLINK_TRACE_ENABLE)
+#if defined (IPC_TRACE_ENABLE)
     if (cmd == CMD_TRACEDRV_SETTRACE) {
         if (cmdArgs->args.setTrace.type == GT_TraceType_Kernel) {
             cmdArgs->args.setTrace.oldMask = curTrace;
             curTrace = cmdArgs->args.setTrace.mask;
         }
     }
-#endif /* if defined (SYSLINK_TRACE_ENABLE) */
+#endif /* if defined (IPC_TRACE_ENABLE) */
 
     GT_0trace (curTrace, GT_LEAVE, "TraceDrv_ioctl");
 }

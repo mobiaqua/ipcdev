@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -205,7 +205,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             status = _OMAP5430BENELLI_halMmuEnable (halObject,
                                           enableArgs->numMemEntries,
                                           enableArgs->memEntries);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to configure DSP MMU. */
                 status = PROCESSOR_E_FAIL;
@@ -215,7 +215,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to configure DSP MMU");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
@@ -224,7 +224,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             /* args are not used. */
             halObject = (OMAP5430BENELLI_HalObject *) halObj;
             status = _OMAP5430BENELLI_halMmuDisable (halObject);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to configure DSP MMU. */
                 status = PROCESSOR_E_FAIL;
@@ -234,7 +234,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to disable DSP MMU");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break ;
 
@@ -246,7 +246,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             halObject = (OMAP5430BENELLI_HalObject *) halObj;
            /* Add the entry in TLB for new request */
             //status = _OMAP5430BENELLI_halMmuAddEntry (halObject,addEntry) ;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 status = PROCESSOR_E_FAIL;
                 GT_setFailureReason (curTrace,
@@ -255,7 +255,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to dynamically add DSP MMU entry");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         }
         break;
@@ -268,7 +268,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             halObject = (OMAP5430BENELLI_HalObject *) halObj;
 
             //status = _OMAP5430BENELLI_halMmuDeleteEntry (halObject,deleteEntry);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 status = PROCESSOR_E_FAIL;
                 GT_setFailureReason (curTrace,
@@ -277,7 +277,7 @@ OMAP5430BENELLI_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                   status,
                                   "Failed to dynamically delete DSP MMU entry");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
            default:
@@ -492,7 +492,7 @@ _OMAP5430BENELLI_halMmuEnable (OMAP5430BENELLI_HalObject * halObject,
                                         halObject,
                                         &isrParams);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (mmuObj->isrHandle == NULL) {
         /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed */
         status = PROCESSOR_E_FAIL;
@@ -503,11 +503,11 @@ _OMAP5430BENELLI_halMmuEnable (OMAP5430BENELLI_HalObject * halObject,
                              "OsalIsr_create failed");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         status = OsalIsr_install (mmuObj->isrHandle);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -516,7 +516,7 @@ _OMAP5430BENELLI_halMmuEnable (OMAP5430BENELLI_HalObject * halObject,
                                  "OsalIsr_install failed");
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_OMAP5430BENELLI_halMmuEnable", status);
 
@@ -545,7 +545,7 @@ _OMAP5430BENELLI_halMmuDisable (OMAP5430BENELLI_HalObject * halObject)
     mmuObj = &(halObject->mmuObj);
 
     status = OsalIsr_uninstall (mmuObj->isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -553,13 +553,13 @@ _OMAP5430BENELLI_halMmuDisable (OMAP5430BENELLI_HalObject * halObject)
                              status,
                              "OsalIsr_uninstall failed");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     tmpStatus =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         OsalIsr_delete (&(mmuObj->isrHandle));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
         GT_setFailureReason (curTrace,
@@ -568,7 +568,7 @@ _OMAP5430BENELLI_halMmuDisable (OMAP5430BENELLI_HalObject * halObject)
                              status,
                              "OsalIsr_delete failed");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_OMAP5430BENELLI_halMmuDisable", status);
 
@@ -632,7 +632,7 @@ Int _OMAP5430BENELLI_halMmuAddEntry (OMAP5430BENELLI_HalObject * halObject,
                 te.endianism     = LITTLE_ENDIAN;
                 te.mixedSize     = MMU_TLBES;
                 status = _OMAP5430BENELLI_halMmuPteSet (halObject, &te);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (
                                     curTrace,
@@ -641,7 +641,7 @@ Int _OMAP5430BENELLI_halMmuAddEntry (OMAP5430BENELLI_HalObject * halObject,
                                     status,
                                     "Failed to in _OMAP5430BENELLI_halMmuPteSet!");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
             else if (*ppgd && *ppte) {
                 if (currentEntry.masterPhyAddr != (*ppte & IOPAGE_MASK)) {
@@ -653,7 +653,7 @@ Int _OMAP5430BENELLI_halMmuAddEntry (OMAP5430BENELLI_HalObject * halObject,
                     te.endianism     = LITTLE_ENDIAN;
                     te.mixedSize     = MMU_TLBES;
                     status = _OMAP5430BENELLI_halMmuPteSet (halObject, &te);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (
                                         curTrace,
@@ -662,7 +662,7 @@ Int _OMAP5430BENELLI_halMmuAddEntry (OMAP5430BENELLI_HalObject * halObject,
                                         status,
                                         "Failed to in _OMAP5430BENELLI_halMmuPteSet!");
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
             }
 
@@ -845,9 +845,9 @@ _OMAP5430BENELLI_halMmuPteSet (OMAP5430BENELLI_HalObject *      halObject,
                                  status,
                                  "Invalid Page size passed!");
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         tlb_entry.prsvd  = MMU_CAM_PRESERVE;
         tlb_entry.valid  = MMU_CAM_VALID;
         /*TBD : elsz parameter has to be configured*/
@@ -873,9 +873,9 @@ _OMAP5430BENELLI_halMmuPteSet (OMAP5430BENELLI_HalObject *      halObject,
                                      status,
                                      "Invalid elementSize passed!");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /*TBD : endian parameter has to configured*/
             switch (setPteInfo->endianism) {
                 case LITTLE_ENDIAN:
@@ -894,9 +894,9 @@ _OMAP5430BENELLI_halMmuPteSet (OMAP5430BENELLI_HalObject *      halObject,
                                          status,
                                          "Invalid endianism passed!");
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /*TBD : mixed parameter has to configured*/
                 switch (setPteInfo->mixedSize) {
                     case MMU_TLBES:
@@ -927,11 +927,11 @@ _OMAP5430BENELLI_halMmuPteSet (OMAP5430BENELLI_HalObject *      halObject,
                             status,
                             "iopgtable_store_entry failed!");
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
 //    GT_1trace (curTrace, GT_LEAVE, "_OMAP5430BENELLI_halMmuPteSet", status);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
             "VirtQueue_kick: Sending interrupt to proc %d with payload 0x%x",
             vq->procId, vq->id);
 
-#if defined (SYSLINK_USE_IPU_PM)
+#if defined (IPC_USE_IPU_PM)
     ipu_pm_restore_ctx(vq->procId);
 #endif
     ArchIpcInt_sendInterrupt(vq->procId, vq->intId, vq->id);

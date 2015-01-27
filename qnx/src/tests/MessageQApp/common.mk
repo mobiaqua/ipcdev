@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,6 @@ PINFO DESCRIPTION=IPC QNX MESSAGEQ SAMPLE
 endef
 
 INSTALLDIR = bin/tests
-
-CCOPTS += -DSYSLINK_BUILDOS_QNX
 
 # source path
 EXTRA_SRCVPATH += \

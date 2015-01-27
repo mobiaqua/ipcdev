@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -51,11 +51,7 @@
 #if !defined(STD_H)
 #define STD_H
 
-#ifdef SYSLINK_BUILDOS_LINUX
-#include <std_linux.h>
-#elif SYSLINK_BUILDOS_QNX
 #include <std_qnx.h>
-#endif
 
 #if defined (__cplusplus)
 extern "C" {

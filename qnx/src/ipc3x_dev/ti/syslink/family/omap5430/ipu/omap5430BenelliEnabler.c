@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -217,7 +217,7 @@ static Int save_tlbs (OMAP5430BENELLI_HalObject * halObject, UINT32 procId)
     iotlb_getLock(halObject, &l);
 
     nr_tlbs = l.base;
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
     if (procId == PROCTYPE_IPU0)
 #else
     if (procId == PROCTYPE_IPU0 || procId == PROCTYPE_IPU1)
@@ -251,7 +251,7 @@ static Int restore_tlbs (OMAP5430BENELLI_HalObject * halObject, UInt32 procId)
     save.vict = 0;
     iotlb_setLock(halObject, &save);
 
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
     if (procId == PROCTYPE_IPU0)
 #else
     if (procId == PROCTYPE_IPU0 || procId == PROCTYPE_IPU1)

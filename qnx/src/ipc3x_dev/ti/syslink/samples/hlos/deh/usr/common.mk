@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -41,22 +41,22 @@ endef
 NAME = rpmsg-omx-errors
 INSTALLDIR = bin
 
-#default SYSLINK Product root path and can be overridden from commandline
-SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../../..
-SYSLINK_BUILDOS = Qnx
+#default IPC Product root path and can be overridden from commandline
+IPC_ROOT = $(PROJECT_ROOT)/../../../../../..
+IPC_BUILDOS = Qnx
 
 #Add extra include path
-EXTRA_INCVPATH+=$(SYSLINK_ROOT)	\
-				$(SYSLINK_ROOT)/ti/syslink/inc	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/usr/$(SYSLINK_BUILDOS)	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/usr	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS)	\
-				$(SYSLINK_ROOT)/perfutils
+EXTRA_INCVPATH+=$(IPC_ROOT)	\
+				$(IPC_ROOT)/ti/syslink/inc	\
+				$(IPC_ROOT)/ti/syslink/inc/usr/$(IPC_BUILDOS)	\
+				$(IPC_ROOT)/ti/syslink/inc/usr	\
+				$(IPC_ROOT)/ti/syslink/inc/$(IPC_BUILDOS)	\
+				$(IPC_ROOT)/perfutils
 
-EXTRA_SRCVPATH+=$(PROJECT_ROOT)/$(SYSLINK_BUILDOS)	\
+EXTRA_SRCVPATH+=$(PROJECT_ROOT)/$(IPC_BUILDOS)	\
 				$(PROJECT_ROOT)/..
 
-CCOPTS+=-g -O0 -DSYSLINK_BUILDOS_QNX
+CCOPTS+=-g -O0 -DIPC_BUILDOS_QNX
 
 EXTRA_LIBVPATH += $(PROJECT_ROOT)/../../../../../../perfutils/arm/so.le.v7
 

@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -122,7 +122,7 @@ typedef struct Processor_AttachParams_tag {
     /*!< Processor architecture */
     ProcMgr_Handle         pmHandle;
     /*!< Handle to proc manager */
-    SysLink_MemoryMap    * sysMemMap;
+    Ipc_MemoryMap        * sysMemMap;
     /*!< System Memory map to be added to translation table */
 } Processor_AttachParams ;
 

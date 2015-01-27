@@ -1,14 +1,14 @@
 /*
  *  @file       syslink_devctl.c
  *
- *  @brief      devctl handler for the syslink resource manager
+ *  @brief      devctl handler for the ipc resource manager
  *
  *
  *  @ver        02.00.00.46_alpha1
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -74,17 +74,17 @@
 #include <ti/syslink/utils/Trace.h>
 
 extern Int MessageQCopyDrv_devctl (resmgr_context_t *ctp, io_devctl_t *msg,
-                                   syslink_ocb_t *ocb);
+                                   ipc_ocb_t *ocb);
 extern Int GateHWSpinlockDrv_devctl (resmgr_context_t * ctp, io_devctl_t * msg,
-                                     syslink_ocb_t * ocb);
-extern int syslink_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-                                   syslink_ocb_t *ocb);
-extern int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-                                     syslink_ocb_t * ocb);
-extern int syslink_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-                                     syslink_ocb_t * ocb);
-extern int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-                                 syslink_ocb_t * ocb);
+                                     ipc_ocb_t * ocb);
+extern int ipc_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                   ipc_ocb_t *ocb);
+extern int ipc_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                     ipc_ocb_t * ocb);
+extern int ipc_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                     ipc_ocb_t * ocb);
+extern int ipc_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                 ipc_ocb_t * ocb);
 
 /**
  * Handler for devctl() messages.
@@ -100,7 +100,7 @@ extern int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK        Success.
  * \retval ENOTSUP    Unsupported devctl().
  */
-int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
+int ipc_devctl(resmgr_context_t *ctp, io_devctl_t *msg, ipc_ocb_t *ocb)
 {
     int status = 0;
     int commandClass = 0;
@@ -120,23 +120,23 @@ int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
         case MESSAGEQCOPY_BASE_CMD:
             status = MessageQCopyDrv_devctl( ctp, msg, ocb);
             break;
-#ifndef SYSLINK_PLATFORM_VAYU
+#ifndef IPC_PLATFORM_VAYU
         case HWSPINLOCKDRV_BASE_CMD:
             status = GateHWSpinlockDrv_devctl(ctp, msg, ocb);
             break;
 #endif
-        case _DCMD_SYSLINK_NAMESERVER:
-            status = syslink_nameserver_devctl(ctp, msg, ocb);
+        case _DCMD_IPC_NAMESERVER:
+            status = ipc_nameserver_devctl(ctp, msg, ocb);
             break;
-        case _DCMD_SYSLINK_MESSAGEQ:
-            status = syslink_messageq_devctl(ctp, msg, ocb);
+        case _DCMD_IPC_MESSAGEQ:
+            status = ipc_messageq_devctl(ctp, msg, ocb);
             break;
-        case _DCMD_SYSLINK_MULTIPROC:
-            status = syslink_multiproc_devctl(ctp, msg, ocb);
+        case _DCMD_IPC_MULTIPROC:
+            status = ipc_multiproc_devctl(ctp, msg, ocb);
             break;
-#ifdef SYSLINK_PLATFORM_VAYU
-        case _DCMD_SYSLINK_GATEMP:
-            status = syslink_gatemp_devctl(ctp, msg, ocb);
+#ifdef IPC_PLATFORM_VAYU
+        case _DCMD_IPC_GATEMP:
+            status = ipc_gatemp_devctl(ctp, msg, ocb);
             break;
 #endif
         default:

@@ -1,4 +1,4 @@
-SharedMemoryAllocatorTestApp Test for Syslink SharedMemAllocator (must launch the 'shmemallocator' resource manager prior to running this test)
+SharedMemoryAllocatorTestApp Test for SharedMemAllocator (must launch the 'shmemallocator' resource manager prior to running this test)
 
 Syntax:
   sharedmemallocator

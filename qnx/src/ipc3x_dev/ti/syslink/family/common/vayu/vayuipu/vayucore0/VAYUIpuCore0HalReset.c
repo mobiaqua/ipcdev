@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -126,7 +126,7 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
     switch (cmd) {
         case Processor_ResetCtrlCmd_Reset:
         {
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
             /*Put Benelli M4_0 and M4_1 to Reset*/
             /* Put IPU core 0 and core 1 into reset */
             SETBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 1);
@@ -209,7 +209,7 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
 
         case Processor_ResetCtrlCmd_Release:
         {
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
             /*Bring Benelli M4_0 and M4_1 out of Reset*/
             /* De-assert RST1 and RST2, and clear the Reset status */
             Osal_printf("De-assert RST1\n");

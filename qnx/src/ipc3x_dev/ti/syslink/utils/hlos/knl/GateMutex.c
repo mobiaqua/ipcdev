@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -109,7 +109,7 @@ Int GateMutex_Instance_init (      GateMutex_Object * obj,
         IGateProvider_ObjectInitializer (obj, GateMutex);
 
         obj->mHandle = OsalMutex_create (OsalMutex_Type_Interruptible);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (obj->mHandle == NULL) {
                 status = 1;
             GT_setFailureReason (curTrace,
@@ -118,7 +118,7 @@ Int GateMutex_Instance_init (      GateMutex_Object * obj,
                                  GateMutex_E_FAIL,
                                  "Unable to create Osal mutex object!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "GateMutex_Instance_init", status);
 
@@ -173,7 +173,7 @@ GateMutex_enter (GateMutex_Handle gmHandle)
 
     GT_1trace (curTrace, GT_ENTER, "GateMutex_enter", gmHandle);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (gmHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -182,11 +182,11 @@ GateMutex_enter (GateMutex_Handle gmHandle)
                              "Handle passed is invalid!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         key = OsalMutex_enter ((OsalMutex_Handle) gmHandle->mHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "GateMutex_enter", key);
 
@@ -208,7 +208,7 @@ GateMutex_leave (GateMutex_Handle gmHandle, IArg   key)
 {
     GT_1trace (curTrace, GT_ENTER, "GateMutex_leave", gmHandle);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (gmHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -217,11 +217,11 @@ GateMutex_leave (GateMutex_Handle gmHandle, IArg   key)
                              "Handle passed is invalid!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         OsalMutex_leave ((OsalMutex_Handle) gmHandle->mHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "GateMutex_leave");
 }

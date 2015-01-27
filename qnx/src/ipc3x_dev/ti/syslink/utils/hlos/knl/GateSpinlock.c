@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -113,7 +113,7 @@ GateSpinlock_Instance_init (      GateSpinlock_Object * obj,
         IGateProvider_ObjectInitializer (obj, GateSpinlock);
 
         obj->sHandle = OsalSpinlock_create (OsalSpinlock_Type_Normal);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (obj->sHandle == NULL) {
                 status = 1;
             GT_setFailureReason (curTrace,
@@ -122,7 +122,7 @@ GateSpinlock_Instance_init (      GateSpinlock_Object * obj,
                                  GateSpinlock_E_FAIL,
                                  "Unable to create Osal Spinlock object!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "GateSpinlock_Instance_init", status);
 
@@ -182,7 +182,7 @@ GateSpinlock_enter (GateSpinlock_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -191,11 +191,11 @@ GateSpinlock_enter (GateSpinlock_Handle handle)
                              "Handle passed is invalid!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         key = OsalSpinlock_enter ((OsalSpinlock_Handle) handle->sHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "GateSpinlock_enter", key);
 
@@ -219,7 +219,7 @@ GateSpinlock_leave (GateSpinlock_Handle handle, UInt32 key)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -228,11 +228,11 @@ GateSpinlock_leave (GateSpinlock_Handle handle, UInt32 key)
                              "Handle passed is invalid!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         OsalSpinlock_leave ((OsalSpinlock_Handle) handle->sHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "GateSpinlock_leave");
 }

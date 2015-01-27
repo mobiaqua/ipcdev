@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -49,8 +49,8 @@
 #include <ti/syslink/inc/MultiProcDrvDefs.h>
 
 /* Function prototypes */
-int syslink_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
+int ipc_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
 
 /**
  * Handler for devctl() messages for multiproc module.
@@ -66,12 +66,12 @@ int syslink_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     switch (msg->i.dcmd) {
         case DCMD_MULTIPROC_GETCONFIG:
-            return syslink_multiproc_getconfig( ctp, msg, ocb);
+            return ipc_multiproc_getconfig( ctp, msg, ocb);
             break;
 
         default:
@@ -96,8 +96,8 @@ int syslink_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_multiproc_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MultiProcDrv_CmdArgs * cargs = (MultiProcDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));

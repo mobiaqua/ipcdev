@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -51,19 +51,6 @@
 
 
 /* Standard headers */
-#if defined(SYSLINK_BUILD_RTOS)
-#include <xdc/std.h>
-#include <string.h>
-#include <xdc/runtime/Error.h>
-#include <xdc/runtime/Memory.h>
-#include <xdc/runtime/System.h>
-#include <xdc/runtime/IGateProvider.h>
-#include <ti/sysbios/gates/GateMutex.h>
-#include <ti/syslink/utils/_Memory.h>
-#include <ti/syslink/inc/VAYUClock.h>
-#endif /* #if defined(SYSLINK_BUILD_RTOS) */
-
-#if defined(SYSLINK_BUILD_HLOS)
 #include <ti/syslink/Std.h>
 /* OSAL & Utils headers */
 #include <ti/syslink/utils/String.h>
@@ -71,15 +58,8 @@
 #include <ti/syslink/utils/GateMutex.h>
 #include <ti/syslink/utils/Memory.h>
 #include <_MultiProc.h>
-#if defined(__KERNEL__)
-#include <linux/string.h>
-#else
 #include <string.h>
-#endif
-#if defined (SYSLINK_BUILDOS_LINUX)
-#include <ti/syslink/inc/knl/Linux/LinuxClock.h>
-#endif /* #if defined(SYSLINK_BUILDOS_LINUX) */
-#endif /* #if defined(SYSLINK_BUILD_HLOS) */
+
 #include <ti/syslink/utils/Trace.h>
 #include <Bitops.h>
 
@@ -195,9 +175,9 @@ typedef struct VAYUDSPPWR_Object_tag VAYUDSPPWR_Object;
  *
  *  @brief  VAYUDSPPWR state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 VAYUDSPPWR_ModuleObject VAYUDSPPWR_state =
 {
     .isSetup = FALSE,
@@ -234,7 +214,7 @@ VAYUDSPPWR_getConfig (VAYUDSPPWR_Config * cfg)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -244,13 +224,13 @@ VAYUDSPPWR_getConfig (VAYUDSPPWR_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         memcpy (cfg,
                      &VAYUDSPPWR_state.defCfg,
                      sizeof (VAYUDSPPWR_Config));
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUDSPPWR_getConfig");
 }
@@ -295,7 +275,7 @@ VAYUDSPPWR_setup (VAYUDSPPWR_Config * cfg)
     /* Create a default gate handle for local module protection. */
     VAYUDSPPWR_state.gateHandle = (IGateProvider_Handle)
                              GateMutex_create ((GateMutex_Params*)NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (VAYUDSPPWR_state.gateHandle == NULL) {
         /*! @retval PWRMGR_E_FAIL Failed to create GateMutex! */
         status = PWRMGR_E_FAIL;
@@ -306,7 +286,7 @@ VAYUDSPPWR_setup (VAYUDSPPWR_Config * cfg)
                              "Failed to create GateMutex!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Copy the user provided values into the state object. */
         Memory_copy (&VAYUDSPPWR_state.cfg,
                      cfg,
@@ -317,9 +297,9 @@ VAYUDSPPWR_setup (VAYUDSPPWR_Config * cfg)
                     0,
                     (sizeof (VAYUDSPPWR_Handle) * MultiProc_MAXPROCESSORS));
         VAYUDSPPWR_state.isSetup = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_setup", status);
 
@@ -383,7 +363,7 @@ VAYUDSPPWR_Params_init (VAYUDSPPWR_Params * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (params == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -393,12 +373,12 @@ VAYUDSPPWR_Params_init (VAYUDSPPWR_Params * params)
                              "passed is null!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Return updated VAYUDSPPWR instance specific parameters. */
         params->reserved = 0;
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUDSPPWR_Params_init");
 }
@@ -424,7 +404,7 @@ VAYUDSPPWR_create (      UInt16               procId,
     GT_assert (curTrace, IS_VALID_PROCID (procId));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (!IS_VALID_PROCID (procId)) {
         status = PWRMGR_E_INVALIDARG;
         GT_setFailureReason (curTrace,
@@ -442,10 +422,10 @@ VAYUDSPPWR_create (      UInt16               procId,
                              "params passed is null!");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (VAYUDSPPWR_state.gateHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
         /* Check if the PwrMgr already exists for specified procId. */
         if (VAYUDSPPWR_state.pwrHandles [procId] != NULL) {
             status = PWRMGR_E_ALREADYEXIST;
@@ -456,7 +436,7 @@ VAYUDSPPWR_create (      UInt16               procId,
                                  "PwrMgr already exists for specified procId!");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             /* Allocate memory for the handle */
             handle = (PwrMgr_Object *) Memory_calloc (NULL,
                                                       sizeof (PwrMgr_Object),
@@ -492,27 +472,19 @@ VAYUDSPPWR_create (      UInt16               procId,
                                         "Memory allocation failed for handle!");
                 }
                 else {
-#if defined (SYSLINK_BUILDOS_LINUX)
-                    ((VAYUDSPPWR_Object *)(handle->object))->clockHandle
-                                       = (ClockOps_Handle) LinuxClock_create();
-#endif/* #if defined (SYSLINK_BUILDOS_LINUX) */
-#if defined (SYSLINK_BUILD_RTOS)
-                    ((VAYUDSPPWR_Object *)(handle->object))->clockHandle
-                                       = (ClockOps_Handle) VAYUCLOCK_create();
-#endif/* #if defined (SYSLINK_BUILD_RTOS) */
                     handle->procId = procId;
                     VAYUDSPPWR_state.pwrHandles [procId] =
                                                 (VAYUDSPPWR_Handle) handle;
                 }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Leave critical section protection. */
         IGateProvider_leave (VAYUDSPPWR_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     if (status < 0) {
         if (handle !=  NULL) {
@@ -555,7 +527,7 @@ VAYUDSPPWR_delete (VAYUDSPPWR_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handlePtr == NULL) {
         /*! @retval PWRMGR_E_INVALIDARG Invalid NULL handlePtr specified*/
         status = PWRMGR_E_INVALIDARG;
@@ -575,7 +547,7 @@ VAYUDSPPWR_delete (VAYUDSPPWR_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         handle = (PwrMgr_Object *) (*handlePtr);
         /* Enter critical section protection. */
         key = IGateProvider_enter (VAYUDSPPWR_state.gateHandle);
@@ -588,12 +560,6 @@ VAYUDSPPWR_delete (VAYUDSPPWR_Handle * handlePtr)
         /* Free memory used for the VAYUDSPPWR object. */
         if (handle->object != NULL) {
             /* Free memory used for the clock handle */
-#if defined (SYSLINK_BUILDOS_LINUX)
-            LinuxClock_delete(((VAYUDSPPWR_Object *)(handle->object))->clockHandle);
-#endif /* #if defined (SYSLINK_BUILDOS_LINUX) */
-#if defined (SYSLINK_BUILD_RTOS)
-            VAYUCLOCK_delete(((VAYUDSPPWR_Object *)(handle->object))->clockHandle);
-#endif /* #if defined (SYSLINK_BUILD_RTOS) */
             Memory_free (NULL,
                          object,
                          sizeof (VAYUDSPPWR_Object));
@@ -606,9 +572,9 @@ VAYUDSPPWR_delete (VAYUDSPPWR_Handle * handlePtr)
 
         /* Leave critical section protection. */
         IGateProvider_leave (VAYUDSPPWR_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_delete", status);
 
@@ -637,7 +603,7 @@ VAYUDSPPWR_open (VAYUDSPPWR_Handle * handlePtr, UInt16 procId)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, IS_VALID_PROCID (procId));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handlePtr == NULL) {
         /*! @retval PWRMGR_E_HANDLE Invalid NULL handlePtr specified */
         status = PWRMGR_E_HANDLE;
@@ -657,7 +623,7 @@ VAYUDSPPWR_open (VAYUDSPPWR_Handle * handlePtr, UInt16 procId)
                              "Invalid procId specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Initialize return parameter handle. */
         *handlePtr = NULL;
 
@@ -674,9 +640,9 @@ VAYUDSPPWR_open (VAYUDSPPWR_Handle * handlePtr, UInt16 procId)
         else {
             *handlePtr = VAYUDSPPWR_state.pwrHandles [procId];
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_open", status);
 
@@ -702,7 +668,7 @@ VAYUDSPPWR_close (VAYUDSPPWR_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handlePtr == NULL) {
         /*! @retval PWRMGR_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -723,12 +689,12 @@ VAYUDSPPWR_close (VAYUDSPPWR_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         /* Nothing to be done for close. */
         *handlePtr = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_close", status);
 
@@ -763,7 +729,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handle == NULL) {
         /*! @retval PWRMGR_E_HANDLE Invalid argument */
         status = PWRMGR_E_HANDLE;
@@ -774,7 +740,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         object = (VAYUDSPPWR_Object *) pwrMgrHandle->object;
         GT_assert (curTrace, (object != NULL));
         /* Map and get the virtual address for system control module */
@@ -782,7 +748,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
         mapInfo.size     = PRCM_SIZE;
         mapInfo.isCached = FALSE;
         status = Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
         if (status < 0) {
             status = VAYUDSPPWR_E_FAIL;
             GT_setFailureReason (curTrace,
@@ -792,7 +758,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                                  "Failure in mapping prcm module");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             object->prcmVA = mapInfo.dst;
 
             /* Map and get the virtual address for system control module */
@@ -800,7 +766,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
             mapInfo.size     = CTRL_MODULE_SIZE;
             mapInfo.isCached = FALSE;
             status = Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
             if (status < 0) {
                 status = VAYUDSPPWR_E_FAIL;
                 GT_setFailureReason (curTrace,
@@ -810,7 +776,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                                      "Failure in mapping prcm module");
             }
             else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
                 object->controlVA = mapInfo.dst;
 
                 /* Map and get the virtual address for system l2 ram */
@@ -818,7 +784,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                 mapInfo.size     = GEM_L2RAM_SIZE;
                 mapInfo.isCached = FALSE;
                 status = Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
                 if (status < 0) {
                     status = VAYUDSPPWR_E_FAIL;
                     GT_setFailureReason (curTrace,
@@ -828,14 +794,14 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                                          "Failure in mapping prcm module");
                 }
                 else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
                 object->l2baseVA = mapInfo.dst;
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
                 }
             }
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
     /*! @retval PWRMGR_SUCCESS Operation successful */
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_attach", status);
     return (status);
@@ -866,7 +832,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handle == NULL) {
         /*! @retval PWRMGR_E_HANDLE Invalid argument */
         status = PWRMGR_E_HANDLE;
@@ -877,7 +843,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         object = (VAYUDSPPWR_Object *) pwrMgrHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -888,7 +854,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
             unmapInfo.isCached = FALSE;
             if (unmapInfo.addr != 0) {
                 status = Memory_unmap (&unmapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
                 if (status < 0) {
                     status = VAYUDSPPWR_E_FAIL;
                     GT_setFailureReason (curTrace,
@@ -897,7 +863,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
                                          status,
                                          "Failure in mapping prcm module");
                 }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             }
         }
         if (object->prcmVA != 0x0) {
@@ -907,7 +873,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
             unmapInfo.isCached = FALSE;
             if (unmapInfo.addr != 0) {
                 status = Memory_unmap (&unmapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
                 if (status < 0) {
                     status = VAYUDSPPWR_E_FAIL;
                     GT_setFailureReason (curTrace,
@@ -916,7 +882,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
                                          status,
                                          "Failure in mapping prcm module");
                 }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             }
         }
         if (object->l2baseVA != 0x0) {
@@ -926,7 +892,7 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
             unmapInfo.isCached = FALSE;
             if (unmapInfo.addr != 0) {
                 status = Memory_unmap (&unmapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
                 if (status < 0) {
                     status = VAYUDSPPWR_E_FAIL;
                     GT_setFailureReason (curTrace,
@@ -935,12 +901,12 @@ VAYUDSPPWR_detach (PwrMgr_Handle handle)
                                          status,
                                          "Failure in mapping prcm module");
                 }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_detach", status);
     /*! @retval PWRMGR_SUCCESS Operation successful */
@@ -976,7 +942,7 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handle == NULL) {
         /*! @retval PWRMGR_E_HANDLE Invalid argument */
         status = PWRMGR_E_HANDLE;
@@ -987,14 +953,14 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         object = (VAYUDSPPWR_Object *) pwrMgrHandle->object;
         GT_assert (curTrace, (object != NULL));
 
         /* Enable spinlocks, mailbox and timers before powering on dsp */
         object->dspSpinlockHandle = ClockOps_get(object->clockHandle, "spinbox_ick");
 
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspSpinlockHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspSpinlockHandle);
         if (status < 0) {
@@ -1007,7 +973,7 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
                                  "ClockOps_enable failed");
         }
         object->dspMailboxHandle = ClockOps_get(object->clockHandle, "mailbox_ick");
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspMailboxHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspMailboxHandle);
         GT_assert (curTrace, (status >= 0));
@@ -1017,13 +983,13 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
          */
 
         object->dspTimerIclkHandle = ClockOps_get(object->clockHandle, "gpt4_ick");
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspTimerIclkHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspTimerIclkHandle);
         GT_assert (curTrace, (status >= 0));
 
         object->dspTimerFclkHandle = ClockOps_get(object->clockHandle, "gpt4_fck");
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspTimerFclkHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspTimerFclkHandle);
         GT_assert (curTrace, (status >= 0));
@@ -1031,13 +997,13 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
         /* Enable Dsp MMU clocks */
 
         object->dspMmuCfgClkHandle = ClockOps_get(object->clockHandle, "mmu_cfg_ick");
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspMmuCfgClkHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspMmuCfgClkHandle);
         GT_assert (curTrace, (status >= 0));
 
         object->dspMmuClkHandle = ClockOps_get(object->clockHandle, "mmu_ick");
-        /* Do not put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* Do not put this check under IPC_BUILD_OPTIMIZE */
         GT_assert (curTrace, (object->dspMmuClkHandle != NULL));
         status = ClockOps_enable(object->clockHandle, object->dspMmuClkHandle);
         GT_assert (curTrace, (status >= 0));
@@ -1047,12 +1013,12 @@ VAYUDSPPWR_on (PwrMgr_Handle handle)
         status = ClockOps_enable(object->clockHandle, object->dspClkHandle);
         GT_assert (curTrace, (status >= 0));
 
-		/* Warm Reset to  access Internal RAM of DSP - to access internal RAM */
-//		REG((object->prcmVA) + RM_ACTIVE_RSTCTRL) = 0x01;
+        /* Warm Reset to  access Internal RAM of DSP - to access internal RAM */
+//      REG((object->prcmVA) + RM_ACTIVE_RSTCTRL) = 0x01;
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_on", status);
     /*! @retval PWRMGR_SUCCESS Operation successful */
 #endif /*#if !defined (NETRA_SIMULATOR)*/
@@ -1083,7 +1049,7 @@ VAYUDSPPWR_off (PwrMgr_Handle handle, Bool force)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     if (handle == NULL) {
         /*! @retval PWRMGR_E_HANDLE Invalid argument */
         status = PWRMGR_E_HANDLE;
@@ -1094,7 +1060,7 @@ VAYUDSPPWR_off (PwrMgr_Handle handle, Bool force)
                              "Invalid handle specified");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         object = (VAYUDSPPWR_Object *) pwrMgrHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -1140,9 +1106,9 @@ VAYUDSPPWR_off (PwrMgr_Handle handle, Bool force)
             ClockOps_put(object->clockHandle, object->dspSpinlockHandle);
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
+#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
     GT_1trace (curTrace, GT_LEAVE, "VAYUDSPPWR_off", status);
     /*! @retval PWRMGR_SUCCESS Operation successful */
     return (status);

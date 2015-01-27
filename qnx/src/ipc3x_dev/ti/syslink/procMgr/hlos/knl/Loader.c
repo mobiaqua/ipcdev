@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -104,7 +104,7 @@ Loader_attach (Loader_Handle handle, Loader_AttachParams * params)
         if (loaderHandle->bootMode == ProcMgr_BootMode_Boot) {
             GT_assert (curTrace, (loaderHandle->loaderFxnTable.attach != NULL));
             status = loaderHandle->loaderFxnTable.attach (handle, params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -112,7 +112,7 @@ Loader_attach (Loader_Handle handle, Loader_AttachParams * params)
                                      status,
                                      "Failed to attach to the specific loader!");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
     GT_1trace (curTrace, GT_LEAVE, "Loader_attach", status);
@@ -156,7 +156,7 @@ Loader_detach (Loader_Handle handle)
         if (loaderHandle->bootMode == ProcMgr_BootMode_Boot) {
             GT_assert (curTrace, (loaderHandle->loaderFxnTable.detach != NULL));
             status = loaderHandle->loaderFxnTable.detach (handle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -164,7 +164,7 @@ Loader_detach (Loader_Handle handle)
                                      status,
                                      "Failed to detach from the specific loader!");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
     }
@@ -229,7 +229,7 @@ Loader_load (Loader_Handle handle,
                                                 argv,
                                                 params,
                                                 fileId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -237,7 +237,7 @@ Loader_load (Loader_Handle handle,
                              status,
                              "Failed to load file on the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_load", status);
 
@@ -287,7 +287,7 @@ Loader_loadSymbols (Loader_Handle handle,
     status = loaderHandle->loaderFxnTable.loadSymbols (handle,
                                                        imagePath,
                                                        params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -295,7 +295,7 @@ Loader_loadSymbols (Loader_Handle handle,
                              status,
                              "Failed to load symbols for the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_loadSymbols", status);
 
@@ -338,7 +338,7 @@ Loader_unload (Loader_Handle handle, UInt32 fileId)
      */
     GT_assert (curTrace, (loaderHandle->loaderFxnTable.unload != NULL));
     status = loaderHandle->loaderFxnTable.unload (handle, fileId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -346,7 +346,7 @@ Loader_unload (Loader_Handle handle, UInt32 fileId)
                              status,
                              "Failed to unload file from the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_unload", status);
 
@@ -401,7 +401,7 @@ Loader_getSymbolAddress (Loader_Handle handle,
                                                             fileId,
                                                             symName,
                                                             symValue);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -410,7 +410,7 @@ Loader_getSymbolAddress (Loader_Handle handle,
                              "Failed to get the symbol address!");
         GT_1trace (curTrace, GT_4CLASS, "Symbol Name: %s", symName);
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_getSymbolAddress", status);
 
@@ -459,7 +459,7 @@ Loader_getEntryPt (Loader_Handle handle,
     status = loaderHandle->loaderFxnTable.getEntryPt (handle,
                                                       fileId,
                                                       entryPt);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -467,7 +467,7 @@ Loader_getEntryPt (Loader_Handle handle,
                              status,
                              "Failed to get the file entry point!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_getEntryPt", status);
 
@@ -515,7 +515,7 @@ Int Loader_getSectionInfo (Loader_Handle         handle,
                                                           fileId,
                                                           sectionName,
                                                           sectionInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         status = LOADER_E_FAIL;
         GT_setFailureReason (curTrace,
@@ -524,7 +524,7 @@ Int Loader_getSectionInfo (Loader_Handle         handle,
                              status,
                              "Failed to get the file entry point!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_getSectionInfo", status);
 
@@ -570,7 +570,7 @@ Int Loader_getSectionData (Loader_Handle        handle,
                                                           fileId,
                                                           sectionInfo,
                                                           buffer);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         status = LOADER_E_FAIL;
         GT_setFailureReason (curTrace,
@@ -579,7 +579,7 @@ Int Loader_getSectionData (Loader_Handle        handle,
                              status,
                              "Failed to get the file entry point!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "Loader_getSectionData", status);
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ $(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/api/arm/a.g.le.v
 $(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7/libutils_g.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
-# link with syslink static library, dynamic for others
+# link with ipc static library, dynamic for others
 LIBPREF_mmrpc_g = -Bstatic
 LIBPOST_mmrpc_g = -Bdynamic
 LIBPREF_sharedmemallocatorS = -Bstatic

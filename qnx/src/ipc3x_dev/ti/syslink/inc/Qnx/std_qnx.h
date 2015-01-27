@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -55,8 +55,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef SYSLINK_BUILD_DEBUG
-#ifndef SYSLINK_BUILD_OPTIMIZE
+#ifdef IPC_BUILD_DEBUG
+#ifndef IPC_BUILD_OPTIMIZE
 /* Branch Prediction for likely true case */
 #define EXPECT_TRUE(x)     (x)
 /* Branch Prediction for likely false case */
@@ -64,14 +64,14 @@
 #endif
 #endif
 
-#ifdef SYSLINK_BUILD_RELEASE
+#ifdef IPC_BUILD_RELEASE
 /* Branch Prediction for likely true case */
 #define EXPECT_TRUE(x)     __builtin_expect(!!(x), 1)
 /* Branch Prediction for likely false case */
 #define EXPECT_FALSE(x)    __builtin_expect(!!(x), 0)
 #endif
 
-#ifdef SYSLINK_BUILD_OPTIMIZE
+#ifdef IPC_BUILD_OPTIMIZE
 /* Branch Prediction for likely true case */
 #define EXPECT_TRUE(x)     __builtin_expect(!!(x), 1)
 /* Branch Prediction for likely false case */

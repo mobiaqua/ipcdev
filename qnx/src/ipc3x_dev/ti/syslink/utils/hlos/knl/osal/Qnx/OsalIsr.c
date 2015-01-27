@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 20010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -149,7 +149,7 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
     /* fxnArgs are optional and may be passed as NULL. */
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fxn == NULL) {
         /*! @retval NULL provided for argument fxn */
         GT_setFailureReason (curTrace,
@@ -167,9 +167,9 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
                              "NULL provided for argument params");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         isrObj = Memory_alloc (NULL, sizeof (OsalIsr_Object), 0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (isrObj == NULL) {
             /*! @retval NULL Failed to allocate memory for ISR object. */
             GT_setFailureReason (curTrace,
@@ -179,7 +179,7 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
                                  "Failed to allocate memory for ISR object.");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             /* Create the thread object used for the interrupt handler. */
             threadParams.priority     = OsalThread_Priority_High;
             threadParams.priorityType = OsalThread_PriorityType_Generic;
@@ -188,7 +188,7 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
                                                     fxn,
                                                     fxnArgs,
                                                     &threadParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (isrObj->bottomHalf == NULL) {
                 /*! @retval NULL Failed to create thread for ISR handler. */
                 GT_setFailureReason (curTrace,
@@ -200,7 +200,7 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
                 isrObj = NULL;
             }
             else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             /* Copy the creation parameters for further use */
             isrObj->irq             = params->intId;
             isrObj->isSharedInt  = params->sharedInt;
@@ -212,11 +212,11 @@ OsalIsr_create (OsalIsr_CallbackFxn fxn,
             /* Initialize state to uninstalled. */
             isrObj->isrState = OsalIsr_State_Uninstalled;
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalIsr_create", isrObj);
 
@@ -242,7 +242,7 @@ OsalIsr_delete (OsalIsr_Handle * isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /*! @retval OSALISR_E_INVALIDARG NULL provided for argument isrHandle.*/
         status = OSALISR_E_INVALIDARG;
@@ -262,7 +262,7 @@ OsalIsr_delete (OsalIsr_Handle * isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         isrObj = (OsalIsr_Object*) (*isrHandle);
         /* Delete the thread used for the ISR handler */
         if (isrObj->bottomHalf != NULL) {
@@ -272,9 +272,9 @@ OsalIsr_delete (OsalIsr_Handle * isrHandle)
         /* Free the ISR object. */
         Memory_free (NULL, isrObj, sizeof (OsalIsr_Object));
         *isrHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalIsr_delete", status);
 
@@ -308,7 +308,7 @@ OsalIsr_install (OsalIsr_Handle isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /*! @retval OSALISR_E_HANDLE NULL ISR handle provided. */
         status = OSALISR_E_HANDLE;
@@ -319,7 +319,7 @@ OsalIsr_install (OsalIsr_Handle isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
         if ((isrObj->chid = ChannelCreate(_NTO_CHF_DISCONNECT | _NTO_CHF_UNBLOCK)) == -1 ) {
             status = OSALISR_E_IRQINSTALL;
@@ -363,9 +363,9 @@ OsalIsr_install (OsalIsr_Handle isrHandle)
             }
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalIsr_install", status);
 
@@ -391,7 +391,7 @@ OsalIsr_uninstall (OsalIsr_Handle isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /*! @retval OSALISR_E_HANDLE NULL ISR handle provided. */
         status = OSALISR_E_HANDLE;
@@ -402,7 +402,7 @@ OsalIsr_uninstall (OsalIsr_Handle isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         InterruptDetach (isrObj->handle);
         pthread_cancel(isrObj->tid);
         pthread_join(isrObj->tid, NULL);
@@ -410,9 +410,9 @@ OsalIsr_uninstall (OsalIsr_Handle isrHandle)
         ChannelDestroy(isrObj->chid);
 
         isrObj->isrState = OsalIsr_State_Uninstalled;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalIsr_uninstall", status);
 
@@ -441,7 +441,7 @@ OsalIsr_disableIsr (OsalIsr_Handle isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /* Void function, so status is not set. */
         GT_setFailureReason (curTrace,
@@ -451,16 +451,16 @@ OsalIsr_disableIsr (OsalIsr_Handle isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         if (isrObj->isSharedInt != TRUE) {
             /* Disable the IRQ handler */
             InterruptMask(isrObj->irq, isrObj->handle);
             isrObj->enabled = FALSE;
             isrObj->isrState = OsalIsr_State_Disabled;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalIsr_disableIsr");
 }
@@ -486,7 +486,7 @@ OsalIsr_enableIsr (OsalIsr_Handle isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /* Void function, so status is not set. */
         GT_setFailureReason (curTrace,
@@ -496,15 +496,15 @@ OsalIsr_enableIsr (OsalIsr_Handle isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         if (isrObj->isSharedInt != TRUE) {
             InterruptUnmask(isrObj->irq, isrObj->handle);
             isrObj->enabled  = TRUE ;
             isrObj->isrState = OsalIsr_State_Installed;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalIsr_enableIsr");
 }
@@ -568,7 +568,7 @@ OsalIsr_getState (OsalIsr_Handle isrHandle)
 
     GT_assert (curTrace, (isrHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (isrHandle == NULL) {
         /*! @retval OsalIsr_State_EndValue NULL ISR handle provided. */
         GT_setFailureReason (curTrace,
@@ -578,12 +578,12 @@ OsalIsr_getState (OsalIsr_Handle isrHandle)
                              "NULL ISR handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         isrState = isrObj->isrState;
         GT_1trace (curTrace, GT_1CLASS, "   ISR state [%d]", isrState);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalIsr_getState", isrState);
 

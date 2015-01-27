@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -112,7 +112,7 @@ OsalKfile_open (String             fileName,
     GT_assert (curTrace, (fileMode != NULL));
     GT_assert (curTrace, (fileHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fileName == NULL) {
         /*! @retval OSALKFILE_E_INVALIDARG NULL provided for argument
                                            fileName. */
@@ -153,10 +153,10 @@ OsalKfile_open (String             fileName,
                              "NULL provided for argument fileHandle");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         *fileHandle = NULL;
         fileObject = Memory_alloc (NULL, sizeof (OsalKfile_Object), 0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (fileObject == NULL) {
             /*! @retval OSALKFILE_E_MEMORY Failed to allocate memory for
                                            OsalKfile object. */
@@ -168,10 +168,10 @@ OsalKfile_open (String             fileName,
                              "Failed to allocate memory for OsalKfile object.");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
             fileDesc = open (fileName, O_RDONLY, 0) ;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (fileDesc < 0) {
                 /*! @retval OSALKFILE_E_FILEOPEN Failed to open file. */
                 status = OSALKFILE_E_FILEOPEN;
@@ -182,7 +182,7 @@ OsalKfile_open (String             fileName,
                                      "Failed to open file.");
             }
             else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
                 fileObject->fileDesc = fileDesc;
                 fileObject->fileName = fileName;
                 fileObject->curPos = 0;
@@ -191,9 +191,9 @@ OsalKfile_open (String             fileName,
 
                 fileObject->size = lseek (fileDesc,0,SEEK_END);
                 lseek (fileDesc, 0, SEEK_SET);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
             /* If the function call failed then free the object allocated
              * earlier.
@@ -202,10 +202,10 @@ OsalKfile_open (String             fileName,
                 Memory_free (NULL, fileObject, sizeof (OsalKfile_Object));
                 *fileHandle = NULL;
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalKfile_open", status);
 
@@ -230,7 +230,7 @@ OsalKfile_close (OsalKfile_Handle * fileHandle)
 
     GT_assert (curTrace, (fileHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fileHandle == NULL) {
         /*! @retval OSALKFILE_E_INVALIDARG NULL provided for argument
                                            fileHandle. */
@@ -251,16 +251,16 @@ OsalKfile_close (OsalKfile_Handle * fileHandle)
                              "NULL file handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         fileObject = (OsalKfile_Object *) *fileHandle;
         close (fileObject->fileDesc);
         Memory_free (NULL, fileObject, sizeof(OsalKfile_Object));
 
         /* Reset user's file handle pointer. */
         *fileHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalKfile_close", status);
 
@@ -300,7 +300,7 @@ OsalKfile_read (OsalKfile_Handle fileHandle,
     GT_assert (curTrace, (size != 0));
     GT_assert (curTrace, (count != 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fileHandle == NULL) {
         /*! @retval OSALKFILE_E_INVALIDARG NULL provided for argument
                                            fileHandle. */
@@ -339,7 +339,7 @@ OsalKfile_read (OsalKfile_Handle fileHandle,
                              "Zero provided for count argument.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         fileObject = (OsalKfile_Object*) fileHandle;
         if ((fileObject->curPos + (size * count)) > fileObject->size) {
             /*! @retval OSALKFILE_E_OUTOFRANGE Specified operation goes out of
@@ -360,7 +360,7 @@ OsalKfile_read (OsalKfile_Handle fileHandle,
                 fileObject->curPos += bytesRead;
                 GT_assert (curTrace, ((bytesRead / size) == (UInt32) count));
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             else {
                 /*! @retval OSALKFILE_E_FILEREAD Failed to read from the file */
                 status = OSALKFILE_E_FILEREAD;
@@ -370,11 +370,11 @@ OsalKfile_read (OsalKfile_Handle fileHandle,
                                      status,
                                      "Failed to read from the file.");
             }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalKfile_read", status);
 
@@ -406,7 +406,7 @@ OsalKfile_seek (OsalKfile_Handle fileHandle,
     GT_assert (curTrace, (fileHandle != NULL));
     GT_assert (curTrace, (pos < OsalKfile_Pos_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fileHandle == NULL) {
         /*! @retval OSALKFILE_E_INVALIDARG NULL provided for argument
                                            fileHandle. */
@@ -418,7 +418,7 @@ OsalKfile_seek (OsalKfile_Handle fileHandle,
                              "NULL provided for argument fileHandle");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         fileObject = (OsalKfile_Object* ) fileHandle;
         fileDesc = fileObject->fileDesc;
         switch (pos) {
@@ -497,9 +497,9 @@ OsalKfile_seek (OsalKfile_Handle fileHandle,
             }
             break;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalKfile_seek", status);
 
@@ -525,7 +525,7 @@ OsalKfile_tell (OsalKfile_Handle fileHandle)
 
     GT_assert (curTrace, (fileHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (fileHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -534,16 +534,16 @@ OsalKfile_tell (OsalKfile_Handle fileHandle)
                              "NULL provided for argument fileHandle");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         fileObject = (OsalKfile_Object*) fileHandle;
 
         posValue = fileObject->curPos;
 
         /* TODO: fix assert to do a proper check */
         /*GT_assert (GT_1CLASS, (posValue == fileObject->fileDesc));*/
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace(curTrace, GT_LEAVE,"OsalKfile_tell",posValue );
 

@@ -9,7 +9,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -94,9 +94,9 @@ typedef struct MultiProc_ModuleObject_tag {
  *  Extern declarations
  * =============================================================================
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MultiProc_ModuleObject MultiProc_state = {
     .defCfg.numProcessors     = 1u,
     .defCfg.id                = 0u,
@@ -108,9 +108,9 @@ MultiProc_ModuleObject MultiProc_state = {
  *
  *  @brief  Pointer to the MultiProc module state.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MultiProc_ModuleObject * MultiProc_module = &MultiProc_state;
 
 
@@ -126,7 +126,7 @@ MultiProc_getConfig (MultiProc_Config * cfg)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (cfg == NULL)) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -136,7 +136,7 @@ MultiProc_getConfig (MultiProc_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (EXPECT_TRUE (  Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                                   MultiProc_MAKE_MAGICSTAMP(0),
                                                   MultiProc_MAKE_MAGICSTAMP(1))
@@ -151,9 +151,9 @@ MultiProc_getConfig (MultiProc_Config * cfg)
                          &MultiProc_module->cfg,
                          sizeof (MultiProc_Config));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "MultiProc_getConfig");
 }
@@ -207,7 +207,7 @@ MultiProc_destroy (Void)
 
     GT_0trace (curTrace, GT_ENTER, "MultiProc_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                   MultiProc_MAKE_MAGICSTAMP(0),
                                   MultiProc_MAKE_MAGICSTAMP(1))
@@ -221,11 +221,11 @@ MultiProc_destroy (Void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Atomic_dec_return (&MultiProc_module->refCount);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MultiProc_destroy", status);
 
@@ -242,7 +242,7 @@ MultiProc_setLocalId (UInt16 id)
 
     GT_1trace (curTrace, GT_ENTER, "MultiProc_setLocalId", id);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                                 MultiProc_MAKE_MAGICSTAMP(0),
                                                 MultiProc_MAKE_MAGICSTAMP(1))
@@ -273,11 +273,11 @@ MultiProc_setLocalId (UInt16 id)
                              " startup");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         MultiProc_module->id = id;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MultiProc_setLocalId", status);
 
@@ -295,7 +295,7 @@ MultiProc_getId (String name)
 
     GT_1trace (curTrace, GT_ENTER, "MultiProc_getId", name);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                                  MultiProc_MAKE_MAGICSTAMP(0),
                                                  MultiProc_MAKE_MAGICSTAMP(1))
@@ -307,10 +307,10 @@ MultiProc_getId (String name)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* If the name is NULL, simply return the local id */
         if (EXPECT_FALSE (name == NULL)) {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (EXPECT_FALSE (MultiProc_module->id == MultiProc_INVALIDID)) {
                 GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -319,14 +319,14 @@ MultiProc_getId (String name)
                                  "MultiProc_localId not set to proper value");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 GT_assert (curTrace,
                            (MultiProc_module->id != MultiProc_INVALIDID));
                 id = MultiProc_module->id;
                 found = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         else {
             for (i = 0; i < MultiProc_module->cfg.numProcessors ; i++) {
@@ -338,7 +338,7 @@ MultiProc_getId (String name)
                 }
             }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (EXPECT_FALSE (!found)) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -346,11 +346,11 @@ MultiProc_getId (String name)
                                      MultiProc_E_NOTFOUND,
                                      "Processor name not found");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_assert (curTrace, (found == TRUE));
 
@@ -370,7 +370,7 @@ MultiProc_getName (UInt16 id)
 
     GT_assert (curTrace, (id < MultiProc_module->cfg.numProcessors));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                                 MultiProc_MAKE_MAGICSTAMP(0),
                                                 MultiProc_MAKE_MAGICSTAMP(1))
@@ -389,12 +389,12 @@ MultiProc_getName (UInt16 id)
                     "Processor id is not less than numProcessors");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         name = MultiProc_module->cfg.nameList [id];
         GT_1trace (curTrace, GT_1CLASS, "MultiProc_getName [%s]", name);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "MultiProc_getName");
 
@@ -444,7 +444,7 @@ MultiProc_getSlot (UInt16 remoteProcId)
 
     GT_1trace (curTrace, GT_ENTER, "MultiProc_getSlot", remoteProcId);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(MultiProc_module->refCount),
                                                 MultiProc_MAKE_MAGICSTAMP(0),
                                                 MultiProc_MAKE_MAGICSTAMP(1))
@@ -464,7 +464,7 @@ MultiProc_getSlot (UInt16 remoteProcId)
                     "Processor id is not less than numProcessors");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (remoteProcId > MultiProc_self ()) {
             smallId = MultiProc_self ();
             largeId = remoteProcId;
@@ -483,9 +483,9 @@ MultiProc_getSlot (UInt16 remoteProcId)
                 slot++;
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MultiProc_getSlot", slot);
 

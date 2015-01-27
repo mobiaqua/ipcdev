@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -99,9 +99,9 @@ typedef struct MemoryOS_ModuleObject {
 /*!
  *  @brief  Object containing state of the Memory OS module.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 MemoryOS_ModuleObject MemoryOS_state ;
 
 
@@ -191,7 +191,7 @@ MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
 
     /* Call the Linux API for memory allocation */
     ptr = (Ptr) malloc (size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (NULL == ptr) {
         /*! @retval NULL Memory allocation failed */
         GT_setFailureReason (curTrace,
@@ -200,7 +200,7 @@ MemoryOS_alloc (UInt32 size, UInt32 align, UInt32 flags)
                              MEMORYOS_E_MEMORY,
                              "Could not allocate memory");
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_alloc", ptr);
 
@@ -225,7 +225,7 @@ MemoryOS_calloc (UInt32 size, UInt32 align, UInt32 flags)
     GT_3trace (curTrace, GT_ENTER, "MemoryOS_calloc", size, align, flags);
 
     ptr = MemoryOS_alloc (size, align, flags);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (NULL == ptr) {
         /*! @retval NULL Memory allocation failed */
         GT_setFailureReason (curTrace,
@@ -235,11 +235,11 @@ MemoryOS_calloc (UInt32 size, UInt32 align, UInt32 flags)
                              "Could not allocate memory");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         ptr = memset (ptr, 0, size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_calloc", ptr);
 
@@ -261,7 +261,7 @@ MemoryOS_free (Ptr ptr, UInt32 size, UInt32 flags)
 
     GT_assert (GT_1CLASS, (ptr != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (NULL == ptr) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -270,12 +270,12 @@ MemoryOS_free (Ptr ptr, UInt32 size, UInt32 flags)
                              "Pointer NULL for free");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Free the memory pointed by ptr */
         free (ptr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "MemoryOS_free");
 }
@@ -341,7 +341,7 @@ MemoryOS_copy (Ptr dst, Ptr src, UInt32 len)
 
     GT_assert (curTrace, ((NULL != dst) && (NULL != src)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if ((dst == NULL) || (src == NULL)) {
         /*! @retval NULL Invalid argument */
         GT_setFailureReason (curTrace,
@@ -351,11 +351,11 @@ MemoryOS_copy (Ptr dst, Ptr src, UInt32 len)
                              "Invalid argument");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         dst = memcpy (dst, src, len);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_copy", dst);
 
@@ -378,7 +378,7 @@ MemoryOS_set (Ptr buf, Int value, UInt32 len)
 
     GT_assert (curTrace, (NULL != buf) && (len > 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (buf == NULL) {
         /*! @retval NULL Invalid argument */
         GT_setFailureReason (curTrace,
@@ -388,11 +388,11 @@ MemoryOS_set (Ptr buf, Int value, UInt32 len)
                              "Invalid argument");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         buf = memset (buf, value, len);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "MemoryOS_set", buf);
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@
 #include <Bitops.h>
 #include <_rpmsg.h>
 
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
 #define CORE0    "CORE0"
 #else
 #define CORE0    "IPU"
@@ -115,11 +115,11 @@ static struct ipu_pm_module_object ipu_pm_state = {
     .proc_state = 0,
 } ;
 
-extern Bool syslink_hib_enable;
-extern uint32_t syslink_hib_timeout;
-extern Bool syslink_hib_hibernating;
-extern pthread_mutex_t syslink_hib_mutex;
-extern pthread_cond_t syslink_hib_cond;
+extern Bool ipc_hib_enable;
+extern uint32_t ipc_hib_timeout;
+extern Bool ipc_hib_hibernating;
+extern pthread_mutex_t ipc_hib_mutex;
+extern pthread_cond_t ipc_hib_cond;
 
 #undef BENELLI_SELF_HIBERNATION
 
@@ -154,8 +154,8 @@ extern Bool rpmsg_resmgr_allow_hib (UInt16 proc_id);
 #endif
 
 #ifdef QNX_PM_ENABLE
-static struct powauth *syslink_auth_active = NULL;
-static struct powauth *syslink_auth_oswr = NULL;
+static struct powauth *ipc_auth_active = NULL;
+static struct powauth *ipc_auth_oswr = NULL;
 
 enum {core_active, core_inactive, core_off};
 static int ipu_pm_powman_init(void);
@@ -588,7 +588,7 @@ static Bool ipu_pm_gptimer_interrupt(Ptr fxnArgs)
 {
     int num;
     uint16_t core0_id = MultiProc_getId(CORE0);
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     uint16_t core1_id = MultiProc_getId("CORE1");
 #else
     uint16_t core1_id = core0_id;
@@ -1182,7 +1182,7 @@ int ipu_pm_ivahd_disable()
 
         while(((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) != 0x0) && --max_tries);
         if (max_tries == 0)
-            GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_disable: WARNING - CLK ACTIVITY bit did not go off");
+            GT_0trace(curTrace, GT_4CLASS, "IPC: ivahd_disable: WARNING - CLK ACTIVITY bit did not go off");
 
         // IVA sub-system resets - Assert reset for IVA logic and SL2
         out32(pm_base + rm_iva_rstctrl_offset, 0x00000004);
@@ -1275,7 +1275,7 @@ int ipu_pm_ivahd_enable()
         max_tries = 100;
         while(((in32(pm_base + pm_iva_pwrstst_offset) & 0x00100000) != 0) && --max_tries);
         if (max_tries == 0)
-            GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - PwrSt did not transition");
+            GT_0trace(curTrace, GT_4CLASS, "IPC: ivahd_enable: WARNING - PwrSt did not transition");
 
         // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
         out32(cm_base + cm_iva_iva_clkctrl_offset, 0x00000001);
@@ -1287,7 +1287,7 @@ int ipu_pm_ivahd_enable()
         max_tries = 100;
         while (((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) == 0x0) && --max_tries);
         if (max_tries == 0)
-            GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - Clk_ACTIVITY bit is not set");
+            GT_0trace(curTrace, GT_4CLASS, "IPC: ivahd_enable: WARNING - Clk_ACTIVITY bit is not set");
 
         /* Release ICONT1 and SL2/IVAHD first, wait for few usec  then release ICONT2 */
         reg = in32(pm_base + rm_iva_rstctrl_offset);
@@ -1606,18 +1606,18 @@ static int ipu_pm_powman_init(void)
 {
     int status = EOK;
 
-    syslink_auth_active = powman_auth_create("SYSLINK_NEEDS_CORE_ACTIVE");
-    if(!syslink_auth_active) {
+    ipc_auth_active = powman_auth_create("IPC_NEEDS_CORE_ACTIVE");
+    if(!ipc_auth_active) {
         GT_setFailureReason(curTrace, GT_4CLASS, "powman_init", ENOMEM,
-                "syslink_auth_active create failure");
+                "ipc_auth_active create failure");
         return -ENOMEM;
 
     }
 
-    syslink_auth_oswr = powman_auth_create("SYSLINK_NEEDS_PREVENT_OSWR");
-    if(!syslink_auth_oswr) {
+    ipc_auth_oswr = powman_auth_create("IPC_NEEDS_PREVENT_OSWR");
+    if(!ipc_auth_oswr) {
         GT_setFailureReason(curTrace, GT_4CLASS, "powman_init", ENOMEM,
-                "syslink_auth_oswr create failure");
+                "ipc_auth_oswr create failure");
         return -ENOMEM;
     }
 
@@ -1660,23 +1660,23 @@ static void ipu_pm_powman_deinit(void)
 {
     int status = EOK;
 
-    if (syslink_auth_active) {
-        status = powman_auth_destroy(syslink_auth_active);
+    if (ipc_auth_active) {
+        status = powman_auth_destroy(ipc_auth_active);
         if (status < 0) {
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_powman_deinit",
                              status,
-                             "powman_auth_destroy syslink_auth_active failure");
+                             "powman_auth_destroy ipc_auth_active failure");
         }
-        syslink_auth_active = NULL;
+        ipc_auth_active = NULL;
     }
-    if (syslink_auth_oswr) {
-        status = powman_auth_destroy(syslink_auth_oswr);
+    if (ipc_auth_oswr) {
+        status = powman_auth_destroy(ipc_auth_oswr);
         if (status < 0) {
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_powman_deinit",
                                status,
-                               "powman_auth_destroy syslink_auth_oswr failure");
+                               "powman_auth_destroy ipc_auth_oswr failure");
         }
-        syslink_auth_oswr = NULL;
+        ipc_auth_oswr = NULL;
     }
 
     // close the channel
@@ -1699,7 +1699,7 @@ int powman_delayed_callback(unsigned ns, void (*func) (void *), void *data)
 static void tell_powman_auth_oswr(int need)
 {
     int r;
-    r = powman_auth_state(syslink_auth_oswr, need);
+    r = powman_auth_state(ipc_auth_oswr, need);
     if(r != 0) {
         GT_setFailureReason(curTrace, GT_4CLASS, "tell_powman_auth_oswr", r,
                                         "powerman authority :cannot set state");
@@ -1834,7 +1834,7 @@ int ipu_pm_timer_state(int event)
 
                 /*Enable the timer*/
                 /*Start the Timer*/
-                configure_timer(syslink_hib_timeout / 1000, 0);
+                configure_timer(ipc_hib_timeout / 1000, 0);
                 ipu_pm_state.hib_timer_state = PM_HIB_TIMER_ON;
             }
             break;
@@ -1991,9 +1991,9 @@ int ipu_pm_save_ctx(int proc_id)
         ipu_pm_ivahd_off();
 
         // Advise that Ducati is hibernating
-        pthread_mutex_lock(&syslink_hib_mutex);
-        syslink_hib_hibernating = TRUE;
-        pthread_mutex_unlock(&syslink_hib_mutex);
+        pthread_mutex_lock(&ipc_hib_mutex);
+        ipc_hib_hibernating = TRUE;
+        pthread_mutex_unlock(&ipc_hib_mutex);
     }
     else if (proc_id == dsp_id) {
         //TODO: Add support for DSP.
@@ -2060,7 +2060,7 @@ int ipu_pm_restore_ctx(int proc_id)
     pthread_mutex_lock(&ipu_pm_state.mtx);
 
     /* Restart the hib timer */
-    if (syslink_hib_enable) {
+    if (ipc_hib_enable) {
         ipu_pm_timer_state(PM_HIB_TIMER_ON);
     }
 #ifdef QNX_PM_ENABLE
@@ -2127,11 +2127,11 @@ int ipu_pm_restore_ctx(int proc_id)
                 goto error;
             }
         }
-        pthread_mutex_lock(&syslink_hib_mutex);
+        pthread_mutex_lock(&ipc_hib_mutex);
         // Once we are active, signal any thread waiting for end of hibernation
-        syslink_hib_hibernating = FALSE;
-        pthread_cond_broadcast(&syslink_hib_cond);
-        pthread_mutex_unlock(&syslink_hib_mutex);
+        ipc_hib_hibernating = FALSE;
+        pthread_cond_broadcast(&ipc_hib_cond);
+        pthread_mutex_unlock(&ipc_hib_mutex);
     }
     else
         goto error;
@@ -2193,7 +2193,7 @@ int ipu_pm_attach(int proc_id)
             retval = -ENOMEM;
         }
 #endif
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     }
     else if (proc_id == MultiProc_getId("CORE1")) {
 #endif
@@ -2252,7 +2252,7 @@ int ipu_pm_attach(int proc_id)
             }
             ipu_pm_gpt_stop(GPTIMER_9);
             ipu_pm_gpt_disable(GPTIMER_9);
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         }
         else if (proc_id == MultiProc_getId("CORE1")) {
 #endif
@@ -2310,7 +2310,7 @@ int ipu_pm_detach(int proc_id)
         ipu_pm_gpt_disable(GPTIMER_9);
 #endif
         ipu_pm_state.loaded_procs &= ~CORE0_LOADED;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     }
     else if (proc_id == MultiProc_getId("CORE1")) {
 #endif
@@ -2373,7 +2373,7 @@ int ipu_pm_setup(ipu_pm_config *cfg)
             goto exit;
         }
 
-        if (syslink_hib_enable) {
+        if (ipc_hib_enable) {
             SIGEV_THREAD_INIT (&signal_event, ipu_pm_timer_interrupt, NULL,
                                NULL);
             retval = timer_create(CLOCK_REALTIME, &signal_event,
@@ -2465,7 +2465,7 @@ int ipu_pm_destroy()
 
         unmap_gpt_regs();
 #ifdef BENELLI_SELF_HIBERNATION
-        if (syslink_hib_enable) {
+        if (ipc_hib_enable) {
             /*Stop the Timer*/
             configure_timer(0, 0);
             /* Delete the timer */

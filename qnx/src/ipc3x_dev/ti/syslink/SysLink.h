@@ -2,14 +2,14 @@
  *  @file   SysLink.h
  *
  *  @brief      This module contains common definitions, types, structures and
- *              functions used by SysLink.
+ *              functions used by IPC.
  *
  *
  */
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -83,68 +83,43 @@ extern "C" {
 /**
  *  @brief   Maximum number of mem entries for each core for one platform.
  */
-#define SYSLINK_MAX_MEMENTRIES  32
+#define IPC_MAX_MEMENTRIES  32
 
 /**
  *  @brief   Max name length.
  */
-#define SYSLINK_MAX_NAMELENGTH  32
+#define IPC_MAX_NAMELENGTH  32
 
 /* =============================================================================
  * Structures & Enums
  * =============================================================================
  */
 
-typedef UInt32 SysLink_MapMask;
+typedef UInt32 Ipc_MapMask;
 
 /**
  *  @brief  Kernel Virtual address on master processor
  */
-#define SysLink_MASTERKNLVIRT   (SysLink_MapMask)(1 << 0)
+#define Ipc_MASTERKNLVIRT   (Ipc_MapMask)(1 << 0)
 
 /**
  *  @brief  User Virtual address on master processor
  */
-#define SysLink_MASTERUSRVIRT   (SysLink_MapMask)(1 << 1)
+#define Ipc_MASTERUSRVIRT   (Ipc_MapMask)(1 << 1)
 
 /**
  *  @brief  Virtual address on slave processor
  */
-#define SysLink_SLAVEVIRT       (SysLink_MapMask)(1 << 2)
-
-/**
- *  @brief  Enumeration of Client notifyMgr notification types.
- */
-typedef enum SysLink_NotifyType_tag {
-    SysLink_NOTIFICATION_NONE   = 0,
-    /*!< No notification required*/
-    SysLink_NOTIFICATION_ALWAYS = 1,
-    /*!< Notify whenever the other client sends data/frees up space.*/
-    SysLink_NOTIFICATION_ONCE   = 2,
-    /*!< Notify when the other side sends data/frees up buffer. Once the
-     *   notification is done, the notification is disabled until it is
-     *   enabled again.
-     */
-    SysLink_NOTIFICATION_HDWRFIFO_ALWAYS = 3,
-    /*!< Notify whenever the other side sends data/frees up space.
-     *   This notification is never disabled.
-     */
-    SysLink_NOTIFICATION_HDWRFIFO_ONCE   = 4
-    /*!< Notify when the other side sends data/frees up buffer. Once the
-     *   notification is done, the notification is disabled until it is enabled
-     *   again. The notification is enabled once the watermark is crossed and
-     *   does not require buffer to get full/empty.
-     */
-} SysLink_NotifyType;
+#define Ipc_SLAVEVIRT       (Ipc_MapMask)(1 << 2)
 
 /**
  *  @brief  Structure for memEntry.
  */
-typedef struct SysLink_MemEntry_tag {
+typedef struct Ipc_MemEntry_tag {
     UInt32 slaveVirtAddr;    /**< Virtual address */
     UInt32 masterPhysAddr;   /**< Physical address */
     UInt32 size;             /**< Size of the entry */
-    SysLink_MapMask mapMask; /**< Used for entries for which map is TRUE */
+    Ipc_MapMask mapMask; /**< Used for entries for which map is TRUE */
     Bool   map;              /**< Flag indicating whether this region should
                               *   be mapped to the slave MMU.
                               */
@@ -152,57 +127,30 @@ typedef struct SysLink_MemEntry_tag {
                               *   for this region
                               */
     Bool   isValid;          /**< Specifies if the memEntry is valid */
-} SysLink_MemEntry;
+} Ipc_MemEntry;
 
 /**
  *  @brief  Structure for memEntry block for one core.
  */
-typedef struct SysLink_MemEntry_Block_tag {
-    Char             procName[SYSLINK_MAX_NAMELENGTH];
+typedef struct Ipc_MemEntry_Block_tag {
+    Char             procName[IPC_MAX_NAMELENGTH];
     /*!< Processor name for which entries are being defined*/
     UInt32           numEntries;
     /*!< Max memEntries for one core*/
-    SysLink_MemEntry memEntries [SYSLINK_MAX_MEMENTRIES];
+    Ipc_MemEntry memEntries [IPC_MAX_MEMENTRIES];
     /*!< Entire memory map (p->v) for one code*/
-} SysLink_MemEntry_Block;
+} Ipc_MemEntry_Block;
 
 
 /**
  *  @brief  Structure for memEntry block for one core.
  */
-typedef struct SysLink_MemoryMap_tag {
+typedef struct Ipc_MemoryMap_tag {
     UInt16                   numBlocks;
     /*!< Number of memory blocks in the memory map */
-    SysLink_MemEntry_Block * memBlocks;
+    Ipc_MemEntry_Block * memBlocks;
     /*!< Poninter to entire system memory map */
-} SysLink_MemoryMap;
-
-/** @endcond */
-
-/* =============================================================================
- * APIs
- * =============================================================================
- */
-/**
- *  @brief      Function to initialize SysLink.
- *
- *              This function must be called in every user process before making
- *              calls to any other SysLink APIs.
- *
- *  @sa         SysLink_destroy()
- */
-Void SysLink_setup (Void);
-
-/**
- *  @brief      Function to finalize SysLink.
- *
- *              This function must be called in every user process at the end
- *              after all usage of SysLink in that process is complete.
- *
- *  @sa         SysLink_setup()
- */
-Void SysLink_destroy (Void);
-
+} Ipc_MemoryMap;
 
 #if defined (__cplusplus)
 }

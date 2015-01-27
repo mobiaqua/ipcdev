@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -62,28 +62,28 @@
 #include <ti/syslink/inc/NameServerDrvDefs.h>
 
 /* Function prototypes */
-int syslink_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_remove(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_removeentry(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_delete(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_setup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_nameserver_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
+int ipc_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_remove(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_removeentry(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_delete(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_setup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_nameserver_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
 
 /**
  * Handler for devctl() messages for MultiProc module.
@@ -99,74 +99,74 @@ int syslink_nameserver_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
 
     switch (msg->i.dcmd)
     {
       case DCMD_NAMESERVER_ADD:
       {
-          return syslink_nameserver_add( ctp, msg, ocb);
+          return ipc_nameserver_add( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_GET:
       {
-          return syslink_nameserver_get( ctp, msg, ocb);
+          return ipc_nameserver_get( ctp, msg, ocb);
       }
       break;
       case DCMD_NAMESERVER_ADDUINT32:
       {
-          return syslink_nameserver_adduint32( ctp, msg, ocb);
+          return ipc_nameserver_adduint32( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_GETUINT32:
       {
-          return syslink_nameserver_getuint32( ctp, msg, ocb);
+          return ipc_nameserver_getuint32( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_REMOVE:
       {
-          return syslink_nameserver_remove( ctp, msg, ocb);
+          return ipc_nameserver_remove( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_REMOVEENTRY:
       {
-          return syslink_nameserver_removeentry( ctp, msg, ocb);
+          return ipc_nameserver_removeentry( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_PARAMS_INIT:
       {
-          return syslink_nameserver_params_init( ctp, msg, ocb);
+          return ipc_nameserver_params_init( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_CREATE:
       {
-          return syslink_nameserver_create( ctp, msg, ocb);
+          return ipc_nameserver_create( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_DELETE:
       {
-          return syslink_nameserver_delete( ctp, msg, ocb);
+          return ipc_nameserver_delete( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_SETUP:
       {
-          return syslink_nameserver_setup( ctp, msg, ocb);
+          return ipc_nameserver_setup( ctp, msg, ocb);
       }
       break;
 
       case DCMD_NAMESERVER_DESTROY:
       {
-          return syslink_nameserver_destroy( ctp, msg, ocb);
+          return ipc_nameserver_destroy( ctp, msg, ocb);
       }
       break;
 
@@ -192,8 +192,8 @@ int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -229,8 +229,8 @@ int syslink_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -270,8 +270,8 @@ int syslink_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -306,8 +306,8 @@ int syslink_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     UInt32                      value;
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
@@ -350,8 +350,8 @@ int syslink_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_remove(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_remove(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs * cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -376,8 +376,8 @@ int syslink_nameserver_remove(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_removeentry(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_removeentry(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -403,8 +403,8 @@ int syslink_nameserver_removeentry(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -432,8 +432,8 @@ int syslink_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -461,8 +461,8 @@ int syslink_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_delete(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_delete(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs * cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -488,8 +488,8 @@ int syslink_nameserver_delete(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_setup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_setup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs * out  = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->o));
@@ -513,8 +513,8 @@ int syslink_nameserver_setup(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_nameserver_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_nameserver_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     NameServerDrv_CmdArgs * out  = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->o));

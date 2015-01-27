@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -214,7 +214,7 @@ static int num_nl = 0;
 static WaitingReaders_t *wr_cache;
 static int num_wr = 0;
 
-extern dispatch_t * syslink_dpp;
+extern dispatch_t * ipc_dpp;
 
 
 /** ============================================================================
@@ -723,7 +723,7 @@ _ti_ipc_addBufByPid (ti_ipc_object *  obj,
     }
     IGateProvider_leave (ti_ipc_state.gateHandle, key);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (flag != TRUE) {
         /*! @retval ENOMEM Could not find a registered handler
                                       for this process. */
@@ -736,13 +736,13 @@ _ti_ipc_addBufByPid (ti_ipc_object *  obj,
                              "for this process.!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Allocate memory for the buf */
         pthread_mutex_lock(&ti_ipc_state.lock);
         uBuf = get_uBuf();
         pthread_mutex_unlock(&ti_ipc_state.lock);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (uBuf == NULL) {
             /*! @retval Notify_E_MEMORY Failed to allocate memory for event
                                 packet for received callback. */
@@ -755,7 +755,7 @@ _ti_ipc_addBufByPid (ti_ipc_object *  obj,
                                  " packet for received callback.!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             List_elemClear (&(uBuf->element));
             GT_assert (curTrace,
                        (ti_ipc_state.eventState [i].bufList != NULL));
@@ -802,10 +802,10 @@ _ti_ipc_addBufByPid (ti_ipc_object *  obj,
                     pthread_mutex_unlock(&ti_ipc_state.lock);
                 }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_ti_ipc_addBufByPid", status);
 
@@ -832,22 +832,22 @@ Void
 _ti_ipc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
             UInt32 src, UInt16 srcProc)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int32                   status = 0;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     ti_ipc_object * obj = NULL;
 
     obj = (ti_ipc_object *) priv;
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
              _ti_ipc_addBufByPid (obj,
                                   src,
                                   obj->pid,
                                   data,
                                   len);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -855,7 +855,7 @@ _ti_ipc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
                              status,
                              "Failed to add callback packet for pid");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 }
 
  /**
@@ -970,7 +970,7 @@ _ti_ipc_detach (ti_ipc_object * obj, Bool force)
     }
 
     if (flag != TRUE) {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (i == MAX_PROCESSES) {
             /*! @retval Notify_E_NOTFOUND The specified user process was
                      not found registered with Notify Driver module. */
@@ -982,7 +982,7 @@ _ti_ipc_detach (ti_ipc_object * obj, Bool force)
                               "The specified user process was not found"
                               " registered with rpmsg Driver module.");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     else {
         if (bufList != NULL) {
@@ -1023,7 +1023,7 @@ _ti_ipc_detach (ti_ipc_object * obj, Bool force)
             List_delete (&bufList);
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status =  tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1032,7 +1032,7 @@ _ti_ipc_detach (ti_ipc_object * obj, Bool force)
                              status,
                              "Failed to delete termination semaphore!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "_ti_ipc_detach", status);
@@ -1678,7 +1678,7 @@ _init_device ()
     iofunc_time_update(attr);
 
     if (-1 == (dev->ti_ipc.resmgr_id =
-        resmgr_attach(syslink_dpp, &resmgr_attr,
+        resmgr_attach(ipc_dpp, &resmgr_attr,
                       TIIPC_DEVICE_NAME, _FTYPE_ANY, 0,
                       &dev->ti_ipc.cfuncs,
                       &dev->ti_ipc.iofuncs, attr))) {
@@ -1701,7 +1701,7 @@ static
 Void
 _deinit_device (ti_ipc_dev_t * dev)
 {
-    resmgr_detach(syslink_dpp, dev->ti_ipc.resmgr_id, 0);
+    resmgr_detach(ipc_dpp, dev->ti_ipc.resmgr_id, 0);
 
     free (dev);
 
@@ -1730,7 +1730,7 @@ ti_ipc_setup (Void)
     List_Params_init (&listparams);
     ti_ipc_state.gateHandle = (IGateProvider_Handle)
                      GateSpinlock_create ((GateSpinlock_Handle) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (ti_ipc_state.gateHandle == NULL) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
@@ -1740,7 +1740,7 @@ ti_ipc_setup (Void)
                              "Failed to create spinlock gate!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         for (i = 0 ; i < MAX_PROCESSES ; i++) {
             ti_ipc_state.eventState [i].bufList = NULL;
             ti_ipc_state.eventState [i].ipc = NULL;
@@ -1774,9 +1774,9 @@ ti_ipc_setup (Void)
             ti_ipc_state.run = FALSE;
         }
         pthread_attr_destroy(&thread_attr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ti_ipc_setup");
     return status;

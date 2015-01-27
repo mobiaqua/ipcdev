@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -75,7 +75,7 @@ extern "C" {
  */
 //#define REG(x)              *((volatile UInt32 *) (x))
 
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
 typedef enum OMAP5430BENELLIPROCTYPE
 {
     PROCTYPE_DSP = 2,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,16 +48,16 @@
 #include <ti/syslink/inc/GateMPDrvDefs.h>
 
 /* Function prototypes */
-int syslink_gatemp_getFreeResource(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_gatemp_releaseResource(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
+int ipc_gatemp_getFreeResource(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_gatemp_releaseResource(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
 
 /**
  * Handler for devctl() messages for GateMP module.
@@ -73,45 +73,45 @@ int syslink_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
 
     switch (msg->i.dcmd)
     {
       case DCMD_GATEMP_GETFREERES:
       {
-          return syslink_gatemp_getFreeResource(ctp, msg, ocb);
+          return ipc_gatemp_getFreeResource(ctp, msg, ocb);
       }
       break;
 
       case DCMD_GATEMP_RELRES:
       {
-          return syslink_gatemp_releaseResource(ctp, msg, ocb);
+          return ipc_gatemp_releaseResource(ctp, msg, ocb);
       }
       break;
 
       case DCMD_GATEMP_GETNUMRES:
       {
-          return syslink_gatemp_getNumResources(ctp, msg, ocb);
+          return ipc_gatemp_getNumResources(ctp, msg, ocb);
       }
       break;
 
       case DCMD_GATEMP_START:
       {
-          return syslink_gatemp_start(ctp, msg, ocb);
+          return ipc_gatemp_start(ctp, msg, ocb);
       }
       break;
 
       case DCMD_GATEMP_STOP:
       {
-          return syslink_gatemp_stop(ctp, msg, ocb);
+          return ipc_gatemp_stop(ctp, msg, ocb);
       }
       break;
 
       case DCMD_GATEMP_ISSETUP:
       {
-          return syslink_gatemp_isSetup(ctp, msg, ocb);
+          return ipc_gatemp_isSetup(ctp, msg, ocb);
       }
       break;
 
@@ -138,8 +138,8 @@ int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_getFreeResource(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_getFreeResource(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -165,8 +165,8 @@ int syslink_gatemp_getFreeResource(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_releaseResource(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_releaseResource(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -192,8 +192,8 @@ int syslink_gatemp_releaseResource(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -219,8 +219,8 @@ int syslink_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -246,8 +246,8 @@ int syslink_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -272,8 +272,8 @@ int syslink_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));

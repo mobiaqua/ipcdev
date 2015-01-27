@@ -13,7 +13,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -162,9 +162,9 @@ static ProcMgr_AddrInfo OMAP5430TESLAPROC_addrTable[AddrTable_SIZE];
  *
  *  @brief  OMAP5430BENELLIPROC state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU0PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
@@ -174,10 +174,10 @@ OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU0PROC_state =
     .gateHandle = NULL
 };
 
-#ifndef SYSLINK_SYSBIOS_SMP
-#if !defined(SYSLINK_BUILD_DEBUG)
+#ifndef IPC_SYSBIOS_SMP
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU1PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
@@ -188,9 +188,9 @@ OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU1PROC_state =
 };
 #endif
 
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 OMAP5430TESLAPROC_ModuleObject OMAP5430DSPPROC_state =
 {
     .config_size = sizeof (OMAP5430TESLAPROC_Config),
@@ -199,9 +199,6 @@ OMAP5430TESLAPROC_ModuleObject OMAP5430DSPPROC_state =
     .procHandle = NULL,
     .gateHandle = NULL
 };
-
-/* config override specified in SysLinkCfg.c, defined in ProcMgr.c */
-extern String ProcMgr_sysLinkCfgParams;
 
 
 /* =============================================================================
@@ -231,7 +228,7 @@ OMAP5430BENELLIPROC_get_config (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -241,7 +238,7 @@ OMAP5430BENELLIPROC_get_config (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
                              "passed is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         switch (ProcType)
         {
             case PROCTYPE_IPU0:
@@ -249,7 +246,7 @@ OMAP5430BENELLIPROC_get_config (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
                              &(OMAP5430IPU0PROC_state.defCfg),
                              sizeof (OMAP5430BENELLIPROC_Config));
                 break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
             case PROCTYPE_IPU1:
                 Memory_copy (cfg,
                              &(OMAP5430IPU1PROC_state.defCfg),
@@ -262,9 +259,9 @@ OMAP5430BENELLIPROC_get_config (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
                              sizeof (OMAP5430TESLAPROC_Config));
             break;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_get_config");
 }
@@ -314,7 +311,7 @@ OMAP5430BENELLIPROC_setup (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             break;
@@ -336,7 +333,7 @@ OMAP5430BENELLIPROC_setup (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
     /* Create a default gate handle for local module protection. */
     pState->gateHandle = (IGateProvider_Handle)
                                GateMutex_create ((GateMutex_Params *)NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (pState->gateHandle == NULL) {
         /*! @retval PROCESSOR_E_FAIL Failed to create GateMutex! */
         status = PROCESSOR_E_FAIL;
@@ -347,7 +344,7 @@ OMAP5430BENELLIPROC_setup (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
                              "Failed to create GateMutex!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Copy the user provided values into the state object. */
         Memory_copy (&pState->cfg,
                      cfg,
@@ -357,9 +354,9 @@ OMAP5430BENELLIPROC_setup (OMAP5430BENELLIPROC_Config * cfg, Int ProcType)
         pState->procHandle = NULL;
 
         pState->isSetup = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_setup", status);
 
@@ -391,7 +388,7 @@ OMAP5430BENELLIPROC_destroy (Int ProcType)
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             break;
@@ -459,7 +456,7 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
             numMemEntries = AddrTable_IPU_count;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
             numMemEntries = AddrTable_IPU_count;
@@ -471,7 +468,7 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
             break;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (params == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -481,7 +478,7 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
                              "passed is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             params->numMemEntries =  numMemEntries;
             Memory_copy ((Ptr) params->memEntries,
@@ -494,9 +491,9 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
                          &(procObject->params),
                          sizeof (OMAP5430BENELLIPROC_Params));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_Params_init");
 }
@@ -514,9 +511,9 @@ OMAP5430BENELLIPROC_Handle
 OMAP5430BENELLIPROC_create (UInt16 procId,
                             const OMAP5430BENELLIPROC_Params * params)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int                                 status    = PROCESSOR_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     Processor_Object *                  handle    = NULL;
     OMAP5430BENELLIPROC_Object *        object    = NULL;
     IArg                                key;
@@ -528,7 +525,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             break;
@@ -543,7 +540,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
     GT_assert (curTrace, IS_VALID_PROCID (procId));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (pState == NULL) {
         /* Not setting status here since this function does not return status.*/
         GT_setFailureReason (curTrace,
@@ -560,10 +557,10 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                              "params passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (pState->gateHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         /* Check if the Processor already exists for specified procId. */
         if (pState->procHandle!= NULL) {
             status = PROCESSOR_E_ALREADYEXIST;
@@ -574,13 +571,13 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                               "Processor already exists for specified procId!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Allocate memory for the handle */
             handle = (Processor_Object *) Memory_calloc (NULL,
                                                       sizeof (Processor_Object),
                                                       0,
                                                       NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (handle == NULL) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -589,7 +586,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                                      "Memory allocation failed for handle!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /* Populate the handle fields */
                 handle->procFxnTable.attach      = &OMAP5430BENELLIPROC_attach;
                 handle->procFxnTable.detach      = &OMAP5430BENELLIPROC_detach;
@@ -610,7 +607,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                                              sizeof (OMAP5430BENELLIPROC_Object),
                                              0,
                                              NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (handle->object == NULL) {
                     status = PROCESSOR_E_MEMORY;
                     GT_setFailureReason (curTrace,
@@ -620,7 +617,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                                 "Memory allocation failed for handle->object!");
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     handle->procId = procId;
                     object = (OMAP5430BENELLIPROC_Object *) handle->object;
                     object->halObject = NULL;
@@ -638,7 +635,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                     List_Params_init(&listParams);
                     handle->registeredNotifiers = List_create(&listParams);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (handle->registeredNotifiers == NULL) {
                         /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed */
                         status = PROCESSOR_E_FAIL;
@@ -649,12 +646,12 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                                              "List_create failed");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
                         handle->notifiersLock =
                                  OsalMutex_create(OsalMutex_Type_Interruptible);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (handle->notifiersLock == NULL) {
                             /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed*/
                             status = PROCESSOR_E_FAIL;
@@ -668,15 +665,15 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
                 }
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Leave critical section protection. */
         IGateProvider_leave (pState->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         if (handle !=  NULL) {
             if (handle->registeredNotifiers != NULL) {
@@ -692,7 +689,7 @@ OMAP5430BENELLIPROC_create (UInt16 procId,
         /*! @retval NULL Function failed */
         handle = NULL;
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_create", handle);
 
@@ -728,7 +725,7 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -749,7 +746,7 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         handle = (Processor_Object *) (*handlePtr);
         /* Enter critical section protection. */
         if (handle->object != NULL) {
@@ -759,7 +756,7 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
                 case PROCTYPE_IPU0:
                     pState = &OMAP5430IPU0PROC_state;
                     break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
                 case PROCTYPE_IPU1:
                     pState = &OMAP5430IPU1PROC_state;
                     break;
@@ -769,7 +766,7 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
                     break;
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (pState == NULL) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -778,7 +775,7 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
                                  "Unsupported procType");
             return PROCESSOR_E_INVALIDARG;
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         key = IGateProvider_enter (pState->gateHandle);
 
@@ -834,9 +831,9 @@ OMAP5430BENELLIPROC_delete (OMAP5430BENELLIPROC_Handle * handlePtr)
 
         /* Leave critical section protection. */
         IGateProvider_leave (pState->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_delete", status);
 
@@ -872,7 +869,7 @@ OMAP5430BENELLIPROC_open (OMAP5430BENELLIPROC_Handle * handlePtr, UInt16 procId)
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             break;
@@ -882,7 +879,7 @@ OMAP5430BENELLIPROC_open (OMAP5430BENELLIPROC_Handle * handlePtr, UInt16 procId)
             break;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid NULL handlePtr specified */
         status = PROCESSOR_E_HANDLE;
@@ -902,7 +899,7 @@ OMAP5430BENELLIPROC_open (OMAP5430BENELLIPROC_Handle * handlePtr, UInt16 procId)
                              "Invalid procId specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Initialize return parameter handle. */
         *handlePtr = NULL;
 
@@ -919,9 +916,9 @@ OMAP5430BENELLIPROC_open (OMAP5430BENELLIPROC_Handle * handlePtr, UInt16 procId)
         else {
             *handlePtr = pState->procHandle;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_open", status);
 
@@ -947,7 +944,7 @@ OMAP5430BENELLIPROC_close (OMAP5430BENELLIPROC_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         /*! @retval PROCESSOR_E_INVALIDARG Invalid NULL handlePtr pointer
                                          specified*/
@@ -968,11 +965,11 @@ OMAP5430BENELLIPROC_close (OMAP5430BENELLIPROC_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Nothing to be done for close. */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430M3VIDEOPROC_close", status);
 
@@ -1006,8 +1003,8 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
     OMAP5430BENELLI_HalMmuCtrlArgs_Enable   enableArgs;
     UInt32                      i = 0;
     UInt32                      index = 0;
-    SysLink_MemEntry *          entry;
-    SysLink_MemEntry_Block      memBlock;
+    Ipc_MemEntry *              entry;
+    Ipc_MemEntry_Block          memBlock;
     ProcMgr_AddrInfo *          pMemRegn        = NULL;
     UInt32 *                    AddrTable_count = NULL;
 
@@ -1023,7 +1020,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
@@ -1037,7 +1034,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
             break;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1057,7 +1054,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                  "Invalid params specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -1074,7 +1071,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
         /* search for dsp memory map */
         status = RscTable_process(procHandle->procId,
                                   TRUE, &memBlock.numEntries);
-        if (status < 0 || memBlock.numEntries > SYSLINK_MAX_MEMENTRIES) {
+        if (status < 0 || memBlock.numEntries > IPC_MAX_MEMENTRIES) {
             /*! @retval PROCESSOR_E_INVALIDARG Invalid argument */
             status = PROCESSOR_E_INVALIDARG;
             GT_setFailureReason (curTrace,
@@ -1171,7 +1168,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
             status = OMAP5430BENELLI_halInit (&(object->halObject),
                                               &object->params,
                                               procHandle->procId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -1180,12 +1177,12 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                      "OMAP5430BENELLI_halInit failed");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
                 if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
                     ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                              GT_4CLASS,
@@ -1194,7 +1191,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                          "Failed to reset the slave processor");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         GT_0trace (curTrace,
                                  GT_1CLASS,
                                  "    OMAP5430BENELLIPROC_attach: Slave is now "
@@ -1213,7 +1210,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                                     object->halObject,
                                                     Processor_MmuCtrlCmd_Enable,
                                                     &enableArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                             if (status < 0) {
                                 GT_setFailureReason (curTrace,
                                               GT_4CLASS,
@@ -1233,17 +1230,17 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                         status,
                                         "Reset MMU_Release failed");
                                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                             }
                         }
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_attach",status);
 
@@ -1282,7 +1279,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
             break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pMemRegn = OMAP5430BENELLIPROC_addrTable;
             AddrTable_count = &AddrTable_IPU_count;
@@ -1294,7 +1291,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
             break;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1305,7 +1302,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -1331,7 +1328,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                     status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
                                                    Processor_MmuCtrlCmd_Disable,
                                                    NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -1339,7 +1336,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                                          status,
                                          "Failed to disable the slave MMU");
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
             }
             else if (procHandle->procId == PROCTYPE_DSP) {
@@ -1351,7 +1348,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                 status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
                                                Processor_MmuCtrlCmd_Disable,
                                                NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -1359,7 +1356,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                                          status,
                                          "Failed to disable the slave MMU");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
 
             /* delete all dynamically added entries */
@@ -1387,7 +1384,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                        GT_2CLASS,
                        "    OMAP5430BENELLIPROC_detach: Slave processor is "
                        "now in reset");*/
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if ((tmpStatus < 0) && (status >= 0)) {
                 status = tmpStatus;
                 GT_setFailureReason (curTrace,
@@ -1396,7 +1393,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                                      status,
                                      "Failed to reset the slave processor");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
         GT_0trace (curTrace,
@@ -1404,7 +1401,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                    "    OMAP5430BENELLIPROC_detach: Unmapping memory regions");
 
         tmpStatus = OMAP5430BENELLI_halExit(object->halObject, &object->params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1414,7 +1411,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                                  "Failed to finalize HAL object");
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_detach", status);
 
@@ -1452,7 +1449,7 @@ OMAP5430BENELLIPROC_start (Processor_Handle        handle,
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1472,7 +1469,7 @@ OMAP5430BENELLIPROC_start (Processor_Handle        handle,
                                  "Invalid params specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle->procId == MultiProc_getId("DSP")) {
             status = OMAP5430BENELLI_halResetCtrl(object->halObject,
                                                  Processor_ResetCtrlCmd_MMU_Release);
@@ -1544,9 +1541,9 @@ OMAP5430BENELLIPROC_start (Processor_Handle        handle,
                 }
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     return status;
 }
 
@@ -1572,7 +1569,7 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1583,7 +1580,7 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         status = OMAP5430BENELLI_halResetCtrl(object->halObject,
                                              Processor_ResetCtrlCmd_Reset);
         if (status < 0) {
@@ -1609,9 +1606,9 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
             }
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_stop", status);
 
@@ -1654,7 +1651,7 @@ OMAP5430BENELLIPROC_read (Processor_Handle   handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1683,11 +1680,11 @@ OMAP5430BENELLIPROC_read (Processor_Handle   handle,
                                  "Invalid buffer specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         procPtr8 = (UInt8 *) procAddr ;
         buffer = Memory_copy (buffer, procPtr8, *numBytes);
         GT_assert (curTrace, (buffer != (UInt32) NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (buffer == (UInt32) NULL) {
             /*! @retval PROCESSOR_E_FAIL Failed in Memory_copy */
             status = PROCESSOR_E_FAIL;
@@ -1699,7 +1696,7 @@ OMAP5430BENELLIPROC_read (Processor_Handle   handle,
             *numBytes = 0;
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_read",status);
 
@@ -1749,7 +1746,7 @@ OMAP5430BENELLIPROC_write (Processor_Handle handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1778,7 +1775,7 @@ OMAP5430BENELLIPROC_write (Processor_Handle handle,
                                  "Invalid buffer specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
         if (*numBytes != sizeof (UInt32)) {
@@ -1787,7 +1784,7 @@ OMAP5430BENELLIPROC_write (Processor_Handle handle,
                                              buffer,
                                              *numBytes);
             GT_assert (curTrace, (procAddr != (UInt32) NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (procAddr == (UInt32) NULL) {
                 /*! @retval PROCESSOR_E_FAIL Failed in Memory_copy */
                 status = PROCESSOR_E_FAIL;
@@ -1798,7 +1795,7 @@ OMAP5430BENELLIPROC_write (Processor_Handle handle,
                                      "Failed in Memory_copy");
                 *numBytes = 0;
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         else  {
              /* For 4 bytes, directly write as a UInt32 */
@@ -1812,9 +1809,9 @@ OMAP5430BENELLIPROC_write (Processor_Handle handle,
                              |   ((UInt32) temp8_1));
             *((UInt32*) procAddr) = temp;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_write", status);
 
@@ -1848,7 +1845,7 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
     GT_assert (curTrace, (handle != NULL));
     /* cmd and arg can be 0/NULL, so cannot check for validity. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -1859,7 +1856,7 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
         /* No control operations currently implemented. */
@@ -1961,9 +1958,9 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                 status = PROCESSOR_E_NOTSUPPORTED;
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_control",status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -2002,7 +1999,7 @@ OMAP5430BENELLIPROC_translate (Processor_Handle handle,
 
     GT_1trace (curTrace, GT_ENTER, "OMAP5430BENELLIPROC_Params_init", handle);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -2022,7 +2019,7 @@ OMAP5430BENELLIPROC_translate (Processor_Handle handle,
                              "dstAddr provided as NULL");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -2032,7 +2029,7 @@ OMAP5430BENELLIPROC_translate (Processor_Handle handle,
                 pMemRegn = OMAP5430BENELLIPROC_addrTable;
                 nRegions = AddrTable_IPU_count;
                 break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
             case PROCTYPE_IPU1:
                 pMemRegn = OMAP5430BENELLIPROC_addrTable;
                 nRegions = AddrTable_IPU_count;
@@ -2069,9 +2066,9 @@ OMAP5430BENELLIPROC_translate (Processor_Handle handle,
                                  "srcAddr not found in slave address space");
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_translate",status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -2116,7 +2113,7 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
     GT_assert (curTrace, (sglist != NULL));
     GT_assert (curTrace, (nSegs > 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -2145,7 +2142,7 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
                              "Number of segments provided is 0");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
@@ -2155,7 +2152,7 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
                 pMemRegn = OMAP5430BENELLIPROC_addrTable;
                 pNumRegions = &AddrTable_IPU_count;
                 break;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
             case PROCTYPE_IPU1:
                 pMemRegn = OMAP5430BENELLIPROC_addrTable;
                 pNumRegions = &ddrTable_IPU_count;
@@ -2221,9 +2218,9 @@ OMAP5430BENELLIPROC_map (Processor_Handle handle,
             *(dstAddr) = get_BenelliVirtAdd(object->halObject,
                 sglist[i].paddr);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_map",status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -2257,7 +2254,7 @@ OMAP5430BENELLIPROC_unmap (Processor_Handle handle,
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (size   != 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval PROCESSOR_E_HANDLE Invalid argument */
         status = PROCESSOR_E_HANDLE;
@@ -2277,7 +2274,7 @@ OMAP5430BENELLIPROC_unmap (Processor_Handle handle,
                              "Size provided is zero");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         object = (OMAP5430BENELLIPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
         /* Remove the entry from the DSP MMU also */
@@ -2293,7 +2290,7 @@ OMAP5430BENELLIPROC_unmap (Processor_Handle handle,
         status = OMAP5430BENELLI_halMmuCtrl(object->halObject,
                                             Processor_MmuCtrlCmd_DeleteEntry,
                                             &deleteEntryArgs);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -2301,11 +2298,11 @@ OMAP5430BENELLIPROC_unmap (Processor_Handle handle,
                              status,
                              "DSP MMU configuration failed");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLIPROC_unmap",status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */

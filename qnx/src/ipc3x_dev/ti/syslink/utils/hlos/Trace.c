@@ -13,7 +13,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -76,7 +76,7 @@ Int curTrace = -1;//(GT_TraceState_Enable << GT_TRACESETFAILURE_SHIFT);
 int GT_getMask(void)
 {
     if (curTrace == -1) {
-        char *val = getenv("SYSLINK_DEBUG_TRACE_LEVEL");
+        char *val = getenv("IPC_DEBUG_TRACE_LEVEL");
         int envTrace = val ? strtol(val, NULL, 0) : 2;
         curTrace = 0;
         switch (envTrace) {
@@ -113,7 +113,7 @@ int GT_getMask(void)
  *  @brief      Function to log the trace with zero parameters and just
  *              information string.
  *  @param      mask type of traces.
- *  @param      classtype One of three classes in Syslink where this trace need
+ *  @param      classtype One of three classes in Ipc where this trace need
  *              to be enabed.
  *  @param      The debug string.
  */
@@ -145,7 +145,7 @@ _GT_0trace (UInt32 mask, GT_TraceClass classtype, Char * infoString)
 /*!
  *  @brief      Function to log the trace with one additional parameter
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param The additional parameter which needs to be logged.
@@ -181,7 +181,7 @@ _GT_1trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with two additional parameters
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -219,7 +219,7 @@ _GT_2trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with three parameters.
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -259,7 +259,7 @@ _GT_3trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with four parameters.
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -301,7 +301,7 @@ _GT_4trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with five parameters.
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -355,7 +355,7 @@ _GT_5trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with six parameters.
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -413,7 +413,7 @@ _GT_6trace (UInt32         mask,
 /*!
  *  @brief      Function to log the trace with six parameters.
  *  @param      mask type of traces
- *  @param      classtype One of three classes in Syslink where this trace
+ *  @param      classtype One of three classes in Ipc where this trace
  *              need to be enabed.
  *  @param      The debug string.
  *  @param      param0 The first parameter which needs to be logged.
@@ -473,7 +473,7 @@ _GT_7trace (UInt32         mask,
 
 
 /*!
- *  @brief      Function to report the syslink failure and log the trace. This
+ *  @brief      Function to report the ipc failure and log the trace. This
  *              is mostly the fatal error and system can not recover without
  *              module restart.
  *  @param      mask        Indicates whether SetFailure is enabled.

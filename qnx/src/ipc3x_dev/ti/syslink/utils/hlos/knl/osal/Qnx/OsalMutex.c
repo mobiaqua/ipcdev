@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -103,7 +103,7 @@ OsalMutex_create (OsalMutex_Type type)
 
     GT_assert (curTrace, (type < OsalMutex_Type_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (type >= OsalMutex_Type_EndValue) {
         /*! @retval NULL Invalid value provided for argument type. */
         GT_setFailureReason (curTrace,
@@ -113,9 +113,9 @@ OsalMutex_create (OsalMutex_Type type)
                              "Invalid value provided for argument type.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         mutexObj = calloc (1, sizeof (OsalMutex_Object));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (mutexObj == NULL) {
             /*! @retval NULL Failed to allocate memory for Mutex object. */
             GT_setFailureReason (curTrace,
@@ -125,14 +125,14 @@ OsalMutex_create (OsalMutex_Type type)
                                  "Failed to allocate memory for Mutex object.");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             pthread_mutex_init (&(mutexObj->lock), NULL);
             mutexObj->type = type;
             mutexObj->owner = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalMutex_create", mutexObj);
 
@@ -158,7 +158,7 @@ OsalMutex_delete (OsalMutex_Handle * mutexHandle)
 
     GT_assert (curTrace, (mutexHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (mutexHandle == NULL) {
         /*! @retval OSALMUTEX_E_INVALIDARG NULL provided for argument
                                            mutexHandle.*/
@@ -179,14 +179,14 @@ OsalMutex_delete (OsalMutex_Handle * mutexHandle)
                              "NULL Mutex handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         mutexObj = (OsalMutex_Object*) *mutexHandle;
         pthread_mutex_destroy(&(mutexObj->lock));
         free (*mutexHandle);
         *mutexHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalMutex_delete", status);
 
@@ -220,7 +220,7 @@ OsalMutex_enter (OsalMutex_Handle mutexHandle)
 
     GT_assert (curTrace, (mutexHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (mutexHandle == NULL) {
         /* Function does not return status. */
         GT_setFailureReason (curTrace,
@@ -230,7 +230,7 @@ OsalMutex_enter (OsalMutex_Handle mutexHandle)
                              "NULL Mutex handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         key = Gate_enterSystem ();
         if (mutexObj->owner != (Ptr) selftid) {
             mutexObj->owner = (Ptr) selftid;
@@ -259,9 +259,9 @@ OsalMutex_enter (OsalMutex_Handle mutexHandle)
                 pthread_mutex_lock (&(mutexObj->lock));
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalMutex_enter", retVal);
 
@@ -295,7 +295,7 @@ OsalMutex_leave (OsalMutex_Handle mutexHandle, IArg   key)
     GT_assert (curTrace, (mutexHandle != NULL));
     /* key can be 0, so not checked. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (mutexHandle == NULL) {
         /* Void function, so not setting status. */
         GT_setFailureReason (curTrace,
@@ -305,7 +305,7 @@ OsalMutex_leave (OsalMutex_Handle mutexHandle, IArg   key)
                              "NULL Mutex handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         _key = Gate_enterSystem ();
         if (key == FIRST_ENTER) {
             mutexObj->owner = NULL;
@@ -316,9 +316,9 @@ OsalMutex_leave (OsalMutex_Handle mutexHandle, IArg   key)
         if (nested == FALSE) {
             pthread_mutex_unlock (&(mutexObj->lock));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalMutex_leave");
 }

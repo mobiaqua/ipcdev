@@ -8,7 +8,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -49,8 +49,8 @@
 
 
 
-#ifndef ti_syslink_utils_Cfg
-#define ti_syslink_utils_Cfg
+#ifndef utils_Cfg_h
+#define utils_Cfg_h
 
 #include <ti/syslink/utils/String.h>
 
@@ -76,4 +76,4 @@ Int  Cfg_propBool(String prop, String params, Bool *var);
 }
 #endif /* defined (__cplusplus) */
 
-#endif /* ti_syslink_utils_Cfg */
+#endif /* utils_Cfg_h */

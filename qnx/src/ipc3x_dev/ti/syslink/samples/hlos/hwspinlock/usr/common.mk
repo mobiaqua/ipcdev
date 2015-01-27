@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -42,15 +42,15 @@ NAME = HwSpinLockTestApp
 INSTALLDIR = bin
 
 #Add extra include path
-EXTRA_INCVPATH+=$(SYSLINK_ROOT)/inc	\
-                $(SYSLINK_ROOT)/inc/ti/ipc	\
+EXTRA_INCVPATH+=$(IPC_ROOT)/inc	\
+                $(IPC_ROOT)/inc/ti/ipc	\
                 $(IPC_REPO)/packages	\
-                $(SYSLINK_ROOT)/../..
-
+                $(IPC_ROOT)/inc/Qnx \
+                $(IPC_ROOT)/../..
 
 CCOPTS+=-g -O0
 
-EXTRA_LIBVPATH += $(SYSLINK_ROOT)/build/Qnx/lib/arm/so.le.v7
+EXTRA_LIBVPATH += $(IPC_ROOT)/build/Qnx/lib/arm/so.le.v7
 LDOPTS+= -lipc_client
 
 include $(MKFILES_ROOT)/qtargets.mk

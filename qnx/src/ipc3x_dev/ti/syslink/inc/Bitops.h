@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -51,12 +51,7 @@
 #ifndef UTILS_BITOPS_H_0X838E
 #define UTILS_BITOPS_H_0X838E
 
-
-#ifdef SYSLINK_BUILDOS_LINUX
-#include <atomic_linux.h>
-#elif SYSLINK_BUILDOS_QNX
 #include <atomic_qnx.h>
-#endif
 
 #if defined (__cplusplus)
 extern "C" {
@@ -88,7 +83,7 @@ extern "C" {
  *  @brief  This macro returns the minimum of two values.
  *  ============================================================================
  */
-#define SYSLINK_min(a,b) ((a)<(b)?(a):(b))
+#define IPC_min(a,b) ((a)<(b)?(a):(b))
 
 
 /*  ============================================================================

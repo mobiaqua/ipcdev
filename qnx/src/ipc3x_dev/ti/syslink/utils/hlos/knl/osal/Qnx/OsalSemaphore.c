@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -118,7 +118,7 @@ OsalSemaphore_create (UInt32 semType)
                (    (OSALSEMAPHORE_INTTYPE_VALUE(semType))
                 <   OsalSemaphore_IntType_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (OSALSEMAPHORE_TYPE_VALUE(semType) >= OsalSemaphore_Type_EndValue) {
         /*! @retval NULL Invalid semaphore type (OsalSemaphore_Type) provided */
         GT_setFailureReason (curTrace,
@@ -139,9 +139,9 @@ OsalSemaphore_create (UInt32 semType)
                         "(OsalSemaphore_IntType) provided");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         semObj = calloc (1, sizeof (OsalSemaphore_Object));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (semObj == NULL) {
             /*! @retval NULL Failed to allocate memory for semaphore object. */
             GT_setFailureReason (curTrace,
@@ -151,7 +151,7 @@ OsalSemaphore_create (UInt32 semType)
                              "Failed to allocate memory for semaphore object.");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             pthread_condattr_t attr;
             semObj->semType = semType;
             semObj->value = 0u;
@@ -160,10 +160,10 @@ OsalSemaphore_create (UInt32 semType)
             pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
             pthread_cond_init (&(semObj->cond), &attr);
             pthread_condattr_destroy(&attr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSemaphore_create", semObj);
 
@@ -189,7 +189,7 @@ OsalSemaphore_delete (OsalSemaphore_Handle * semHandle)
 
     GT_assert (curTrace, (semHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (semHandle == NULL) {
         /*! @retval OSALSEMAPHORE_E_INVALIDARG NULL provided for argument
                                            semHandle.*/
@@ -210,15 +210,15 @@ OsalSemaphore_delete (OsalSemaphore_Handle * semHandle)
                              "NULL Semaphore handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         semObj = (OsalSemaphore_Object *) *semHandle;
         pthread_mutex_destroy(&semObj->lock);
         pthread_cond_destroy(&semObj->cond);
         free (semObj);
         *semHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSemaphore_delete", status);
 
@@ -247,7 +247,7 @@ OsalSemaphore_pend (OsalSemaphore_Handle semHandle, UInt32 timeout)
 
     GT_assert (curTrace, (semHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (semHandle == NULL) {
         /*! @retval OSALSEMAPHORE_E_HANDLE NULL Semaphore handle provided. */
         status = OSALSEMAPHORE_E_HANDLE;
@@ -258,7 +258,7 @@ OsalSemaphore_pend (OsalSemaphore_Handle semHandle, UInt32 timeout)
                              "NULL Semaphore handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         /* Different handling for no-timeout case. */
         if (timeout == OSALSEMAPHORE_WAIT_NONE) {
             osStatus = pthread_mutex_lock(&(semObj->lock));
@@ -339,9 +339,9 @@ OsalSemaphore_pend (OsalSemaphore_Handle semHandle, UInt32 timeout)
                 pthread_mutex_unlock(&semObj->lock);
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSemaphore_pend", status);
 
@@ -368,7 +368,7 @@ OsalSemaphore_post (OsalSemaphore_Handle semHandle)
 
     GT_assert (curTrace, (semHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (semHandle == NULL) {
         /*! @retval OSALSEMAPHORE_E_HANDLE NULL Semaphore handle provided. */
         status = OSALSEMAPHORE_E_HANDLE;
@@ -379,15 +379,15 @@ OsalSemaphore_post (OsalSemaphore_Handle semHandle)
                              "NULL Semaphore handle provided.");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         osStatus = pthread_mutex_lock (&(semObj->lock));
         GT_assert (curTrace, (osStatus == 0));
         semObj->value = 1u;
         osStatus = pthread_cond_signal (&(semObj->cond));
         pthread_mutex_unlock(&(semObj->lock));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalSemaphore_post", status);
 

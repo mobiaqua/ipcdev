@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -160,9 +160,9 @@ typedef struct ProcMgr_Object_tag ProcMgr_Object;
  *
  *  @brief  ProcMgr state object variable
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 ProcMgr_ModuleObject ProcMgr_state =
 {
     .configSize = sizeof (ProcMgr_Config),
@@ -171,13 +171,13 @@ ProcMgr_ModuleObject ProcMgr_state =
     .defInstParams.procHandle   = NULL,
     .defInstParams.loaderHandle = NULL,
     .defInstParams.pwrHandle    = NULL,
-    .defInstParams.rstVectorSectionName    = ".SysLink_ResetVector",
+    .defInstParams.rstVectorSectionName    = ".Ipc_ResetVector",
     .defAttachParams.bootParams = NULL,
     .defAttachParams.bootMode   = ProcMgr_BootMode_Boot,
 };
 
-/* instance params override specified in SysLinkCfg.c */
-String ProcMgr_sysLinkCfgParams = NULL;
+/* instance params override */
+String ProcMgr_ipcCfgParams = NULL;
 
 extern int ipc_notify_event(int event, int arg);
 
@@ -207,7 +207,7 @@ ProcMgr_getConfig (ProcMgr_Config * cfg)
 
     GT_assert (curTrace, (cfg != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -217,7 +217,7 @@ ProcMgr_getConfig (ProcMgr_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* This sets the refCount variable if not initialized, upper 16 bits are
          * written with module Id to ensure correctness of refCount variable.
@@ -240,9 +240,9 @@ ProcMgr_getConfig (ProcMgr_Config * cfg)
                          &ProcMgr_state.defCfg,
                          sizeof (ProcMgr_Config));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ProcMgr_getConfig");
 }
@@ -302,7 +302,7 @@ ProcMgr_setup (ProcMgr_Config * cfg)
         /* Create a default gate handle for local module protection. */
         ProcMgr_state.gateHandle = (IGateProvider_Handle)
                               GateMutex_create ((GateMutex_Params *) NULL, &eb);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (ProcMgr_state.gateHandle == NULL) {
             /*! @retval ProcMgr_E_FAIL Failed to create GateMutex! */
             status = ProcMgr_E_FAIL;
@@ -315,7 +315,7 @@ ProcMgr_setup (ProcMgr_Config * cfg)
                         ProcMgr_MAKE_MAGICSTAMP(0));
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Copy the user provided values into the state object. */
             Memory_copy (&ProcMgr_state.cfg,
                          cfg,
@@ -326,9 +326,9 @@ ProcMgr_setup (ProcMgr_Config * cfg)
                         0,
                         (sizeof (ProcMgr_Handle) * MultiProc_MAXPROCESSORS));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_setup", status);
@@ -355,7 +355,7 @@ ProcMgr_destroy (Void)
 
     GT_0trace (curTrace, GT_ENTER, "ProcMgr_destroy");
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -369,7 +369,7 @@ ProcMgr_destroy (Void)
                              "Module was not initialized!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (   Atomic_dec_return (&ProcMgr_state.refCount)
             == ProcMgr_MAKE_MAGICSTAMP(0)) {
             /* Check if any ProcMgr instances have not been deleted so far.
@@ -393,28 +393,28 @@ ProcMgr_destroy (Void)
 
                     Memory_free(NULL,
                                 ProcMgr_state.cfg.sysMemMap->memBlocks,
-                                (sizeof(SysLink_MemEntry_Block)
+                                (sizeof(Ipc_MemEntry_Block)
                                  * ProcMgr_state.cfg.sysMemMap->numBlocks));
                     Memory_free(NULL,
                                 ProcMgr_state.cfg.sysMemMap ,
-                                sizeof (SysLink_MemoryMap));
+                                sizeof (Ipc_MemoryMap));
                 }
             }
 
             /* free instance params string */
-            if (ProcMgr_sysLinkCfgParams != NULL) {
-                Ptr ptr = ProcMgr_sysLinkCfgParams;
+            if (ProcMgr_ipcCfgParams != NULL) {
+                Ptr ptr = ProcMgr_ipcCfgParams;
                 Int len = strlen(ptr) + 1;
                 Memory_free(NULL, ptr, len);
-                ProcMgr_sysLinkCfgParams = NULL;
+                ProcMgr_ipcCfgParams = NULL;
             }
             /* Decrease the refCount */
             Atomic_set (&ProcMgr_state.refCount,
                         ProcMgr_MAKE_MAGICSTAMP(0));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_destroy", status);
 
@@ -446,7 +446,7 @@ ProcMgr_Params_init (ProcMgr_Handle handle, ProcMgr_Params * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -466,7 +466,7 @@ ProcMgr_Params_init (ProcMgr_Handle handle, ProcMgr_Params * params)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             Memory_copy (params,
                          &(ProcMgr_state.defInstParams),
@@ -478,9 +478,9 @@ ProcMgr_Params_init (ProcMgr_Handle handle, ProcMgr_Params * params)
                          &(procMgrHandle->params),
                          sizeof (ProcMgr_Params));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ProcMgr_Params_init");
 }
@@ -523,7 +523,7 @@ ProcMgr_create (UInt16 procId, const ProcMgr_Params * params)
     GT_assert (curTrace, ((params != NULL)) && (params->procHandle != NULL));
     GT_assert (curTrace, ((params != NULL)) && (params->loaderHandle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -563,7 +563,7 @@ ProcMgr_create (UInt16 procId, const ProcMgr_Params * params)
                              ProcMgr_E_INVALIDARG,
                              "Invalid loaderHandle specified in params");
     } else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -571,7 +571,7 @@ ProcMgr_create (UInt16 procId, const ProcMgr_Params * params)
         handle = (ProcMgr_Object *) Memory_calloc (NULL,
                                                    sizeof (ProcMgr_Object),
                                                    0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (handle == NULL) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -580,7 +580,7 @@ ProcMgr_create (UInt16 procId, const ProcMgr_Params * params)
                                  "Memory allocation failed for handle!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Copy the user provided values into the instance object. */
             Memory_copy (&(handle->params),
                          (Ptr) params,
@@ -596,14 +596,14 @@ ProcMgr_create (UInt16 procId, const ProcMgr_Params * params)
                     handle->maxMemoryRegions * sizeof(ProcMgr_MappedMemEntry));
             /* Store the ProcMgr handle in the local array. */
             ProcMgr_state.procHandles [procId] = (ProcMgr_Handle) handle;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_create", handle);
 
@@ -636,7 +636,7 @@ ProcMgr_delete (ProcMgr_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -668,7 +668,7 @@ ProcMgr_delete (ProcMgr_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         handle = (ProcMgr_Object *) (*handlePtr);
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
@@ -692,9 +692,9 @@ ProcMgr_delete (ProcMgr_Handle * handlePtr)
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_delete", status);
 
@@ -717,7 +717,7 @@ ProcMgr_open (ProcMgr_Handle * handlePtr, UInt16 procId)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, IS_VALID_PROCID (procId));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -751,16 +751,16 @@ ProcMgr_open (ProcMgr_Handle * handlePtr, UInt16 procId)
                              "Invalid procId specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
         /* Return handle in the local array. */
         *handlePtr = ProcMgr_state.procHandles [procId];
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_open", status);
 
@@ -780,7 +780,7 @@ ProcMgr_close (ProcMgr_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -813,12 +813,12 @@ ProcMgr_close (ProcMgr_Handle * handlePtr)
                              "Invalid NULL *handlePtr specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Nothing to be done for closing the handle. */
         *handlePtr = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_close", status);
 
@@ -837,7 +837,7 @@ ProcMgr_getAttachParams (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -857,7 +857,7 @@ ProcMgr_getAttachParams (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             Memory_copy (params,
                          &(ProcMgr_state.defAttachParams),
@@ -869,9 +869,9 @@ ProcMgr_getAttachParams (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                          &(procMgrHandle->attachParams),
                          sizeof (ProcMgr_AttachParams));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ProcMgr_getAttachParams");
 }
@@ -908,7 +908,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
 
     GT_assert (curTrace, (params->bootMode < ProcMgr_BootMode_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -940,7 +940,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                              "Invalid bootMode specified in params");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Atomic_cmpmask_and_set(&procMgrHandle->attachCount,
                                ProcMgr_MAKE_MAGICSTAMP(0),
                                ProcMgr_MAKE_MAGICSTAMP(0));
@@ -959,7 +959,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
         status = PwrMgr_attach (procMgrHandle->pwrHandle,
                                 &pwrAttachParams);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -968,7 +968,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                                  "PwrMgr_attach failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Attach to the specified Processor instance. */
             procAttachParams.pmHandle = handle;
             procAttachParams.params = params;
@@ -981,7 +981,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
 
             status = Processor_attach (procMgrHandle->procHandle,
                                        &procAttachParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -990,7 +990,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                                      "Processor_attach failed!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /* Since the processor is attached now, we can safely map the
                  * entries
                  */
@@ -1005,7 +1005,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                     /*status = Processor_translateAddr (procMgrHandle->procHandle,
                                                       &dstAddr,
                                                       srcAddr);*/
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                              GT_4CLASS,
@@ -1014,7 +1014,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                                              "Processor_translateAddr failed!");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         aInfo.addr [ProcMgr_AddrType_SlaveVirt]  = srcAddr;
                         aInfo.addr [ProcMgr_AddrType_MasterPhys] = dstAddr;
                         aInfo.isCached = me->isCached;
@@ -1023,7 +1023,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                         status = _ProcMgr_map (handle, me->mapMask, &aInfo,
                                                ProcMgr_AddrType_MasterPhys);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (status < 0) {
                             GT_setFailureReason (curTrace,
                                                  GT_4CLASS,
@@ -1032,7 +1032,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                                                  "_ProcMgr_map failed!");
                         }
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
                 if (status >= 0) {
                     /* Attach to the specified Loader instance. */
@@ -1042,7 +1042,7 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                     loaderAttachParams.procArch = procAttachParams.procArch;
                     status = Loader_attach (procMgrHandle->loaderHandle,
                                             &loaderAttachParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                              GT_4CLASS,
@@ -1051,24 +1051,24 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                                              "Loader_attach failed!");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         /* TBD: Check registered processors and do callback for
                          *      state change.
                          */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_attach", status);
 
@@ -1094,7 +1094,7 @@ ProcMgr_detach (ProcMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1117,7 +1117,7 @@ ProcMgr_detach (ProcMgr_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (!(Atomic_dec_return(&procMgrHandle->attachCount) == \
             ProcMgr_MAKE_MAGICSTAMP(0)))
             return 1;
@@ -1127,7 +1127,7 @@ ProcMgr_detach (ProcMgr_Handle handle)
 
         /* Detach from the Loader. */
         tmpStatus = Loader_detach (procMgrHandle->loaderHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1136,7 +1136,7 @@ ProcMgr_detach (ProcMgr_Handle handle)
                                  status,
                                  "Loader_detach failed!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* since the processor is in stopped state we can safely unmap the
          * entries
@@ -1146,7 +1146,7 @@ ProcMgr_detach (ProcMgr_Handle handle)
             if (me->inUse == TRUE) {
                 status = _ProcMgr_unmap (handle, me->mapMask, &me->info,
                                           me->srcAddrType);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -1154,13 +1154,13 @@ ProcMgr_detach (ProcMgr_Handle handle)
                                          status,
                                          "_ProcMgr_unmap failed!");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
         }
 
         /* Detach from the Processor. */
         tmpStatus = Processor_detach (procMgrHandle->procHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1169,11 +1169,11 @@ ProcMgr_detach (ProcMgr_Handle handle)
                                  status,
                                  "Processor_detach failed!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Detach from the PwrMgr. */
         tmpStatus = PwrMgr_detach (procMgrHandle->pwrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
             GT_setFailureReason (curTrace,
@@ -1182,16 +1182,16 @@ ProcMgr_detach (ProcMgr_Handle handle)
                                  status,
                                  "PwrMgr_detach failed!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* TBD: Check registered processors and do callback for state
          *      change.
          */
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_detach", status);
 
@@ -1226,7 +1226,7 @@ ProcMgr_load (ProcMgr_Handle handle,
                (   ((argc == 0) && (argv == NULL))
                 || ((argc != 0) && (argv != NULL))));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1268,7 +1268,7 @@ ProcMgr_load (ProcMgr_Handle handle,
                              "Invalid fileId pointer specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1279,7 +1279,7 @@ ProcMgr_load (ProcMgr_Handle handle,
                               argv,
                               params,
                               fileId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1288,18 +1288,18 @@ ProcMgr_load (ProcMgr_Handle handle,
                                  "Failed to load file on the slave!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Need to keep this for future calls to ELF loader fxns! */
             procMgrHandle->fileId = *fileId;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_load", status);
 
@@ -1325,7 +1325,7 @@ ProcMgr_unload (ProcMgr_Handle handle, UInt32 fileId)
     GT_assert (curTrace, (handle != NULL));
     /* Cannot check for fileId because it is loader dependent. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1348,20 +1348,20 @@ ProcMgr_unload (ProcMgr_Handle handle, UInt32 fileId)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
         tmpStatus = Loader_unload (procMgrHandle->loaderHandle, fileId);
         if ((tmpStatus < 0) && (status >= 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "ProcMgr_unload",
                                  status,
                                  "Failed to unload file from the slave!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
         /* Clear the file ID of loaded static executable. */
@@ -1369,9 +1369,9 @@ ProcMgr_unload (ProcMgr_Handle handle, UInt32 fileId)
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_unload", status);
 
@@ -1390,7 +1390,7 @@ ProcMgr_getStartParams (ProcMgr_Handle handle, ProcMgr_StartParams * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1410,7 +1410,7 @@ ProcMgr_getStartParams (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (handle == NULL) {
             Memory_copy (params,
                          &(ProcMgr_state.defStartParams),
@@ -1422,9 +1422,9 @@ ProcMgr_getStartParams (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                          &(procMgrHandle->startParams),
                          sizeof (ProcMgr_StartParams));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "ProcMgr_getStartParams");
 }
@@ -1453,7 +1453,7 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
         params = &tmpParams;
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1476,7 +1476,7 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Start the slave processor running. */
         if (procMgrHandle->attachParams.bootMode == ProcMgr_BootMode_Boot) {
             status = Loader_getEntryPt (procMgrHandle->loaderHandle,
@@ -1484,7 +1484,7 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                                         &entryPt);
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1493,7 +1493,7 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                                  "Loader_getEntryPt failed");
         }
         else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
             /* Enter critical section protection. */
             key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1506,7 +1506,7 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
             status = Processor_start (procMgrHandle->procHandle,
                                       entryPt,
                                       &procParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                     GT_4CLASS,
@@ -1516,21 +1516,21 @@ ProcMgr_start (ProcMgr_Handle handle, ProcMgr_StartParams * params)
                                     "processor!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /* TBD: Check registered processors and do callback for
                  *      state change.
                  */
                 //ipc_notify_event(IPC_PROC_START, params->procId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
             /* Leave critical section protection. */
             IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_start", status);
 
@@ -1551,7 +1551,7 @@ ProcMgr_stop (ProcMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1574,14 +1574,14 @@ ProcMgr_stop (ProcMgr_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
         /* Stop the slave processor. */
         status = Processor_stop (procMgrHandle->procHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1590,20 +1590,20 @@ ProcMgr_stop (ProcMgr_Handle handle)
                                  "Failed to get stop the slave processor!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* TBD: Check registered processors and do callback for state
              *      change.
              */
             //ipc_notify_event(IPC_PROC_STOP, procMgrHandle->procId);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_stop", status);
 
@@ -1626,7 +1626,7 @@ ProcMgr_getState (ProcMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1646,7 +1646,7 @@ ProcMgr_getState (ProcMgr_Handle handle)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1655,9 +1655,9 @@ ProcMgr_getState (ProcMgr_Handle handle)
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getState", state);
 
@@ -1679,7 +1679,7 @@ ProcMgr_setState (ProcMgr_Handle handle, ProcMgr_State state)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1699,7 +1699,7 @@ ProcMgr_setState (ProcMgr_Handle handle, ProcMgr_State state)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1708,9 +1708,9 @@ ProcMgr_setState (ProcMgr_Handle handle, ProcMgr_State state)
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_setState", status);
 
@@ -1737,7 +1737,7 @@ ProcMgr_read (ProcMgr_Handle handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1780,14 +1780,14 @@ ProcMgr_read (ProcMgr_Handle handle,
                              "Invalid value NULL provided for argument buffer");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Check if the address is already mapped */
         status = ProcMgr_translateAddr (handle,
                                         (Ptr *) &addr,
                                         ProcMgr_AddrType_MasterKnlVirt,
                                         (Ptr) procAddr,
                                         ProcMgr_AddrType_SlaveVirt);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1796,7 +1796,7 @@ ProcMgr_read (ProcMgr_Handle handle,
                                  "Address is not mapped!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Enter critical section protection. */
             key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1807,7 +1807,7 @@ ProcMgr_read (ProcMgr_Handle handle,
                                      buffer);
             /* Leave critical section protection. */
             IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                GT_4CLASS,
@@ -1817,7 +1817,7 @@ ProcMgr_read (ProcMgr_Handle handle,
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_read", status);
 
@@ -1845,7 +1845,7 @@ ProcMgr_write (ProcMgr_Handle handle,
     GT_assert (curTrace, (numBytes != NULL));
     GT_assert (curTrace, (buffer   != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1888,14 +1888,14 @@ ProcMgr_write (ProcMgr_Handle handle,
                              "Invalid value NULL provided for argument buffer");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Check if the address is already mapped */
         status = ProcMgr_translateAddr (handle,
                                         (Ptr *) &addr,
                                         ProcMgr_AddrType_MasterKnlVirt,
                                         (Ptr) procAddr,
                                         ProcMgr_AddrType_SlaveVirt);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1904,7 +1904,7 @@ ProcMgr_write (ProcMgr_Handle handle,
                                  "Address is not mapped!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /* Enter critical section protection. */
             key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -1915,7 +1915,7 @@ ProcMgr_write (ProcMgr_Handle handle,
                                       buffer);
             /* Leave critical section protection. */
             IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                               GT_4CLASS,
@@ -1925,7 +1925,7 @@ ProcMgr_write (ProcMgr_Handle handle,
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_write", status);
 
@@ -1949,7 +1949,7 @@ ProcMgr_control (ProcMgr_Handle handle, Int32 cmd, Ptr arg)
     GT_assert (curTrace, (handle != NULL));
     /* cmd and arg can be 0/NULL, so cannot check for validity. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -1972,13 +1972,13 @@ ProcMgr_control (ProcMgr_Handle handle, Int32 cmd, Ptr arg)
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
         /* Perform device-dependent control operation. */
         status = Processor_control (procMgrHandle->procHandle, cmd, arg);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                       GT_4CLASS,
@@ -1986,12 +1986,12 @@ ProcMgr_control (ProcMgr_Handle handle, Int32 cmd, Ptr arg)
                       status,
                       "Failed to perform device-dependent control operation.!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_control", status);
 
@@ -2026,7 +2026,7 @@ ProcMgr_translateAddr (ProcMgr_Handle   handle,
     GT_assert (curTrace, (dstAddrType   < ProcMgr_AddrType_EndValue));
     GT_assert (curTrace, (srcAddrType   < ProcMgr_AddrType_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2079,7 +2079,7 @@ ProcMgr_translateAddr (ProcMgr_Handle   handle,
                              "Invalid value provided for argument srcAddrType");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* compute map bit if looking for a virtual address */
         if (dstAddrType == ProcMgr_AddrType_MasterKnlVirt) {
             mapBit = ProcMgr_MASTERKNLVIRT;
@@ -2156,7 +2156,7 @@ ProcMgr_translateAddr (ProcMgr_Handle   handle,
                        srcAddr,
                       *dstAddr);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -2164,12 +2164,12 @@ ProcMgr_translateAddr (ProcMgr_Handle   handle,
                                  status,
                                  "Failed to translate address!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_translateAddr", status);
 
@@ -2199,7 +2199,7 @@ ProcMgr_getSymbolAddress (ProcMgr_Handle handle,
     GT_assert (curTrace, (symbolName  != NULL));
     GT_assert (curTrace, (symValue    != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2242,7 +2242,7 @@ ProcMgr_getSymbolAddress (ProcMgr_Handle handle,
                          "Invalid value NULL provided for argument symValue");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -2251,7 +2251,7 @@ ProcMgr_getSymbolAddress (ProcMgr_Handle handle,
                                           fileId,
                                           symbolName,
                                           symValue);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -2259,12 +2259,12 @@ ProcMgr_getSymbolAddress (ProcMgr_Handle handle,
                                  status,
                                  "Failed to get symbol address!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getSymbolAddress", status);
 
@@ -2287,7 +2287,7 @@ ProcMgr_map (ProcMgr_Handle     handle,
                handle, mapType, addrInfo, srcAddrType);
 
     GT_assert (curTrace, (handle   != NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2310,14 +2310,14 @@ ProcMgr_map (ProcMgr_Handle     handle,
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
         status = _ProcMgr_map (handle, mapType, addrInfo, srcAddrType);
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_map", status);
 
@@ -2342,20 +2342,20 @@ Void _ProcMgr_configSysMap(ProcMgr_Config * cfg)
 
     if (ProcMgr_state.cfg.sysMemMap == NULL) {
         ProcMgr_state.cfg.sysMemMap = Memory_calloc(NULL,
-            (sizeof(SysLink_MemoryMap)), 0u, NULL);
+            (sizeof(Ipc_MemoryMap)), 0u, NULL);
 
         GT_assert(curTrace, (ProcMgr_state.cfg.sysMemMap != NULL));
 
         memcpy(ProcMgr_state.cfg.sysMemMap, cfg->sysMemMap,
-            sizeof(SysLink_MemoryMap));
+            sizeof(Ipc_MemoryMap));
 
         if (cfg->sysMemMap->numBlocks > 0) {
             ProcMgr_state.cfg.sysMemMap->memBlocks = Memory_calloc(NULL,
-                (sizeof(SysLink_MemEntry_Block) * cfg->sysMemMap->numBlocks),
+                (sizeof(Ipc_MemEntry_Block) * cfg->sysMemMap->numBlocks),
                 0u, NULL);
             memcpy(ProcMgr_state.cfg.sysMemMap->memBlocks,
                cfg->sysMemMap->memBlocks,
-               (sizeof(SysLink_MemEntry_Block) * cfg->sysMemMap->numBlocks));
+               (sizeof(Ipc_MemEntry_Block) * cfg->sysMemMap->numBlocks));
         }
     }
     else {
@@ -2376,16 +2376,16 @@ Void _ProcMgr_saveParams(String params, Int len)
     GT_2trace (curTrace, GT_ENTER, "_ProcMgr_saveParams", params, len);
 
     /* free params string if already configured */
-    if (ProcMgr_sysLinkCfgParams != NULL) {
-        Ptr ptr = ProcMgr_sysLinkCfgParams;
+    if (ProcMgr_ipcCfgParams != NULL) {
+        Ptr ptr = ProcMgr_ipcCfgParams;
         Int len = strlen(ptr) + 1;
         Memory_free(NULL, ptr, len);
-        ProcMgr_sysLinkCfgParams = NULL;
+        ProcMgr_ipcCfgParams = NULL;
     }
 
     /* save params pointer in global symbol */
     if (params != NULL) {
-        ProcMgr_sysLinkCfgParams = params;
+        ProcMgr_ipcCfgParams = params;
     }
 
     GT_0trace (curTrace, GT_LEAVE, "_ProcMgr_saveParams");
@@ -2425,7 +2425,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
     GT_assert (curTrace, (addrInfo != NULL));
     GT_assert (curTrace, (srcAddrType < ProcMgr_AddrType_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2468,7 +2468,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                          "Invalid value provided for argument srcAddrType");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         if (mapType & ProcMgr_MASTERKNLVIRT) {
             addrInfo->addr [ProcMgr_AddrType_MasterKnlVirt] = -1u;
             switch (srcAddrType) {
@@ -2506,7 +2506,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
 
                     status = Memory_map (&mInfo);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         /* Override with ProcMgr status code. */
                         status = ProcMgr_E_MAP;
@@ -2517,12 +2517,12 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                                          "Memory_map failed");
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         addrInfo->addr [ProcMgr_AddrType_MasterKnlVirt] =
                                                                       mInfo.dst;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 }
                 break;
                 default:
@@ -2562,7 +2562,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                         status = Processor_map (procMgrHandle->procHandle,
                             &dstAddr, 1, &sgList);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (status < 0) {
                             GT_setFailureReason (curTrace,
                                                  GT_4CLASS,
@@ -2570,7 +2570,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                                                  status,
                                                  "Processor_map failed");
                         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     }
                     else {
                         /* Allocate a VMA if ProcMgr_AddrType_SlaveVirt is
@@ -2611,7 +2611,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                                                 &dstAddr,
                                                 1,
                                                 &sgList);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                         if (status < 0) {
                             GT_setFailureReason (curTrace,
                                                  GT_4CLASS,
@@ -2619,7 +2619,7 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                                                  status,
                                                  "Processor_map failed");
                         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     }
                     else {
                         /* Allocate a VMA if ProcMgr_AddrType_SlaveVirt is not
@@ -2675,9 +2675,9 @@ _ProcMgr_map (ProcMgr_Handle     handle,
                                      "All memEntries slots are in use!");
             }
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_ProcMgr_map", status);
 
@@ -2700,7 +2700,7 @@ ProcMgr_unmap (ProcMgr_Handle     handle,
                handle, mapType, addrInfo, srcAddrType);
 
     GT_assert (curTrace, (handle   != NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2723,14 +2723,14 @@ ProcMgr_unmap (ProcMgr_Handle     handle,
                              "Invalid handle specified");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
         status = _ProcMgr_unmap (handle, mapType, addrInfo, srcAddrType);
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_unmap", status);
 
@@ -2770,7 +2770,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
     GT_assert (curTrace, (addrInfo != NULL));
     GT_assert (curTrace, (srcAddrType < ProcMgr_AddrType_EndValue));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -2812,7 +2812,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
                          "Invalid value provided for argument srcAddrType");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* First try to find exact entry */
         for (i = 0; i < procMgrHandle->maxMemoryRegions; i++) {
             if (   (   procMgrHandle->memEntries [i].info.addr [srcAddrType]
@@ -2904,7 +2904,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
             }
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (i == procMgrHandle->maxMemoryRegions) {
             status = ProcMgr_E_NOTFOUND;
             /*! @retval  ProcMgr_E_NOTFOUND Info provided does not match with
@@ -2930,14 +2930,14 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
                  addrInfo->addr [ProcMgr_AddrType_MasterKnlVirt]);
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             if (unmapType & ProcMgr_MASTERKNLVIRT) {
                 umInfo.addr = mme->info.addr [ProcMgr_AddrType_MasterKnlVirt];
                 umInfo.size = mme->info.size;
                 umInfo.isCached = mme->info.isCached;
 
                 status = Memory_unmap (&umInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     /* Override with ProcMgr status code. */
                     status = ProcMgr_E_MAP;
@@ -2947,7 +2947,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
                                      status,
                                      "Memory_unmap failed");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
 
             if (unmapType & ProcMgr_SLAVEVIRT) {
@@ -2956,7 +2956,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
                 status = Processor_unmap (procMgrHandle->procHandle,
                                           addr,
                                           mme->info.size);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -2964,7 +2964,7 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
                                          status,
                                          "Processor_unmap failed!");
                 }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
 
             if (unmapType == mme->mapMask) {
@@ -2976,12 +2976,12 @@ _ProcMgr_unmap (ProcMgr_Handle     handle,
             else {
                 mme->mapMask &= ~(unmapType);
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_ProcMgr_unmap", status);
 
@@ -3011,7 +3011,7 @@ ProcMgr_registerNotify (ProcMgr_Handle      handle,
     GT_assert (curTrace, (fxn           != 0));
     /* args is optional and may be NULL. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3044,7 +3044,7 @@ ProcMgr_registerNotify (ProcMgr_Handle      handle,
                              "Invalid value NULL provided for argument fxn");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -3054,7 +3054,7 @@ ProcMgr_registerNotify (ProcMgr_Handle      handle,
                                            args,
                                            timeout,
                                            state);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -3063,16 +3063,16 @@ ProcMgr_registerNotify (ProcMgr_Handle      handle,
                                  "Failed to register for notification!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             status = ProcMgr_S_REPLYLATER;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_registerNotify", status);
 
@@ -3092,7 +3092,7 @@ ProcMgr_getMaxMemoryRegions(ProcMgr_Handle handle)
     UInt32 maxMemRegions;
     ProcMgr_Object *objectPtr;
 
-	GT_1trace(curTrace, GT_ENTER, "ProcMgr_getMaxMemoryRegions", handle);
+    GT_1trace(curTrace, GT_ENTER, "ProcMgr_getMaxMemoryRegions", handle);
 
     GT_assert(curTrace, (handle != NULL));
 
@@ -3102,7 +3102,7 @@ ProcMgr_getMaxMemoryRegions(ProcMgr_Handle handle)
         maxMemRegions = objectPtr->maxMemoryRegions;
     }
 
-	GT_1trace(curTrace, GT_LEAVE, "ProcMgr_getMaxMemoryRegions", maxMemRegions);
+    GT_1trace(curTrace, GT_LEAVE, "ProcMgr_getMaxMemoryRegions", maxMemRegions);
 
     return maxMemRegions;
 }
@@ -3124,7 +3124,7 @@ ProcMgr_getProcInfo (ProcMgr_Handle     handle,
     GT_assert (curTrace, (handle    != NULL));
     GT_assert (curTrace, (procInfo  != 0));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3157,7 +3157,7 @@ ProcMgr_getProcInfo (ProcMgr_Handle     handle,
                            "Invalid value NULL provided for argument procInfo");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -3177,9 +3177,9 @@ ProcMgr_getProcInfo (ProcMgr_Handle     handle,
 
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getProcInfo", status);
 
@@ -3214,7 +3214,7 @@ Int ProcMgr_getSectionInfo (ProcMgr_Handle        handle,
     /* Number of bytes to be read can be zero */
     GT_assert (curTrace, (sectionInfo != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3257,12 +3257,12 @@ Int ProcMgr_getSectionInfo (ProcMgr_Handle        handle,
                          "Invalid value NULL provided for argument symValue");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         status = Loader_getSectionInfo (procMgrHandle->loaderHandle,
                                         fileId,
                                         sectionName,
                                         sectionInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -3271,7 +3271,7 @@ Int ProcMgr_getSectionInfo (ProcMgr_Handle        handle,
                                  "Failed to get symbol address!");
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, " ", status);
 
@@ -3305,7 +3305,7 @@ Int ProcMgr_getSectionData (ProcMgr_Handle        handle,
     /* Number of bytes to be read can be zero */
     GT_assert (curTrace, (buffer != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3338,12 +3338,12 @@ Int ProcMgr_getSectionData (ProcMgr_Handle        handle,
                          "Invalid value NULL provided for argument symValue");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         status = Loader_getSectionData (procMgrHandle->loaderHandle,
                                         fileId,
                                         sectionInfo,
                                         buffer);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -3352,7 +3352,7 @@ Int ProcMgr_getSectionData (ProcMgr_Handle        handle,
                                  "Failed to get symbol address!");
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getSectionData", status);
 
@@ -3370,7 +3370,7 @@ ProcMgr_getLoadedFileId (ProcMgr_Handle handle)
 
     GT_assert (curTrace, (procMgrObj != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3390,11 +3390,11 @@ ProcMgr_getLoadedFileId (ProcMgr_Handle handle)
                              "handle is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         fileId = procMgrObj->fileId;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     /*! @retval fileId Operation successful */
     return (fileId);
@@ -3421,7 +3421,7 @@ ProcMgr_unregisterNotify (ProcMgr_Handle      handle,
     GT_assert (curTrace, (fxn           != 0));
     /* args is optional and may be NULL. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                   ProcMgr_MAKE_MAGICSTAMP(0),
                                   ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3454,7 +3454,7 @@ ProcMgr_unregisterNotify (ProcMgr_Handle      handle,
                              "Invalid value NULL provided for argument fxn");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Enter critical section protection. */
         key = IGateProvider_enter (ProcMgr_state.gateHandle);
 
@@ -3463,7 +3463,7 @@ ProcMgr_unregisterNotify (ProcMgr_Handle      handle,
                                              fxn,
                                              args,
                                              state);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -3471,12 +3471,12 @@ ProcMgr_unregisterNotify (ProcMgr_Handle      handle,
                                  status,
                                  "Failed to register for notification!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* Leave critical section protection. */
         IGateProvider_leave (ProcMgr_state.gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_unregisterNotify", status);
 
@@ -3493,7 +3493,7 @@ UInt32 ProcMgr_getId (ProcMgr_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                                 ProcMgr_MAKE_MAGICSTAMP(0),
                                                 ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3512,7 +3512,7 @@ UInt32 ProcMgr_getId (ProcMgr_Handle handle)
                              "Invalid NULL handle pointer specified!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
             if (ProcMgr_state.procHandles[i] == handle) {
                 id = i;
@@ -3520,9 +3520,9 @@ UInt32 ProcMgr_getId (ProcMgr_Handle handle)
             }
         }
 
-        #if !defined(SYSLINK_BUILD_OPTIMIZE)
+        #if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getId", id);
 
@@ -3539,7 +3539,7 @@ ProcMgr_Handle ProcMgr_getHandle (UInt32 id)
     GT_assert (curTrace, (id >= 0));
     GT_assert (curTrace, (id < MultiProc_MAXPROCESSORS));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (EXPECT_FALSE (   Atomic_cmpmask_and_lt (&(ProcMgr_state.refCount),
                                                 ProcMgr_MAKE_MAGICSTAMP(0),
                                                 ProcMgr_MAKE_MAGICSTAMP(1))
@@ -3558,13 +3558,13 @@ ProcMgr_Handle ProcMgr_getHandle (UInt32 id)
                              "Invalid id specified!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         handle = ProcMgr_state.procHandles[id];
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "ProcMgr_getHandle", handle);
 

@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -104,7 +104,7 @@ OMAP5430BENELLI_halInit (Ptr * halObj, Ptr params,UInt16 procId)
 
     halObject = (OMAP5430BENELLI_HalObject *) halObj ;
     *halObj = Memory_calloc (NULL, sizeof (OMAP5430BENELLI_HalObject), 0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (halObject == NULL) {
         /*! @retval PROCESSOR_E_MEMORY Memory allocation failed */
         status = PROCESSOR_E_MEMORY;
@@ -115,14 +115,14 @@ OMAP5430BENELLI_halInit (Ptr * halObj, Ptr params,UInt16 procId)
                              "Memory allocation failed for HAL object!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         halObject = (OMAP5430BENELLI_HalObject *) *halObj ;
         halObject->procId = procId;
         halObject->procHandle = lpParams->procHandle;
 
         status = OMAP5430BENELLI_phyShmemInit (*halObj,lpParams->memEntries);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -133,7 +133,7 @@ OMAP5430BENELLI_halInit (Ptr * halObj, Ptr params,UInt16 procId)
             *halObj = NULL;
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OMAP5430BENELLI_halInit", status);
 
@@ -163,7 +163,7 @@ OMAP5430BENELLI_halExit (Ptr halObj, Ptr params)
 
     halObject = (OMAP5430BENELLI_HalObject *) halObj ;
     status = OMAP5430BENELLI_phyShmemExit(halObj, lpParams->memEntries);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -171,7 +171,7 @@ OMAP5430BENELLI_halExit (Ptr halObj, Ptr params)
                              status,
                              "OMAP5430BENELLI_phyShmemExit failed!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     if (halObj != NULL) {
         /* Free the memory for the HAL object. */

@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -160,7 +160,7 @@ List_Params_init (List_Params * params)
 
     GT_assert (curTrace, (params != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (params == NULL) {
         /* No retVal since this is a Void function. */
         GT_setFailureReason (curTrace,
@@ -170,11 +170,11 @@ List_Params_init (List_Params * params)
                              "Argument of type (List_Params *) is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         params->gateHandle = IGateProvider_NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_Params_init");
 }
@@ -198,7 +198,7 @@ List_create (List_Params * params)
 
 
     GT_assert (curTrace, (obj != NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (obj == NULL) {
         /*! @retval NULL Allocate memory for handle failed */
         GT_setFailureReason (curTrace,
@@ -208,12 +208,12 @@ List_create (List_Params * params)
                              "Allocating memory for handle failed");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         obj->elem.next  = obj->elem.prev = &(obj->elem);
         obj->gateHandle = params->gateHandle;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_create", obj);
 
@@ -233,7 +233,7 @@ List_delete (List_Handle * handlePtr)
     GT_assert (curTrace, (handlePtr != NULL));
     GT_assert (curTrace, ((handlePtr != NULL) && (*handlePtr != NULL)));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handlePtr == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -249,13 +249,13 @@ List_delete (List_Handle * handlePtr)
                              "*handlePtr passed is invalid!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         obj = (List_Object *) (*handlePtr);
         Memory_free (NULL, obj, sizeof (List_Object));
         *handlePtr = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_delete");
 }
@@ -270,7 +270,7 @@ List_construct (List_Object * obj, List_Params * params)
     GT_assert (curTrace, (obj != NULL));
     /* params may be provided as NULL. */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (obj == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -279,12 +279,12 @@ List_construct (List_Object * obj, List_Params * params)
                              "Invalid NULL passed for obj parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         obj->elem.next = obj->elem.prev = &(obj->elem);
         if (params != NULL) {
             obj->gateHandle = params->gateHandle;
             GT_assert (curTrace, (obj->gateHandle != NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (obj->gateHandle == NULL) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -293,14 +293,14 @@ List_construct (List_Object * obj, List_Params * params)
                                      "Invalid NULL passed for "
                                      "obj->gateHandle parameter");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         else {
             obj->gateHandle = IGateProvider_NULL;
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_construct");
 }
@@ -316,7 +316,7 @@ List_destruct (List_Object * obj)
 
     GT_assert (curTrace, (obj != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (obj == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -325,14 +325,14 @@ List_destruct (List_Object * obj)
                              "Invalid NULL passed for obj parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         key = IGateProvider_enter (obj->gateHandle);
         obj->elem.next = NULL;
         obj->elem.prev = NULL;
         IGateProvider_leave (obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_destruct");
 }
@@ -345,7 +345,7 @@ List_elemClear (List_Elem * elem)
     GT_1trace (curTrace, GT_ENTER, "List_elemClear", elem);
 
     GT_assert (curTrace, (elem != NULL));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (elem == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -354,11 +354,11 @@ List_elemClear (List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
          elem->next = elem->prev = elem;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_elemClear");
 }
@@ -376,7 +376,7 @@ List_empty (List_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -385,7 +385,7 @@ List_empty (List_Handle handle)
                              "Invalid NULL passed for handle parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         //if (obj->gateHandle != IGateProvider_NULL) {
             key = Gate_enterSystem();
@@ -399,9 +399,9 @@ List_empty (List_Handle handle)
         //if (obj->gateHandle != IGateProvider_NULL) {
             Gate_leaveSystem(key);
         //}
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_empty", isEmpty);
 
@@ -422,7 +422,7 @@ List_get (List_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval NULL Invalid NULL passed for handle parameter */
         GT_setFailureReason (curTrace,
@@ -432,7 +432,7 @@ List_get (List_Handle handle)
                              "Invalid NULL passed for handle parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         //if (obj->gateHandle != IGateProvider_NULL) {
             key = Gate_enterSystem();
@@ -443,9 +443,9 @@ List_get (List_Handle handle)
         //if (obj->gateHandle != IGateProvider_NULL) {
             Gate_leaveSystem(key);
         //}
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_get", elem);
 
@@ -466,7 +466,7 @@ List_put (List_Handle handle, List_Elem * elem)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -482,7 +482,7 @@ List_put (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         //if (obj->gateHandle != IGateProvider_NULL) {
             key = Gate_enterSystem();
@@ -493,9 +493,9 @@ List_put (List_Handle handle, List_Elem * elem)
         //if (obj->gateHandle != IGateProvider_NULL) {
             Gate_leaveSystem(key);
         //}
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_put");
 }
@@ -512,7 +512,7 @@ List_next (List_Handle handle, List_Elem * elem)
 
     GT_assert (curTrace, (handle != NULL)) ;
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval NULL Invalid NULL passed for handle parameter */
         GT_setFailureReason (curTrace,
@@ -522,7 +522,7 @@ List_next (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for handle parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* elem == NULL -> start at the head */
         if (elem == NULL) {
             retElem = obj->elem.next;
@@ -536,9 +536,9 @@ List_next (List_Handle handle, List_Elem * elem)
             retElem = NULL;
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_Next", retElem);
 
@@ -559,7 +559,7 @@ List_prev (List_Handle handle, List_Elem * elem)
     GT_assert (curTrace, (handle != NULL)) ;
     GT_assert (curTrace, (elem != NULL)) ;
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval NULL Invalid NULL passed for handle parameter */
         GT_setFailureReason (curTrace,
@@ -577,7 +577,7 @@ List_prev (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* elem == NULL -> start at the head */
         if (elem == NULL) {
             retElem = obj->elem.prev;
@@ -591,9 +591,9 @@ List_prev (List_Handle handle, List_Elem * elem)
             retElem = NULL;
         }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_prev", retElem);
 
@@ -614,7 +614,7 @@ List_insert  (List_Handle handle, List_Elem * newElem, List_Elem * curElem)
     GT_assert (curTrace, (handle     != NULL));
     GT_assert (curTrace, (newElem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (obj == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -636,7 +636,7 @@ List_insert  (List_Handle handle, List_Elem * newElem, List_Elem * curElem)
                              List_E_INVALIDARG,
                   "Invalid NULL passed for curElem parameter use List_putHead");
     }else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             GT_assert (curTrace, (obj->gateHandle != NULL));
 
             /* Protect with gate if provided. */
@@ -649,9 +649,9 @@ List_insert  (List_Handle handle, List_Elem * newElem, List_Elem * curElem)
             curElem->prev       = newElem;
 
             IGateProvider_leave (obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_insert");
 }
@@ -669,7 +669,7 @@ List_remove (List_Handle handle, List_Elem * elem)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -685,7 +685,7 @@ List_remove (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
 
         /* Protect with gate if provided. */
@@ -695,9 +695,9 @@ List_remove (List_Handle handle, List_Elem * elem)
         elem->next->prev = elem->prev;
 
         IGateProvider_leave (obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_remove");
 }
@@ -715,7 +715,7 @@ List_putHead (List_Handle handle, List_Elem *elem)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -731,7 +731,7 @@ List_putHead (List_Handle handle, List_Elem *elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         //if (obj->gateHandle != IGateProvider_NULL) {
             key = Gate_enterSystem();
@@ -742,9 +742,9 @@ List_putHead (List_Handle handle, List_Elem *elem)
         //if (obj->gateHandle != IGateProvider_NULL) {
             Gate_leaveSystem(key);
         //}
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_putHead");
 }
@@ -762,7 +762,7 @@ List_dequeue (List_Handle handle)
 
     GT_assert (curTrace, (handle != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         /*! @retval NULL Invalid NULL passed for handle parameter */
         GT_setFailureReason (curTrace,
@@ -772,7 +772,7 @@ List_dequeue (List_Handle handle)
                              "Invalid NULL passed for handle parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
 
         /* Protect with gate if provided. */
@@ -790,9 +790,9 @@ List_dequeue (List_Handle handle)
         }
 
         IGateProvider_leave(obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "List_dequeue", elem);
 
@@ -813,7 +813,7 @@ List_enqueue (List_Handle handle, List_Elem * elem)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -829,7 +829,7 @@ List_enqueue (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         /* Protect with gate if provided. */
         key = IGateProvider_enter (obj->gateHandle);
@@ -840,9 +840,9 @@ List_enqueue (List_Handle handle, List_Elem * elem)
         obj->elem.prev       = elem;
 
         IGateProvider_leave (obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_enqueue");
 }
@@ -860,7 +860,7 @@ List_enqueueHead (List_Handle handle, List_Elem * elem)
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (handle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -876,7 +876,7 @@ List_enqueueHead (List_Handle handle, List_Elem * elem)
                              "Invalid NULL passed for elem parameter");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         GT_assert (curTrace, (obj->gateHandle != NULL));
         /* Protect with gate if provided. */
         key = IGateProvider_enter (obj->gateHandle);
@@ -887,9 +887,9 @@ List_enqueueHead (List_Handle handle, List_Elem * elem)
         obj->elem.next       = elem;
 
         IGateProvider_leave (obj->gateHandle, key);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "List_enqueueHead");
 }

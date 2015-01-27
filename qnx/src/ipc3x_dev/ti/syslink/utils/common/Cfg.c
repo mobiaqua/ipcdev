@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -46,23 +46,14 @@
  */
 
 
-#ifdef SYSLINK_BUILD_RTOS
-/* ------------------------- XDC specific includes -------------------------- */
-#include <xdc/std.h>
-#elif SYSLINK_BUILD_HLOS
 /* Standard headers */
 #include <ti/syslink/Std.h>
 
 /* OSAL & Utils headers */
 #include <ti/syslink/utils/String.h>
-#endif
 
 /* -------------------------- Generic includes ------------------------------ */
-#if defined(SYSLINK_BUILDOS_LINUX)
-#include <linux/string.h>
-#else
 #include <string.h>
-#endif
 
 /* this module's header file */
 #include "../Cfg.h"

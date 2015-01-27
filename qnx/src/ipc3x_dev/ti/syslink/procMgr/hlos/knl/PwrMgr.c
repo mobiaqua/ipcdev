@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -105,7 +105,7 @@ PwrMgr_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
             (pwrHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
             GT_assert (curTrace, (pwrHandle->pwrFxnTable.attach != NULL));
             status = pwrHandle->pwrFxnTable.attach (handle, params);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -114,11 +114,11 @@ PwrMgr_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                                      "Failed to power up the slave processor!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /* Power up the slave processor. */
                 GT_assert (curTrace, (pwrHandle->pwrFxnTable.on != NULL));
                 status = pwrHandle->pwrFxnTable.on (handle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -127,7 +127,7 @@ PwrMgr_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                                          "Failed to power up the slave processor!");
                 }
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
 
     }
@@ -174,7 +174,7 @@ PwrMgr_detach (PwrMgr_Handle handle)
             /* Power up the slave processor. */
             GT_assert (curTrace, (pwrHandle->pwrFxnTable.off != NULL));
             status = pwrHandle->pwrFxnTable.off (handle, TRUE);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -182,19 +182,19 @@ PwrMgr_detach (PwrMgr_Handle handle)
                                      status,
                                      "Failed to power down the slave processor!");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
             GT_assert (curTrace, (pwrHandle->pwrFxnTable.detach != NULL));
             tmpStatus = pwrHandle->pwrFxnTable.detach (handle);
             if ((tmpStatus < 0) && (status >= 0)) {
                 status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "PwrMgr_detach",
                                      status,
                                      "Failed to detach from the specific PwrMgr!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             }
         }
 
@@ -234,7 +234,7 @@ PwrMgr_on (PwrMgr_Handle handle)
      */
     GT_assert (curTrace, (pwrHandle->pwrFxnTable.on != NULL));
     status = pwrHandle->pwrFxnTable.on (handle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -242,7 +242,7 @@ PwrMgr_on (PwrMgr_Handle handle)
                              status,
                              "Failed to power on the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "PwrMgr_on", status);
 
@@ -279,7 +279,7 @@ PwrMgr_off (PwrMgr_Handle handle, Bool force)
      */
     GT_assert (curTrace, (pwrHandle->pwrFxnTable.off != NULL));
     status = pwrHandle->pwrFxnTable.off (handle, force);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -287,7 +287,7 @@ PwrMgr_off (PwrMgr_Handle handle, Bool force)
                              status,
                              "Failed to power off the slave processor!");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "PwrMgr_off", status);
 

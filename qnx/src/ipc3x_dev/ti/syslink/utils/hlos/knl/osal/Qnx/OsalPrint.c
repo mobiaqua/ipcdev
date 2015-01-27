@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -101,8 +101,8 @@ int Osal_initlogging(int verbosity)
 {
 #if (_NTO_VERSION >= 800)
     slog2_buffer_set_config_t buffer_config;
-    const char * buffer_set_name = "syslink";
-    const char * buffer_name = "syslink_buffer";
+    const char * buffer_set_name = "ipc";
+    const char * buffer_name = "ipc_buffer";
 
    int verbosity_level = verbosity;
     if ( verbosity_level > SLOG2_DEBUG2) {
@@ -118,7 +118,7 @@ int Osal_initlogging(int verbosity)
 
     // Register the Buffer Set
     if( slog2_register( &buffer_config, &buffer_handle, 0 ) == -1 ) {
-        fprintf( stderr, "syslink error registering slogger2 buffer for syslink!\n" );
+        fprintf( stderr, "ipc error registering slogger2 buffer for ipc!\n" );
         return -1;
     }
 #endif

@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -32,6 +32,6 @@
 EARLY_DIRS=perfutils
 LATE_DIRS=ti
 
-SYSLINK_BUILDOS=Qnx
+IPC_BUILDOS=Qnx
 
 include recurse.mk

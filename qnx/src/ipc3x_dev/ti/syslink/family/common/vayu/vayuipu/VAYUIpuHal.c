@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -117,7 +117,7 @@ VAYUIPU_halInit (Ptr * halObj, Ptr params)
         halObject->procId = halParams->procId;
 
         status = VAYUIPU_phyShmemInit (*halObj);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -127,7 +127,7 @@ VAYUIPU_halInit (Ptr * halObj, Ptr params)
             Memory_free (NULL, *halObj, sizeof (VAYUIPU_HalObject));
             *halObj = NULL;
         }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPU_halInit", status);
@@ -155,7 +155,7 @@ VAYUIPU_halExit (Ptr halObj)
     GT_assert (curTrace, (halObj != NULL));
 
     status = VAYUIPU_phyShmemExit (halObj);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -163,7 +163,7 @@ VAYUIPU_halExit (Ptr halObj)
                              status,
                              "VAYUIPU_phyShmemExit failed!");
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
 
     if (halObj != NULL) {
         /* Free the memory for the HAL object. */

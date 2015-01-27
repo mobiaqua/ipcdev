@@ -1,14 +1,14 @@
 /*
  *  @file       syslink_main.c
  *
- *  @brief      syslink main
+ *  @brief      ipc main
  *
  *
  *  @ver        02.00.00.46_alpha1
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -70,7 +70,7 @@
 #include <_GateMP_daemon.h>
 #include <OsalSemaphore.h>
 #include <ti/syslink/utils/OsalPrint.h>
-#if defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(IPC_PLATFORM_OMAP5430)
 #include <_ipu_pm.h>
 #endif
 #include <ti/syslink/utils/Trace.h>
@@ -96,7 +96,7 @@ static char * logFilename = NULL;
 /* Number of cores to attach to */
 static int numAttach = 0;
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
 /* DSP2 is invalid on Vayu */
 #define INVALID_PROC     "DSP2"
 
@@ -106,21 +106,21 @@ static Int32 sr0OwnerProcId = -1;
 #define INVALID_PROC     ""
 #endif
 
-// Syslink hibernation global variables
-Bool syslink_hib_enable = TRUE;
-#if !defined(SYSLINK_PLATFORM_OMAP5430)
+// IPC hibernation global variables
+Bool ipc_hib_enable = TRUE;
+#if !defined(IPC_PLATFORM_OMAP5430)
 #define PM_HIB_DEFAULT_TIME 5000
 #endif
-uint32_t syslink_hib_timeout = PM_HIB_DEFAULT_TIME;
-Bool syslink_hib_hibernating = FALSE;
-pthread_mutex_t syslink_hib_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t syslink_hib_cond = PTHREAD_COND_INITIALIZER;
+uint32_t ipc_hib_timeout = PM_HIB_DEFAULT_TIME;
+Bool ipc_hib_hibernating = FALSE;
+pthread_mutex_t ipc_hib_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t ipc_hib_cond = PTHREAD_COND_INITIALIZER;
 
 extern Int rpmsg_rpc_setup (Void);
 extern Void rpmsg_rpc_destroy (Void);
 extern Void GateHWSpinlock_LeaveLockForPID(int pid);
 
-typedef struct syslink_firmware_info_t {
+typedef struct ipc_firmware_info_t {
     uint16_t proc_id;
     char * proc;
     char * firmware;
@@ -129,20 +129,20 @@ typedef struct syslink_firmware_info_t {
     int  readProcState; /* state that is currently being printed */
     bool reload;     /* reload core during recovery */
     bool freeString; /* Need to free previously allocated firmware string */
-} syslink_firmware_info;
-static syslink_firmware_info syslink_firmware[MultiProc_MAXPROCESSORS];
+} ipc_firmware_info;
+static ipc_firmware_info ipc_firmware[MultiProc_MAXPROCESSORS];
 
-/* Number of valid entries in syslink_firmware array */
-static unsigned int syslink_num_cores = 0;
+/* Number of valid entries in ipc_firmware array */
+static unsigned int ipc_num_cores = 0;
 
-int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
+int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
     bool recover);
-int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
+int deinit_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
     bool recover);
-int init_syslink_trace_device(syslink_dev_t *dev);
-int deinit_syslink_trace_device(syslink_dev_t *dev);
+int init_ipc_trace_device(ipc_dev_t *dev);
+int deinit_ipc_trace_device(ipc_dev_t *dev);
 
-Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
+Int ipc_error_cb (UInt16 procId, ProcMgr_Handle handle,
                       ProcMgr_State fromState, ProcMgr_State toState,
                       ProcMgr_EventStatus status, Ptr args);
 
@@ -162,18 +162,18 @@ static ProcMgr_State errStates[] = {ProcMgr_State_Mmu_Fault,
 static String procStateNames[] = { "In reset\n",
                                    "Running\n" };
 
-typedef struct syslink_trace_info_t {
+typedef struct ipc_trace_info_t {
     uintptr_t   va;
     uint32_t    len;
     uint32_t *  widx;
     uint32_t *  ridx;
     Bool        firstRead;
-} syslink_trace_info;
+} ipc_trace_info;
 
-static syslink_trace_info proc_traces[MultiProc_MAXPROCESSORS];
+static ipc_trace_info proc_traces[MultiProc_MAXPROCESSORS];
 
-static int runSlave(syslink_dev_t *dev, uint16_t procId,
-    syslink_firmware_info * firmware_info)
+static int runSlave(ipc_dev_t *dev, uint16_t procId,
+    ipc_firmware_info * firmware_info)
 {
     int status = 0;
     ProcMgr_AttachParams attachParams;
@@ -231,7 +231,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
         goto ipcattach_fail;
     }
 
-    status = ProcMgr_registerNotify(procH[procId], syslink_error_cb, (Ptr)dev,
+    status = ProcMgr_registerNotify(procH[procId], ipc_error_cb, (Ptr)dev,
         -1, errStates);
     if (status < 0) {
         goto procmgrreg_fail;
@@ -254,7 +254,7 @@ static int runSlave(syslink_dev_t *dev, uint16_t procId,
     return 0;
 
 procmgrstart_fail:
-    ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
+    ProcMgr_unregisterNotify(procH[procId], ipc_error_cb,
         (Ptr)dev, errStates);
 procmgrreg_fail:
     Ipc_detach(procId);
@@ -274,7 +274,7 @@ procmgropen_fail:
     return -1;
 }
 
-static int resetSlave(syslink_dev_t *dev, uint16_t procId)
+static int resetSlave(ipc_dev_t *dev, uint16_t procId)
 {
     if ((procH[procId]) && (procH_fileId[procId])) {
         GT_1trace(curTrace, GT_4CLASS, "stopping %s", MultiProc_getName(procId));
@@ -282,7 +282,7 @@ static int resetSlave(syslink_dev_t *dev, uint16_t procId)
     }
 
     if (procH[procId]) {
-        ProcMgr_unregisterNotify(procH[procId], syslink_error_cb, (Ptr)dev,
+        ProcMgr_unregisterNotify(procH[procId], ipc_error_cb, (Ptr)dev,
             errStates);
         Ipc_detach(procId);
         if (procH_fileId[procId]) {
@@ -304,20 +304,20 @@ static int resetSlave(syslink_dev_t *dev, uint16_t procId)
 /* Add firmware entry after IPC is setup */
 static void addFirmware(uint16_t procId)
 {
-    syslink_firmware[syslink_num_cores].proc =
+    ipc_firmware[ipc_num_cores].proc =
         MultiProc_getName(procId);
-    syslink_firmware[syslink_num_cores].proc_id = procId;
-    syslink_firmware[syslink_num_cores].attachOnly = false;
-    syslink_firmware[syslink_num_cores].reload = false;
-    syslink_firmware[syslink_num_cores].procState = RESET_STATE;
-    syslink_firmware[syslink_num_cores].freeString = false;
-    syslink_firmware[syslink_num_cores++].firmware = NULL;
+    ipc_firmware[ipc_num_cores].proc_id = procId;
+    ipc_firmware[ipc_num_cores].attachOnly = false;
+    ipc_firmware[ipc_num_cores].reload = false;
+    ipc_firmware[ipc_num_cores].procState = RESET_STATE;
+    ipc_firmware[ipc_num_cores].freeString = false;
+    ipc_firmware[ipc_num_cores++].firmware = NULL;
 
     return;
 }
 
 static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
-    syslink_ocb_t *ocb)
+    ipc_ocb_t *ocb)
 {
     int             nbytes;
     int             nparts;
@@ -325,7 +325,7 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
     int             nleft;
     int             i;
     uint16_t        procId = ocb->ocb.attr->procid;
-    syslink_dev_t * dev = ocb->ocb.attr->dev;
+    ipc_dev_t * dev = ocb->ocb.attr->dev;
 
     if ((status = iofunc_read_verify(ctp, msg, &ocb->ocb, NULL)) != EOK) {
         return (status);
@@ -342,13 +342,13 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
 
     pthread_mutex_lock(&dev->firmwareLock);
 
-    for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procId) {
+    for (i = 0; i < ipc_num_cores; i++) {
+        if (ipc_firmware[i].proc_id == procId) {
             break;
         }
     }
-    if (i == syslink_num_cores) {
-        if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
+    if (i == ipc_num_cores) {
+        if ((ipc_num_cores < MultiProc_MAXPROCESSORS)) {
             addFirmware(procId);
         }
         else {
@@ -359,10 +359,10 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
 
     if (ocb->ocb.offset == 0) {
         /* latch onto new state, so that we print out complete strings */
-        syslink_firmware[i].readProcState = syslink_firmware[i].procState;
+        ipc_firmware[i].readProcState = ipc_firmware[i].procState;
     }
 
-    nleft = strlen(procStateNames[syslink_firmware[i].readProcState])
+    nleft = strlen(procStateNames[ipc_firmware[i].readProcState])
         - ocb->ocb.offset; /* the state is expressed in one byte */
     nbytes = min(msg->i.nbytes, nleft);
 
@@ -370,7 +370,7 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
     if (nbytes > 0) {
         /* set up the return data IOV */
         SETIOV(ctp->iov,
-            (char *)procStateNames[syslink_firmware[i].readProcState]
+            (char *)procStateNames[ipc_firmware[i].readProcState]
             + ocb->ocb.offset, nbytes);
 
         pthread_mutex_unlock(&dev->firmwareLock);
@@ -403,14 +403,14 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
 }
 
 static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
-    syslink_ocb_t *ocb)
+    ipc_ocb_t *ocb)
 {
     int             status;
     char *          buf;
     uint16_t        procId = ocb->ocb.attr->procid;
     int             i;
     char *          ptr;
-    syslink_dev_t * dev = ocb->ocb.attr->dev;
+    ipc_dev_t * dev = ocb->ocb.attr->dev;
     Int32           sr0ProcId;
 
     if ((status = iofunc_write_verify(ctp, msg, &ocb->ocb, NULL)) != EOK) {
@@ -444,13 +444,13 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
     }
 
     pthread_mutex_lock(&dev->firmwareLock);
-    for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procId) {
+    for (i = 0; i < ipc_num_cores; i++) {
+        if (ipc_firmware[i].proc_id == procId) {
             break;
         }
     }
-    if (i == syslink_num_cores) {
-        if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
+    if (i == ipc_num_cores) {
+        if ((ipc_num_cores < MultiProc_MAXPROCESSORS)) {
             addFirmware(procId);
         }
         else {
@@ -460,10 +460,10 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
     }
 
     if (strcmp("1", buf) == 0) {
-        if ((syslink_firmware[i].procState == RESET_STATE) &&
-           (syslink_firmware[i].firmware != NULL)) {
-            runSlave(ocb->ocb.attr->dev, procId, &syslink_firmware[i]);
-#if defined(SYSLINK_PLATFORM_VAYU)
+        if ((ipc_firmware[i].procState == RESET_STATE) &&
+           (ipc_firmware[i].firmware != NULL)) {
+            runSlave(ocb->ocb.attr->dev, procId, &ipc_firmware[i]);
+#if defined(IPC_PLATFORM_VAYU)
             if (gatempEnabled) {
                 if (sr0OwnerProcId == -1) {
                     /* Set up GateMP */
@@ -488,10 +488,10 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
             }
 #endif
             printf("Core is now running with image '%s'\n",
-                syslink_firmware[i].firmware);
-            syslink_firmware[i].procState = RUNNING_STATE;
-            syslink_firmware[i].reload = true;
-            status = init_syslink_trace_device(dev);
+                ipc_firmware[i].firmware);
+            ipc_firmware[i].procState = RUNNING_STATE;
+            ipc_firmware[i].reload = true;
+            status = init_ipc_trace_device(dev);
             if (status < 0) {
                 pthread_mutex_unlock(&dev->firmwareLock);
                 free(buf);
@@ -501,8 +501,8 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
         }
     }
     else if (strcmp("0", buf) == 0) {
-        if (syslink_firmware[i].procState == RUNNING_STATE) {
-#if defined(SYSLINK_PLATFORM_VAYU)
+        if (ipc_firmware[i].procState == RUNNING_STATE) {
+#if defined(IPC_PLATFORM_VAYU)
             if ((gatempEnabled) && (procId == sr0OwnerProcId)) {
                 sr0OwnerProcId = -1;
                 status = GateMP_destroy(FALSE);
@@ -516,13 +516,13 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
             }
 #endif
             resetSlave(ocb->ocb.attr->dev, procId);
-            syslink_firmware[i].procState = RESET_STATE;
-            syslink_firmware[i].reload = false;
-            status = deinit_syslink_trace_device(dev);
+            ipc_firmware[i].procState = RESET_STATE;
+            ipc_firmware[i].reload = false;
+            status = deinit_ipc_trace_device(dev);
             if (status < 0) {
                 pthread_mutex_unlock(&dev->firmwareLock);
                 free(buf);
-                Osal_printf("IPC: deinit_syslink_trace_device failed %d",
+                Osal_printf("IPC: deinit_ipc_trace_device failed %d",
                     status);
                 return (EIO);
             }
@@ -546,7 +546,7 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
 }
 
 static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
-    syslink_ocb_t *ocb)
+    ipc_ocb_t *ocb)
 {
     int             nbytes;
     int             nparts;
@@ -554,7 +554,7 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
     int             nleft;
     int             i;
     uint16_t        procId = ocb->ocb.attr->procid;
-    syslink_dev_t * dev = ocb->ocb.attr->dev;
+    ipc_dev_t * dev = ocb->ocb.attr->dev;
 
     if ((status = iofunc_read_verify (ctp, msg, &ocb->ocb, NULL)) != EOK) {
         return (status);
@@ -570,14 +570,14 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
     }
 
     pthread_mutex_lock(&dev->firmwareLock);
-    for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procId) {
+    for (i = 0; i < ipc_num_cores; i++) {
+        if (ipc_firmware[i].proc_id == procId) {
             break;
         }
     }
 
-    if (i == syslink_num_cores) {
-        if ((syslink_num_cores < MultiProc_MAXPROCESSORS)) {
+    if (i == ipc_num_cores) {
+        if ((ipc_num_cores < MultiProc_MAXPROCESSORS)) {
             addFirmware(procId);
         }
         else {
@@ -586,11 +586,11 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
         }
     }
 
-    if (syslink_firmware[i].firmware == NULL) {
+    if (ipc_firmware[i].firmware == NULL) {
         nbytes = 0;
     }
     else {
-        nleft = strlen(syslink_firmware[i].firmware)
+        nleft = strlen(ipc_firmware[i].firmware)
             - ocb->ocb.offset + 1; /* Add one byte for carriage return */
         nbytes = min(msg->i.nbytes, nleft);
     }
@@ -599,7 +599,7 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
     if (nbytes > 0) {
         if (nbytes == nleft) {
             /* set up the return data IOV */
-            SETIOV(&ctp->iov[0], (char *)syslink_firmware[i].firmware
+            SETIOV(&ctp->iov[0], (char *)ipc_firmware[i].firmware
                 + ocb->ocb.offset, nbytes - 1);
 
             /* add a carriage return */
@@ -609,7 +609,7 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
         }
         else {
             /* set up the return data IOV */
-            SETIOV(ctp->iov, (char *)syslink_firmware[i].firmware
+            SETIOV(ctp->iov, (char *)ipc_firmware[i].firmware
                 + ocb->ocb.offset, nbytes);
 
             nparts = 1;
@@ -641,7 +641,7 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
 }
 
 static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
-    syslink_ocb_t *ocb)
+    ipc_ocb_t *ocb)
 {
     int             status;
     char *          buf;
@@ -649,7 +649,7 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
     int             i;
     char *          absPath;
     char *          ptr;
-    syslink_dev_t * dev = ocb->ocb.attr->dev;
+    ipc_dev_t * dev = ocb->ocb.attr->dev;
 
     if ((status = iofunc_write_verify(ctp, msg, &ocb->ocb, NULL)) != EOK) {
         return (status);
@@ -700,19 +700,19 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
     pthread_mutex_lock(&dev->firmwareLock);
 
     /*
-     * Check if an entry in syslink_firmware already exists for this core.
+     * Check if an entry in ipc_firmware already exists for this core.
      * If not, create one. Otherwise just update the firmware path.
      */
-    for (i = 0; i < syslink_num_cores; i++) {
-        if (syslink_firmware[i].proc_id == procId) {
+    for (i = 0; i < ipc_num_cores; i++) {
+        if (ipc_firmware[i].proc_id == procId) {
             break;
         }
     }
-    if (i == syslink_num_cores) {
-        if (syslink_num_cores < MultiProc_MAXPROCESSORS) {
+    if (i == ipc_num_cores) {
+        if (ipc_num_cores < MultiProc_MAXPROCESSORS) {
             addFirmware(procId);
-            syslink_firmware[syslink_num_cores - 1].freeString = true;
-            syslink_firmware[syslink_num_cores - 1].firmware = absPath;
+            ipc_firmware[ipc_num_cores - 1].freeString = true;
+            ipc_firmware[ipc_num_cores - 1].firmware = absPath;
         }
         else {
             pthread_mutex_unlock(&dev->firmwareLock);
@@ -722,11 +722,11 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
     }
     else {
         /* Free previously allocated string */
-        if ((syslink_firmware[i].freeString) &&
-           (syslink_firmware[i].firmware)) {
-            free(syslink_firmware[i].firmware);
+        if ((ipc_firmware[i].freeString) &&
+           (ipc_firmware[i].firmware)) {
+            free(ipc_firmware[i].firmware);
         }
-        syslink_firmware[i].firmware = absPath;
+        ipc_firmware[i].firmware = absPath;
     }
 
     pthread_mutex_unlock(&dev->firmwareLock);
@@ -738,7 +738,7 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
     return (_RESMGR_NPARTS(0));
 }
 
-int syslink_read(resmgr_context_t *ctp, io_read_t *msg, syslink_ocb_t *ocb)
+int ipc_read(resmgr_context_t *ctp, io_read_t *msg, ipc_ocb_t *ocb)
 {
     int         nbytes;
     int         nparts;
@@ -813,7 +813,7 @@ int syslink_read(resmgr_context_t *ctp, io_read_t *msg, syslink_ocb_t *ocb)
 
 extern OsalSemaphore_Handle mqcopy_test_sem;
 
-int syslink_unblock(resmgr_context_t *ctp, io_pulse_t *msg, syslink_ocb_t *ocb)
+int ipc_unblock(resmgr_context_t *ctp, io_pulse_t *msg, ipc_ocb_t *ocb)
 {
     int status = _RESMGR_NOREPLY;
     struct _msg_info info;
@@ -841,12 +841,12 @@ int syslink_unblock(resmgr_context_t *ctp, io_pulse_t *msg, syslink_ocb_t *ocb)
 }
 
 IOFUNC_OCB_T *
-syslink_ocb_calloc (resmgr_context_t * ctp, IOFUNC_ATTR_T * device)
+ipc_ocb_calloc (resmgr_context_t * ctp, IOFUNC_ATTR_T * device)
 {
-    syslink_ocb_t *ocb = NULL;
+    ipc_ocb_t *ocb = NULL;
 
     /* Allocate the OCB */
-    ocb = (syslink_ocb_t *) calloc (1, sizeof (syslink_ocb_t));
+    ocb = (ipc_ocb_t *) calloc (1, sizeof (ipc_ocb_t));
     if (ocb == NULL){
         errno = ENOMEM;
         return (NULL);
@@ -858,23 +858,23 @@ syslink_ocb_calloc (resmgr_context_t * ctp, IOFUNC_ATTR_T * device)
 }
 
 void
-syslink_ocb_free (IOFUNC_OCB_T * i_ocb)
+ipc_ocb_free (IOFUNC_OCB_T * i_ocb)
 {
-    syslink_ocb_t * ocb = (syslink_ocb_t *)i_ocb;
+    ipc_ocb_t * ocb = (ipc_ocb_t *)i_ocb;
 
     if (ocb) {
-#ifndef SYSLINK_PLATFORM_VAYU
+#ifndef IPC_PLATFORM_VAYU
         GateHWSpinlock_LeaveLockForPID(ocb->pid);
 #endif
         free (ocb);
     }
 }
 
-int init_slave_devices(syslink_dev_t *dev)
+int init_slave_devices(ipc_dev_t *dev)
 {
     resmgr_attr_t    resmgr_attr;
     int              i;
-    syslink_attr_t * slave_attr;
+    ipc_attr_t * slave_attr;
     int              status = 0;
 
     memset(&resmgr_attr, 0, sizeof resmgr_attr);
@@ -883,25 +883,25 @@ int init_slave_devices(syslink_dev_t *dev)
 
     /* Populate the /dev/ipc-state namespace */
     for (i = 1; i < MultiProc_getNumProcessors(); i++) {
-        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_state[i],
-                         _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_state[i]);
-        slave_attr = &dev->syslink.cattr_slave[i];
+        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->ipc.cfuncs_state[i],
+                         _RESMGR_IO_NFUNCS, &dev->ipc.iofuncs_state[i]);
+        slave_attr = &dev->ipc.cattr_slave[i];
         iofunc_attr_init(&slave_attr->attr,
                          S_IFCHR | 0777, NULL, NULL);
-        slave_attr->attr.mount = &dev->syslink.mattr;
+        slave_attr->attr.mount = &dev->ipc.mattr;
         slave_attr->procid = i;
         slave_attr->dev = (Ptr)dev;
         iofunc_time_update(&slave_attr->attr);
-        snprintf(dev->syslink.device_name, _POSIX_PATH_MAX,
+        snprintf(dev->ipc.device_name, _POSIX_PATH_MAX,
                   "%s-state/%s", IPC_DEVICE_PATH, MultiProc_getName(i));
-        dev->syslink.iofuncs_state[i].read = slave_state_read;
-        dev->syslink.iofuncs_state[i].write = slave_state_write;
+        dev->ipc.iofuncs_state[i].read = slave_state_read;
+        dev->ipc.iofuncs_state[i].write = slave_state_write;
 
-        if (-1 == (dev->syslink.resmgr_id_state[i] =
+        if (-1 == (dev->ipc.resmgr_id_state[i] =
             resmgr_attach(dev->dpp, &resmgr_attr,
-                dev->syslink.device_name, _FTYPE_ANY, 0,
-                &dev->syslink.cfuncs_state[i],
-                &dev->syslink.iofuncs_state[i],
+                dev->ipc.device_name, _FTYPE_ANY, 0,
+                &dev->ipc.cfuncs_state[i],
+                &dev->ipc.iofuncs_state[i],
                 &slave_attr->attr))) {
             GT_setFailureReason(curTrace, GT_4CLASS, "init_slave_devices",
                 status, "resmgr_attach failed");
@@ -911,25 +911,25 @@ int init_slave_devices(syslink_dev_t *dev)
 
     /* Populate the /dev/ipc-file namespace */
     for (i = 1; i < MultiProc_getNumProcessors(); i++) {
-        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_file[i],
-                         _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_file[i]);
-        slave_attr = &dev->syslink.cattr_slave[i];
+        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->ipc.cfuncs_file[i],
+                         _RESMGR_IO_NFUNCS, &dev->ipc.iofuncs_file[i]);
+        slave_attr = &dev->ipc.cattr_slave[i];
         iofunc_attr_init(&slave_attr->attr,
                          S_IFCHR | 0777, NULL, NULL);
-        slave_attr->attr.mount = &dev->syslink.mattr;
+        slave_attr->attr.mount = &dev->ipc.mattr;
         slave_attr->procid = i;
         slave_attr->dev = (Ptr)dev;
         iofunc_time_update(&slave_attr->attr);
-        snprintf(dev->syslink.device_name, _POSIX_PATH_MAX,
+        snprintf(dev->ipc.device_name, _POSIX_PATH_MAX,
                   "%s-file/%s", IPC_DEVICE_PATH, MultiProc_getName(i));
-        dev->syslink.iofuncs_file[i].read = slave_file_read;
-        dev->syslink.iofuncs_file[i].write = slave_file_write;
+        dev->ipc.iofuncs_file[i].read = slave_file_read;
+        dev->ipc.iofuncs_file[i].write = slave_file_write;
 
-        if (-1 == (dev->syslink.resmgr_id_file[i] =
+        if (-1 == (dev->ipc.resmgr_id_file[i] =
             resmgr_attach(dev->dpp, &resmgr_attr,
-                dev->syslink.device_name, _FTYPE_ANY, 0,
-                &dev->syslink.cfuncs_file[i],
-                &dev->syslink.iofuncs_file[i],
+                dev->ipc.device_name, _FTYPE_ANY, 0,
+                &dev->ipc.cfuncs_file[i],
+                &dev->ipc.iofuncs_file[i],
                 &slave_attr->attr))) {
             GT_setFailureReason(curTrace, GT_4CLASS, "init_slave_devices",
                 status, "resmgr_attach failed");
@@ -940,18 +940,18 @@ int init_slave_devices(syslink_dev_t *dev)
     return (status);
 }
 
-int deinit_slave_devices(syslink_dev_t *dev)
+int deinit_slave_devices(ipc_dev_t *dev)
 {
     int status = EOK;
     int i = 0;
 
     for (i = 1; i < MultiProc_getNumProcessors(); i++) {
-        status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_state[i], 0);
+        status = resmgr_detach(dev->dpp, dev->ipc.resmgr_id_state[i], 0);
         if (status < 0) {
             Osal_printf("IPC: resmgr_detach of state device %d failed: %d",
                 i, errno);
         }
-        status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_file[i], 0);
+        status = resmgr_detach(dev->dpp, dev->ipc.resmgr_id_file[i], 0);
         if (status < 0) {
             Osal_printf("IPC: resmgr_detach of file device %d failed: %d",
                 i, errno);
@@ -961,11 +961,11 @@ int deinit_slave_devices(syslink_dev_t *dev)
     return (status);
 }
 
-int init_syslink_trace_device(syslink_dev_t *dev)
+int init_ipc_trace_device(ipc_dev_t *dev)
 {
     resmgr_attr_t    resmgr_attr;
     int              i;
-    syslink_attr_t * trace_attr;
+    ipc_attr_t * trace_attr;
     char             trace_name[_POSIX_PATH_MAX];
     int              status = 0;
     unsigned int     da = 0, pa = 0;
@@ -975,29 +975,29 @@ int init_syslink_trace_device(syslink_dev_t *dev)
     resmgr_attr.nparts_max = 10;
     resmgr_attr.msg_max_size = 2048;
 
-    for (i = 0; i < syslink_num_cores; i++) {
+    for (i = 0; i < ipc_num_cores; i++) {
         /*
          * Initialize trace device only for cores that are running and their
          * device is not yet setup.
          */
-        if ((syslink_firmware[i].procState == RUNNING_STATE) &&
+        if ((ipc_firmware[i].procState == RUNNING_STATE) &&
             (proc_traces[i].va == NULL)) {
             iofunc_func_init(_RESMGR_CONNECT_NFUNCS,
-                &dev->syslink.cfuncs_trace[i],
-                _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_trace[i]);
-            trace_attr = &dev->syslink.cattr_trace[i];
+                &dev->ipc.cfuncs_trace[i],
+                _RESMGR_IO_NFUNCS, &dev->ipc.iofuncs_trace[i]);
+            trace_attr = &dev->ipc.cattr_trace[i];
             iofunc_attr_init(&trace_attr->attr,
                          S_IFCHR | 0777, NULL, NULL);
-            trace_attr->attr.mount = &dev->syslink.mattr;
+            trace_attr->attr.mount = &dev->ipc.mattr;
             trace_attr->procid = i;
             iofunc_time_update(&trace_attr->attr);
-            snprintf(dev->syslink.device_name, _POSIX_PATH_MAX,
+            snprintf(dev->ipc.device_name, _POSIX_PATH_MAX,
                 "%s-trace/%s", IPC_DEVICE_PATH,
-                MultiProc_getName(syslink_firmware[i].proc_id));
-            dev->syslink.iofuncs_trace[i].read = syslink_read;
+                MultiProc_getName(ipc_firmware[i].proc_id));
+            dev->ipc.iofuncs_trace[i].read = ipc_read;
             snprintf (trace_name, _POSIX_PATH_MAX, "%d", 0);
             pa = 0;
-            status = RscTable_getInfo(syslink_firmware[i].proc_id, TYPE_TRACE,
+            status = RscTable_getInfo(ipc_firmware[i].proc_id, TYPE_TRACE,
                 0, &da, &pa, &len);
             if (status == 0) {
                 /* last 8 bytes are for writeIdx/readIdx */
@@ -1005,7 +1005,7 @@ int init_syslink_trace_device(syslink_dev_t *dev)
                 if (da && !pa) {
                     /* need to translate da->pa */
                     status = ProcMgr_translateAddr(
-                        procH[syslink_firmware[i].proc_id],
+                        procH[ipc_firmware[i].proc_id],
                         (Ptr *) &pa,
                         ProcMgr_AddrType_MasterPhys,
                         (Ptr) da,
@@ -1013,7 +1013,7 @@ int init_syslink_trace_device(syslink_dev_t *dev)
                 }
                 else {
                     GT_setFailureReason(curTrace, GT_4CLASS,
-                        "init_syslink_trace_device",
+                        "init_ipc_trace_device",
                         status, "not performing ProcMgr_translate");
                 }
                 /* map length aligned to page size */
@@ -1025,7 +1025,7 @@ int init_syslink_trace_device(syslink_dev_t *dev)
                     + sizeof(uint32_t));
                 if (proc_traces[i].va == MAP_DEVICE_FAILED) {
                     GT_setFailureReason(curTrace, GT_4CLASS,
-                        "init_syslink_trace_device",
+                        "init_ipc_trace_device",
                         status, "mmap_device_io failed");
                     GT_1trace(curTrace, GT_4CLASS, "errno %d", errno);
                     proc_traces[i].va = NULL;
@@ -1034,18 +1034,18 @@ int init_syslink_trace_device(syslink_dev_t *dev)
             }
             else {
                 GT_setFailureReason(curTrace, GT_4CLASS,
-                    "init_syslink_trace_device",
+                    "init_ipc_trace_device",
                     status, "RscTable_getInfo failed");
                 proc_traces[i].va = NULL;
             }
-            if (-1 == (dev->syslink.resmgr_id_trace[i] =
+            if (-1 == (dev->ipc.resmgr_id_trace[i] =
                        resmgr_attach(dev->dpp, &resmgr_attr,
-                                     dev->syslink.device_name, _FTYPE_ANY, 0,
-                                     &dev->syslink.cfuncs_trace[i],
-                                     &dev->syslink.iofuncs_trace[i],
+                                     dev->ipc.device_name, _FTYPE_ANY, 0,
+                                     &dev->ipc.cfuncs_trace[i],
+                                     &dev->ipc.iofuncs_trace[i],
                                      &trace_attr->attr))) {
                 GT_setFailureReason(curTrace, GT_4CLASS,
-                    "init_syslink_trace_device",
+                    "init_ipc_trace_device",
                     status, "resmgr_attach failed");
                 return(-1);
             }
@@ -1055,16 +1055,16 @@ int init_syslink_trace_device(syslink_dev_t *dev)
     return (status);
 }
 
-int deinit_syslink_trace_device(syslink_dev_t *dev)
+int deinit_ipc_trace_device(ipc_dev_t *dev)
 {
     int status = EOK;
     int i = 0;
 
-    for (i = 0; i < syslink_num_cores; i++) {
+    for (i = 0; i < ipc_num_cores; i++) {
         /* Only disable trace device on cores in RESET state */
-        if ((syslink_firmware[i].procState == RESET_STATE) &&
+        if ((ipc_firmware[i].procState == RESET_STATE) &&
             (proc_traces[i].va != NULL)) {
-            status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_trace[i],
+            status = resmgr_detach(dev->dpp, dev->ipc.resmgr_id_trace[i],
                 0);
             if (status < 0) {
                 Osal_printf("IPC: resmgr_detach of trace device %d failed: %d",
@@ -1082,8 +1082,8 @@ int deinit_syslink_trace_device(syslink_dev_t *dev)
     return (status);
 }
 
-/* Initialize the syslink device */
-int init_syslink_device(syslink_dev_t *dev)
+/* Initialize the ipc device */
+int init_ipc_device(ipc_dev_t *dev)
 {
     iofunc_attr_t *  attr;
     resmgr_attr_t    resmgr_attr;
@@ -1096,34 +1096,34 @@ int init_syslink_device(syslink_dev_t *dev)
     resmgr_attr.nparts_max = 10;
     resmgr_attr.msg_max_size = 2048;
 
-    memset(&dev->syslink.mattr, 0, sizeof(iofunc_mount_t));
-    dev->syslink.mattr.flags = ST_NOSUID | ST_NOEXEC;
-    dev->syslink.mattr.conf = IOFUNC_PC_CHOWN_RESTRICTED |
+    memset(&dev->ipc.mattr, 0, sizeof(iofunc_mount_t));
+    dev->ipc.mattr.flags = ST_NOSUID | ST_NOEXEC;
+    dev->ipc.mattr.conf = IOFUNC_PC_CHOWN_RESTRICTED |
                               IOFUNC_PC_NO_TRUNC |
                               IOFUNC_PC_SYNC_IO;
-    dev->syslink.mattr.funcs = &dev->syslink.mfuncs;
+    dev->ipc.mattr.funcs = &dev->ipc.mfuncs;
 
-    memset(&dev->syslink.mfuncs, 0, sizeof(iofunc_funcs_t));
-    dev->syslink.mfuncs.nfuncs = _IOFUNC_NFUNCS;
+    memset(&dev->ipc.mfuncs, 0, sizeof(iofunc_funcs_t));
+    dev->ipc.mfuncs.nfuncs = _IOFUNC_NFUNCS;
 
-    iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs,
-                    _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs);
+    iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->ipc.cfuncs,
+                    _RESMGR_IO_NFUNCS, &dev->ipc.iofuncs);
 
-    iofunc_attr_init(attr = &dev->syslink.cattr, S_IFCHR | 0777, NULL, NULL);
+    iofunc_attr_init(attr = &dev->ipc.cattr, S_IFCHR | 0777, NULL, NULL);
 
-    dev->syslink.mfuncs.ocb_calloc = syslink_ocb_calloc;
-    dev->syslink.mfuncs.ocb_free = syslink_ocb_free;
-    dev->syslink.iofuncs.devctl = syslink_devctl;
-    dev->syslink.iofuncs.unblock = syslink_unblock;
+    dev->ipc.mfuncs.ocb_calloc = ipc_ocb_calloc;
+    dev->ipc.mfuncs.ocb_free = ipc_ocb_free;
+    dev->ipc.iofuncs.devctl = ipc_devctl;
+    dev->ipc.iofuncs.unblock = ipc_unblock;
 
-    attr->mount = &dev->syslink.mattr;
+    attr->mount = &dev->ipc.mattr;
     iofunc_time_update(attr);
 
-    if (-1 == (dev->syslink.resmgr_id =
+    if (-1 == (dev->ipc.resmgr_id =
         resmgr_attach(dev->dpp, &resmgr_attr,
                       IPC_DEVICE_PATH, _FTYPE_ANY, 0,
-                      &dev->syslink.cfuncs,
-                      &dev->syslink.iofuncs, attr))) {
+                      &dev->ipc.cfuncs,
+                      &dev->ipc.iofuncs, attr))) {
         return(-1);
     }
 
@@ -1132,7 +1132,7 @@ int init_syslink_device(syslink_dev_t *dev)
         return status;
     }
 
-    status = init_syslink_trace_device(dev);
+    status = init_ipc_trace_device(dev);
     if (status < 0) {
         return status;
     }
@@ -1140,21 +1140,21 @@ int init_syslink_device(syslink_dev_t *dev)
     return(0);
 }
 
-/* De-initialize the syslink device */
-int deinit_syslink_device(syslink_dev_t *dev)
+/* De-initialize the ipc device */
+int deinit_ipc_device(ipc_dev_t *dev)
 {
     int status = EOK;
 
-    status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id, 0);
+    status = resmgr_detach(dev->dpp, dev->ipc.resmgr_id, 0);
     if (status < 0) {
         Osal_printf("IPC: resmgr_detach of %s failed: %d",
             IPC_DEVICE_PATH, errno);
         status = errno;
     }
 
-    status = deinit_syslink_trace_device(dev);
+    status = deinit_ipc_trace_device(dev);
     if (status < 0) {
-        Osal_printf("IPC: deinit_syslink_trace_device failed %d", status);
+        Osal_printf("IPC: deinit_ipc_trace_device failed %d", status);
     }
 
     status = deinit_slave_devices(dev);
@@ -1167,9 +1167,9 @@ int deinit_syslink_device(syslink_dev_t *dev)
 
 
 /* Initialize the devices */
-int init_devices(syslink_dev_t *dev)
+int init_devices(ipc_dev_t *dev)
 {
-    if (init_syslink_device(dev) < 0) {
+    if (init_ipc_device(dev) < 0) {
         Osal_printf("IPC: device init failed");
         return(-1);
     }
@@ -1179,11 +1179,11 @@ int init_devices(syslink_dev_t *dev)
 
 
 /* De-initialize the devices */
-int deinit_devices(syslink_dev_t *dev)
+int deinit_devices(ipc_dev_t *dev)
 {
     int status = EOK;
 
-    if ((status = deinit_syslink_device(dev)) < 0) {
+    if ((status = deinit_ipc_device(dev)) < 0) {
         fprintf( stderr, "IPC: device de-init failed %d\n", status);
         status = errno;
     }
@@ -1193,15 +1193,15 @@ int deinit_devices(syslink_dev_t *dev)
 
 static void ipc_recover(Ptr args)
 {
-    syslink_dev_t * dev = (syslink_dev_t *)args;
+    ipc_dev_t * dev = (ipc_dev_t *)args;
 
     if (!disableRecovery) {
-        /* Protect the syslink_firmware array as we recover */
+        /* Protect the ipc_firmware array as we recover */
         pthread_mutex_lock(&dev->firmwareLock);
-        deinit_ipc(dev, syslink_firmware, TRUE);
-        deinit_syslink_trace_device(dev);
-        init_ipc(dev, syslink_firmware, TRUE);
-        init_syslink_trace_device(dev);
+        deinit_ipc(dev, ipc_firmware, TRUE);
+        deinit_ipc_trace_device(dev);
+        init_ipc(dev, ipc_firmware, TRUE);
+        init_ipc_trace_device(dev);
         pthread_mutex_unlock(&dev->firmwareLock);
     }
     else {
@@ -1210,13 +1210,13 @@ static void ipc_recover(Ptr args)
     }
 }
 
-Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
+Int ipc_error_cb (UInt16 procId, ProcMgr_Handle handle,
                       ProcMgr_State fromState, ProcMgr_State toState,
                       ProcMgr_EventStatus status, Ptr args)
 {
     Int ret = 0;
     String errString = NULL;
-    syslink_dev_t * dev = (syslink_dev_t *)args;
+    ipc_dev_t * dev = (ipc_dev_t *)args;
 
     if (status == ProcMgr_EventStatus_Event) {
         switch (toState) {
@@ -1235,7 +1235,7 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
                 break;
         }
         GT_2trace (curTrace, GT_4CLASS,
-                   "syslink_error_cb: Received Error Callback for %s : %s\n",
+                   "ipc_error_cb: Received Error Callback for %s : %s\n",
                    MultiProc_getName(procId), errString);
         /* Don't allow re-schedule of recovery until complete */
         pthread_mutex_lock(&dev->lock);
@@ -1244,23 +1244,23 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
             dev->recover = TRUE;
             /* Activate a thread to handle the recovery. */
             GT_0trace (curTrace, GT_4CLASS,
-                       "syslink_error_cb: Scheduling recovery...");
+                       "ipc_error_cb: Scheduling recovery...");
             OsalThread_activate(dev->ipc_recovery_work);
         }
         else {
             GT_0trace (curTrace, GT_4CLASS,
-                       "syslink_error_cb: Recovery already scheduled.");
+                       "ipc_error_cb: Recovery already scheduled.");
         }
         pthread_mutex_unlock(&dev->lock);
     }
     else if (status == ProcMgr_EventStatus_Canceled) {
         GT_1trace (curTrace, GT_3CLASS,
-                   "SysLink Error Callback Cancelled for %s",
+                   "Ipc Error Callback Cancelled for %s",
                    MultiProc_getName(procId));
     }
     else {
         GT_1trace (curTrace, GT_4CLASS,
-                   "SysLink Error Callback Unexpected Event for %s",
+                   "Ipc Error Callback Unexpected Event for %s",
                    MultiProc_getName(procId));
     }
 
@@ -1268,13 +1268,13 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
 }
 
 /*
- * Initialize the syslink ipc
+ * Initialize ipc
  *
  * This function sets up the "kernel"-side IPC modules, and does any special
  * initialization required for QNX and the platform being used.  This function
  * also registers for error notifications and initializes the recovery thread.
  */
-int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover)
+int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware, bool recover)
 {
     int status = 0;
     Ipc_Config iCfg;
@@ -1317,7 +1317,7 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
 
         memset(procH_fileId, 0, sizeof(procH_fileId));
 
-        for (i = 0; i < syslink_num_cores; i++) {
+        for (i = 0; i < ipc_num_cores; i++) {
             procId = firmware[i].proc_id = MultiProc_getId(firmware[i].proc);
             if (procId >= MultiProc_MAXPROCESSORS) {
                 status = -1;
@@ -1374,7 +1374,7 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
         if (status < 0)
             goto rpcsetup_fail;
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
         if (gatempEnabled) {
             Int32 sr0ProcId;
 
@@ -1405,7 +1405,7 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
         goto exit;
     }
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
 gatempsetup_fail:
     NameServer_destroy();
 nameserversetup_fail:
@@ -1419,7 +1419,7 @@ tiipcsetup_fail:
         if (procId >= MultiProc_MAXPROCESSORS) {
             continue;
         }
-        ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
+        ProcMgr_unregisterNotify(procH[procId], ipc_error_cb,
                                 (Ptr)dev, errStates);
         if (!firmware[i].attachOnly) {
             ProcMgr_stop(procH[procId]);
@@ -1444,7 +1444,7 @@ exit:
     return status;
 }
 
-int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
+int deinit_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
     bool recover)
 {
     int status = EOK;
@@ -1462,7 +1462,7 @@ int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
         }
     }
 
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
     if (gatempEnabled) {
         GateMP_destroy(TRUE);
 
@@ -1486,7 +1486,7 @@ int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
             Osal_printf("IPC: printing remote core trace dump");
             log = fopen(logFilename, "a+");
             if (log) {
-                for (id = 0; id < syslink_num_cores; id++) {
+                for (id = 0; id < ipc_num_cores; id++) {
                     if (firmware[id].procState == RUNNING_STATE) {
                         if (proc_traces[id].va) {
                             /* print traces */
@@ -1519,7 +1519,7 @@ int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
     }
 
     /* After printing trace, set all processor states to RESET */
-    for (id = 0; id < syslink_num_cores; id++) {
+    for (id = 0; id < ipc_num_cores; id++) {
         firmware[id].procState = RESET_STATE;
     }
 
@@ -1542,7 +1542,7 @@ int deinit_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware,
 static Void printUsage (Char * app)
 {
     printf("\n\nUsage:\n");
-#if defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(IPC_PLATFORM_OMAP5430)
     printf("\n%s: [-HTdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
     printf("  <core_id#> should be set to a core name (e.g. IPU, DSP)\n");
@@ -1569,11 +1569,11 @@ static Void printUsage (Char * app)
     exit (EXIT_SUCCESS);
 }
 
-dispatch_t * syslink_dpp = NULL;
+dispatch_t * ipc_dpp = NULL;
 
 int main(int argc, char *argv[])
 {
-    syslink_dev_t * dev = NULL;
+    ipc_dev_t * dev = NULL;
     thread_pool_attr_t tattr;
     int status;
     int error = EOK;
@@ -1602,7 +1602,7 @@ int main(int argc, char *argv[])
 
         switch (c)
         {
-#if defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(IPC_PLATFORM_OMAP5430)
         case 'H':
             hib_enable = atoi(optarg);
             if (hib_enable != 0 && hib_enable != 1) {
@@ -1629,7 +1629,7 @@ int main(int argc, char *argv[])
         case 'v':
             verbosity++;
             break;
-#if defined(SYSLINK_PLATFORM_VAYU)
+#if defined(IPC_PLATFORM_VAYU)
         case 'g':
             printf("GateMP support enabled on host\n");
             gatempEnabled = true;
@@ -1643,7 +1643,7 @@ int main(int argc, char *argv[])
     /* Now parse the operands, which should be in the format:
      * "<multiproc_name> <firmware_file> ..*/
     for (; optind + 1 < argc; optind+=2) {
-        if (syslink_num_cores == MultiProc_MAXPROCESSORS) {
+        if (ipc_num_cores == MultiProc_MAXPROCESSORS) {
             printUsage(argv[0]);
             return (error);
         }
@@ -1652,12 +1652,12 @@ int main(int argc, char *argv[])
             return (error);
         }
 
-        syslink_firmware[syslink_num_cores].proc = argv [optind];
-        syslink_firmware[syslink_num_cores].attachOnly =
+        ipc_firmware[ipc_num_cores].proc = argv [optind];
+        ipc_firmware[ipc_num_cores].attachOnly =
             ((numAttach-- > 0) ? true : false);
-        syslink_firmware[syslink_num_cores].reload = true;
-        syslink_firmware[syslink_num_cores].freeString = false;
-        syslink_firmware[syslink_num_cores++].firmware = argv [optind+1];
+        ipc_firmware[ipc_num_cores].reload = true;
+        ipc_firmware[ipc_num_cores].freeString = false;
+        ipc_firmware[ipc_num_cores++].firmware = argv [optind+1];
     }
 
     /* Validate hib_enable args */
@@ -1667,10 +1667,10 @@ int main(int argc, char *argv[])
         return (error);
     }
 
-    syslink_hib_enable = (Bool)hib_enable;
-    syslink_hib_timeout = hib_timeout;
+    ipc_hib_enable = (Bool)hib_enable;
+    ipc_hib_timeout = hib_timeout;
 
-    /* Init logging for syslink */
+    /* Init logging for ipc */
     if (Osal_initlogging(verbosity) != 0) {
         return -1;
     }
@@ -1683,20 +1683,20 @@ int main(int argc, char *argv[])
     }
 
     /* Get the abs path for all firmware files */
-    for (i = 0; i < syslink_num_cores; i++) {
+    for (i = 0; i < ipc_num_cores; i++) {
         abs_path = calloc(1, PATH_MAX + 1);
         if (abs_path == NULL) {
             return -1;
         }
-        if (NULL == realpath(syslink_firmware[i].firmware, abs_path)) {
+        if (NULL == realpath(ipc_firmware[i].firmware, abs_path)) {
             fprintf (stderr, "invalid path to executable\n");
             return -1;
         }
-        syslink_firmware[i].firmware = abs_path;
+        ipc_firmware[i].firmware = abs_path;
     }
 
     /* allocate the device structure */
-    if (NULL == (dev = calloc(1, sizeof(syslink_dev_t)))) {
+    if (NULL == (dev = calloc(1, sizeof(ipc_dev_t)))) {
         Osal_printf("IPC: calloc() failed");
         return (-1);
     }
@@ -1712,7 +1712,7 @@ int main(int argc, char *argv[])
     }
 
     /* create the dispatch structure */
-    if (NULL == (dev->dpp = syslink_dpp = dispatch_create_channel (channelid, 0))) {
+    if (NULL == (dev->dpp = ipc_dpp = dispatch_create_channel (channelid, 0))) {
         Osal_printf("IPC: dispatch_create() failed");
         return(-1);
     }
@@ -1744,14 +1744,14 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-    /* init syslink */
-    status = init_ipc(dev, syslink_firmware, FALSE);
+    /* init ipc */
+    status = init_ipc(dev, ipc_firmware, FALSE);
     if (status < 0) {
         Osal_printf("IPC: init failed");
         return(-1);
     }
 
-    /* init the syslink device */
+    /* init the ipc device */
     status = init_devices(dev);
     if (status < 0) {
         Osal_printf("IPC: device init failed");
@@ -1841,15 +1841,15 @@ done:
     if (error < 0) {
         Osal_printf("IPC: thread_pool_destroy returned an error");
     }
-    deinit_ipc(dev, syslink_firmware, FALSE);
+    deinit_ipc(dev, ipc_firmware, FALSE);
     deinit_devices(dev);
     free(dev);
 
     /* Free the abs path of firmware files if necessary */
-    for (i = 0; i < syslink_num_cores; i++) {
-        if ((syslink_firmware[i].freeString) &&
-            (syslink_firmware[i].firmware)) {
-            free(syslink_firmware[i].firmware);
+    for (i = 0; i < ipc_num_cores; i++) {
+        if ((ipc_firmware[i].freeString) &&
+            (ipc_firmware[i].firmware)) {
+            free(ipc_firmware[i].firmware);
         }
     }
 

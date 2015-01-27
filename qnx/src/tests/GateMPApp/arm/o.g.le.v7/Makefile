@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ $(PROJECT_ROOT)/arm/o.g.le.v7/GateMPApp_g: $(IPC_REPO)/qnx/src/utils/arm/a.g.le.
 $(PROJECT_ROOT)/arm/o.g.le.v7/GateMPApp_g: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/GateMPApp_g: $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/a.le.v7/libsharedmemallocator.a
 
-# link with syslink static library, dynamic for others
+# link with ipc static library, dynamic for others
 LIBPREF_ipc_g = -Bstatic
 LIBPOST_ipc_g = -Bdynamic
 LIBPREF_utils_g = -Bstatic

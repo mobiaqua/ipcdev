@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
 #
 
 ifeq ("$(PLATFORM)","OMAP54XX")
-    SYSLINK_PLATFORM=omap5430
+    IPC_PLATFORM=omap5430
 else ifeq ("$(PLATFORM)","DRA7XX")
-    SYSLINK_PLATFORM=vayu
+    IPC_PLATFORM=vayu
 else ifeq ("$(PLATFORM)","")
     $(error Empty PLATFORM variable.  Did you forget to set in it products.mak?)
 else
@@ -43,7 +43,7 @@ endif
 all:  utils ipc3x_dev libs tests
 
 libs: ipc3x_dev
-	@cd src/api; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM)
+	@cd src/api; make IPC_PLATFORM=$(IPC_PLATFORM)
 	@cd src/mm; make
 
 utils:
@@ -54,10 +54,10 @@ tests: libs
 
 ipc3x_dev: utils
 	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1 QNX_CFLAGS=$(QNX_CFLAGS)
+            make IPC_PLATFORM=$(IPC_PLATFORM) SMP=1 QNX_CFLAGS=$(QNX_CFLAGS)
 
 install:
-	@cd src/ipc3x_dev; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \
+	@cd src/ipc3x_dev; make IPC_PLATFORM=$(IPC_PLATFORM) \
 		SMP=1 USE_INSTALL_ROOT=1 \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 	@cd src/mm; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
@@ -67,7 +67,7 @@ install:
 	@cd src/utils; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
                 INSTALL_ROOT_nto=$(DESTDIR) install
 	@cd src/tests; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
-		SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \
+		IPC_PLATFORM=$(IPC_PLATFORM) \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 
 
@@ -77,4 +77,4 @@ clean:
 	@cd src/utils; make clean
 	@cd src/tests; make clean
 	@cd src/ipc3x_dev; \
-	make clean SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1
+	make clean IPC_PLATFORM=$(IPC_PLATFORM) SMP=1

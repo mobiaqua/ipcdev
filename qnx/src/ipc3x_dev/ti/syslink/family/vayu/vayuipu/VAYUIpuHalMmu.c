@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -121,7 +121,7 @@ extern "C" {
 /*!
  * @brief returns page number based on physical address
  */
-#define ti_syslink_phys_to_page(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
+#define ti_ipc_phys_to_page(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
 
 /*!
  * @brief helper macros
@@ -231,7 +231,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                             enableArgs->numMemEntries,
                                             enableArgs->memEntries);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to configure IPU MMU. */
                 status = PROCESSOR_E_FAIL;
@@ -242,7 +242,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      "Failed to configure IPU MMU"
                                      "at _VAYUIPU_halMmuEnable");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
@@ -251,7 +251,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             /* args are not used. */
             halObject = (VAYUIPU_HalObject *) halObj;
             status = _VAYUIPU_halMmuDisable (halObject);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to disable IPU MMU. */
                 status = PROCESSOR_E_FAIL;
@@ -261,7 +261,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to disable IPU MMU");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break ;
 
@@ -273,7 +273,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             halObject = (VAYUIPU_HalObject *) halObj;
             /* Add the entry in TLB for new request */
             //status = _VAYUIPU_halMmuAddEntry (halObject,addEntry) ;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to dynamically add IPU MMU
                  *                           entry. */
@@ -284,7 +284,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to dynamically add IPU MMU entry");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
@@ -296,7 +296,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
             halObject = (VAYUIPU_HalObject *) halObj;
             /* Add the entry in TLB for new request */
             //status = _VAYUIPU_halMmuDeleteEntry (halObject,deleteEntry);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed to dynamically delete IPU
                  *                           MMU entry  */
@@ -307,7 +307,7 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
                                      status,
                                      "Failed to dynamically add IPU MMU entry");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
@@ -548,7 +548,7 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
                                         halObject,
                                         &isrParams);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (mmuObj->isrHandle == NULL) {
         /*! @retval PROCESSOR_E_FAIL Failed at iommu_get. */
         status = PROCESSOR_E_FAIL;
@@ -559,11 +559,11 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
                              "OsalIsr_create failed");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         status = OsalIsr_install (mmuObj->isrHandle);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -571,14 +571,14 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
                                  status,
                                  "OsalIsr_install failed");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         if ((status >= 0) && (numMemEntries != 0)) {
             /* Only statically created entries are being added here. */
             status = _VAYUIPU_halMmuAddStaticEntries(halObject,
                                                       numMemEntries,
                                                       memTable);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 /*! @retval PROCESSOR_E_FAIL Failed at
                  *                         _VAYUIPU_halMmuAddStaticEntries. */
@@ -589,11 +589,11 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
                                     status,
                                     "_VAYUIPU_halMmuAddStaticEntries failed !");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_VAYUIPU_halMmuEnable", status);
 
@@ -622,7 +622,7 @@ _VAYUIPU_halMmuDisable (VAYUIPU_HalObject * halObject)
     mmuObj = &(halObject->mmuObj);
 
     status = OsalIsr_uninstall (mmuObj->isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -630,13 +630,13 @@ _VAYUIPU_halMmuDisable (VAYUIPU_HalObject * halObject)
                              status,
                              "OsalIsr_uninstall failed");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     tmpStatus =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         OsalIsr_delete (&(mmuObj->isrHandle));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
         GT_setFailureReason (curTrace,
@@ -645,7 +645,7 @@ _VAYUIPU_halMmuDisable (VAYUIPU_HalObject * halObject)
                              status,
                              "OsalIsr_delete failed");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "_VAYUIPU_halMmuDisable", status);
 
@@ -734,7 +734,7 @@ _VAYUIPU_halMmuAddEntry (VAYUIPU_HalObject       * halObject,
             break ;
         }
 
-        /* DO NOT put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* DO NOT put this check under IPC_BUILD_OPTIMIZE */
         if (status >= 0) {
             /* Lookup if the entry exists */
             if (1) {//(!*ppgd || !*ppte) {
@@ -760,7 +760,7 @@ _VAYUIPU_halMmuAddEntry (VAYUIPU_HalObject       * halObject,
                 }
             }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (
                                 curTrace,
@@ -771,13 +771,13 @@ _VAYUIPU_halMmuAddEntry (VAYUIPU_HalObject       * halObject,
                 break;
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 currentEntrySize           -= currentEntry.size;
                 currentEntry.masterPhyAddr += currentEntry.size;
                 currentEntry.slaveVirtAddr += currentEntry.size;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -871,7 +871,7 @@ _VAYUIPU_halMmuDeleteEntry (VAYUIPU_HalObject       * halObject,
                                  "Memory region is not aligned to page size!");
             break ;
         }
-        /* DO NOT put this check under SYSLINK_BUILD_OPTIMIZE */
+        /* DO NOT put this check under IPC_BUILD_OPTIMIZE */
         if (status >= 0) {
             /* Check every page if exists */
             //iopgd = iopgd_offset(mmuObj->mmuHandler,
@@ -1021,9 +1021,9 @@ _VAYUIPU_halMmuPteSet (VAYUIPU_HalObject *       halObject,
                                  status,
                                  "Invalid Page size passed!");
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         tlb_entry.prsvd  = MMU_CAM_PRESERVE;
         tlb_entry.valid  = MMU_CAM_VALID;
         /*TBD : elsz parameter has to be configured*/
@@ -1049,9 +1049,9 @@ _VAYUIPU_halMmuPteSet (VAYUIPU_HalObject *       halObject,
                                      status,
                                      "Invalid elementSize passed!");
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             /*TBD : endian parameter has to configured*/
             switch (setPteInfo->endianism) {
                 case LITTLE_ENDIAN:
@@ -1070,9 +1070,9 @@ _VAYUIPU_halMmuPteSet (VAYUIPU_HalObject *       halObject,
                                          status,
                                          "Invalid endianism passed!");
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 /*TBD : mixed parameter has to configured*/
                 switch (setPteInfo->mixedSize) {
                     case MMU_TLBES:
@@ -1104,11 +1104,11 @@ _VAYUIPU_halMmuPteSet (VAYUIPU_HalObject *       halObject,
                             status,
                             "iopgtable_store_entry failed!");
                 }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
 //    GT_1trace (curTrace, GT_LEAVE, "_VAYUIPU_halMmuPteSet", status);
 

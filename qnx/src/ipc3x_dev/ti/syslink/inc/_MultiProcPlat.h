@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -61,8 +61,8 @@ extern "C" {
  *  Platform-specific definitions.
  * =============================================================================
  */
-#if defined(SYSLINK_PLATFORM_OMAP5430)
-#ifdef SYSLINK_SYSBIOS_SMP
+#if defined(IPC_PLATFORM_OMAP5430)
+#ifdef IPC_SYSBIOS_SMP
 MultiProc_Config MultiProc_PlatformConfig = {
     .numProcessors = 3, /* numProcessors */
     .nameList[0] = "HOST",

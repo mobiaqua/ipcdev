@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -112,9 +112,9 @@ typedef struct OsalThread_ModuleObject {
  *
  *  @brief  State object for thread module.
  */
-#if !defined(SYSLINK_BUILD_DEBUG)
+#if !defined(IPC_BUILD_DEBUG)
 static
-#endif /* if !defined(SYSLINK_BUILD_DEBUG) */
+#endif /* if !defined(IPC_BUILD_DEBUG) */
 OsalThread_ModuleObject OsalThread_state;
 
 
@@ -188,9 +188,9 @@ OsalThread_create (OsalThread_CallbackFxn fxn,
                    Ptr                    fxnArgs,
                    OsalThread_Params *    params)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int                 status = OSALTHREAD_SUCCESS;
-#endif /*!defined(SYSLINK_BUILD_OPTIMIZE)*/
+#endif /*!defined(IPC_BUILD_OPTIMIZE)*/
     OsalThread_Object * obj    = NULL;
     UInt32              tid;
     pthread_attr_t      attr;
@@ -206,7 +206,7 @@ OsalThread_create (OsalThread_CallbackFxn fxn,
                                              sizeof (OsalThread_Object),
                                              0,
                                              NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (obj == NULL) {
         status = OSALTHREAD_E_MEMORY;
         GT_setFailureReason(curTrace,
@@ -216,8 +216,8 @@ OsalThread_create (OsalThread_CallbackFxn fxn,
                             "Memory Allocation failure ");
     }
     else{
-#endif /*!defined(SYSLINK_BUILD_OPTIMIZE)*/
-        /*Do not put under SYSLINK_BUILD_OPTIMIZE */
+#endif /*!defined(IPC_BUILD_OPTIMIZE)*/
+        /*Do not put under IPC_BUILD_OPTIMIZE */
         if (params != NULL){
             Memory_copy(&obj->threadParams,
                         params,
@@ -288,9 +288,9 @@ OsalThread_create (OsalThread_CallbackFxn fxn,
         Atomic_set(&obj->held, 0);
         pthread_cond_signal(&obj->cond);
         pthread_mutex_unlock(&obj->lock);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /*!defined(SYSLINK_BUILD_OPTIMIZE)*/
+#endif /*!defined(IPC_BUILD_OPTIMIZE)*/
 
     GT_1trace (curTrace, GT_LEAVE, "OsalThread_create", obj);
 
@@ -313,7 +313,7 @@ OsalThread_delete (OsalThread_Handle * threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         /*! @retval OSALTHREAD_E_INVALIDARG threadHandle passed is NULL */
         status = OSALTHREAD_E_INVALIDARG;
@@ -333,7 +333,7 @@ OsalThread_delete (OsalThread_Handle * threadHandle)
                              "*threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         obj = (OsalThread_Object*) (*threadHandle);
         Atomic_set (&obj->count, 0);
         Atomic_set (&obj->enableFlag, 0);
@@ -349,9 +349,9 @@ OsalThread_delete (OsalThread_Handle * threadHandle)
         /* Free the memory */
         Memory_free (NULL, obj, sizeof(OsalThread_Object));
         *threadHandle = NULL;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "OsalThread_delete", status);
 
@@ -374,7 +374,7 @@ OsalThread_disableThread (OsalThread_Handle threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -383,11 +383,11 @@ OsalThread_disableThread (OsalThread_Handle threadHandle)
                              "threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Atomic_set (&obj->enableFlag, 0);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalThread_disableThread");
 }
@@ -407,7 +407,7 @@ OsalThread_enableThread (OsalThread_Handle threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -416,15 +416,15 @@ OsalThread_enableThread (OsalThread_Handle threadHandle)
                              "threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Atomic_set (&obj->enableFlag, 1);
         if (Atomic_read (&obj->count) > 0) {
                 Atomic_set (&obj->held, 0);
             pthread_cond_signal (&obj->cond);
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalThread_enableThread");
 }
@@ -486,7 +486,7 @@ OsalThread_activate (OsalThread_Handle threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -495,7 +495,7 @@ OsalThread_activate (OsalThread_Handle threadHandle)
                              "threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         pthread_mutex_lock(&obj->lock);
         if (Atomic_read (&obj->enableFlag) == 1){
             Atomic_inc_return (&obj->count);
@@ -507,9 +507,9 @@ OsalThread_activate (OsalThread_Handle threadHandle)
         }
         pthread_mutex_unlock(&obj->lock);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalThread_activate");
 }
@@ -529,7 +529,7 @@ OsalThread_yield (OsalThread_Handle threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -538,12 +538,12 @@ OsalThread_yield (OsalThread_Handle threadHandle)
                              "threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         (Void) obj;
         sched_yield ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalThread_yield");
 }
@@ -615,7 +615,7 @@ OsalThread_waitForThread (OsalThread_Handle threadHandle)
 
     GT_assert (curTrace, (NULL != threadHandle));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (threadHandle == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -624,13 +624,13 @@ OsalThread_waitForThread (OsalThread_Handle threadHandle)
                              "threadHandle passed is NULL!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         while (Atomic_read (&obj->exitFlag) == 0) {
             delay (10); /* Wait for 10msecs */
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "OsalThread_waitForThread");
 }

@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@
 #include <ti/syslink/utils/OsalPrint.h>
 #include <ti/syslink/utils/String.h>
 
-/* SysLink device specific headers */
+/* Ipc device specific headers */
 #include <ProcDefs.h>
 #include <Processor.h>
 #include <OMAP5430BenelliHal.h>
@@ -104,7 +104,7 @@ extern "C" {
 #define HWSPINLOCK_SIZE             0x1000
 #define HWSPINLOCK_OFFSET           0x800
 
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
 #define CORE0 "CORE0"
 #else
 #define CORE0 "IPU"
@@ -174,7 +174,7 @@ typedef struct Platform_Object {
             UInt32                       fileId;
             /*!< File ID of loaded image, needed for un-loading */
         } ipu0;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         struct {
             OMAP5430BENELLIPROC_Handle    pHandle;
             /*!< Handle to the Processor instance used */
@@ -235,9 +235,6 @@ static Platform_Module_State * Platform_module = &Platform_Module_state;
 Int32 _Platform_setup  (Ipc_Config * cfg);
 Int32 _Platform_destroy (void);
 
-extern unsigned int syslink_ipu_mem_size;
-extern unsigned int syslink_dsp_mem_size;
-
 
 /** ============================================================================
  *  APIs.
@@ -268,7 +265,7 @@ Platform_getConfig (Platform_Config * config)
 
     GT_assert (curTrace, (config != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (config == NULL) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -278,7 +275,7 @@ Platform_getConfig (Platform_Config * config)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Get the gatepeterson default config */
         MultiProc_getConfig (&config->multiProcConfig);
@@ -291,9 +288,9 @@ Platform_getConfig (Platform_Config * config)
 
         /* Get the HWSpinlock default config */
         GateHWSpinlock_getConfig (&config->gateHWSpinlockConfig);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "Platform_getConfig");
 }
@@ -313,7 +310,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 
     GT_assert (curTrace, (config != NULL));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (config == NULL) {
         /*! @retval Platform_E_INVALIDARG Argument of type
          *  (Platform_Config *) passed is null*/
@@ -326,7 +323,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
                              "is null!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Set the MultiProc config as defined in SystemCfg.c */
         config->multiProcConfig = _MultiProc_cfg;
@@ -339,7 +336,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         config->MQCopyConfig.intId[3] = 58;
 
         config->ipu_pm_config.int_id = 58;
-#ifdef SYSLINK_SYSBIOS_SMP
+#ifdef IPC_SYSBIOS_SMP
         config->ipu_pm_config.num_procs = 2;
         config->ipu_pm_config.proc_ids[0] = 1; // IPU is set as 1 above
         config->ipu_pm_config.proc_ids[1] = 2; // DSP is set as 2 above
@@ -350,9 +347,9 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         config->ipu_pm_config.proc_ids[2] = 3; // DSP is set as 3 above
 #endif
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_ENTER, "Platform_overrideConfig", status);
 
@@ -378,7 +375,7 @@ Platform_setup (Ipc_Config * cfg)
 
 /* Initialize PlatformMem */
     status = MemoryOS_setup();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -386,16 +383,16 @@ Platform_setup (Ipc_Config * cfg)
                              status,
                              "platform_mem_setup!");
     } else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Platform_module->platform_mem_init_flag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     Platform_overrideConfig (config, cfg);
 
     status = MultiProc_setup (&(config->multiProcConfig));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -404,16 +401,16 @@ Platform_setup (Ipc_Config * cfg)
                              "MultiProc_setup failed!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->multiProcInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
 /* Initialize PROCMGR */
     if (status >= 0) {
         status = ProcMgr_setup (&(config->procMgrConfig));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -422,11 +419,11 @@ Platform_setup (Ipc_Config * cfg)
                                  "ProcMgr_setup failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->procMgrInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Initialize IpcInt required for VirtQueue/MessageQCopy. */
@@ -439,7 +436,7 @@ Platform_setup (Ipc_Config * cfg)
 /* Initialize Elf loader */
     if (status >= 0) {
         status = ElfLoader_setup (&config->elfLoaderConfig);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -448,17 +445,17 @@ Platform_setup (Ipc_Config * cfg)
                                  "ElfLoader_setup failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->elfLoaderInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
 /* Initialize ipu_pm */
     if (status >= 0) {
         status = ipu_pm_setup (&config->ipu_pm_config);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -467,17 +464,17 @@ Platform_setup (Ipc_Config * cfg)
                                  "ipu_pm_setup failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->ipu_pm_init_flag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
 /* Initialize MessageQCopy */
     if (status >= 0) {
         status = MessageQCopy_setup (&config->MQCopyConfig);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -486,11 +483,11 @@ Platform_setup (Ipc_Config * cfg)
                                  "MessageQCopy_setup failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->mqcopyInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     if (status >= 0) {
@@ -502,7 +499,7 @@ Platform_setup (Ipc_Config * cfg)
     if (status >= 0) {
         /* Doing per remote-proc init stuff */
         status = _Platform_setup (cfg);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -511,11 +508,11 @@ Platform_setup (Ipc_Config * cfg)
                                  "_Platform_setup failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->platformInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     if (status >= 0) {
         minfo.src  = HWSPINLOCK_BASE;
@@ -534,7 +531,7 @@ Platform_setup (Ipc_Config * cfg)
             config->gateHWSpinlockConfig.numLocks = 32;
             config->gateHWSpinlockConfig.baseAddr = minfo.dst  + HWSPINLOCK_OFFSET;
             status = GateHWSpinlock_setup (&config->gateHWSpinlockConfig);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -543,11 +540,11 @@ Platform_setup (Ipc_Config * cfg)
                                      "GateHWSpinlock_setup failed!");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 Platform_module->gateHWSpinlockInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -575,7 +572,7 @@ Platform_destroy (void)
     /* Finalize Platform-specific destroy */
     if (Platform_module->platformInitFlag == TRUE) {
         status = _Platform_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -584,17 +581,17 @@ Platform_destroy (void)
                                  "Platform_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->platformInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Finalize MessageQCopy */
     if (Platform_module->mqcopyInitFlag == TRUE) {
         status = MessageQCopy_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -603,17 +600,17 @@ Platform_destroy (void)
                                  "MessageQCopy_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->mqcopyInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Finalize ipu_pm */
     if (Platform_module->ipu_pm_init_flag == TRUE) {
         status = ipu_pm_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -622,17 +619,17 @@ Platform_destroy (void)
                                  "ipu_pm_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->ipu_pm_init_flag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Finalize Elf loader */
     if (Platform_module->elfLoaderInitFlag == TRUE) {
         status = ElfLoader_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -641,11 +638,11 @@ Platform_destroy (void)
                                  "ElfLoader_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->elfLoaderInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     if (Platform_module->ipcIntInitFlag == TRUE) {
@@ -656,7 +653,7 @@ Platform_destroy (void)
     /* Finalize PROCMGR */
     if (Platform_module->procMgrInitFlag == TRUE) {
         status = ProcMgr_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -665,17 +662,17 @@ Platform_destroy (void)
                                  "ProcMgr_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->procMgrInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Finalize MultiProc */
     if (Platform_module->multiProcInitFlag == TRUE) {
         status = MultiProc_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -684,11 +681,11 @@ Platform_destroy (void)
                                  "MultiProc_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->multiProcInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     if (status >= 0) {
@@ -699,7 +696,7 @@ Platform_destroy (void)
 
     if (Platform_module->gateHWSpinlockInitFlag == TRUE) {
         status = GateHWSpinlock_destroy();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -708,11 +705,11 @@ Platform_destroy (void)
                                  "GateHWSpinlock_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->gateHWSpinlockInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     if (Platform_module->gateHWSpinlockVAddr) {
@@ -720,7 +717,7 @@ Platform_destroy (void)
         minfo.size = HWSPINLOCK_SIZE;
         minfo.isCached = FALSE;
         status = Memory_unmap(&minfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -728,13 +725,13 @@ Platform_destroy (void)
                                  status,
                                  "Memory_unmap failed!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Platform_module->gateHWSpinlockVAddr = NULL;
     }
 
     if (Platform_module->platform_mem_init_flag == TRUE) {
         status = MemoryOS_destroy();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -743,11 +740,11 @@ Platform_destroy (void)
                                  "MemoryOS_destroy failed!");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Platform_module->platform_mem_init_flag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "Platform_destroy", status);
@@ -766,12 +763,12 @@ _Platform_setup (Ipc_Config * cfg)
     Int32                       status              = Platform_S_SUCCESS;
     ProcMgr_Params              params;
     OMAP5430BENELLIPROC_Config  ipu0ProcConfig;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     OMAP5430BENELLIPROC_Config  ipu1ProcConfig;
 #endif
     OMAP5430BENELLIPROC_Config  dspProcConfig;
     OMAP5430BENELLIPROC_Params  ipu0ProcParams;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     OMAP5430BENELLIPROC_Params  ipu1ProcParams;
 #endif
     OMAP5430BENELLIPROC_Params  dspProcParams;
@@ -780,7 +777,7 @@ _Platform_setup (Ipc_Config * cfg)
     UInt16                      procId;
     Platform_Handle             handle;
     Bool                        core0Setup          = FALSE;
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     Bool                        core1Setup          = FALSE;
 #endif
     Bool                        dspSetup            = FALSE;
@@ -852,7 +849,7 @@ _Platform_setup (Ipc_Config * cfg)
         }
     }
 
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     if (status >= 0) {
         /* Get MultiProc ID by name. */
         procId = MultiProc_getId ("CORE1");
@@ -975,7 +972,7 @@ _Platform_setup (Ipc_Config * cfg)
 
     if (status < 0) {
         /* Cleanup in case of error */
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
         procId = MultiProc_getId ("CORE1");
         handle = &Platform_objects [procId];
         if (handle->pmHandle) {
@@ -1048,7 +1045,7 @@ _Platform_destroy (void)
 
     GT_0trace (curTrace, GT_ENTER, "_Platform_destroy");
 
-#ifndef SYSLINK_SYSBIOS_SMP
+#ifndef IPC_SYSBIOS_SMP
     /* ------------------------- ipu1 cleanup ------------------------------- */
     handle = &Platform_objects [MultiProc_getId ("CORE1")];
     if (handle->pmHandle != NULL) {
@@ -1056,13 +1053,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "ProcMgr_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1073,13 +1070,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "OMAP5430PROC_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1087,13 +1084,13 @@ _Platform_destroy (void)
     GT_assert (curTrace, (tmpStatus >= 0));
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "_Platform_destroy",
                              status,
                              "OMAP5430PROC_destroy failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 #endif
 
@@ -1104,13 +1101,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "ProcMgr_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1121,13 +1118,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "Failed to delete loader instance!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1136,13 +1133,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "OMAP5430PROC_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1150,13 +1147,13 @@ _Platform_destroy (void)
     GT_assert (curTrace, (tmpStatus >= 0));
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "_Platform_destroy",
                              status,
                              "OMAP5430PROC_destroy failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* ------------------------- dsp cleanup ------------------------------- */
@@ -1166,13 +1163,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "ProcMgr_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1183,13 +1180,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "Failed to delete loader instance!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1198,13 +1195,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "OMAP5430PROC_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1212,13 +1209,13 @@ _Platform_destroy (void)
     GT_assert (curTrace, (tmpStatus >= 0));
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "_Platform_destroy",
                              status,
                              "OMAP5430PROC_destroy failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     GT_1trace (curTrace, GT_LEAVE, "_Platform_destroy", status);

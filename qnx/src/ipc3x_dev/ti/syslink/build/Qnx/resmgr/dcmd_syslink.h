@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,13 @@
 extern "C" {
 #endif
 
-#define _DCMD_SYSLINK   _DCMD_MISC
+#define _DCMD_IPC   _DCMD_MISC
 
 typedef enum {
-    _DCMD_SYSLINK_NAMESERVER = 0x2A,
-    _DCMD_SYSLINK_MESSAGEQ,
-    _DCMD_SYSLINK_MULTIPROC,
-    _DCMD_SYSLINK_GATEMP
+    _DCMD_IPC_NAMESERVER = 0x2A,
+    _DCMD_IPC_MESSAGEQ,
+    _DCMD_IPC_MULTIPROC,
+    _DCMD_IPC_GATEMP
 } dcmd_class_t_val;
 
 /*  ----------------------------------------------------------------------------
@@ -61,69 +61,69 @@ typedef enum {
 /*!
  *  @brief  Command for NameServer_setup
  */
-#define DCMD_NAMESERVER_SETUP               __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_SETUP               __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             2,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_setup
  */
-#define DCMD_NAMESERVER_DESTROY             __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_DESTROY             __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             3,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_destroy
  */
-#define DCMD_NAMESERVER_PARAMS_INIT         __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_PARAMS_INIT         __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             4,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_create
  */
-#define DCMD_NAMESERVER_CREATE              __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_CREATE              __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             5,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_delete
  */
-#define DCMD_NAMESERVER_DELETE              __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_DELETE              __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             6,\
                                             NameServerDrv_CmdArgs)
 
 /*!
  *  @brief  Command for NameServer_addUInt32
  */
-#define DCMD_NAMESERVER_ADDUINT32           __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_ADDUINT32           __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             7,\
                                             NameServerDrv_CmdArgs)
 
 /*!
  *  @brief  Command for NameServer_remove
  */
-#define DCMD_NAMESERVER_REMOVE              __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_REMOVE              __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             8,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_removeEntry
  */
-#define DCMD_NAMESERVER_REMOVEENTRY         __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_REMOVEENTRY         __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             9,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_getUInt32
  */
-#define DCMD_NAMESERVER_GETUINT32           __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_GETUINT32           __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             10, \
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_add
  */
-#define DCMD_NAMESERVER_ADD                 __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_ADD                 __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             11,\
                                             NameServerDrv_CmdArgs)
 /*!
  *  @brief  Command for NameServer_get
  */
-#define DCMD_NAMESERVER_GET                 __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+#define DCMD_NAMESERVER_GET                 __DIOTF(_DCMD_IPC_NAMESERVER,\
                                             12, \
                                             NameServerDrv_CmdArgs)
 
@@ -136,31 +136,31 @@ typedef enum {
 /*!
  *  @brief  Command for MessageQ_getConfig
 */
-#define DCMD_MESSAGEQ_GETCONFIG             __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
+#define DCMD_MESSAGEQ_GETCONFIG             __DIOTF(_DCMD_IPC_MESSAGEQ,\
                                             1,\
                                             MessageQDrv_CmdArgs)
 /*!
  *  @brief  Command for MessageQ_setup
 */
-#define DCMD_MESSAGEQ_SETUP                 __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
+#define DCMD_MESSAGEQ_SETUP                 __DIOTF(_DCMD_IPC_MESSAGEQ,\
                                             2,\
                                             MessageQDrv_CmdArgs)
 /*!
  *  @brief  Command for MessageQ_setup
 */
-#define DCMD_MESSAGEQ_DESTROY               __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
+#define DCMD_MESSAGEQ_DESTROY               __DIOTF(_DCMD_IPC_MESSAGEQ,\
                                             3,\
                                             MessageQDrv_CmdArgs)
 /*!
  *  @brief  Command for MessageQ_create
 */
-#define DCMD_MESSAGEQ_CREATE                __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
+#define DCMD_MESSAGEQ_CREATE                __DIOTF(_DCMD_IPC_MESSAGEQ,\
                                             4,\
                                             MessageQDrv_CmdArgs)
 /*!
  *  @brief  Command for MessageQ_delete
 */
-#define DCMD_MESSAGEQ_DELETE                __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
+#define DCMD_MESSAGEQ_DELETE                __DIOTF(_DCMD_IPC_MESSAGEQ,\
                                             5,\
                                             MessageQDrv_CmdArgs)
 
@@ -172,7 +172,7 @@ typedef enum {
 /*!
  *  @brief  Command for MultiProc_getConfig
 */
-#define DCMD_MULTIPROC_GETCONFIG            __DIOTF(_DCMD_SYSLINK_MULTIPROC,\
+#define DCMD_MULTIPROC_GETCONFIG            __DIOTF(_DCMD_IPC_MULTIPROC,\
                                             1,\
                                             MultiProcDrv_CmdArgs)
 
@@ -184,42 +184,42 @@ typedef enum {
 /*!
  *  @brief  Command for GateMP_getFreeResource
  */
-#define DCMD_GATEMP_GETFREERES              __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_GETFREERES              __DIOTF(_DCMD_IPC_GATEMP,\
                                             1,\
                                             GateMPDrv_CmdArgs)
 
 /*!
  *  @brief  Command for GateMP_releaseResource
  */
-#define DCMD_GATEMP_RELRES                  __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_RELRES                  __DIOTF(_DCMD_IPC_GATEMP,\
                                             2,\
                                             GateMPDrv_CmdArgs)
 
 /*!
  *  @brief  Command for GateMP_getNumResources
  */
-#define DCMD_GATEMP_GETNUMRES               __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_GETNUMRES               __DIOTF(_DCMD_IPC_GATEMP,\
                                             3,\
                                             GateMPDrv_CmdArgs)
 
 /*!
  *  @brief  Command for GateMP_start
  */
-#define DCMD_GATEMP_START                   __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_START                   __DIOTF(_DCMD_IPC_GATEMP,\
                                             4,\
                                             GateMPDrv_CmdArgs)
 
 /*!
  *  @brief  Command for GateMP_stop
  */
-#define DCMD_GATEMP_STOP                    __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_STOP                    __DIOTF(_DCMD_IPC_GATEMP,\
                                             5,\
                                             GateMPDrv_CmdArgs)
 
 /*!
  *  @brief  Command for GateMP_isSetup
  */
-#define DCMD_GATEMP_ISSETUP                 __DIOTF(_DCMD_SYSLINK_GATEMP,\
+#define DCMD_GATEMP_ISSETUP                 __DIOTF(_DCMD_IPC_GATEMP,\
                                             6,\
                                             GateMPDrv_CmdArgs)
 

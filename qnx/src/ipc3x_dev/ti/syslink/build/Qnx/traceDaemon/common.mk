@@ -1,4 +1,4 @@
-#   Copyright (c) 2014, Texas Instruments Incorporated
+#   Copyright (c) 2014-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -40,20 +40,21 @@ endef
 NAME = ipc_trace_daemon
 INSTALLDIR = bin
 
-#SYSLINK Product root path
-SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../..
+#IPC Product root path
+IPC_ROOT = $(PROJECT_ROOT)/../../../../..
 
-EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc \
-		  $(IPC_REPO)/qnx/include
+EXTRA_INCVPATH = $(IPC_ROOT)	\
+		  $(IPC_ROOT)/ti/syslink/inc \
+		  $(IPC_REPO)/qnx/include \
+                  $(IPC_ROOT)/ti/syslink/inc/Qnx
 
 CCOPTS+=-g
 CCOPTS+= -O0
 
 LDFLAGS += -M
 
-EXTRA_SRCVPATH += $(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)
-SRCS += SystemCfg_$(SYSLINK_PLATFORM).c IpcTraceDaemon.c
+EXTRA_SRCVPATH += $(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)
+SRCS += SystemCfg_$(IPC_PLATFORM).c IpcTraceDaemon.c
 
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
 LIBS += utils_g

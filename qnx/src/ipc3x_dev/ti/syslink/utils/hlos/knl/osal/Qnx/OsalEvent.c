@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 20010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -93,7 +93,7 @@ OsalEvent_create (Void)
 
     event = Memory_alloc (NULL, sizeof (OsalEvent_Object), 0, NULL);
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (event == NULL) {
         status = OSALEVENT_E_MEMORY;
         GT_setFailureReason (curTrace,
@@ -103,16 +103,16 @@ OsalEvent_create (Void)
                              "Memory allocation failed");
     }
     else {
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
         event->value = 0;
         pthread_mutex_init(&event->lock, NULL);
         pthread_condattr_init(&attr);
         pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
         pthread_cond_init (&(event->cond), &attr);
         pthread_condattr_destroy(&attr);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* #if !defined(IPC_BUILD_OPTIMIZE) */
     GT_1trace (curTrace, GT_LEAVE, "OsalEvent_create", status);
 
     /*!@status The object created */

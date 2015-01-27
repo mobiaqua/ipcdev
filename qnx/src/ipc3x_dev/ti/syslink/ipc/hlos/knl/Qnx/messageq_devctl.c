@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -64,16 +64,16 @@
 #include <ti/syslink/inc/_MessageQ_daemon.h>
 
 /* Function prototypes */
-int syslink_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_messageq_setup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_messageq_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
-int syslink_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb);
+int ipc_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_messageq_setup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_messageq_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
+int ipc_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
 
 /**
  * Handler for devctl() messages for messageQ module.
@@ -89,38 +89,38 @@ int syslink_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     switch (msg->i.dcmd)
     {
           case DCMD_MESSAGEQ_CREATE:
           {
-                return syslink_messageq_create( ctp, msg, ocb);
+                return ipc_messageq_create( ctp, msg, ocb);
           }
           break;
 
           case DCMD_MESSAGEQ_DELETE:
           {
-                return syslink_messageq_delete( ctp, msg, ocb);
+                return ipc_messageq_delete( ctp, msg, ocb);
           }
           break;
 
           case DCMD_MESSAGEQ_GETCONFIG:
           {
-                return syslink_messageq_getconfig( ctp, msg, ocb);
+                return ipc_messageq_getconfig( ctp, msg, ocb);
           }
           break;
 
           case DCMD_MESSAGEQ_SETUP:
           {
-                return syslink_messageq_setup( ctp, msg, ocb);
+                return ipc_messageq_setup( ctp, msg, ocb);
           }
           break;
 
           case DCMD_MESSAGEQ_DESTROY:
           {
-                return syslink_messageq_destroy( ctp, msg, ocb);
+                return ipc_messageq_destroy( ctp, msg, ocb);
           }
           break;
 
@@ -146,8 +146,8 @@ int syslink_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MessageQDrv_CmdArgs *       cargs = (MessageQDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -209,8 +209,8 @@ int syslink_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MessageQDrv_CmdArgs * cargs = (MessageQDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -236,8 +236,8 @@ int syslink_messageq_delete(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MessageQDrv_CmdArgs * cargs = (MessageQDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -265,8 +265,8 @@ int syslink_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_setup(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_setup(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MessageQDrv_CmdArgs * cargs = (MessageQDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
@@ -300,8 +300,8 @@ int syslink_messageq_setup(resmgr_context_t *ctp, io_devctl_t *msg,
  * \retval EOK      Success.
  * \retval ENOTSUP  Unsupported devctl().
  */
-int syslink_messageq_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
-    syslink_ocb_t *ocb)
+int ipc_messageq_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb)
 {
     MessageQDrv_CmdArgs * out = (MessageQDrv_CmdArgs *)(_DEVCTL_DATA (msg->o));
 

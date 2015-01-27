@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -72,44 +72,44 @@ extern "C" {
 #endif /* defined (__cplusplus) */
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static int syslinkHandler = -1;
+static int ipcHandler = -1;
 static int ref_cnt = 0;
 
 int moduleUnInitialized()
 {
-    if(syslinkHandler < 0)
+    if(ipcHandler < 0)
         return 1;
     else
         return 0;
 }
 
-int initSYSKLINKHandler(int *SyslinkDrv_handle)
+int initIPCHandler(int *IpcDrv_handle)
 {
     int status = 0;
 
     pthread_mutex_lock(&mutex);
     if (ref_cnt++ == 0) {
-        *SyslinkDrv_handle = open (IPC_DRIVER_NAME,
+        *IpcDrv_handle = open (IPC_DRIVER_NAME,
                                         O_SYNC | O_RDWR);
-        if (*SyslinkDrv_handle < 0) {
+        if (*IpcDrv_handle < 0) {
             GT_setFailureReason (curTrace,
                      GT_4CLASS,
-                     "initSYSKLINKHandler",
+                     "initIPCHandler",
                      -1,
-                     "couldn't open syslink device\n");
+                     "couldn't open ipc device\n");
             ref_cnt--;
-            *SyslinkDrv_handle = -1;
+            *IpcDrv_handle = -1;
             status = -errno;
         } else {
-            status = fcntl (*SyslinkDrv_handle, F_SETFD, FD_CLOEXEC);
+            status = fcntl (*IpcDrv_handle, F_SETFD, FD_CLOEXEC);
             if (status != 0) {
                 GT_setFailureReason (curTrace,
                          GT_4CLASS,
-                         "initSYSKLINKHandler",
+                         "initIPCHandler",
                          -1,
                          "Failed to set file descriptor flags\n");
-                close (*SyslinkDrv_handle);
-                *SyslinkDrv_handle = -1;
+                close (*IpcDrv_handle);
+                *IpcDrv_handle = -1;
                 ref_cnt--;
                 status = -errno;
             }
@@ -120,12 +120,12 @@ int initSYSKLINKHandler(int *SyslinkDrv_handle)
     return status;
 }
 
-void deinitSYSLINKHandler(int *SyslinkDrv_handle)
+void deinitIPCHandler(int *IpcDrv_handle)
 {
-    if(SyslinkDrv_handle ==  0 || *SyslinkDrv_handle < 0){
+    if(IpcDrv_handle ==  0 || *IpcDrv_handle < 0){
         GT_setFailureReason (curTrace,
                  GT_4CLASS,
-                 "deinitSYSLINKHandler",
+                 "deinitIPCHandler",
                  -1,
                  "Incorrect handle passed");
 
@@ -135,8 +135,8 @@ void deinitSYSLINKHandler(int *SyslinkDrv_handle)
     pthread_mutex_lock(&mutex);
 
     if (--ref_cnt == 0) {
-        close (*SyslinkDrv_handle);
-        *SyslinkDrv_handle = -1;
+        close (*IpcDrv_handle);
+        *IpcDrv_handle = -1;
     }
     pthread_mutex_unlock(&mutex);
 }
@@ -157,7 +157,7 @@ int HwSpinlock_create(int lockID, GateHWSpinlock_LocalProtect protectType)
         return -1;
     }
 
-    status = initSYSKLINKHandler(&syslinkHandler);
+    status = initIPCHandler(&ipcHandler);
     if (status < 0) {
         status = GateHWSpinlock_E_FAIL;
         GT_setFailureReason (curTrace,
@@ -172,7 +172,7 @@ int HwSpinlock_create(int lockID, GateHWSpinlock_LocalProtect protectType)
     cmdArgs.handleID = -1;
     cmdArgs.resID = lockID;
     cmdArgs.protectType = protectType;
-    osStatus = ioctl (syslinkHandler, CMD_HWSPINLOCK_CREATE, &cmdArgs);
+    osStatus = ioctl (ipcHandler, CMD_HWSPINLOCK_CREATE, &cmdArgs);
 
     if (osStatus < 0) {
         status = GateHWSpinlock_E_OSFAILURE;
@@ -224,7 +224,7 @@ int HwSpinlock_delete (int token)
     cmdArgs.apiStatus = -1;
     cmdArgs.handleID = token;
 
-    osStatus = ioctl (syslinkHandler, CMD_HWSPINLOCK_DELETE, &cmdArgs);
+    osStatus = ioctl (ipcHandler, CMD_HWSPINLOCK_DELETE, &cmdArgs);
 
     if (osStatus < 0) {
         status = GateHWSpinlock_E_OSFAILURE;
@@ -237,7 +237,7 @@ int HwSpinlock_delete (int token)
     else {
         status = cmdArgs.apiStatus;
     }
-    deinitSYSLINKHandler(&syslinkHandler);
+    deinitIPCHandler(&ipcHandler);
 
     return status;
 }
@@ -270,7 +270,7 @@ int* HwSpinlock_enter(int token)
     cmdArgs.apiStatus = -1;
     cmdArgs.handleID = token;
 
-    osStatus = ioctl (syslinkHandler, CMD_HWSPINLOCK_ENTER, &cmdArgs);
+    osStatus = ioctl (ipcHandler, CMD_HWSPINLOCK_ENTER, &cmdArgs);
 
     if (osStatus < 0) {
         status = GateHWSpinlock_E_OSFAILURE;
@@ -322,7 +322,7 @@ int HwSpinlock_leave(int* key, int token)
     cmdArgs.handleID = token;
     cmdArgs.key = key;
 
-    osStatus = ioctl (syslinkHandler, CMD_HWSPINLOCK_LEAVE, &cmdArgs);
+    osStatus = ioctl (ipcHandler, CMD_HWSPINLOCK_LEAVE, &cmdArgs);
 
     if (osStatus < 0) {
         status = GateHWSpinlock_E_OSFAILURE;
@@ -373,7 +373,7 @@ int HwSpinlock_GetLockId(int token)
     cmdArgs.apiStatus = -1;
     cmdArgs.handleID = token;
 
-    osStatus = ioctl (syslinkHandler, CMD_HWSPINLOCK_GETLOCKID, &cmdArgs);
+    osStatus = ioctl (ipcHandler, CMD_HWSPINLOCK_GETLOCKID, &cmdArgs);
 
     if (osStatus < 0) {
         status = GateHWSpinlock_E_OSFAILURE;

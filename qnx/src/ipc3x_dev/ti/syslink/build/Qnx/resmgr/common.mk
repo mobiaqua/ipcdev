@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013-2014, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -41,104 +41,104 @@ PINFO DESCRIPTION=IPC Resource Manager
 endef
 NAME=ipc
 
-CCOPTS += -DSYSLINK_BUILDOS_QNX -DSYSLINK_BUILD_DEBUG -DSYSLINK_BUILD_HLOS $(QNX_CFLAGS)
+CCOPTS += -DIPC_BUILDOS_QNX -DIPC_BUILD_DEBUG -DIPC_BUILD_HLOS $(QNX_CFLAGS)
 
-ifeq ("$(SYSLINK_DEBUG)", "1")
+ifeq ("$(IPC_DEBUG)", "1")
 #enable debug build
 CCOPTS += -g -O0
-endif # ifeq ("$(SYSLINK_DEBUG)", "1")
+endif # ifeq ("$(IPC_DEBUG)", "1")
 
-ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
+ifeq ("$(IPC_PLATFORM)", "omap5430")
 ifeq ("$(SMP)", "1")
-CCOPTS += -DSYSLINK_SYSBIOS_SMP
+CCOPTS += -DIPC_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")
-CCOPTS += -DSYSLINK_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM
-endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
+CCOPTS += -DIPC_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DIPC_USE_IPU_PM
+endif # ifeq ("$(IPC_PLATFORM)", "omap5430")
 
-ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+ifeq ("$(IPC_PLATFORM)", "vayu")
 ifeq ("$(SMP)", "1")
-CCOPTS += -DSYSLINK_SYSBIOS_SMP
+CCOPTS += -DIPC_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")
-CCOPTS += -DSYSLINK_PLATFORM_VAYU -DARM_TARGET -DC60_TARGET
-endif # ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+CCOPTS += -DIPC_PLATFORM_VAYU -DARM_TARGET -DC60_TARGET
+endif # ifeq ("$(IPC_PLATFORM)", "vayu")
 
-#SYSLINK Product root path
-SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../..
-SYSLINK_BUILDOS = Qnx
+#IPC Product root path
+IPC_ROOT = $(PROJECT_ROOT)/../../../../..
+IPC_BUILDOS = Qnx
 
 #PUBLIC_INCVPATH = $(PROJECT_ROOT)/public
 
-EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc/ti/ipc	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc/knl	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS)	\
-		  $(SYSLINK_ROOT)/ti/syslink/inc/knl/$(SYSLINK_BUILDOS) 	\
-		  $(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl/family/$(SYSLINK_PLATFORM) 	\
-		  $(SYSLINK_PKGPATH)	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/rprc 	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD_API	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/C60_DLOAD_DYN	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/C60_DLOAD_REL	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/TMS470_DLOAD_DYN	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/TMS470_DLOAD_REL	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD_SYM	\
-		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/dlw_client	\
-		  $(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)/family	\
-		  $(SYSLINK_ROOT)/ti/syslink/resources	\
-                  $(SYSLINK_ROOT)/ti/syslink/family/common \
+EXTRA_INCVPATH = $(IPC_ROOT)	\
+		  $(IPC_ROOT)/ti/syslink/inc	\
+		  $(IPC_ROOT)/ti/syslink/inc/ti/ipc	\
+		  $(IPC_ROOT)/ti/syslink/inc/knl	\
+		  $(IPC_ROOT)/ti/syslink/inc/$(IPC_BUILDOS)	\
+		  $(IPC_ROOT)/ti/syslink/inc/knl/$(IPC_BUILDOS) 	\
+		  $(IPC_ROOT)/ti/syslink/ipc/hlos/knl/family/$(IPC_PLATFORM) 	\
+		  $(IPC_PKGPATH)	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/rprc 	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/DLOAD_API	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/DLOAD	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/C60_DLOAD_DYN	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/C60_DLOAD_REL	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/TMS470_DLOAD_DYN	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/TMS470_DLOAD_REL	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/DLOAD_SYM	\
+		  $(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/dlw_client	\
+		  $(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS)/family	\
+		  $(IPC_ROOT)/ti/syslink/resources	\
+                  $(IPC_ROOT)/ti/syslink/family/common \
 		  $(IPC_REPO)/qnx/include \
                   $(IPC_REPO)/hlos_common/include \
 		  $(IPC_REPO)/packages \
 
 #devctl for ipc, procmgr, utils
-EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/rprc	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/TMS470_DLOAD_DYN	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/TMS470_DLOAD_REL	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/C60_DLOAD_REL	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/C60_DLOAD_DYN	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD_SYM	\
-		$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/dlw_client	\
-		$(SYSLINK_ROOT)/ti/syslink/resources	\
-		$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl/transports/virtio	\
-		$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl	\
-		$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl/arch	\
-		$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl/arch/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/ipc/hlos/knl/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/utils/common	\
-		$(SYSLINK_ROOT)/ti/syslink/utils/hlos	\
-		$(SYSLINK_ROOT)/ti/syslink/utils/hlos/knl	\
-		$(SYSLINK_ROOT)/ti/syslink/utils/hlos/knl/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/utils/hlos/knl/osal/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/rpmsg-omx/hlos/knl/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/rpmsg-dce/hlos/knl/$(SYSLINK_BUILDOS)	\
-		$(SYSLINK_ROOT)/ti/syslink/ti-ipc	\
-		$(SYSLINK_ROOT)/ti/syslink/rpmsg-rpc	\
-		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)/family/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)
+EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/rprc	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/DLOAD	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/TMS470_DLOAD_DYN	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/TMS470_DLOAD_REL	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/C60_DLOAD_REL	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/C60_DLOAD_DYN	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/DLOAD/DLOAD_SYM	\
+		$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(IPC_BUILDOS)/dlw_client	\
+		$(IPC_ROOT)/ti/syslink/resources	\
+		$(IPC_ROOT)/ti/syslink/ipc/hlos/knl/transports/virtio	\
+		$(IPC_ROOT)/ti/syslink/ipc/hlos/knl	\
+		$(IPC_ROOT)/ti/syslink/ipc/hlos/knl/arch	\
+		$(IPC_ROOT)/ti/syslink/ipc/hlos/knl/arch/$(IPC_PLATFORM)	\
+		$(IPC_ROOT)/ti/syslink/ipc/hlos/knl/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/utils/common	\
+		$(IPC_ROOT)/ti/syslink/utils/hlos	\
+		$(IPC_ROOT)/ti/syslink/utils/hlos/knl	\
+		$(IPC_ROOT)/ti/syslink/utils/hlos/knl/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/utils/hlos/knl/osal/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/rpmsg-omx/hlos/knl/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/rpmsg-dce/hlos/knl/$(IPC_BUILDOS)	\
+		$(IPC_ROOT)/ti/syslink/ti-ipc	\
+		$(IPC_ROOT)/ti/syslink/rpmsg-rpc	\
+		$(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS)/family/$(IPC_PLATFORM)	\
+		$(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS)
 
-ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
-EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/ipu
+ifeq ("$(IPC_PLATFORM)", "omap5430")
+EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/ipu
 
 EXCLUDE_OBJS = GateMP_daemon.o gatemp_devctl.o
 endif
 
-ifeq ("$(SYSLINK_PLATFORM)", "vayu")
-EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core0	\
-		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1   \
+ifeq ("$(IPC_PLATFORM)", "vayu")
+EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/common	\
+		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)dsp	\
+		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu	\
+		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core0	\
+		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core1	\
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)dsp	\
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu	\
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core1   \
                 $(IPC_REPO)/qnx/src/api/gates
 
 EXCLUDE_OBJS = GateMP.o
@@ -150,10 +150,10 @@ LDFLAGS += -M
 
 EXTRA_LIBVPATH += $(INSTALL_ROOT_nto)/usr/lib
 
-ifeq ("$(SYSLINK_DEBUG)", "1")
+ifeq ("$(IPC_DEBUG)", "1")
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
 LIBS += utils_g
 else
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.le.v7
 LIBS += utils
-endif # ifeq ("$(SYSLINK_DEBUG)", "1")
+endif # ifeq ("$(IPC_DEBUG)", "1")

@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2012-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2012-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -136,7 +136,7 @@ Int RscTable_free (RscTable_Handle * handle);
 Int RscTable_process (UInt16 procId, Bool tryAlloc, UInt32 * numBlocks,
     Processor_Handle procHandle, ProcMgr_BootMode bootMode);
 
-Int RscTable_getMemEntries (UInt16 procId, SysLink_MemEntry * memEntries,
+Int RscTable_getMemEntries (UInt16 procId, Ipc_MemEntry * memEntries,
                             UInt32 * numMemEntries);
 
 Int RscTable_getInfo (UInt16 procId, UInt32 type, UInt32 extra, UInt32 * da,

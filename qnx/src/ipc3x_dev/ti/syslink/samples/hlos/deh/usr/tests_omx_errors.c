@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@
 /*
  * omx_benchmark.c
  *
- * Benchmark average round trip time for equivalent of SysLink 2 RcmClient_exec.
+ * Benchmark average round trip time for equivalent of RcmClient_exec.
  *
- * This calls the fxnDouble RcmServer function, similar to the SysLink 2 ducati
+ * This calls the fxnDouble RcmServer function, similar to the ducati
  * rcm/singletest.
  *
  * Requires:

@@ -7,7 +7,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -503,9 +503,9 @@ int mailbox_6_context[MAILBOX_SIZE];
 Void
 VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
 {
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int            status = VAYUIPCINT_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     Int i = 0;
     Memory_MapInfo mapInfo;
     List_Params listParams;
@@ -517,7 +517,7 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
     /* The setup will be called only once, either from SysMgr or from
      * archipcvayu module. Hence it does not need to be atomic.
      */
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (cfg == NULL) {
         GT_setFailureReason (curTrace,
                         GT_4CLASS,
@@ -526,17 +526,17 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
                         "config for driver specific setup can not be NULL");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
         /* Map general control base */
         mapInfo.src      = AINTC_BASE_ADDR;
         mapInfo.size     = AINTC_BASE_SIZE;
         mapInfo.isCached = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -546,17 +546,17 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
             VAYUIpcInt_state.archCoreCmBase = 0;
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             VAYUIpcInt_state.archCoreCmBase = mapInfo.dst;
             /* Map mailbox5Base */
             mapInfo.src      = MAILBOX_5_BASE;
             mapInfo.size     = MAILBOX_SIZE;
             mapInfo.isCached = FALSE;
- #if !defined(SYSLINK_BUILD_OPTIMIZE)
+ #if !defined(IPC_BUILD_OPTIMIZE)
             status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -566,17 +566,17 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
                 VAYUIpcInt_state.mailbox5Base = 0;
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 VAYUIpcInt_state.mailbox5Base = mapInfo.dst;
                 /* Map mailbox5Base */
                 mapInfo.src      = MAILBOX_6_BASE;
                 mapInfo.size     = MAILBOX_SIZE;
                 mapInfo.isCached = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (status < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
@@ -586,17 +586,17 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
                     VAYUIpcInt_state.mailbox6Base = 0;
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     VAYUIpcInt_state.mailbox6Base = mapInfo.dst;
                     /* Map mailbox5Base */
                     mapInfo.src      = CTRL_MODULE_BASE;
                     mapInfo.size     = CTRL_MODULE_SIZE;
                     mapInfo.isCached = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     status =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         Memory_map (&mapInfo);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     if (status < 0) {
                         GT_setFailureReason (curTrace,
                                              GT_4CLASS,
@@ -606,7 +606,7 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
                         VAYUIpcInt_state.controlModuleBase = 0;
                     }
                     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                         VAYUIpcInt_state.controlModuleBase = mapInfo.dst;
 
                         /* Program the MMR lock registers to access the SCM
@@ -625,14 +625,14 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
                         while (REG(VAYUIpcInt_state.mailbox6Base + MAILBOX_SYSCONFIG_OFFSET) == 0x1);
                         /*Set Mailbox to Smart Idle */
                         REG(VAYUIpcInt_state.mailbox6Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                     }
                 }
             }
         }
         if (status >= 0) {
             /*Registering vayu platform with ArchIpcInt*/
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             ArchIpcInt_object.fxnTable = &VAYUIpcInt_fxnTable;
             ArchIpcInt_object.obj      = &VAYUIpcInt_state;
 
@@ -672,10 +672,10 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
             if (status >= 0) {
                 ArchIpcInt_object.isSetup  = TRUE;
             }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUIpcInt_setup");
 }
@@ -794,7 +794,7 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                             VAYUIPCINT_MAKE_MAGICSTAMP(0));
 
     /* This is a normal use-case, so should not be inside
-     * SYSLINK_BUILD_OPTIMIZE.
+     * IPC_BUILD_OPTIMIZE.
      */
     if (Atomic_inc_return (&VAYUIpcInt_state.isrObjects [procId].isrRefCount)
             != VAYUIPCINT_MAKE_MAGICSTAMP(1u)) {
@@ -851,7 +851,7 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                 (reg & 0xFFFF0000) | (mboxId);
         }
         isrHandle = OsalIsr_create (&_VAYUIpcInt_isr, NULL, &isrParams);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (isrHandle == NULL) {
             /*! @retval VAYUIPCINT_E_FAIL OsalIsr_create failed */
             status = VAYUIPCINT_E_FAIL;
@@ -862,9 +862,9 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                                  "OsalIsr_create failed");
         }
         else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             status = OsalIsr_install (isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -873,10 +873,10 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                                      "OsalIsr_install failed");
             }
             else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 elem = Memory_alloc(NULL, sizeof(VAYUIpcInt_isrHandleElem),
                                     0, NULL);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 if (elem == NULL) {
                     status = VAYUIPCINT_E_MEMORY;
                     GT_setFailureReason (curTrace,
@@ -886,7 +886,7 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                                          "Memory_alloc failed");
                 }
                 else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                     ((VAYUIpcInt_isrHandleElem *)elem)->isrHandle = isrHandle;
                     Atomic_cmpmask_and_set (
                               &((VAYUIpcInt_isrHandleElem *)elem)->refCount,
@@ -894,20 +894,20 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
                               VAYUIPCINT_MAKE_MAGICSTAMP(1));
                     ((VAYUIpcInt_isrHandleElem *)elem)->intId = intId;
                     List_put(VAYUIpcInt_state.isrHandles, elem);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
                 }
             }
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (status >= 0) {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         VAYUIpcInt_state.isrObjects [procId].isrHandle = elem;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIpcInt_interruptRegister", status);
 
@@ -928,9 +928,9 @@ Int32
 VAYUIpcInt_interruptUnregister  (UInt16 procId)
 {
     Int32 status = VAYUIPCINT_SUCCESS;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     Int32 tmpStatus = VAYUIPCINT_SUCCESS;
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     VAYUIpcInt_isrHandleElem * isrHandleElem;
 
     GT_1trace (curTrace,GT_ENTER,"VAYUIpcInt_interruptUnregister", procId);
@@ -938,7 +938,7 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
     GT_assert (curTrace,(ArchIpcInt_object.isSetup == TRUE));
     GT_assert(curTrace, (procId < MultiProc_MAXPROCESSORS));
 
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     if (   Atomic_cmpmask_and_lt (
                             &VAYUIpcInt_state.isrObjects [procId].isrRefCount,
                             VAYUIPCINT_MAKE_MAGICSTAMP(0),
@@ -953,9 +953,9 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
                              "ISR was not registered!");
     }
     else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         /* This is a normal use-case, so should not be inside
-         * SYSLINK_BUILD_OPTIMIZE.
+         * IPC_BUILD_OPTIMIZE.
          */
         if (Atomic_dec_return(&VAYUIpcInt_state.isrObjects[procId].isrRefCount)
             == VAYUIPCINT_MAKE_MAGICSTAMP(0)) {
@@ -974,7 +974,7 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
             == VAYUIPCINT_MAKE_MAGICSTAMP(0)) {
             List_remove(VAYUIpcInt_state.isrHandles, (List_Elem *)isrHandleElem);
             status = OsalIsr_uninstall (isrHandleElem->isrHandle);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if (status < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -983,9 +983,9 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
                                      "OsalIsr_uninstall failed");
             }
             tmpStatus =
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 OsalIsr_delete (&(isrHandleElem->isrHandle));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             if ((status >= 0) && (tmpStatus < 0)) {
                 status = tmpStatus;
                 GT_setFailureReason (curTrace,
@@ -994,12 +994,12 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
                                      status,
                                      "OsalIsr_delete failed");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
             Memory_free(NULL, isrHandleElem, sizeof(VAYUIpcInt_isrHandleElem));
         }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIpcInt_interruptUnregister",
                status);
@@ -1050,7 +1050,7 @@ VAYUIpcInt_interruptEnable (UInt16 procId, UInt32 intId)
                     VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
                 ( (IPU2_HOST_SUB_MBOX) << 1));
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1058,7 +1058,7 @@ VAYUIpcInt_interruptEnable (UInt16 procId, UInt32 intId)
                              VAYUIPCINT_E_FAIL,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUIpcInt_interruptEnable");
 }
@@ -1105,7 +1105,7 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
             MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
             1 << ((IPU2_HOST_SUB_MBOX) << 1);
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1113,7 +1113,7 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
                              VAYUIPCINT_E_FAIL,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUIpcInt_interruptDisable");
 }
@@ -1156,7 +1156,7 @@ VAYUIpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
                       + MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX)))
                 & 0x3F ));
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         /*! @retval VAYUIPCINT_E_FAIL Invalid procId specified */
         status = VAYUIPCINT_E_FAIL;
@@ -1166,7 +1166,7 @@ VAYUIpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
                              status,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace,GT_LEAVE,"VAYUIpcInt_waitClearInterrupt", status);
 
@@ -1217,7 +1217,7 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
         REG32(VAYUIpcInt_state.mailbox6Base + \
               MAILBOX_MESSAGE_m_OFFSET(HOST_IPU2_SUB_MBOX)) = value;
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         /*! @retval VAYUIPCINT_E_FAIL Invalid procId specified */
         status = VAYUIPCINT_E_FAIL;
@@ -1227,7 +1227,7 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
                              status,
                              "Invalid procId specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_1trace (curTrace, GT_LEAVE, "VAYUIpcInt_sendInterrupt",status);
 
@@ -1270,7 +1270,7 @@ VAYUIpcInt_clearInterrupt (UInt16 procId, UInt16 mboxNum)
         REG32(mailboxBase + MAILBOX_IRQSTATUS_CLEAR_OFFSET + \
                 (0x10 * VAYU_HOST_USER_ID)) = 0x1 << (mboxNum << 1);
     }
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
     else {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -1278,7 +1278,7 @@ VAYUIpcInt_clearInterrupt (UInt16 procId, UInt16 mboxNum)
                              VAYUIPCINT_E_FAIL,
                              "Invalid mailbox number specified");
     }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
     GT_0trace (curTrace, GT_LEAVE, "VAYUIpcInt_clearInterrupt");
 
