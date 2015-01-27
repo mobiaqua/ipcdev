@@ -61,3 +61,6 @@ EXTRA_SRCVPATH += \
 CCOPTS += -g -O0 -DIPC_BUILDOS_QNX
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

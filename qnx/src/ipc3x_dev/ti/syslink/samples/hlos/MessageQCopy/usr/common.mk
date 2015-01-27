@@ -62,3 +62,6 @@ EXTRA_LIBVPATH += $(IPC_ROOT)/ti/syslink/build/$(IPC_BUILDOS)/lib/arm/so.le.v7 \
 LDOPTS+=-lipc_client
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

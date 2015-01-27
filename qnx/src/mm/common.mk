@@ -61,3 +61,6 @@ OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)
 # install the header
 POST_INSTALL += \
 	$(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/mm/MmRpc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/mm/MmRpc.h
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

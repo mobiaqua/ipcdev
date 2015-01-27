@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -48,3 +48,6 @@ CCOPTS+=-DDEBUG_SHM
 endif
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

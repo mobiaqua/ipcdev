@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013-2015, Texas Instruments Incorporated
+#   Copyright (c) 2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -29,28 +29,33 @@
 #   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-ifndef QCONFIG
-QCONFIG=qconfig.mk
+# Override the build verbosity here
+#   V=0: least verbose
+#   V=1: most verbose
+ifneq ($(V),1)
+MAKE = @$(MAKE_COMMAND) --no-print-directory
+RM_HOST := @$(RM_HOST)
+ifeq ($(V),0)
+CCPREF := @$(CCPREF)
+ASPREF := @$(ASPREF)
+LDPREF := @$(LDPREF)
+ARPREF := @$(ARPREF) 2>/dev/null
+UMPREF := @$(UMPREF)
+MKASMOFF_HOST := @$(MKASMOFF_HOST)
+else
+QUIET_ROOT := $(PROJECT_ROOT)
+CCPREF_CMD := $(CCPREF)
+CCPREF = @echo "Compiling " $(<:$(QUIET_ROOT)/%=%) && $(CCPREF_CMD)
+ASPREF_CMD := $(ASPREF)
+ASPREF = @echo "Assembling" $(<:$(QUIET_ROOT)/%=%) && $(ASPREF_CMD)
+LDPREF_CMD := $(LDPREF)
+LDPREF = @echo "Linking   " $(@:$(QUIET_ROOT)/%=%) && $(LDPREF_CMD)
+ARPREF_CMD := $(ARPREF) 2>/dev/null
+ARPREF = @echo "Archiving " $(@:$(QUIET_ROOT)/%=%) && $(ARPREF_CMD)
+UMPREF_CMD := $(UMPREF)
+UMPREF = @echo "Usemsg     " $(@:$(QUIET_ROOT)/%=%) && $(UMPREF_CMD)
+MKASMOFF_CMD := $(MKASMOFF_HOST)
+MKASMOFF_HOST = @echo "Generating" $(CURDIR:$(QUIET_ROOT)/%=%)/$@ && \
+    $(MKASMOFF_CMD)
 endif
-include $(QCONFIG)
-
-define PINFO
-PINFO DESCRIPTION=shared memory allocator app
-endef
-
-NAME = SharedMemoryAllocatorTestApp
-INSTALLDIR = bin
-
-#Add extra include path
-EXTRA_INCVPATH+=$(PROJECT_ROOT)/../../../resmgr/public	\
-		$(PROJECT_ROOT)/../../../usr/public
-
-CCOPTS+=-g -O0
-
-EXTRA_LIBVPATH += $(PROJECT_ROOT)/../../../usr/arm/so.le.v7
-LDOPTS+= -lsharedmemallocator
-
-include $(MKFILES_ROOT)/qtargets.mk
-
-# Quiet the build output
-include $(IPC_REPO)/qnx/quiet.mk
+endif

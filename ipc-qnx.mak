@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2014, Texas Instruments Incorporated
+#   Copyright (c) 2012-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@ endif
 
 clean:
 	@echo "cleaning Qnx user libraries ..."
-	@make -C qnx PLATFORM=$(PLATFORM) clean
+	@make -C qnx PLATFORM=$(PLATFORM) IPC_REPO=`pwd` clean
 
 install: .install,$(PLATFORM)
 

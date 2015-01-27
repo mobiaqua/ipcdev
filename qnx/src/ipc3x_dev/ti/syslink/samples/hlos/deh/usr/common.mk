@@ -61,3 +61,6 @@ CCOPTS+=-g -O0 -DIPC_BUILDOS_QNX
 EXTRA_LIBVPATH += $(PROJECT_ROOT)/../../../../../../perfutils/arm/so.le.v7
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

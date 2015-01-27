@@ -157,3 +157,6 @@ else
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.le.v7
 LIBS += utils
 endif # ifeq ("$(IPC_DEBUG)", "1")
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

@@ -60,3 +60,6 @@ EXTRA_INCVPATH += \
 include $(MKFILES_ROOT)/qtargets.mk
 
 LDFLAGS += -M
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

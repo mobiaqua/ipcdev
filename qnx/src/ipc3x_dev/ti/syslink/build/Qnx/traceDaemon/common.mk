@@ -60,3 +60,6 @@ EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
 LIBS += utils_g
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

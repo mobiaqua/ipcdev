@@ -72,3 +72,6 @@ POST_INSTALL += \
         $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/GateMP.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/GateMP.h; \
         $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/Ipc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/Ipc.h; \
         $(CP_HOST) -Rv $(IPC_REPO)/qnx/include/ti/ipc/Std.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/Std.h
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, Texas Instruments Incorporated
+# Copyright (c) 2013-2015, Texas Instruments Incorporated
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -61,3 +61,6 @@ OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)
 # install the headers
 POST_INSTALL += \
         $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/MultiProc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/MultiProc.h
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

@@ -63,3 +63,6 @@ CCOPTS+=-g -O0 -DIPC_BUILDOS_QNX
 #LDOPTS+= -lipc_perfutils
 
 include $(MKFILES_ROOT)/qtargets.mk
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk

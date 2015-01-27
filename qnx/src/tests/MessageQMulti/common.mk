@@ -59,3 +59,6 @@ LDFLAGS += -M
 
 POST_INSTALL = -$(CP_HOST) $(PROJECT_ROOT)/multi_process.sh \
         $(INSTALL_ROOT_$(BUILD_TYPE))/$(INSTALLDIR)
+
+# Quiet the build output
+include $(IPC_REPO)/qnx/quiet.mk
