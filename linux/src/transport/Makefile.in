@@ -219,10 +219,12 @@ target_alias = @target_alias@
 lib_LTLIBRARIES = libtitransportrpmsg.la
 
 # where to install the headers on the system
-libtitransportrpmsg_ladir = $(includedir)/ti/ipc
+libtitransportrpmsg_ladir = $(includedir)/ti/ipc/transports
 
 # the list of header files that belong to the library (to be installed later)
-libtitransportrpmsg_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
+libtitransportrpmsg_la_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/transports/TransportRpmsg.h
+
 
 # the sources to add to the library and to add to the source distribution
 libtitransportrpmsg_la_SOURCES = \
@@ -399,7 +401,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/../../../linux/include/ti/ipc
+	$(mkdir_p) $(distdir)/../../../linux/include/ti/ipc/transports
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
