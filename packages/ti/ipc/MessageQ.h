@@ -592,8 +592,8 @@ typedef Void (*MessageQ_FreeHookFxn)(Bits16 heapId, Bits16 msgId);
 typedef Void (*MessageQ_PutHookFxn)(MessageQ_QueueId queueId, MessageQ_Msg msg);
 
 #ifdef STD_H
-#include <ITransport.h>
-#include <IMessageQTransport.h>
+#include <ti/ipc/interfaces/ITransport.h>
+#include <ti/ipc/interfaces/IMessageQTransport.h>
 #else
 #include <ti/sdo/ipc/interfaces/ITransport.h>
 #include <ti/sdo/ipc/interfaces/IMessageQTransport.h>

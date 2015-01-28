@@ -47,7 +47,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
-#include <TransportRpmsg.h>
+#include <ti/ipc/transports/TransportRpmsg.h>
 
 #define MINPAYLOADSIZE      (2 * sizeof(UInt32))
 

@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2014, Texas Instruments Incorporated
+##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -37,10 +37,18 @@ SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/transport \
 
 # where to install common headers on the system
 ipcincludedir = $(includedir)/ti/ipc
+ipcincludeinterfacesdir = $(includedir)/ti/ipc/interfaces
 
 # the list of common header files (to be installed later)
-ipcinclude_HEADERS = $(top_srcdir)/packages/ti/ipc/Ipc.h \
-                $(top_srcdir)/packages/ti/ipc/GateMP.h \
-                $(top_srcdir)/packages/ti/ipc/MessageQ.h \
-                $(top_srcdir)/packages/ti/ipc/MultiProc.h \
-                $(top_srcdir)/packages/ti/ipc/NameServer.h
+ipcinclude_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/Std.h \
+        $(top_srcdir)/packages/ti/ipc/Ipc.h \
+        $(top_srcdir)/packages/ti/ipc/GateMP.h \
+        $(top_srcdir)/packages/ti/ipc/MessageQ.h \
+        $(top_srcdir)/packages/ti/ipc/MultiProc.h \
+        $(top_srcdir)/packages/ti/ipc/NameServer.h
+
+ipcincludeinterfaces_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/IMessageQTransport.h \
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/INetworkTransport.h \
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/ITransport.h

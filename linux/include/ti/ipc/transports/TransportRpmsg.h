@@ -49,9 +49,8 @@
 extern "C" {
 #endif
 
-#include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
-#include <IMessageQTransport.h>
+#include <ti/ipc/interfaces/IMessageQTransport.h>
 
 extern Ipc_TransportFactoryFxns TransportRpmsg_Factory;
 

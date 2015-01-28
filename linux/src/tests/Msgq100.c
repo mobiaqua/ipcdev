@@ -45,7 +45,7 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
-#include <TransportRpmsg.h>
+#include <ti/ipc/transports/TransportRpmsg.h>
 
 #define HEAPID                  0               /* not actually used */
 #define SLAVE_MSGQNAME          "SLAVE"

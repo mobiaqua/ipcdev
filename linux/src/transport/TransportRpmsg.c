@@ -34,13 +34,6 @@
  *  Implementation of functions specified in the IMessageQTransport interface.
  */
 
-#include <ti/ipc/Std.h>
-
-#include <ti/ipc/Ipc.h>
-#include <ti/ipc/MessageQ.h>
-#include <ti/ipc/MultiProc.h>
-#include <_MessageQ.h>
-
 /* Socket Headers */
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -56,13 +49,16 @@
 /* Socket Protocol Family */
 #include <net/rpmsg.h>
 
-/* Socket utils: */
-#include <SocketFxns.h>
 
+/* IPC headers */
+#include <ti/ipc/Std.h>
+#include <SocketFxns.h>         /* Socket utils: */
+#include <ti/ipc/Ipc.h>
+#include <ti/ipc/MessageQ.h>
+#include <ti/ipc/MultiProc.h>
+#include <ti/ipc/transports/TransportRpmsg.h>
+#include <_MessageQ.h>
 #include <_lad.h>
-
-#include <TransportRpmsg.h>
-
 
 /* More magic rpmsg port numbers: */
 #define MESSAGEQ_RPMSG_PORT       61

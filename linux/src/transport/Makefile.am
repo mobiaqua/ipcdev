@@ -48,10 +48,11 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
 lib_LTLIBRARIES = libtitransportrpmsg.la
 
 # where to install the headers on the system
-libtitransportrpmsg_ladir = $(includedir)/ti/ipc
+libtitransportrpmsg_ladir = $(includedir)/ti/ipc/transports
 
 # the list of header files that belong to the library (to be installed later)
-libtitransportrpmsg_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
+libtitransportrpmsg_la_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/transports/TransportRpmsg.h
 
 # the sources to add to the library and to add to the source distribution
 libtitransportrpmsg_la_SOURCES =    \

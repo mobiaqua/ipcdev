@@ -37,7 +37,7 @@
 #ifndef INETWORKTRANSPORT_H
 #define INETWORKTRANSPORT_H
 
-#include <ITransport.h>
+#include <ti/ipc/interfaces/ITransport.h>
 
 
 /*

@@ -50,9 +50,9 @@
 #define MessageQ_internal 1     /* must be defined before include file */
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
-#include <ITransport.h>
-#include <IMessageQTransport.h>
-#include <INetworkTransport.h>
+#include <ti/ipc/interfaces/ITransport.h>
+#include <ti/ipc/interfaces/IMessageQTransport.h>
+#include <ti/ipc/interfaces/INetworkTransport.h>
 
 /* Socket Headers */
 #include <sys/select.h>
