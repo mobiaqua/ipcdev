@@ -24,4 +24,3 @@ Int ITransport_itype(ITransport_Handle inst)
 }
 
 #endif /* ITRANSPORT_H */
-
