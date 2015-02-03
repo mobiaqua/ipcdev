@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include <_NameServer.h>
 #include <ti/ipc/GateMP.h>
 #include <_GateMP_daemon.h>
+#include <_MultiProc.h>
 
 #include <GateHWSpinlock.h>
 
@@ -96,12 +97,14 @@ Options:\n\
     g            : enable GateMP support \n\
     l <logfile>  : name of logfile for LAD\n\
     p <oct value>: set LAD's directory permissions\n\
+    b <value>    : Processor's base cluster id \n\
 \n\
 Examples:\n\
     lad_<platform> -h\n\
     lad_<platform> -l log.txt\n\
     lad_<platform> -l log.txt -p 777\n\
     lad_<platform> -g -l log.txt\n\
+    lad_<platform> -l log.txt -b 10\n\
 \n"
 
 /*
@@ -153,7 +156,7 @@ int main(int argc, char * argv[])
 
     /* process command line args */
     while (1) {
-        c = getopt(argc, argv, "ghl:p:");
+        c = getopt(argc, argv, "b:ghl:p:");
         if (c == -1) {
             break;
         }
@@ -166,6 +169,19 @@ int main(int argc, char * argv[])
 #else
                 printf("\nGateMP is not supported for this device\n");
 #endif
+                break;
+            case 'b':
+                if (_MultiProc_cfg.id == 0xFFFF &&
+                    _MultiProc_cfg.baseIdOfCluster == 0xFFFF) {
+                    printf("\nSetting base cluster id to %s\n", optarg);
+                    _MultiProc_cfg.id = atoi(optarg);
+                    _MultiProc_cfg.baseIdOfCluster = atoi(optarg);
+                }
+                else {
+                   printf("\nBase cluster id in the MultiProcCfg file must be\n"
+                    "set to MultiProc_INVALIDID(0xFFFF) when using -b option\n");
+                   exit(EXIT_FAILURE);
+                }
                 break;
             case 'h':
                 printf("%s", LAD_USAGE);
@@ -198,6 +214,15 @@ int main(int argc, char * argv[])
                 exit(EXIT_FAILURE);
         }
     }
+
+    /* Check to ensure id and baseId are not invalid */
+    printf ("id = %d baseId= %d\n", _MultiProc_cfg.id, _MultiProc_cfg.baseIdOfCluster);
+    if (_MultiProc_cfg.id == 0xFFFF || _MultiProc_cfg.baseIdOfCluster == 0xFFFF){
+         printf("\nBase cluster id is set to an INVALID value\n");
+         printf("Use -b option to set value or modify the MultiProcCfg file\n");
+         exit(EXIT_FAILURE);
+    }
+
 
 #if DAEMON
     /* fork off a child process */
