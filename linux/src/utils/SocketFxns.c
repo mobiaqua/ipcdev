@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,12 +64,16 @@ int ConnectSocket(int sock, UInt16 procId, int dst)
     int                   err;
     struct sockaddr_rpmsg srcAddr, dstAddr;
     socklen_t             len;
+    UInt16                clusterId;
+
+    /* map procId to clusterId (rprocList[] indexed by clusterId) */
+    clusterId = procId - _MultiProc_cfg.baseIdOfCluster;
 
     /* connect to remote service */
     memset(&dstAddr, 0, sizeof(dstAddr));
     dstAddr.family     = AF_RPMSG;
-    /* convert MultiProc 'procId' to remoteproc index */
-    dstAddr.vproc_id   = _MultiProc_cfg.rprocList[procId];
+    /* convert MultiProc 'clusterId' to remoteproc index */
+    dstAddr.vproc_id   = _MultiProc_cfg.rprocList[clusterId];
     dstAddr.addr       = dst;
 
     len = sizeof(struct sockaddr_rpmsg);
@@ -95,17 +99,21 @@ int ConnectSocket(int sock, UInt16 procId, int dst)
     return(0);
 }
 
-int SocketBindAddr(int fd, UInt16 rprocId, UInt32 localAddr)
+int SocketBindAddr(int fd, UInt16 procId, UInt32 localAddr)
 {
     int         err;
     socklen_t    len;
     struct sockaddr_rpmsg srcAddr;
+    UInt16 clusterId;
+
+    /* map procId to clusterId (rprocList[] indexed by clusterId) */
+    clusterId = procId - _MultiProc_cfg.baseIdOfCluster;
 
     /* Now bind to the source address.   */
     memset(&srcAddr, 0, sizeof(srcAddr));
     srcAddr.family = AF_RPMSG;
-    /* We bind the remote proc ID, but local address! */
-    srcAddr.vproc_id   = _MultiProc_cfg.rprocList[rprocId];
+    /* We bind the remote clusterId, but local address! */
+    srcAddr.vproc_id   = _MultiProc_cfg.rprocList[clusterId];
     srcAddr.addr  = localAddr;
 
     len = sizeof(struct sockaddr_rpmsg);
