@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,8 @@ internal:
     Void isr(UArg arg);
 
     struct Module_State {
-        FxnTable   fxnTable[];  /* indexed by Source ID bit pos */
-        UInt       numPlugged;  /* # of times the interrupt was registered */
+        UInt        numPlugged; /* # of times the interrupt was registered */
+        UInt16      clusterId;  /* cluster base procId */
+        FxnTable    fxnTable[]; /* indexed by Source ID bit pos */
     };
 }

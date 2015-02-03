@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,40 +44,42 @@ function module$use()
     MultiProcSetup = this;
     MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
 
-    /*
-     *  Only configure the local procId if the user hasn't disabled the config
-     *  and if the procId hasn't been statically set
+    /*  If not disabled by user and if procId has not been configured,
+     *  add run-time function to set it.
      */
-    if (MultiProcSetup.configureProcId == true &&
-            MultiProc.id == MultiProc.INVALIDID) {
+    if ((MultiProcSetup.configureProcId)
+            && (MultiProc.id == MultiProc.INVALIDID)) {
         var Startup = xdc.useModule('xdc.runtime.Startup');
         Startup.firstFxns.$add(MultiProcSetup.init);
     }
-}
 
-/*
- *  ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
+    /* the procMap is for all processors on the local device */
+    this.procMap.length = this.segmentSize;
 
-    /* The procMap is based upon the MuliProc id, init it here */
-    this.procMap.length = MultiProc.numProcessors;
     for (var i = 0; i < this.procMap.length; i++) {
         this.procMap[i] = -1;
     }
 
-    /* Set the procMap based on the configured names in MultiProc.setConfig */
-    for (var i = MultiProc.baseIdOfCluster; i < MultiProc.baseIdOfCluster +
-        MultiProc.numProcsInCluster; i++) {
+    /* make sure the MultiProc.nameList length fits into segmentSize */
+    if (MultiProc.nameList.length > this.segmentSize) {
+        this.$logError("The MultiProc.nameList length ("
+            + MultiProc.nameList.length + ") is larger than "
+            + "MultiProcSetup.segmentSize (" + this.segmentSize + ")", this);
+    }
 
-        /* The nameList is based on an index */
-        if (MultiProc.nameList[i - MultiProc.baseIdOfCluster] == null) {
-            /* nameList is NULL, don't need to set the procMap */
-            break;
+    /*  Use the MultiProc.nameList to initialize the procMap array
+     *  with the corresponding coreId.
+     */
+    for (var i = 0; i < MultiProc.nameList.length; i++) {
+
+        /* exclude host processor */
+        if (MultiProc.nameList[i] == "HOST") {
+            continue;
         }
 
-        this.procMap[i] = Number(MultiProc.nameList[i -
-            MultiProc.baseIdOfCluster].substring("CORE".length));
+        /* the numeric part of the name string determines the coreId */
+        var name = MultiProc.nameList[i];
+        var coreId = Number(name.substring("CORE".length));
+        this.procMap[i] = coreId;
     }
 }

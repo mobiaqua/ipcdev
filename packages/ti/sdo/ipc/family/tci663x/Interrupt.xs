@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ function module$use()
 /*
  *  ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
     var args = Interrupt.$object.args;
     var MultiProc = xdc.module('ti.sdo.utils.MultiProc');
@@ -96,8 +96,8 @@ function module$static$init(mod, params)
         args[i] = 0;
     }
 
-    mod.func = null;
-    mod.numPlugged = 0;
+    state.func = null;
+    state.numPlugged = 0;
 }
 
 /*
@@ -123,9 +123,8 @@ function viewInterruptsData(view)
     var modCfg = Program.getModuleConfig('ti.sdo.ipc.family.tci663x.Interrupt');
     var MultiProcCfg = Program.getModuleConfig('ti.sdo.utils.MultiProc');
 
-    var args = Program.fetchArray(Interrupt.args$fetchDesc,
-                                      mod.args,
-                                      MultiProcCfg.numProcessors);
+    var args = Program.fetchArray(Interrupt.args$fetchDesc, mod.args,
+            MultiProcCfg.numProcessors);
 
     var localId = MultiProc.self$view();
 

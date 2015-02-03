@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,14 +55,24 @@ module MultiProcSetup
         msg: "A_invalidProcessor: This core is not present in the MultiProc name list"
     };
 
-    /*! ProcId -> CoreId mapping (indexed by procId) */
+internal:
+    /*  Map the clusterId to the coreId (only for DSP processos)
+     *
+     *  The procMap array is indexed by clusterId. The element value
+     *  is the coreId (equivalent to DNUM).
+     */
     config UInt16 procMap[];
 
-internal:
+    /*  Maximum number of processors on this device
+     *
+     *  We consider the CortexA15 quad-core processor to be one
+     *  logical processor. There are up to eight DSP processors.
+     */
+    config UInt16 segmentSize = 9;
 
-    /*!
+    /*
      *  ======== getProcId ========
-     *  Returns the MultiProc ID corresponding to a specific core
+     *  Returns the MultiProc ID corresponding to the given coreId
      */
     UInt16 getProcId(UInt coreId);
 

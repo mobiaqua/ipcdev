@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,16 +127,17 @@ function module$use()
 /*
  *  ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    var fxnTable = Interrupt.$object.fxnTable;
+
+    state.numPlugged = 0;
+    state.clusterId = MultiProc.baseIdOfCluster;
 
     /* The function table length should be the number of IPCAR bits */
-    fxnTable.length = 32;
-    for (var i = 0; i < fxnTable.length; i++) {
-        fxnTable[i].func = null;
-        fxnTable[i].arg = 0;
-    }
+    state.fxnTable.length = 32;
 
-    mod.numPlugged = 0;
+    for (var i = 0; i < state.fxnTable.length; i++) {
+        state.fxnTable[i].func = null;
+        state.fxnTable[i].arg = 0;
+    }
 }

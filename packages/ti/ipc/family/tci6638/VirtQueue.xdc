@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -322,9 +322,6 @@ instance:
     // -------- Handle Functions --------
 
 internal:   /* not for client use */
-
-    /*! Statically retrieve procIds to avoid doing this at runtime */
-    config UInt hostProcId  = MultiProc.INVALIDID;
 
     void init();
 

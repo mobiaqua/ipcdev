@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ module Interrupt inherits ti.sdo.ipc.notifyDrivers.IInterrupt
                         viewInitFxn: 'viewInterruptsData',
                         structName: 'InterruptDataStruct'
                     }
-                ],
+                ]
             ]
         });
 
@@ -90,7 +90,7 @@ internal:
 
     struct Module_State {
         Fxn     func;
-        UArg    args[];     /* One entry for each core */
-        UInt    numPlugged; /* # of times the interrupt was registered */
+        UInt    numPlugged;     /* # of times the interrupt was registered */
+        UArg    args[];         /* one entry for each core (in cluster) */
     };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,23 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /** ============================================================================
  *  @file       VirtQueue.c
  *
  *  @brief      Virtio Queue implementation for BIOS
  *
  *  Differences between BIOS version and Linux kernel (include/linux/virtio.h):
- *  - Renamed module from virtio.h to VirtQueue_Object.h to match the API prefixes;
- *  - BIOS (XDC) types and CamelCasing used;
- *  - virtio_device concept removed (i.e, assumes no containing device);
- *  - simplified scatterlist from Linux version;
- *  - VirtQueue_Objects are created statically here, so just added a VirtQueue_Object_init()
- *    fxn to take the place of the Virtio vring_new_virtqueue() API;
+ *  - Renamed module from virtio.h to VirtQueue.h to match the API prefixes
+ *  - XDC Standard Types and CamelCasing used
+ *  - virtio_device concept removed (i.e, assumes no containing device)
+ *  - simplified scatterlist from Linux version
+ *  - VirtQueue objects are created statically, added VirtQueue_Instance_init()
+ *    fxn to take the place of the Virtio vring_new_virtqueue() API
  *  - The notify function is implicit in the implementation, and not provided
- *    by the client, as it is in Linux virtio.
+ *    by the client, as it is in Linux virtio
  *
  *  All VirtQueue operations can be called in any context.
- *
- *  The virtio header should be included in an application as follows:
- *  @code
- *  #include <ti/ipc/rpmsg/VirtQueue.h>
- *  @endcode
- *
  */
 
 #include <xdc/std.h>
@@ -67,7 +62,6 @@
 #include <ti/sysbios/family/c66/Cache.h>
 #include <ti/sysbios/knl/Swi.h>
 
-#include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/ipc/family/tci6638/Interrupt.h>
 #include <ti/ipc/remoteproc/Resource.h>
 
@@ -81,20 +75,22 @@
 #include <ti/ipc/rpmsg/virtio_ring.h>
 
 /* Used for defining the size of the virtqueue registry */
-#define NUM_QUEUES                      2
+#define NUM_QUEUES 2
 
 #define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
 #define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * RPMSG_BUF_SIZE * 2)
 
 /* With 256 buffers, our vring will occupy 3 pages */
-#define RP_MSG_RING_SIZE    ((DIV_ROUND_UP(vring_size(VirtQueue_RP_MSG_NUM_BUFS, \
-                            VirtQueue_RP_MSG_VRING_ALIGN), VirtQueue_PAGE_SIZE)) * VirtQueue_PAGE_SIZE)
+#define RP_MSG_RING_SIZE    \
+        ((DIV_ROUND_UP(vring_size(VirtQueue_RP_MSG_NUM_BUFS, \
+        VirtQueue_RP_MSG_VRING_ALIGN), \
+        VirtQueue_PAGE_SIZE)) * VirtQueue_PAGE_SIZE)
 
 /* The total IPC space needed to communicate with a remote processor */
 #define RPMSG_IPC_MEM   (RP_MSG_BUFS_SPACE + 2 * RP_MSG_RING_SIZE)
 
-#define ID_DSP_TO_A9      0
-#define ID_A9_TO_DSP      1
+#define ID_SELF_TO_HOST 0
+#define ID_HOST_TO_SELF 1
 
 extern volatile cregister UInt DNUM;
 
@@ -116,21 +112,26 @@ static inline UInt mapVAtoPA(Void * va)
 Void VirtQueue_init()
 {
     extern cregister volatile UInt DNUM;
+    UInt16 clusterId;
     UInt16 procId;
 
-    /*
-     * VirtQueue_init() must be called before MultiProcSetup_init().
-     * (Check the xdc_runtime_Startup_firstFxns__A in the XDC generated code)
-     * Abort if the procId has already been set.  We must set it!
+    /*  VirtQueue_init() must be called before MultiProcSetup_init().
+     *  Check the xdc_runtime_Startup_firstFxns__A array in the XDC
+     *  generated code. Abort if the procId has already been set; we
+     *  must set it!
      */
     if (MultiProc_self() != MultiProc_INVALIDID) {
         System_abort("VirtQueue_init(): MultiProc_self already set!");
         return;
     }
 
-    procId = DNUM + 1;
+    /* clusterId is needed to support single image loading */
+    clusterId = MultiProc_getBaseIdOfCluster();
 
-    /* Set the local ID */
+    /* compute local procId, add one to account for HOST processor */
+    procId = clusterId + DNUM + 1;
+
+    /* set the local procId */
     MultiProc_setLocalId(procId);
 }
 
@@ -144,7 +145,8 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
     UInt32 marValue;
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
-    /* Create the thread protection gate */
+
+    /* create the thread protection gate */
     vq->gateH = GateAll_create(NULL, eb);
     if (Error_check(eb)) {
         Log_error0("VirtQueue_create: could not create gate object");
@@ -164,8 +166,8 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
     vq->swiHandle = params->swiHandle;
 
     switch (vq->id) {
-        case ID_DSP_TO_A9:
-        case ID_A9_TO_DSP:
+        case ID_SELF_TO_HOST:
+        case ID_HOST_TO_SELF:
             vringAddr = (struct vring *)Resource_getVringDA(vq->id);
             Assert_isTrue(vringAddr != NULL, NULL);
             /* Add per core offset: must match on host side: */
@@ -187,11 +189,11 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
             return(0);
     }
 
-    Log_print3(Diags_USER1,
-            "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vringAddr,
+    Log_print3(Diags_USER1, "vring: %d 0x%x (0x%x)", vq->id, (IArg)vringAddr,
             RP_MSG_RING_SIZE);
 
-    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vringAddr, VirtQueue_RP_MSG_VRING_ALIGN);
+    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vringAddr,
+            VirtQueue_RP_MSG_VRING_ALIGN);
 
     queueRegistry[vq->id] = vq;
     return(0);
@@ -203,18 +205,17 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 Void VirtQueue_kick(VirtQueue_Handle vq)
 {
     struct vring *vring = vq->vringPtr;
-    IInterrupt_IntInfo intInfo;
+    Interrupt_IntInfo intInfo;
 
     /* For now, simply interrupt remote processor */
     if (vring->avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
-        Log_print0(Diags_USER1,
-                "VirtQueue_kick: no kick because of VRING_AVAIL_F_NO_INTERRUPT\n");
+        Log_print0(Diags_USER1, "VirtQueue_kick: no kick because of "
+                "VRING_AVAIL_F_NO_INTERRUPT");
         return;
     }
 
-    Log_print2(Diags_USER1,
-            "VirtQueue_kick: Sending interrupt to proc %d with payload 0x%x\n",
-            (IArg)vq->procId, (IArg)vq->id);
+    Log_print2(Diags_USER1, "VirtQueue_kick: Sending interrupt to proc %d "
+            "with payload 0x%x", (IArg)vq->procId, (IArg)vq->id);
 
     intInfo.localIntId  = Interrupt_SRCS_BITPOS_CORE0;
     Interrupt_intSend(vq->procId, &intInfo, vq->id);
@@ -313,10 +314,9 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
     IArg key;
 
     key = GateAll_enter(vq->gateH);
-    Log_print6(Diags_USER1, "getAvailBuf vq: 0x%x %d %d %d 0x%x 0x%x\n",
-        (IArg)vq,
-        vq->last_avail_idx, vring->avail->idx, vring->num,
-        (IArg)&vring->avail, (IArg)vring->avail);
+    Log_print6(Diags_USER1, "getAvailBuf vq: 0x%x %d %d %d 0x%x 0x%x",
+        (IArg)vq, (IArg)vq->last_avail_idx, (IArg)vring->avail->idx,
+        (IArg)vring->num, (IArg)&vring->avail, (IArg)vring->avail);
 
     /*  Clear flag here to avoid race condition with remote processor.
      *  This is a negative flag, clearing it means that we want to
@@ -354,7 +354,7 @@ Void VirtQueue_isr(UArg msg)
 {
     VirtQueue_Object *vq;
 
-    Log_print1(Diags_USER1, "VirtQueue_isr received msg = 0x%x\n", msg);
+    Log_print1(Diags_USER1, "VirtQueue_isr received msg = 0x%x", msg);
 
     vq = queueRegistry[0];
     if (vq) {
@@ -371,7 +371,7 @@ Void VirtQueue_isr(UArg msg)
  */
 Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
 {
-    IInterrupt_IntInfo intInfo;
+    Interrupt_IntInfo intInfo;
 
     intInfo.intVectorId = Interrupt_DSPINT;
     intInfo.localIntId  = Interrupt_SRCS_BITPOS_HOST;
@@ -383,12 +383,12 @@ Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
      * Since interrupt is cleared, we throw away this first kick, which is
      * OK since we don't process this in the ISR anyway.
      */
-    Log_print0(Diags_USER1, "VirtQueue_startup: Polling for host int...\n");
+    Log_print0(Diags_USER1, "VirtQueue_startup: Polling for host int...");
     while (!Interrupt_checkAndClear(remoteProcId, &intInfo));
 
     Interrupt_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, 0);
 
-    Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
+    Log_print0(Diags_USER1, "Passed VirtQueue_startup");
 }
 
 /* By convention, Host VirtQueues host are the even number in the pair */

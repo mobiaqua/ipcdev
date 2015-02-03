@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,16 +66,20 @@ Void MultiProcSetup_init()
     MultiProc_setLocalId(procId);
 }
 
-
 /*
  *  ======== MultiProcSetup_getProcId ========
  */
 UInt16 MultiProcSetup_getProcId(UInt coreId)
 {
     UInt i;
-    for (i = 0; i < ti_sdo_utils_MultiProc_numProcessors; i++) {
+    UInt baseId;
+
+    baseId = MultiProc_getBaseIdOfCluster();
+
+    /* search the procMap array for the given coreId */
+    for (i = 0; i < MultiProcSetup_segmentSize; i++) {
         if (MultiProcSetup_procMap[i] == coreId) {
-            return (i);
+            return (baseId + i);
         }
     }
 
