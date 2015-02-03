@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -316,6 +316,19 @@ SizeT SharedRegion_getCacheLineSize(UInt16 regionId);
  *  @sa         SharedRegion_setEntry()
  */
 Int SharedRegion_getEntry(UInt16 regionId, SharedRegion_Entry *entry);
+
+/*!
+ *  @brief      Return the address of the shared region entry structure
+ *
+ *  This function is to be used only for module startup configuration.
+ *  The returned address gives you direct access to the in-memory entry
+ *  structure. Use it to configure the entry just before the module
+ *  startup phase begins. It is intended to support single-image loading.
+ *
+ *  Do not use this function during normal run-time operations; use
+ *  SharedRegion_getEntry() instead.
+ */
+SharedRegion_Entry *SharedRegion_getEntryPtr(UInt16 regionId);
 
 /*!
  *  @brief      Gets the heap associated with the specified region id
