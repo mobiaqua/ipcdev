@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@
 
 #ifdef __ti__
     #pragma FUNC_EXT_CALLED(Ipc_attach);
+    #pragma FUNC_EXT_CALLED(Ipc_clusterConfig);
     #pragma FUNC_EXT_CALLED(Ipc_detach);
     #pragma FUNC_EXT_CALLED(Ipc_isAttached);
     #pragma FUNC_EXT_CALLED(Ipc_readConfig);
@@ -349,6 +350,40 @@ Int Ipc_attach(UInt16 remoteProcId)
     Hwi_restore(hwiKey);
 
     return (status);
+}
+
+/*
+ *  ======== Ipc_clusterConfig ========
+ */
+Int Ipc_clusterConfig(Void)
+{
+    UInt16 *procIdPtr;
+    UInt16 numProcs;
+    UInt16 baseId;
+    UInt16 i;
+
+
+    /* sanity check the cluster baseId */
+    baseId = MultiProc_getBaseIdOfCluster();
+
+    if (baseId == MultiProc_INVALIDID) {
+        return (Ipc_E_INVALIDSTATE);
+    }
+
+    /* initialize the MultiProc.clusterProcList array */
+    numProcs = MultiProc_getNumProcsInCluster();
+    procIdPtr = MultiProc_getClusterProcList();
+
+    for (i = 0; i < numProcs; i++) {
+        *procIdPtr++ = baseId + i;
+    }
+
+    /* update the Ipc.procEntry[] array with valid procIds */
+    for (i = 0; i < numProcs; i++) {
+        Ipc_module->procEntry[i].entry.remoteProcId = baseId + i;
+    }
+
+    return (Ipc_S_SUCCESS);
 }
 
 /*

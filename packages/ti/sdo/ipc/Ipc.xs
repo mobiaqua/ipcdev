@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,10 +102,8 @@ function module$use()
  *  ======== module$static$init ========
  *  Initialize module values.
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    /* this array will be setup below with internal array */
-    mod.procEntry.length = MultiProc.numProcsInCluster;
     var fxn = new Ipc.UserFxn;
     var userFxnSet = false;
 
@@ -138,16 +136,18 @@ function module$static$init(mod, params)
     /* init Ipc.entry */
     initEntryArray();
 
-    /* init the module state */
-    for (var i=0; i < MultiProc.numProcsInCluster; i++) {
-        mod.procEntry[i].entry = Ipc.entry[i];
-        mod.procEntry[i].localConfigList     = null;
-        mod.procEntry[i].remoteConfigList    = null;
-        mod.procEntry[i].attached            = 0;
+    /* initialize the procEntry[] array */
+    state.procEntry.length = MultiProc.numProcsInCluster;
+
+    for (var i = 0; i < state.procEntry.length; i++) {
+        state.procEntry[i].entry = Ipc.entry[i];
+        state.procEntry[i].localConfigList     = null;
+        state.procEntry[i].remoteConfigList    = null;
+        state.procEntry[i].attached            = 0;
     }
 
-    mod.ipcSharedAddr = null;
-    mod.gateMPSharedAddr = null;
+    state.ipcSharedAddr = null;
+    state.gateMPSharedAddr = null;
     Ipc.numUserFxns = Ipc.userFxns.length;
 }
 
@@ -181,12 +181,19 @@ function setEntryMeta(entry)
     /* init Ipc.entry */
     initEntryArray();
 
+    if (MultiProc.baseIdOfCluster == MultiProc.INVALIDID) {
+        Ipc.$logError("Cannot use Ipc.setEntryMeta when "
+                + "MultiProc.baseIdOfCluster is INVALIDID.", Ipc);
+    }
+
+    var clusterId = entry.remoteProcId - MultiProc.baseIdOfCluster;
+
     if (entry.setupNotify != undefined) {
-        Ipc.entry[entry.remoteProcId].setupNotify = entry.setupNotify;
+        Ipc.entry[clusterId].setupNotify = entry.setupNotify;
     }
 
     if (entry.setupMessageQ != undefined) {
-        Ipc.entry[entry.remoteProcId].setupMessageQ = entry.setupMessageQ;
+        Ipc.entry[clusterId].setupMessageQ = entry.setupMessageQ;
     }
 }
 
@@ -203,8 +210,10 @@ function initEntryArray()
     if (!(initEntryDone)) {
         Ipc.entry.length = MultiProc.numProcsInCluster;
 
-        for (var i=0; i < MultiProc.numProcsInCluster; i++) {
-            Ipc.entry[i].remoteProcId     = MultiProc.baseIdOfCluster + i;
+        for (var i = 0; i < MultiProc.numProcsInCluster; i++) {
+            Ipc.entry[i].remoteProcId =
+                    (MultiProc.baseIdOfCluster == MultiProc.INVALIDID) ?
+                    MultiProc.INVALIDID : MultiProc.baseIdOfCluster + i;
             Ipc.entry[i].setupNotify      = true;
             Ipc.entry[i].setupMessageQ    = true;
         }

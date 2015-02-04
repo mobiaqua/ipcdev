@@ -204,6 +204,18 @@ typedef struct {
 Int Ipc_attach(UInt16 remoteProcId);
 
 /*!
+ *  @brief      Internal IPC cluster configuration
+ *
+ *  Perform run-time configuration of internal data structures
+ *  related to cluster baseId. This function should be called
+ *  from a "startup first" hook but after having called
+ *  MultiProc_setBaseIdOfCluster().
+ *
+ *  @remarks    This function is only available on SYS/BIOS.
+ */
+Int Ipc_clusterConfig(Void);
+
+/*!
  *  @brief      Detach from the remote processor
  *
  *  @note       This function is currently only supported on SYS/BIOS.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -231,10 +231,10 @@ function module$static$init(state, mod)
     state.clusterProcList.length = mod.numProcsInCluster;
 
     /* initialize the array if we know the actual procIds */
-    if (mod.baseIdOfCluster != MultiProc.INVALIDID) {
-        for (var i = 0; i < state.clusterProcList.length; i++) {
-            state.clusterProcList[i] = mod.baseIdOfCluster + i;
-        }
+    for (var i = 0; i < state.clusterProcList.length; i++) {
+        state.clusterProcList[i] =
+                (mod.baseIdOfCluster != MultiProc.INVALIDID) ?
+                mod.baseIdOfCluster + i : MultiProc.INVALIDID;
     }
 }
 
