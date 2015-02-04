@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
     #pragma FUNC_EXT_CALLED(MultiProc_getNumProcsInCluster);
     #pragma FUNC_EXT_CALLED(MultiProc_self);
     #pragma FUNC_EXT_CALLED(MultiProc_setLocalId);
+    #pragma FUNC_EXT_CALLED(MultiProc_setBaseIdOfCluster);
 #endif
 
 /*
@@ -160,6 +161,27 @@ Int MultiProc_setLocalId(UInt16 id)
 
         /* It is ok to set the id */
         MultiProc_module->id = id;
+        return (MultiProc_S_SUCCESS);
+    }
+
+    return (MultiProc_E_FAIL);
+}
+
+/*
+ *  ======== MultiProc_setBaseIdOfCluster ========
+ */
+Int MultiProc_setBaseIdOfCluster(UInt16 id)
+{
+    /*
+     *  Check the following
+     *  1. Make sure the statically configured constant was invalid.
+     *     To call setBaseIdOfCluster, the id must have been set to invalid.
+     *  2. Make sure the call is made before module startup
+     */
+    if ((MultiProc_getBaseIdOfCluster() == MultiProc_INVALIDID) &&
+        (Startup_rtsDone() == FALSE)) {
+        /* It is ok to set the id */
+        MultiProc_module->baseIdOfCluster = id;
         return (MultiProc_S_SUCCESS);
     }
 

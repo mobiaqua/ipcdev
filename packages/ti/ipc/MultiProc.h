@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -251,6 +251,26 @@ UInt16 MultiProc_self(Void);
  *              - #MultiProc_E_FAIL:    MultiProc id cannot be set at this time
  */
 Int MultiProc_setLocalId(UInt16 id);
+
+/*!
+ *  @brief      Sets executing processor's MultiProc cluster base id
+ *
+ *  @param      id  Cluster base id
+ *
+ *  @remarks    Many users don't require this function.  A typical use case
+ *              for this function is on a homogenous multicore device where
+ *              the exact same image is loaded onto all cores and the
+ *              'current' processor's cluster base id is determined/set at
+ *              runtime by reading a GPIO pin or manually assigned via
+ *              a special mechanism.
+ *
+ *  @remarks    Currently only supported in SYSBIOS.
+ *
+ *  @return     MultiProc status:
+ *              - #MultiProc_S_SUCCESS: MultiProc cluster id successfully set
+ *              - #MultiProc_E_FAIL:    MultiProc cluster id cannot be set
+ */
+Int MultiProc_setBaseIdOfCluster(UInt16 id);
 
 #if defined (__cplusplus)
 }
