@@ -153,7 +153,7 @@ typedef struct Processor_Register_tag {
     /*!< Client callback function. */
     Ptr                 arg;
     /*!< Client arg to pass to the callback function. */
-    ProcMgr_EventType   state[];
+    ProcMgr_State       state[];
     /*!< States registered for notification. */
 } Processor_Register;
 

@@ -212,7 +212,7 @@ OsalThread_create (OsalThread_CallbackFxn fxn,
         GT_setFailureReason(curTrace,
                             GT_4CLASS,
                             "OsalThread_create",
-                            OSALTHREAD_E_MEMORY,
+                            status,
                             "Memory Allocation failure ");
     }
     else{

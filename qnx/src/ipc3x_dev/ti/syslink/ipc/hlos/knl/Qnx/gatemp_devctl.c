@@ -56,6 +56,8 @@ int ipc_gatemp_getNumResources(resmgr_context_t *ctp, io_devctl_t *msg,
     ipc_ocb_t *ocb);
 int ipc_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
     ipc_ocb_t *ocb);
+int ipc_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
+    ipc_ocb_t *ocb);
 int ipc_gatemp_isSetup(resmgr_context_t *ctp, io_devctl_t *msg,
     ipc_ocb_t *ocb);
 
@@ -249,8 +251,6 @@ int ipc_gatemp_start(resmgr_context_t *ctp, io_devctl_t *msg,
 int ipc_gatemp_stop(resmgr_context_t *ctp, io_devctl_t *msg,
     ipc_ocb_t *ocb)
 {
-    GateMPDrv_CmdArgs * cargs = (GateMPDrv_CmdArgs *)
-        (_DEVCTL_DATA (msg->i));
     GateMPDrv_CmdArgs * out  = (GateMPDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->o));
 

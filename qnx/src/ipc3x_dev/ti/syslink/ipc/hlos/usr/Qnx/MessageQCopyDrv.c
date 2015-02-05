@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -121,7 +121,6 @@ MessageQCopyDrv_open (Void)
 {
     Int    status   = MessageQCopy_S_SUCCESS;
     int    osStatus = 0;
-    Bool   isForked = FALSE;
 
     GT_0trace (curTrace, GT_ENTER, "MessageQCopyDrv_open");
 
@@ -159,7 +158,6 @@ MessageQCopyDrv_open (Void)
         if (MessageQCopyDrv_setup != getpid ()) {
             /* Indicates that this is a forked process - Ang - need to check this? */
             MessageQCopyDrv_setup = getpid ();
-            isForked = TRUE;
         }
         else {
             /* TBD: Protection for refCount. */

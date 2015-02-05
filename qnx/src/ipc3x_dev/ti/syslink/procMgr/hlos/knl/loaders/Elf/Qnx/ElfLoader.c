@@ -1511,7 +1511,6 @@ ElfLoader_delete (ElfLoader_Handle * handlePtr)
 {
     Int                  status           = LOADER_SUCCESS;
     DLOAD_HANDLE         elfObject        = NULL;
-    ElfLoader_Object *   object           = NULL;
     _ElfLoader_Object *  elfLoaderObject  = NULL;
     Loader_Object *      handle;
     IArg                 key;
@@ -1550,8 +1549,6 @@ ElfLoader_delete (ElfLoader_Handle * handlePtr)
         GT_assert (curTrace, (IS_VALID_PROCID (handle->procId)));
         /* Reset handle in Loader handle array. */
         ElfLoader_state.loaderHandles [handle->procId] = NULL;
-
-        object = (ElfLoader_Object *) handle->object;
 
         /* Free memory used for the ElfLoader object. */
         if (handle->object != NULL) {
@@ -2120,7 +2117,7 @@ ElfLoader_getEntryPt (Loader_Handle     handle,
     elfObj = elfLoaderObj->elfObject;
     GT_assert (curTrace, (elfObj != NULL));
 
-    if (!DLOAD_get_entry_point(elfObj, fileId, (TARGET_ADDRESS)entryPt))  {
+    if (!DLOAD_get_entry_point(elfObj, fileId, (TARGET_ADDRESS *)entryPt)) {
        status = LOADER_E_FAIL;
     }
 
@@ -2253,7 +2250,6 @@ Int ElfLoader_getSectionData (Loader_Handle        handle,
     _ElfLoader_Object *  _elfLoaderObj;
     Processor_Handle     procHandle;
     UInt32               procAddr_masterPhys;
-    UInt32               procAddr_masterVirt;
     ProcMgr_AddrInfo     aInfo;
     UInt32               numBytes;
     Int                  status = LOADER_SUCCESS;
@@ -2305,8 +2301,6 @@ Int ElfLoader_getSectionData (Loader_Handle        handle,
                                ProcMgr_AddrType_MasterPhys);
 
         if (status >= 0)  {
-            procAddr_masterVirt = aInfo.addr [ProcMgr_AddrType_MasterKnlVirt];
-
             /* Suspect this function has not been validated, so do a Memcopy */
             status = ProcMgr_read (_elfLoaderObj->pmHandle,
                                    sectionInfo->physicalAddress,

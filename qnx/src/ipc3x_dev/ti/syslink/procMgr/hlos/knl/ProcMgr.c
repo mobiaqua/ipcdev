@@ -886,7 +886,6 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
     Int                      status        = ProcMgr_S_SUCCESS;
     ProcMgr_Object *         procMgrHandle = (ProcMgr_Object *) handle ;
     IArg                     key;
-    UInt32                   index = 0;
     ProcMgr_AttachParams     tmpParams;
     Processor_AttachParams   procAttachParams;
     Loader_AttachParams      loaderAttachParams;
@@ -997,7 +996,6 @@ ProcMgr_attach (ProcMgr_Handle handle, ProcMgr_AttachParams * params)
                 for (i = 0;
                      (i < procAttachParams.numMemEntries) && (status >= 0);
                      i++) {
-                    index = i;
                     me = &procAttachParams.memEntries [i];
                     srcAddr = me->addr [ProcMgr_AddrType_SlaveVirt];
                     dstAddr = me->addr [ProcMgr_AddrType_MasterPhys];

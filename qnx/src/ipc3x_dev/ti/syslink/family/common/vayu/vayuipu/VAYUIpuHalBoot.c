@@ -96,14 +96,11 @@ Int
 VAYUIPU_halBootCtrl (Ptr halObj, Processor_BootCtrlCmd cmd, Ptr args)
 {
     Int                 status    = PROCESSOR_SUCCESS;
-    VAYUIPU_HalObject * halObject = NULL;
 
     GT_3trace (curTrace, GT_ENTER, "VAYUIPU_halBootCtrl", halObj, cmd, args);
 
     GT_assert (curTrace, (halObj != NULL));
     GT_assert (curTrace, (cmd < Processor_BootCtrlCmd_EndValue));
-
-    halObject = (VAYUIPU_HalObject *) halObj;
 
     switch (cmd) {
         case Processor_BootCtrlCmd_SetEntryPoint:

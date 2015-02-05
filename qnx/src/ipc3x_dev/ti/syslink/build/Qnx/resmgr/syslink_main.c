@@ -1582,7 +1582,6 @@ int main(int argc, char *argv[])
     int c;
     int hib_enable = 1;
     uint32_t hib_timeout = PM_HIB_DEFAULT_TIME;
-    char *user_parm = NULL;
     struct stat          sbuf;
     int i = 0;
     char * abs_path = NULL;
@@ -1596,7 +1595,7 @@ int main(int argc, char *argv[])
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "H:T:U:gc:dv:a:");
+        c = getopt (argc, argv, "H:T:gc:dv:a:");
         if (c == -1)
             break;
 
@@ -1613,9 +1612,6 @@ int main(int argc, char *argv[])
             hib_timeout = atoi(optarg);
             break;
 #endif
-        case 'U':
-            user_parm = optarg;
-            break;
         case 'd':
             disableRecovery = true;
             break;
@@ -1757,41 +1753,6 @@ int main(int argc, char *argv[])
         Osal_printf("IPC: device init failed");
         return(-1);
     }
-
-#if (_NTO_VERSION >= 800)
-    /* Relinquish privileges */
-    status = procmgr_ability(  0,
-                 DENY_ALL | PROCMGR_AID_SPAWN,
-                 DENY_ALL | PROCMGR_AID_FORK,
-                 PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_MEM_PEER,
-                 PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_MEM_PHYS,
-                 PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_INTERRUPT,
-                 PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_PATHSPACE,
-                 PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_RSRCDBMGR,
-                 PROCMGR_ADN_ROOT | PROCMGR_AOP_ALLOW | PROCMGR_AOP_LOCK | PROCMGR_AOP_SUBRANGE | PROCMGR_AID_SETUID,
-                 (uint64_t)1, (uint64_t)~0,
-                 PROCMGR_ADN_ROOT | PROCMGR_AOP_ALLOW | PROCMGR_AOP_LOCK | PROCMGR_AOP_SUBRANGE | PROCMGR_AID_SETGID,
-                 (uint64_t)1, (uint64_t)~0,
-                 PROCMGR_ADN_ROOT | PROCMGR_AOP_DENY | PROCMGR_AOP_LOCK | PROCMGR_AID_EOL);
-
-    if (status != EOK) {
-        Osal_printf("procmgr_ability failed! errno=%d", status);
-        return EXIT_FAILURE;
-    }
-
-    /* Reduce priority to either what defined from command line or at least nobody */
-    if (user_parm != NULL) {
-        if (set_ids_from_arg(user_parm) < 0) {
-            Osal_printf("unable to set uid/gid - %s", strerror(errno));
-            return EXIT_FAILURE;
-        }
-    } else {
-        if (setuid(99) != 0) {
-            Osal_printf("unable to set uid - %s", strerror(errno));
-            return EXIT_FAILURE;
-        }
-    }
-#endif
 
     /* make this a daemon process */
     if (-1 == procmgr_daemon(EXIT_SUCCESS,

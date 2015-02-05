@@ -175,7 +175,6 @@ MessageQCopyDrv_devctl (resmgr_context_t * ctp, io_devctl_t * msg,
  */
 void mqcopy_server_test_cb(MessageQCopy_Handle handle, void * data, int len, void * priv, UInt32 src, UInt16 srcProc)
 {
-    int status = 0;
     char message[MessageQCopy_BUFSIZE];
 
     memcpy(message, data, len);
@@ -184,13 +183,13 @@ void mqcopy_server_test_cb(MessageQCopy_Handle handle, void * data, int len, voi
                  mqcopy_test_num_msgs++, handle, src, message);
 
     if (mqcopy_test_num_msgs < MQCOPY_TEST_NUM_MSG) {
-        status = MessageQCopy_send (srcProc,
-                                    local_procid,
-                                    src,
-                                    local_endpoint,
-                                    MQCOPY_TSET_MSG,
-                                    String_len(MQCOPY_TSET_MSG),
-                                    TRUE);
+        MessageQCopy_send (srcProc,
+                           local_procid,
+                           src,
+                           local_endpoint,
+                           MQCOPY_TSET_MSG,
+                           String_len(MQCOPY_TSET_MSG),
+                           TRUE);
     }
     else {
         OsalSemaphore_post(mqcopy_test_sem);
@@ -267,7 +266,7 @@ static int run_mqcopy_server_test(void)
 
 void mqcopy_client_test_cb(MessageQCopy_Handle handle, void * data, int len, void * priv, UInt32 src, UInt16 srcProc)
 {
-    int status = 0, i = 0;
+    int i = 0;
     char message[MessageQCopy_BUFSIZE];
 
     memcpy(message, data, len);
@@ -282,13 +281,13 @@ void mqcopy_client_test_cb(MessageQCopy_Handle handle, void * data, int len, voi
     }
     if (i != 10) {
         if (mqcopy_test_num_msgs < MQCOPY_TEST_NUM_MSG) {
-            status = MessageQCopy_send (mqcopy_test_handles[i].procId,
-                                        local_procid,
-                                        mqcopy_test_handles[i].endpoint,
-                                        local_endpoint,
-                                        MQCOPY_TSET_MSG,
-                                        String_len(MQCOPY_TSET_MSG),
-                                        TRUE);
+            MessageQCopy_send(mqcopy_test_handles[i].procId,
+                              local_procid,
+                              mqcopy_test_handles[i].endpoint,
+                              local_endpoint,
+                              MQCOPY_TSET_MSG,
+                              String_len(MQCOPY_TSET_MSG),
+                              TRUE);
         }
         else {
             OsalSemaphore_post(mqcopy_test_sem);

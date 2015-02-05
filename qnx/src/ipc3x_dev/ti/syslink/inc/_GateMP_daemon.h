@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,16 @@ Int GateMP_setup(Int32 * sr0ProcId);
  * are processes that are using GateMP on the host.
  */
 Int GateMP_destroy(Bool forced);
+
+/*!
+ * Start the GateMP module.
+ */
+Int GateMP_start(Void);
+
+/*!
+ * Stop the GateMP module.
+ */
+Int GateMP_stop(Void);
 
 /*!
  * Find a free resource id for a particular protection type.

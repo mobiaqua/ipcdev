@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -1146,7 +1146,6 @@ static Int pte_set (UInt32 pa, UInt32 va, UInt32 size,
     struct pg_table_attrs *pt = pt_Table;
     struct iotlb_entry    *mapAttrs;
     int status = 0;
-    VAYUDSP_HalMmuEntryInfo setPteInfo;
     mapAttrs = Memory_alloc(0, sizeof(struct iotlb_entry), 0, NULL);
 
     l1_base_va = pt->l1_base_va;
@@ -1216,12 +1215,6 @@ static Int pte_set (UInt32 pa, UInt32 va, UInt32 size,
         mapAttrs->da = va;
         mapAttrs->pa = pa;
         mapAttrs->pgsz = MMU_CAM_PGSZ_16M;
-        setPteInfo.elementSize = attrs->element_size;
-        setPteInfo.endianism = attrs->endianism;
-        setPteInfo.masterPhyAddr = pa;
-        setPteInfo.mixedSize = attrs->mixedSize;
-        setPteInfo.size = size;
-        setPteInfo.slaveVirtAddr = va;
 
         status = hw_mmu_pte_set(pg_tbl_va, pa, va, size, attrs);
         if (status == RET_OK)
@@ -1404,9 +1397,6 @@ static Int rproc_mem_unmap (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
     UInt32 rem_bytes_l2;
     UInt32 vaCurr;
     Int status = 0;
-    UInt32 temp;
-    UInt32 pAddr;
-    UInt32 numof4Kpages = 0;
 
     if (mmuBase == 0) {
         status = -ENOMEM;
@@ -1475,14 +1465,6 @@ static Int rproc_mem_unmap (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
                     if ((pte_size != 0) && (rem_bytes_l2
                         >= pte_size) &&
                         !(vaCurr & (pte_size - 1))) {
-                        /* Collect Physical addresses from VA */
-                        pAddr = (pte_val & ~(pte_size - 1));
-                        if (pte_size == HW_PAGE_SIZE_64KB)
-                            numof4Kpages = 16;
-                        else
-                            numof4Kpages = 1;
-                        temp = 0;
-
                         if (hw_mmu_pte_clear(pte_addr_l2,
                             vaCurr, pte_size) == RET_OK) {
                             rem_bytes_l2 -= pte_size;
@@ -1520,13 +1502,6 @@ static Int rproc_mem_unmap (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
                 /* pte_size = 1 MB or 16 MB */
                 if ((pte_size != 0) && (rem_bytes >= pte_size) &&
                    !(vaCurr & (pte_size - 1))) {
-                    if (pte_size == HW_PAGE_SIZE_1MB)
-                        numof4Kpages = 256;
-                    else
-                        numof4Kpages = 4096;
-                    temp = 0;
-                    /* Collect Physical addresses from VA */
-                    pAddr = (pte_val & ~(pte_size - 1));
                     if (hw_mmu_pte_clear(L1_base_va, vaCurr,
                             pte_size) == RET_OK) {
                         rem_bytes -= pte_size;

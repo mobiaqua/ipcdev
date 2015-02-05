@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,10 +128,14 @@ IArg GateMutex_enter (GateMutex_Handle gmHandle)
 Void GateMutex_leave (GateMutex_Handle gmHandle, IArg key)
 {
     GateMutex_Object * obj = (GateMutex_Object *)gmHandle;
+#if defined(IPC_BUILD_DEBUG)
     int ret;
 
     ret = pthread_mutex_unlock(&(obj->mutex));
     assert(ret == 0);
+#else
+    pthread_mutex_unlock(&(obj->mutex));
+#endif
 }
 
 

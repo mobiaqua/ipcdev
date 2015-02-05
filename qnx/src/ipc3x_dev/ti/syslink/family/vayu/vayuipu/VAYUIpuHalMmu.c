@@ -267,47 +267,11 @@ VAYUIPU_halMmuCtrl (Ptr halObj, Processor_MmuCtrlCmd cmd, Ptr args)
 
         case Processor_MmuCtrlCmd_AddEntry:
         {
-            VAYUIPU_HalMmuCtrlArgs_AddEntry * addEntry;
-            addEntry = (VAYUIPU_HalMmuCtrlArgs_AddEntry *) args;
-
-            halObject = (VAYUIPU_HalObject *) halObj;
-            /* Add the entry in TLB for new request */
-            //status = _VAYUIPU_halMmuAddEntry (halObject,addEntry) ;
-#if !defined(IPC_BUILD_OPTIMIZE)
-            if (status < 0) {
-                /*! @retval PROCESSOR_E_FAIL Failed to dynamically add IPU MMU
-                 *                           entry. */
-                status = PROCESSOR_E_FAIL;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "VAYUIPU_halMmuCtrl",
-                                     status,
-                                     "Failed to dynamically add IPU MMU entry");
-            }
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
         case Processor_MmuCtrlCmd_DeleteEntry:
         {
-            VAYUIPU_HalMmuCtrlArgs_DeleteEntry * deleteEntry;
-            deleteEntry = (VAYUIPU_HalMmuCtrlArgs_DeleteEntry *) args;
-
-            halObject = (VAYUIPU_HalObject *) halObj;
-            /* Add the entry in TLB for new request */
-            //status = _VAYUIPU_halMmuDeleteEntry (halObject,deleteEntry);
-#if !defined(IPC_BUILD_OPTIMIZE)
-            if (status < 0) {
-                /*! @retval PROCESSOR_E_FAIL Failed to dynamically delete IPU
-                 *                           MMU entry  */
-                status = PROCESSOR_E_FAIL;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "VAYUIPU_halMmuCtrl",
-                                     status,
-                                     "Failed to dynamically add IPU MMU entry");
-            }
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
         break;
 
@@ -807,7 +771,7 @@ _VAYUIPU_halMmuDeleteEntry (VAYUIPU_HalObject       * halObject,
     UInt32 *                    iopgd       = NULL;
     UInt32                      currentEntrySize;
     VAYUIPU_HalMmuEntryInfo     currentEntry;
-    VAYUIPU_HalMmuObject *      mmuObj;
+    /* VAYUIPU_HalMmuObject *      mmuObj; */
     //UInt32                      clearBytes = 0;
 
     GT_2trace (curTrace, GT_ENTER, "_VAYUIPU_halMmuDeleteEntry",
@@ -817,7 +781,7 @@ _VAYUIPU_halMmuDeleteEntry (VAYUIPU_HalObject       * halObject,
     GT_assert (curTrace, (entry                != NULL));
     GT_assert (curTrace, (entry->size          != 0));
 
-    mmuObj = &(halObject->mmuObj);
+    /* mmuObj = &(halObject->mmuObj); */
 
     /* copy the entry (or entries) */
     Memory_copy(&currentEntry,
@@ -894,7 +858,7 @@ _VAYUIPU_halMmuDeleteEntry (VAYUIPU_HalObject       * halObject,
     return status;
 }
 
-
+#ifdef MMUTEST
 static ULONG HAL_MMU_PteAddrL1(const ULONG L1_base, const ULONG va)
 {
     ULONG TTB_13_to_7, VA_31_to_20, desc_13_to_0;
@@ -910,6 +874,7 @@ static ULONG HAL_MMU_PteAddrL2(const ULONG L2_base, const ULONG va)
 {
     return ( (L2_base & 0xFFFFFC00) | ( (va >> 10) & 0x3FC ) );
 }
+#endif
 
 #define OUTREG32(x, y)      WRITE_REGISTER_ULONG(x, (ULONG)(y))
 
@@ -917,6 +882,7 @@ int VAYUIPU_InternalMMU_PteSet (const ULONG          pgTblVa,
                                 struct iotlb_entry * mapAttrs)
 {
     Int status = 0;
+#ifdef MMUTEST
     ULONG pteAddr, pteVal;
     Int  numEntries = 1;
     ULONG  physicalAddr = mapAttrs->pa;
@@ -970,11 +936,9 @@ int VAYUIPU_InternalMMU_PteSet (const ULONG          pgTblVa,
 
     while (--numEntries >= 0)
     {
-#ifdef MMUTEST
         ((ULONG*)pteAddr)[numEntries] = pteVal;
-#endif
     }
-
+#endif
     return status;
 }
 

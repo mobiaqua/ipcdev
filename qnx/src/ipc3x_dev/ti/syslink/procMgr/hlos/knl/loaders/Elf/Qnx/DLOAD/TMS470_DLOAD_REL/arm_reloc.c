@@ -1228,6 +1228,8 @@ static void rel_unpack_addend(ARM_RELOC_TYPE r_type,
                               uint8_t* address,
                               uint32_t* addend)
 {
+    uint32_t temp;
+
     switch (r_type)
     {
         case R_ARM_ABS32:
@@ -1242,14 +1244,16 @@ static void rel_unpack_addend(ARM_RELOC_TYPE r_type,
         case R_ARM_ABS16:
         {
             *addend = *((uint16_t*)address);
-            *addend = SIGN_EXTEND(*addend, 16);
+            temp = SIGN_EXTEND(*addend, 16);
+            *addend = temp;
         }
         break;
 
         case R_ARM_ABS8:
         {
             *addend = *address;
-            *addend = SIGN_EXTEND(*addend, 8);
+            temp = SIGN_EXTEND(*addend, 8);
+            *addend = temp;
         }
         break;
 
@@ -1590,8 +1594,6 @@ static BOOL process_rel_table(DLOAD_HANDLE handle,
 
     for ( ; rid < relnum; rid++)
     {
-        int32_t r_symid = ELF32_R_SYM(rel_table[rid].r_info);
-
         /*---------------------------------------------------------------*/
         /* If the relocation offset falls within the segment, process it */
         /*---------------------------------------------------------------*/

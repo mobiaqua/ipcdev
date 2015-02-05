@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -239,7 +239,6 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
     NameServer_Handle handle;
     Int               status = NameServer_E_FAIL;
     char              buf = 'n';
-    int               numBytes;
     int               waitFd = NameServer_module->waitFdW;
 
     if (msg->request == NAMESERVER_REQUEST) {
@@ -301,7 +300,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerMsg));
 
         /* Post the eventfd upon which NameServer_get() is waiting */
-        numBytes = write(waitFd, &buf, sizeof(buf));
+        write(waitFd, &buf, sizeof(buf));
     }
 }
 
@@ -339,7 +338,6 @@ static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
 Int NameServer_setup(Void)
 {
     Int    status = NameServer_S_SUCCESS;
-    UInt16 numProcs;
     int    fd[2];
 
     pthread_mutex_lock(&NameServer_module->modGate);
@@ -353,8 +351,6 @@ Int NameServer_setup(Void)
         status = NameServer_S_ALREADYSETUP;
         goto exit;
     }
-
-    numProcs = MultiProc_getNumProcessors();
 
     if (pipe(fd) == -1) {
         status = NameServer_E_FAIL;
@@ -860,6 +856,11 @@ Int NameServer_getRemote(NameServer_Handle handle,
         if (FD_ISSET(waitFd, &rfds)) {
             /* Read, just to balance the write: */
             numBytes = read(waitFd, &buf, sizeof(buf));
+            if (numBytes == -1) {
+                LOG0("NameServer_getRemote: read failure\n")
+                status = NameServer_E_FAIL;
+                goto exit;
+            }
 
             /* Process response: */
             replyMsg = &NameServer_module->nsMsg;

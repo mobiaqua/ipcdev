@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -375,7 +375,6 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
     Int                   status    = MessageQ_S_SUCCESS;
     MessageQ_Object *     obj    = NULL;
     UInt16                queueIndex = 0u;
-    UInt16                procId;
     MessageQDrv_CmdArgs   cmdArgs;
     int                   fildes[2];
     MessageQ_Params       ps;
@@ -442,7 +441,6 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
    /* Populate the params member */
     memcpy(&obj->params, &ps, sizeof(ps));
 
-    procId = MultiProc_self();
     obj->queue = cmdArgs.args.create.queueId;
     obj->serverHandle = cmdArgs.args.create.handle;
 
@@ -752,10 +750,9 @@ Void MessageQ_unblock (MessageQ_Handle handle)
 {
     MessageQ_Object * obj   = (MessageQ_Object *) handle;
     char         buf = 'n';
-    int          numBytes;
 
     /* Write to pipe to awaken any threads blocked on this messageQ: */
-    numBytes = write(obj->unblockFdW, &buf, 1);
+    write(obj->unblockFdW, &buf, 1);
 }
 
 /* Embeds a source message queue into a message. */
@@ -1026,9 +1023,15 @@ static Int transportGet(int fd, MessageQ_Msg * retMsg)
 
     PRINTVERBOSE1("transportGet: read from fd: %d\n", fd)
     ret = ioctl(fd, TIIPC_IOCGETREMOTE, &remote);
+    if (ret == -1) {
+        printf("ioctl failed: %s (%d)\n", strerror(errno), errno);
+        status = MessageQ_E_FAIL;
+        goto exit;
+    }
     PRINTVERBOSE3("\tReceived a msg: byteCount: %d, rpmsg addr: %d, rpmsg \
         proc: %d\n", byteCount, remote.remote_addr, remote.remote_proc)
-    PRINTVERBOSE2("\tMessage Id: %d, Message size: %d\n", msg->msgId, msg->msgSize)
+    PRINTVERBOSE2("\tMessage Id: %d, Message size: %d\n", msg->msgId,
+        msg->msgSize)
 
     *retMsg = msg;
 
