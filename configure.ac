@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013-2014, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -70,6 +70,7 @@ AC_SUBST([AM_LDFLAGS])
 AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'OMAPL138' 'OMAP54XX' '66AK2E' 'TCI6630' 'TCI6636' 'TCI6638' and 'DRA7XX'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
 AC_ARG_VAR(KERNEL_INSTALL_DIR, Installation path to the Linux kernel.)
+AC_ARG_VAR(AF_RPMSG, Address Family used by the RPMSG driver)
 AC_ARG_VAR(DRM_PREFIX, Installation location to the DRM library.)
 
 # Test platform variable for setting
@@ -93,9 +94,10 @@ AS_IF([test "x$PLATFORM" = "xOMAPL138"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
   [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])])])
 
-# Test for required KERNEL path
-AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
-  [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])
+# If platform is specified, make sure at least one of
+# KERNEL_INSTALL_DIR or AF_MSG are set.
+AS_IF([test -n "$PLATFORM" -a -z "$KERNEL_INSTALL_DIR" -a -z "$AF_RPMSG"],
+  [AC_MSG_ERROR([Must set at least one of KERNEL_INSTALL_DIR or AF_RPMSG])])
 
 # Ignore KERNEL path when no platform is set
 AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
@@ -106,6 +108,7 @@ AS_IF([test "x$PLATFORM" = "x"], [CMEM_INSTALL_DIR=])
 AC_SUBST([PLATFORM])
 AC_SUBST([CMEM_INSTALL_DIR])
 AC_SUBST([KERNEL_INSTALL_DIR])
+AC_SUBST([AF_RPMSG])
 AC_SUBST([DRM_PREFIX])
 
 # Define specific variables to be used in Makefile.am
@@ -119,7 +122,9 @@ AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xOMAP54XX"])
 AM_CONDITIONAL([DRA7XX], [test "x$PLATFORM" = "xDRA7XX"])
 AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"])
 AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"])
+AM_CONDITIONAL([KERNEL_INSTALL_DIR], [test -n "$KERNEL_INSTALL_DIR"])
 AM_CONDITIONAL([DRM], [test "x$DRM_PREFIX" != "x"])
+AM_CONDITIONAL([AF_RPMSG], [test -n "$AF_RPMSG"])
 
 # Generate Makefile(s)
 AC_CONFIG_FILES([Makefile])

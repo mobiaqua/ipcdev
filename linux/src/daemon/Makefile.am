@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2014, Texas Instruments Incorporated
+##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -32,13 +32,21 @@
 ##
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(KERNEL_INSTALL_DIR)/include/generated/uapi\
-        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall
 
 if DRA7XX
 AM_CFLAGS += -DGATEMP_SUPPORT
 endif
+
+if KERNEL_INSTALL_DIR
+AM_CFLAGS += -I$(KERNEL_INSTALL_DIR)/include/generated/uapi
+endif
+
+if AF_RPMSG
+AM_CFLAGS += -DAF_RPMSG=$(AF_RPMSG)
+endif
+
+AM_CFLAGS += -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages @AM_CFLAGS@
 
 ###############################################################################
 # THE PROGRAMS TO BUILD

@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2014, Texas Instruments Incorporated
+#   Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -35,16 +35,12 @@ include products.mak
 
 .PHONY: config config-static config-shared
 
-# If you need to add any compile flags to the build of IPC user libraries,
-# you can use the CFLAGS option to the configure script.
+# If you need to add any compile flags to the build of IPC user
+# libraries, you can use the CFLAGS option to the configure script.
+# For example, to following would add preprocessor define called
+# PRIORITY with a value of 5.
 #
-# For example, in the very rare case where your kernel's AF_RPMSG
-# definition isn't correctly detected by IPC (see
-# linux/include/net/rpmsg.h), you can provide your kernel's definition
-# of AF_RPMSG by adding this CFLAGS line to the configure commands below
-# to force the value of AF_RPMSG to 42:
-#
-#            CFLAGS="-DAF_RPMSG=42"
+# CFLAGS="-DPRIORITY=5"
 
 # If the user set DESTDIR (e.g. in products.mak), pass that value via
 # --prefix= option.  If DESTDIR is not set, --prefix is not thrown and
@@ -64,7 +60,8 @@ config:
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
             KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
-            DRM_PREFIX=$(DRM_PREFIX)
+            DRM_PREFIX=$(DRM_PREFIX) \
+            AF_RPMSG=$(AF_RPMSG)
 
 
 config-static:
@@ -75,7 +72,8 @@ config-static:
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
             KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
-            DRM_PREFIX=$(DRM_PREFIX)
+            DRM_PREFIX=$(DRM_PREFIX) \
+            AF_RPMSG=$(AF_RPMSG)
 
 
 config-shared:
@@ -86,4 +84,5 @@ config-shared:
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
             KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
-            DRM_PREFIX=$(DRM_PREFIX)
+            DRM_PREFIX=$(DRM_PREFIX) \
+            AF_RPMSG=$(AF_RPMSG)
