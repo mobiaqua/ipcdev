@@ -39,7 +39,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @DRA7XX_TRUE@am__append_1 = -DGATEMP_SUPPORT
-@DRA7XX_TRUE@am__append_2 = $(top_srcdir)/linux/include/IGateProvider.h \
+@KERNEL_INSTALL_DIR_TRUE@am__append_2 = -I$(KERNEL_INSTALL_DIR)/include/generated/uapi
+@DRA7XX_TRUE@am__append_3 = $(top_srcdir)/linux/include/IGateProvider.h \
 @DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateHWSpinlock.h \
 @DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateMutex.h \
 @DRA7XX_TRUE@                        $(top_srcdir)/linux/include/GateMP_config.h \
@@ -118,15 +119,17 @@ ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
+AF_RPMSG = @AF_RPMSG@
+AF_RPMSG_FALSE = @AF_RPMSG_FALSE@
+AF_RPMSG_TRUE = @AF_RPMSG_TRUE@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -I$(top_srcdir)/linux/include \
-	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
-	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
-	-Wall @AM_CFLAGS@ $(am__append_1)
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall \
+	$(am__append_1) $(am__append_2) -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/packages @AM_CFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -168,6 +171,8 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KDIR_FALSE = @KDIR_FALSE@
 KDIR_TRUE = @KDIR_TRUE@
 KERNEL_INSTALL_DIR = @KERNEL_INSTALL_DIR@
+KERNEL_INSTALL_DIR_FALSE = @KERNEL_INSTALL_DIR_FALSE@
+KERNEL_INSTALL_DIR_TRUE = @KERNEL_INSTALL_DIR_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
@@ -274,7 +279,7 @@ libtiipc_la_SOURCES = $(libtiipc_la_HEADERS) \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h \
 	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h MessageQ.c \
-	MultiProc.c NameServer.c Ipc.c $(am__append_2)
+	MultiProc.c NameServer.c Ipc.c $(am__append_3)
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0

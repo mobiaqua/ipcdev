@@ -37,19 +37,21 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @DRA7XX_TRUE@am__append_1 = -DGATEMP_SUPPORT
+@KERNEL_INSTALL_DIR_TRUE@am__append_2 = -I$(KERNEL_INSTALL_DIR)/include/generated/uapi
+@AF_RPMSG_TRUE@am__append_3 = -DAF_RPMSG=$(AF_RPMSG)
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9)
-@OMAP54XX_SMP_TRUE@am__append_2 = lad_omap54xx_smp
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 = lad_dra7xx
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_4 = lad_omapl138
-@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_5 = lad_66ak2e
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_6 = lad_tci6614
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_7 = lad_tci6630
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_8 = lad_tci6636
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 = lad_tci6638
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
-@DRA7XX_TRUE@am__append_11 = \
+@OMAP54XX_SMP_TRUE@am__append_4 = lad_omap54xx_smp
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_5 = lad_dra7xx
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_6 = lad_omapl138
+@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_7 = lad_66ak2e
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_8 = lad_tci6614
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_9 = lad_tci6630
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_10 = lad_tci6636
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_11 = lad_tci6638
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_12 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+@DRA7XX_TRUE@am__append_13 = \
 @DRA7XX_TRUE@                GateMP_daemon.c \
 @DRA7XX_TRUE@		GateHWSpinlock.c \
 @DRA7XX_TRUE@		GateHWSpinlock_daemon.c \
@@ -353,15 +355,18 @@ ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
+AF_RPMSG = @AF_RPMSG@
+AF_RPMSG_FALSE = @AF_RPMSG_FALSE@
+AF_RPMSG_TRUE = @AF_RPMSG_TRUE@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include \
-	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
-	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
-	-Wall @AM_CFLAGS@ $(am__append_1)
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall \
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	-I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
+	@AM_CFLAGS@ $(am__empty)
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -403,6 +408,8 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KDIR_FALSE = @KDIR_FALSE@
 KDIR_TRUE = @KDIR_TRUE@
 KERNEL_INSTALL_DIR = @KERNEL_INSTALL_DIR@
+KERNEL_INSTALL_DIR_FALSE = @KERNEL_INSTALL_DIR_FALSE@
+KERNEL_INSTALL_DIR_TRUE = @KERNEL_INSTALL_DIR_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
@@ -493,7 +500,7 @@ common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
 	$(top_srcdir)/linux/include/net/rpmsg.h \
 	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
-	$(top_srcdir)/packages/ti/ipc/MultiProc.h $(am__append_11)
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h $(am__append_13)
 
 # list of sources for the 'lad' binary and to add to the source distribution
 #

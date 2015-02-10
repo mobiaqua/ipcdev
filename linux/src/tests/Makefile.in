@@ -40,9 +40,9 @@ host_triplet = @host@
 @DRM_TRUE@        -I$(DRM_PREFIX)/usr/include/libdrm \
 @DRM_TRUE@        -I$(DRM_PREFIX)/usr/include/omap
 
-@CMEM_TRUE@am__append_2 = \
-@CMEM_TRUE@        -I$(CMEM_INSTALL_DIR)/include
-
+@CMEM_TRUE@am__append_2 = -I$(CMEM_INSTALL_DIR)/include
+@KERNEL_INSTALL_DIR_TRUE@am__append_3 = -I$(KERNEL_INSTALL_DIR)/include/generated/uapi
+@AF_RPMSG_TRUE@am__append_4 = -DAF_RPMSG=$(AF_RPMSG)
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
 	MessageQMultiMulti$(EXEEXT) NameServerApp$(EXEEXT) \
@@ -53,28 +53,28 @@ bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_6) $(am__EXEEXT_7)
 
 # Add platform specific bin application's here
-@OMAP54XX_SMP_TRUE@am__append_3 = 
-@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_4 = mmrpc_test
+@OMAP54XX_SMP_TRUE@am__append_5 = 
+@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_6 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_5 = 
-@CMEM_TRUE@@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_6 = GateMPApp
-@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_7 = mmrpc_test
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_7 = 
+@CMEM_TRUE@@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_8 = GateMPApp
+@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_9 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_8 = 
-@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_9 = nano_test
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_10 = 
+@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_11 = nano_test
 # Add platform specific bin application's here
-@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_10 = 
+@C66AK2E_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@am__append_12 = 
 # Add platform specific bin application's here
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_11 = 
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_13 = 
 # Add platform specific bin applications here
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_12 = 
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_TRUE@am__append_14 = 
 # Add platform specific bin application's here
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_13 = 
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_TRUE@am__append_15 = 
 # Add platform specific bin application's here
-@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_14 = 
+@C66AK2E_FALSE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_16 = 
 # Add platform independent apps here or above in bin_PROGRAMS
-@C66AK2E_FALSE@@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_15 = nano_test
-@C66AK2E_FALSE@@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_16 = mmrpc_test
+@C66AK2E_FALSE@@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_17 = nano_test
+@C66AK2E_FALSE@@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6630_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_18 = mmrpc_test
 subdir = linux/src/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -169,15 +169,18 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 VPATH = ../../../packages/ti/ipc/tests
 ACLOCAL = @ACLOCAL@
+AF_RPMSG = @AF_RPMSG@
+AF_RPMSG_FALSE = @AF_RPMSG_FALSE@
+AF_RPMSG_TRUE = @AF_RPMSG_TRUE@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include \
-	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
-	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
-	-Wall @AM_CFLAGS@ $(am__append_1) $(am__append_2)
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall \
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/packages @AM_CFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -219,6 +222,8 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KDIR_FALSE = @KDIR_FALSE@
 KDIR_TRUE = @KDIR_TRUE@
 KERNEL_INSTALL_DIR = @KERNEL_INSTALL_DIR@
+KERNEL_INSTALL_DIR_FALSE = @KERNEL_INSTALL_DIR_FALSE@
+KERNEL_INSTALL_DIR_TRUE = @KERNEL_INSTALL_DIR_TRUE@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
