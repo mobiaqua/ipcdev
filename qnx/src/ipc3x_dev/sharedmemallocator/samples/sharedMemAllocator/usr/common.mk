@@ -39,7 +39,7 @@ PINFO DESCRIPTION=shared memory allocator app
 endef
 
 NAME = SharedMemoryAllocatorTestApp
-INSTALLDIR = bin
+INSTALLDIR = /dev/null
 
 #Add extra include path
 EXTRA_INCVPATH+=$(PROJECT_ROOT)/../../../resmgr/public	\

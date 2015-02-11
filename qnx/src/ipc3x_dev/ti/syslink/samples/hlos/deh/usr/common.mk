@@ -39,7 +39,7 @@ PINFO DESCRIPTION=rpmsg-omx Error Test
 endef
 
 NAME = rpmsg-omx-errors
-INSTALLDIR = bin
+INSTALLDIR = /dev/null
 
 #default IPC Product root path and can be overridden from commandline
 IPC_ROOT = $(PROJECT_ROOT)/../../../../../..

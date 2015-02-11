@@ -39,7 +39,7 @@ PINFO DESCRIPTION=rpmsg-rpc Stress Test
 endef
 
 NAME = rpmsg-rpc-stress
-INSTALLDIR = bin
+INSTALLDIR = bin/tests
 
 #default IPC Product root path and can be overridden from commandline
 IPC_ROOT = $(PROJECT_ROOT)/../../../../../..
@@ -58,7 +58,7 @@ EXTRA_SRCVPATH += \
         $(PROJECT_ROOT)/$(IPC_BUILDOS) \
         $(PROJECT_ROOT)/..
 
-CCOPTS += -g -O0 -DIPC_BUILDOS_QNX
+CCOPTS += -DIPC_BUILDOS_QNX
 
 include $(MKFILES_ROOT)/qtargets.mk
 

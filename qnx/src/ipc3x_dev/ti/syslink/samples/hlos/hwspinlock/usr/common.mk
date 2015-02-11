@@ -39,7 +39,7 @@ PINFO DESCRIPTION=hwspinlock test app
 endef
 
 NAME = HwSpinLockTestApp
-INSTALLDIR = bin
+INSTALLDIR = /dev/null
 
 #Add extra include path
 EXTRA_INCVPATH+=$(IPC_ROOT)/inc	\
