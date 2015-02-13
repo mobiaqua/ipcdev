@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -394,7 +394,7 @@ void * test_exec_call(void * arg)
 
 void * test_select_thread (void * arg)
 {
-    int fd;
+    int fd = 0;
     int reply_len;
     char return_buf[512] = {0};
     struct rppc_function_return *rtn_packet =
@@ -445,12 +445,12 @@ void * test_select_thread (void * arg)
 
 void * test_read_thread (void * arg)
 {
-    int fd = (int)arg;
-    int reply_len;
-    char  return_buf[512] = {0};
+    int    fd = (int)arg;
+    int    reply_len;
+    char   return_buf[512] = {0};
     struct rppc_function_return *rtn_packet =
                                (struct rppc_function_return *)return_buf;
-    int               packet_id;
+    int    packet_id = 0;
 
     while (runTest) {
         if (recv_cmd(fd, 512, (char *)rtn_packet, &reply_len)) {
@@ -1013,7 +1013,7 @@ int test_errors(int core_id, int num_comps, int sub_test)
 
 int main(int argc, char *argv[])
 {
-    int ret;
+    int ret = 0;
     int test_id = -1;
     int core_id = 0;
     int num_comps = 1;
