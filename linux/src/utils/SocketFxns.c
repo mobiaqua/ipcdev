@@ -55,7 +55,29 @@
 /* For MultiProc id to remoteproc index map */
 #include <_MultiProc.h>
 
-/* traces in this file are controlled via _SocketFxns_verbose */
+/*  Traces in this file are controlled via _SocketFxns_verbose
+ *
+ *  Caution! This file is used by both LAD and TransportRpmsg. The
+ *  PRINTVERBOSE macros use printf(), which sends its output to
+ *  STDOUT (fd = 0). However, LAD closes STDOUT and by unfortunate
+ *  chance, the file descriptor zero (fd = 0) is reused for the outbound
+ *  pipe to the first client. This means all trace messages go into
+ *  the pipe and corrupt the data on the client side.
+
+ *  If you want to enable this trace for LAD, in addition to setting
+ *  _SocketFxns_versbose to TRUE below, you must also comment out the
+ *  three calls to close() in linux/src/daemon/lad.c:
+ *
+ *      close(STDIN_FILENO);
+ *      close(STDOUT_FILENO);
+ *      close(STDERR_FILENO);
+ *
+ *  If you only want to enable trace in the client (i.e. calls from
+ *  TransportRpmsg), then simply set the environment variable IPC_DEBUG
+ *  (to either 2 or 3) before you run your program.
+ *
+ *  IPC_DEBUG=3 ./app_host
+ */
 Bool _SocketFxns_verbose = FALSE;
 #define verbose _SocketFxns_verbose
 
