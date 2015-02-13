@@ -55,7 +55,7 @@ bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DRA7XX_TRUE@                GateMP_daemon.c \
 @DRA7XX_TRUE@		GateHWSpinlock.c \
 @DRA7XX_TRUE@		GateHWSpinlock_daemon.c \
-@DRA7XX_TRUE@		GateHWSpinlockCfg_dra7xx.c \
+@DRA7XX_TRUE@		cfg/GateHWSpinlockCfg_dra7xx.c \
 @DRA7XX_TRUE@		$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 @DRA7XX_TRUE@		$(top_srcdir)/linux/include/_GateMP.h \
 @DRA7XX_TRUE@                $(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -93,7 +93,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__lad_66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -107,72 +107,7 @@ am__lad_66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
-	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
-	$(top_srcdir)/linux/include/_GateMP.h \
-	$(top_srcdir)/linux/include/_GateMP_daemon.h \
-	$(top_srcdir)/linux/include/IGateProvider.h \
-	$(top_srcdir)/linux/include/GateHWSpinlock.h \
-	$(top_srcdir)/linux/include/GateMutex.h \
-	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_66ak2e.c
-@DRA7XX_TRUE@am__objects_1 = GateMP_daemon.$(OBJEXT) \
-@DRA7XX_TRUE@	GateHWSpinlock.$(OBJEXT) \
-@DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
-@DRA7XX_TRUE@	GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
-@DRA7XX_TRUE@	GateMutex.$(OBJEXT)
-am__objects_2 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
-	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT) \
-	$(am__objects_1)
-am_lad_66ak2e_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2e.$(OBJEXT)
-lad_66ak2e_OBJECTS = $(am_lad_66ak2e_OBJECTS)
-am__DEPENDENCIES_1 =  \
-	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
-am__DEPENDENCIES_2 =
-lad_66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
-	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
-	$(top_srcdir)/hlos_common/include/_MessageQ.h \
-	$(top_srcdir)/hlos_common/include/_NameServer.h \
-	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h \
-	$(top_srcdir)/linux/include/SocketFxns.h \
-	$(top_srcdir)/linux/include/ladclient.h \
-	$(top_srcdir)/linux/include/net/rpmsg.h \
-	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
-	$(top_srcdir)/packages/ti/ipc/NameServer.h \
-	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
-	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
-	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
-	$(top_srcdir)/linux/include/_GateMP.h \
-	$(top_srcdir)/linux/include/_GateMP_daemon.h \
-	$(top_srcdir)/linux/include/IGateProvider.h \
-	$(top_srcdir)/linux/include/GateHWSpinlock.h \
-	$(top_srcdir)/linux/include/GateMutex.h \
-	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_dra7xx.c
-am_lad_dra7xx_OBJECTS = $(am__objects_2) MultiProcCfg_dra7xx.$(OBJEXT)
-lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
-lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
-	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
-	$(top_srcdir)/hlos_common/include/_MessageQ.h \
-	$(top_srcdir)/hlos_common/include/_NameServer.h \
-	$(top_srcdir)/linux/include/_MultiProc.h \
-	$(top_srcdir)/linux/include/_lad.h \
-	$(top_srcdir)/linux/include/SocketFxns.h \
-	$(top_srcdir)/linux/include/ladclient.h \
-	$(top_srcdir)/linux/include/net/rpmsg.h \
-	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
-	$(top_srcdir)/packages/ti/ipc/NameServer.h \
-	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
-	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -181,14 +116,81 @@ am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
-	MultiProcCfg_omap54xx_smp.c
+	cfg/MultiProcCfg_66ak2e.c
+@DRA7XX_TRUE@am__objects_1 = GateMP_daemon.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlock.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
+@DRA7XX_TRUE@	GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
+@DRA7XX_TRUE@	GateMutex.$(OBJEXT)
+am__objects_2 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
+	MessageQCfg.$(OBJEXT) MultiProc_daemon.$(OBJEXT) \
+	NameServer_daemon.$(OBJEXT) $(am__objects_1)
+am_lad_66ak2e_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2e.$(OBJEXT)
+lad_66ak2e_OBJECTS = $(am_lad_66ak2e_OBJECTS)
+am__DEPENDENCIES_1 =  \
+	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
+am__DEPENDENCIES_2 =
+lad_66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_dra7xx.c
+am_lad_dra7xx_OBJECTS = $(am__objects_2) MultiProcCfg_dra7xx.$(OBJEXT)
+lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
+lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+	$(top_srcdir)/hlos_common/include/_MessageQ.h \
+	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_MultiProc.h \
+	$(top_srcdir)/linux/include/_lad.h \
+	$(top_srcdir)/linux/include/SocketFxns.h \
+	$(top_srcdir)/linux/include/ladclient.h \
+	$(top_srcdir)/linux/include/net/rpmsg.h \
+	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
+	$(top_srcdir)/packages/ti/ipc/NameServer.h \
+	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
+	GateHWSpinlock.c GateHWSpinlock_daemon.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
+	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
+	$(top_srcdir)/linux/include/_GateMP.h \
+	$(top_srcdir)/linux/include/_GateMP_daemon.h \
+	$(top_srcdir)/linux/include/IGateProvider.h \
+	$(top_srcdir)/linux/include/GateHWSpinlock.h \
+	$(top_srcdir)/linux/include/GateMutex.h \
+	$(top_srcdir)/linux/include/GateMP_config.h \
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_omap54xx_smp.c
 am_lad_omap54xx_smp_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_omap54xx_smp.$(OBJEXT)
 lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -202,7 +204,7 @@ am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -210,14 +212,15 @@ am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_omapl138.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_omapl138.c
 am_lad_omapl138_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_omapl138.$(OBJEXT)
 lad_omapl138_OBJECTS = $(am_lad_omapl138_OBJECTS)
 lad_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -231,7 +234,7 @@ am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -239,13 +242,14 @@ am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6614.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_tci6614.c
 am_lad_tci6614_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6614.$(OBJEXT)
 lad_tci6614_OBJECTS = $(am_lad_tci6614_OBJECTS)
 lad_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -259,7 +263,7 @@ am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -267,13 +271,14 @@ am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6630.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_tci6630.c
 am_lad_tci6630_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6630.$(OBJEXT)
 lad_tci6630_OBJECTS = $(am_lad_tci6630_OBJECTS)
 lad_tci6630_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -287,7 +292,7 @@ am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -295,13 +300,14 @@ am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6638.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_tci6638.c
 am_lad_tci6636_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6636_OBJECTS = $(am_lad_tci6636_OBJECTS)
 lad_tci6636_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
@@ -315,7 +321,7 @@ am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/packages/ti/ipc/NameServer.h \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h GateMP_daemon.c \
 	GateHWSpinlock.c GateHWSpinlock_daemon.c \
-	GateHWSpinlockCfg_dra7xx.c \
+	cfg/GateHWSpinlockCfg_dra7xx.c \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/include/_GateMP.h \
 	$(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -323,7 +329,8 @@ am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
 	$(top_srcdir)/linux/include/GateMP_config.h \
-	$(top_srcdir)/packages/ti/ipc/GateMP.h MultiProcCfg_tci6638.c
+	$(top_srcdir)/packages/ti/ipc/GateMP.h \
+	cfg/MultiProcCfg_tci6638.c
 am_lad_tci6638_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6638_OBJECTS = $(am_lad_tci6638_OBJECTS)
@@ -488,8 +495,9 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
-	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
+common_sources = lad.c MessageQ_daemon.c cfg/MessageQCfg.c \
+	MultiProc_daemon.c NameServer_daemon.c \
+	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
@@ -506,14 +514,14 @@ common_sources = lad.c MessageQ_daemon.c MultiProc_daemon.c \
 #
 # NOTE:  6636_SOURCES using 6638.c is not a typo!  6636 has the same
 # MultiProc config as 6638, so we reuse that source file.
-lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
-lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
-lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
-lad_66ak2e_SOURCES = $(common_sources) MultiProcCfg_66ak2e.c
-lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
-lad_tci6630_SOURCES = $(common_sources) MultiProcCfg_tci6630.c
-lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
-lad_tci6638_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
+lad_omap54xx_smp_SOURCES = $(common_sources) cfg/MultiProcCfg_omap54xx_smp.c
+lad_dra7xx_SOURCES = $(common_sources) cfg/MultiProcCfg_dra7xx.c
+lad_omapl138_SOURCES = $(common_sources) cfg/MultiProcCfg_omapl138.c
+lad_66ak2e_SOURCES = $(common_sources) cfg/MultiProcCfg_66ak2e.c
+lad_tci6614_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6614.c
+lad_tci6630_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6630.c
+lad_tci6636_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
+lad_tci6638_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
 common_libraries = -lpthread \
                 $(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 
@@ -640,6 +648,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQCfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_66ak2e.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
@@ -673,6 +682,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
+MessageQCfg.o: cfg/MessageQCfg.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageQCfg.o -MD -MP -MF "$(DEPDIR)/MessageQCfg.Tpo" -c -o MessageQCfg.o `test -f 'cfg/MessageQCfg.c' || echo '$(srcdir)/'`cfg/MessageQCfg.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MessageQCfg.Tpo" "$(DEPDIR)/MessageQCfg.Po"; else rm -f "$(DEPDIR)/MessageQCfg.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MessageQCfg.c' object='MessageQCfg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageQCfg.o `test -f 'cfg/MessageQCfg.c' || echo '$(srcdir)/'`cfg/MessageQCfg.c
+
+MessageQCfg.obj: cfg/MessageQCfg.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageQCfg.obj -MD -MP -MF "$(DEPDIR)/MessageQCfg.Tpo" -c -o MessageQCfg.obj `if test -f 'cfg/MessageQCfg.c'; then $(CYGPATH_W) 'cfg/MessageQCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MessageQCfg.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MessageQCfg.Tpo" "$(DEPDIR)/MessageQCfg.Po"; else rm -f "$(DEPDIR)/MessageQCfg.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MessageQCfg.c' object='MessageQCfg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageQCfg.obj `if test -f 'cfg/MessageQCfg.c'; then $(CYGPATH_W) 'cfg/MessageQCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MessageQCfg.c'; fi`
+
+GateHWSpinlockCfg_dra7xx.o: cfg/GateHWSpinlockCfg_dra7xx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlockCfg_dra7xx.o -MD -MP -MF "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo" -c -o GateHWSpinlockCfg_dra7xx.o `test -f 'cfg/GateHWSpinlockCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/GateHWSpinlockCfg_dra7xx.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo" "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po"; else rm -f "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/GateHWSpinlockCfg_dra7xx.c' object='GateHWSpinlockCfg_dra7xx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlockCfg_dra7xx.o `test -f 'cfg/GateHWSpinlockCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/GateHWSpinlockCfg_dra7xx.c
+
+GateHWSpinlockCfg_dra7xx.obj: cfg/GateHWSpinlockCfg_dra7xx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlockCfg_dra7xx.obj -MD -MP -MF "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo" -c -o GateHWSpinlockCfg_dra7xx.obj `if test -f 'cfg/GateHWSpinlockCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/GateHWSpinlockCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/GateHWSpinlockCfg_dra7xx.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo" "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po"; else rm -f "$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/GateHWSpinlockCfg_dra7xx.c' object='GateHWSpinlockCfg_dra7xx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlockCfg_dra7xx.obj `if test -f 'cfg/GateHWSpinlockCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/GateHWSpinlockCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/GateHWSpinlockCfg_dra7xx.c'; fi`
+
 GateMutex.o: $(top_srcdir)/linux/src/api/gates/GateMutex.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.o -MD -MP -MF "$(DEPDIR)/GateMutex.Tpo" -c -o GateMutex.o `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/GateMutex.Tpo" "$(DEPDIR)/GateMutex.Po"; else rm -f "$(DEPDIR)/GateMutex.Tpo"; exit 1; fi
@@ -686,6 +723,104 @@ GateMutex.obj: $(top_srcdir)/linux/src/api/gates/GateMutex.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.obj `if test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/api/gates/GateMutex.c'; fi`
+
+MultiProcCfg_66ak2e.o: cfg/MultiProcCfg_66ak2e.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2e.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo" -c -o MultiProcCfg_66ak2e.o `test -f 'cfg/MultiProcCfg_66ak2e.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2e.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo" "$(DEPDIR)/MultiProcCfg_66ak2e.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_66ak2e.c' object='MultiProcCfg_66ak2e.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2e.o `test -f 'cfg/MultiProcCfg_66ak2e.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2e.c
+
+MultiProcCfg_66ak2e.obj: cfg/MultiProcCfg_66ak2e.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2e.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo" -c -o MultiProcCfg_66ak2e.obj `if test -f 'cfg/MultiProcCfg_66ak2e.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2e.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2e.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo" "$(DEPDIR)/MultiProcCfg_66ak2e.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_66ak2e.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_66ak2e.c' object='MultiProcCfg_66ak2e.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2e.obj `if test -f 'cfg/MultiProcCfg_66ak2e.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2e.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2e.c'; fi`
+
+MultiProcCfg_dra7xx.o: cfg/MultiProcCfg_dra7xx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_dra7xx.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo" -c -o MultiProcCfg_dra7xx.o `test -f 'cfg/MultiProcCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_dra7xx.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo" "$(DEPDIR)/MultiProcCfg_dra7xx.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_dra7xx.c' object='MultiProcCfg_dra7xx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_dra7xx.o `test -f 'cfg/MultiProcCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_dra7xx.c
+
+MultiProcCfg_dra7xx.obj: cfg/MultiProcCfg_dra7xx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_dra7xx.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo" -c -o MultiProcCfg_dra7xx.obj `if test -f 'cfg/MultiProcCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_dra7xx.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo" "$(DEPDIR)/MultiProcCfg_dra7xx.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_dra7xx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_dra7xx.c' object='MultiProcCfg_dra7xx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_dra7xx.obj `if test -f 'cfg/MultiProcCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_dra7xx.c'; fi`
+
+MultiProcCfg_omap54xx_smp.o: cfg/MultiProcCfg_omap54xx_smp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omap54xx_smp.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo" -c -o MultiProcCfg_omap54xx_smp.o `test -f 'cfg/MultiProcCfg_omap54xx_smp.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omap54xx_smp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo" "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_omap54xx_smp.c' object='MultiProcCfg_omap54xx_smp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omap54xx_smp.o `test -f 'cfg/MultiProcCfg_omap54xx_smp.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omap54xx_smp.c
+
+MultiProcCfg_omap54xx_smp.obj: cfg/MultiProcCfg_omap54xx_smp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omap54xx_smp.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo" -c -o MultiProcCfg_omap54xx_smp.obj `if test -f 'cfg/MultiProcCfg_omap54xx_smp.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omap54xx_smp.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omap54xx_smp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo" "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_omap54xx_smp.c' object='MultiProcCfg_omap54xx_smp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omap54xx_smp.obj `if test -f 'cfg/MultiProcCfg_omap54xx_smp.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omap54xx_smp.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omap54xx_smp.c'; fi`
+
+MultiProcCfg_omapl138.o: cfg/MultiProcCfg_omapl138.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omapl138.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_omapl138.Tpo" -c -o MultiProcCfg_omapl138.o `test -f 'cfg/MultiProcCfg_omapl138.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omapl138.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_omapl138.Tpo" "$(DEPDIR)/MultiProcCfg_omapl138.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_omapl138.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_omapl138.c' object='MultiProcCfg_omapl138.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omapl138.o `test -f 'cfg/MultiProcCfg_omapl138.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omapl138.c
+
+MultiProcCfg_omapl138.obj: cfg/MultiProcCfg_omapl138.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omapl138.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_omapl138.Tpo" -c -o MultiProcCfg_omapl138.obj `if test -f 'cfg/MultiProcCfg_omapl138.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omapl138.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omapl138.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_omapl138.Tpo" "$(DEPDIR)/MultiProcCfg_omapl138.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_omapl138.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_omapl138.c' object='MultiProcCfg_omapl138.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omapl138.obj `if test -f 'cfg/MultiProcCfg_omapl138.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omapl138.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omapl138.c'; fi`
+
+MultiProcCfg_tci6614.o: cfg/MultiProcCfg_tci6614.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6614.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6614.Tpo" -c -o MultiProcCfg_tci6614.o `test -f 'cfg/MultiProcCfg_tci6614.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6614.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6614.Tpo" "$(DEPDIR)/MultiProcCfg_tci6614.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6614.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6614.c' object='MultiProcCfg_tci6614.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6614.o `test -f 'cfg/MultiProcCfg_tci6614.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6614.c
+
+MultiProcCfg_tci6614.obj: cfg/MultiProcCfg_tci6614.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6614.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6614.Tpo" -c -o MultiProcCfg_tci6614.obj `if test -f 'cfg/MultiProcCfg_tci6614.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6614.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6614.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6614.Tpo" "$(DEPDIR)/MultiProcCfg_tci6614.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6614.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6614.c' object='MultiProcCfg_tci6614.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6614.obj `if test -f 'cfg/MultiProcCfg_tci6614.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6614.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6614.c'; fi`
+
+MultiProcCfg_tci6630.o: cfg/MultiProcCfg_tci6630.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6630.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6630.Tpo" -c -o MultiProcCfg_tci6630.o `test -f 'cfg/MultiProcCfg_tci6630.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6630.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6630.Tpo" "$(DEPDIR)/MultiProcCfg_tci6630.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6630.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6630.c' object='MultiProcCfg_tci6630.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6630.o `test -f 'cfg/MultiProcCfg_tci6630.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6630.c
+
+MultiProcCfg_tci6630.obj: cfg/MultiProcCfg_tci6630.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6630.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6630.Tpo" -c -o MultiProcCfg_tci6630.obj `if test -f 'cfg/MultiProcCfg_tci6630.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6630.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6630.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6630.Tpo" "$(DEPDIR)/MultiProcCfg_tci6630.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6630.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6630.c' object='MultiProcCfg_tci6630.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6630.obj `if test -f 'cfg/MultiProcCfg_tci6630.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6630.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6630.c'; fi`
+
+MultiProcCfg_tci6638.o: cfg/MultiProcCfg_tci6638.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6638.o -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6638.Tpo" -c -o MultiProcCfg_tci6638.o `test -f 'cfg/MultiProcCfg_tci6638.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6638.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6638.Tpo" "$(DEPDIR)/MultiProcCfg_tci6638.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6638.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6638.c' object='MultiProcCfg_tci6638.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6638.o `test -f 'cfg/MultiProcCfg_tci6638.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6638.c
+
+MultiProcCfg_tci6638.obj: cfg/MultiProcCfg_tci6638.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6638.obj -MD -MP -MF "$(DEPDIR)/MultiProcCfg_tci6638.Tpo" -c -o MultiProcCfg_tci6638.obj `if test -f 'cfg/MultiProcCfg_tci6638.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6638.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6638.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/MultiProcCfg_tci6638.Tpo" "$(DEPDIR)/MultiProcCfg_tci6638.Po"; else rm -f "$(DEPDIR)/MultiProcCfg_tci6638.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/MultiProcCfg_tci6638.c' object='MultiProcCfg_tci6638.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6638.obj `if test -f 'cfg/MultiProcCfg_tci6638.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6638.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6638.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
