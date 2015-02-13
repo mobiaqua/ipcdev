@@ -466,11 +466,14 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId)
 /*
  *  ======== MessageQ_openQueueId ========
  */
-MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 remoteProcId)
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 procId)
 {
+    MessageQ_QueueIndex queuePort;
     MessageQ_QueueId queueId;
 
-    queueId = ((MessageQ_QueueId)(remoteProcId) << 16) | queueIndex;
+    /* queue port is embedded in the queueId */
+    queuePort = queueIndex + MessageQ_PORTOFFSET;
+    queueId = ((MessageQ_QueueId)(procId) << 16) | queuePort;
 
     return (queueId);
 }
@@ -494,6 +497,7 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     Int tid;
     ITransport_Handle baseTrans;
     INetworkTransport_Handle netTrans;
+    MessageQ_QueueIndex queueIndex;
 
     Assert_isTrue((msg != NULL), ti_sdo_ipc_MessageQ_A_invalidMsg);
 
@@ -510,12 +514,13 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
 
     /* if recipient is local, use direct message delivery */
     if (dstProcId == MultiProc_self()) {
-        /* Assert queueId is valid */
-        Assert_isTrue((UInt16)queueId < MessageQ_module->numQueues,
+        /* assert queue index is valid */
+        queueIndex = MessageQ_getQueueIndex(queueId);
+        Assert_isTrue(queueIndex < MessageQ_module->numQueues,
                       ti_sdo_ipc_MessageQ_A_invalidQueueId);
 
         /* It is a local MessageQ */
-        obj = MessageQ_module->queues[(UInt16)(queueId)];
+        obj = MessageQ_module->queues[queueIndex];
 
         /* Assert object is not NULL */
         Assert_isTrue(obj != NULL, ti_sdo_ipc_MessageQ_A_invalidObj);
@@ -904,8 +909,8 @@ Void MessageQ_unregisterTransportId(UInt tid)
 /*
  *  ======== MessageQ_Instance_init ========
  */
-Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String name,
-        const ti_sdo_ipc_MessageQ_Params *params, Error_Block *eb)
+Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj,
+        String name, const ti_sdo_ipc_MessageQ_Params *params, Error_Block *eb)
 {
     Int              i;
     UInt16           start;
@@ -915,6 +920,7 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
     List_Handle      listHandle;
     SyncSem_Handle   syncSemHandle;
     MessageQ_QueueIndex queueIndex;
+    MessageQ_QueueIndex queuePort;
     Int tid;
     Int status;
     ITransport_Handle baseTrans;
@@ -937,7 +943,6 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
         found = TRUE;
     }
     else {
-
         start = ti_sdo_ipc_MessageQ_numReservedEntries;
         count = MessageQ_module->numQueues;
 
@@ -1007,7 +1012,9 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
     listHandle = ti_sdo_ipc_MessageQ_Instance_State_highList(obj);
     List_construct(List_struct(listHandle), NULL);
 
-    obj->queue = ((MessageQ_QueueId)(MultiProc_self()) << 16) | queueIndex;
+    /* queue port is embedded in the queueId */
+    queuePort = queueIndex + MessageQ_PORTOFFSET;
+    obj->queue = ((MessageQ_QueueId)(MultiProc_self()) << 16) | queuePort;
 
     obj->unblocked = FALSE;
 
@@ -1060,7 +1067,7 @@ Void ti_sdo_ipc_MessageQ_Instance_finalize(
         ti_sdo_ipc_MessageQ_Object* obj, Int status)
 {
     UInt key;
-    MessageQ_QueueIndex index = (MessageQ_QueueIndex)(obj->queue);
+    MessageQ_QueueIndex queueIndex;
     List_Handle listHandle;
     Int tid;
     ITransport_Handle baseTrans;
@@ -1116,7 +1123,8 @@ Void ti_sdo_ipc_MessageQ_Instance_finalize(
     key = IGateProvider_enter(MessageQ_module->gate);
 
     /* Null out entry in the array. */
-    MessageQ_module->queues[index] = NULL;
+    queueIndex = MessageQ_getQueueIndex(obj->queue);
+    MessageQ_module->queues[queueIndex] = NULL;
 
     /* unlock scheduler */
     IGateProvider_leave(MessageQ_module->gate, key);

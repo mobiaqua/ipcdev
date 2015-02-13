@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,18 +29,23 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- * ======== GateHWSpinlockCfg_dra7xx.c ========
- * GateHWSpinlock configuration for DRA7xx device
+
+/*============================================================================
+ *  @file   MessageQCfg.c
+ *
+ *  @brief  Module configuration
  */
 
-/* Standard IPC headers */
 #include <ti/ipc/Std.h>
+#include <_MessageQ.h>
 
-#include <GateHWSpinlock.h>
-
-GateHWSpinlock_Config _GateHWSpinlock_cfgParams =  {
-   .baseAddr = 0x4A0F6000,
-   .size = 0x1000,
-   .offset = 0x800,
+/*
+ *  ======== ti_ipc_MessageQ_cfg ========
+ *  The MessageQ module configuration object
+ */
+MessageQ_Config ti_ipc_MessageQ_cfg = {
+    .traceFlag   = FALSE,
+    .maxRuntimeEntries = 32,
+    .maxNameLen = 32,
+    .numReservedEntries = 8
 };

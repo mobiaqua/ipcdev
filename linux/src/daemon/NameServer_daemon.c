@@ -457,7 +457,8 @@ Int NameServer_setup(Void)
                  errno, strerror(errno))
         }
         else  {
-            LOG1("NameServer_setup: created send socket: %d\n", sock)
+            LOG2("NameServer_setup: created send socket: %d, procId %d\n",
+                    sock, procId)
             err = ConnectSocket(sock, procId, MESSAGEQ_RPMSG_PORT);
             if (err < 0) {
                 status = NameServer_E_FAIL;
@@ -480,8 +481,8 @@ Int NameServer_setup(Void)
                  errno, strerror(errno))
         }
         else  {
-            LOG1("NameServer_setup: created recv socket: %d\n", sock)
-
+            LOG2("NameServer_setup: created recv socket: %d, procId %d\n",
+                    sock, procId)
             err = SocketBindAddr(sock, procId, NAME_SERVER_RPMSG_ADDR);
             if (err < 0) {
                 status = NameServer_E_FAIL;

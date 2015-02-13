@@ -279,6 +279,19 @@ extern "C" {
  */
 #define MessageQ_PRIORITYMASK           (0x3)
 
+/** @cond INTERNAL */
+/*!
+ *  @brief      Offset to avoid collision with reserved ports
+ *
+ *  A queue's port number is computed by adding this offset to the
+ *  queue index. Use the port number to address the message or when
+ *  binding a socket. Computing a port number with this offset avoids
+ *  collisions with reserved port numbers which are typically in the
+ *  same range as the queue indexes.
+ */
+#define MessageQ_PORTOFFSET             (0x800)
+/** @endcond INTERNAL */
+
 /*!
  *  @brief      Extract the destination queue ID from a message.
  *
@@ -344,6 +357,39 @@ extern "C" {
  */
 #define MessageQ_getProcId(queueId)     \
                  ((UInt16)((queueId) >> 16))
+
+/*!
+ *  @brief   Extract the queue index from the given queue ID
+ *
+ *  When creating and opening queues, the queue index is embedded
+ *  into the queue ID using an implementation dependent format. This
+ *  function extracts the queue index from the queue ID.
+ *
+ *  For example, in the MessageQ_put() hook function, you might extract
+ *  the queue index in order to set the transport ID.
+ *
+ *      @code
+ *      Void msgqPutHook(MessageQ_QueueId queueId, MessageQ_Msg msg)
+ *      {
+ *          MessageQ_QueueIndex queueIndex;
+ *          UInt tid;
+ *
+ *          queueIndex = MessageQ_getQueueIndex(queueId);
+ *          ...
+ *          MessageQ_setTransportId(msg, tid);
+ *      }
+ *      @endcode
+ *
+ *  This function performs no error checking. Using an invalid queue ID
+ *  will result in undefined behavior.
+ *
+ *  @param[in]  queueId         Message queue ID of type #MessageQ_QueueId
+ *
+ *  @retval     queueIndex      The queue index of type #MessageQ_QueueIndex
+ */
+#define MessageQ_getQueueIndex(queueId) \
+        (((MessageQ_QueueIndex)((MessageQ_QueueId)0xFFFF & (queueId))) \
+        - MessageQ_PORTOFFSET)
 
 /*!
  *  @brief   Retrieves the message queue ID from a message.
@@ -718,7 +764,7 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId);
  *  @brief      Opens a MessageQ given the queue index and remote processor ID
  *
  *  This function can be used instead of MessageQ_open() if the queue
- *  was created with a specified QueueIndex. In the example below, the
+ *  was created with a reserved queue index. In the example below, the
  *  serverFxn function must be running on the processor with PROCID 2.
  *
  *      @code
@@ -752,7 +798,7 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId);
  *  @return     The MessageQ_QueueId associated with the queueIndex
  *              and remoteProcId
  */
-MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 remoteProcId);
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 procId);
 
 /*!
  *  @brief      Close the opened handle

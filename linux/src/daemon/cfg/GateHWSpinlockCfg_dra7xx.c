@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,50 +29,18 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*!
- *  @file	MultiProc_daemon.c
- *
- *  @brief	Handles processor id management in multi processor systems. Used
- *		to set/get processor ids for their oprations.
- *
+/*
+ * ======== GateHWSpinlockCfg_dra7xx.c ========
+ * GateHWSpinlock configuration for DRA7xx device
  */
 
 /* Standard IPC headers */
 #include <ti/ipc/Std.h>
 
-/* Linux specific header files */
-#include <assert.h>
-#include <string.h>
+#include <GateHWSpinlock.h>
 
-/* Module level headers */
-#include <ti/ipc/MultiProc.h>
-#include <_MultiProc.h>
-
-/* for Logging */
-#include <_lad.h>
-
-
-/* =============================================================================
- *  APIs
- * =============================================================================
- */
-/* Get the default configuration for the MultiProc module. */
-Void MultiProc_getConfig (MultiProc_Config * cfg)
-{
-    int i;
-    UInt16 baseId;
-
-    assert (cfg != NULL);
-
-    /* Setup MultiProc config */
-    memcpy (cfg, &_MultiProc_cfg, sizeof(MultiProc_Config));
-
-    LOG1("MultiProc_getConfig() - %d procs\n", _MultiProc_cfg.numProcessors);
-    LOG1("# processors in cluster: %d\n", _MultiProc_cfg.numProcsInCluster);
-    baseId = _MultiProc_cfg.baseIdOfCluster;
-    LOG1("cluster baseId: %d\n", baseId);
-
-    for (i = 0; i < _MultiProc_cfg.numProcsInCluster; i++) {
-        LOG2("\tProcId %d - \"%s\"\n", baseId + i, _MultiProc_cfg.nameList[i]);
-    }
-}
+GateHWSpinlock_Config _GateHWSpinlock_cfgParams =  {
+   .baseAddr = 0x4A0F6000,
+   .size = 0x1000,
+   .offset = 0x800,
+};

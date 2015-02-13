@@ -92,6 +92,7 @@ endif
 common_sources = \
                 lad.c \
                 MessageQ_daemon.c \
+                cfg/MessageQCfg.c \
                 MultiProc_daemon.c \
                 NameServer_daemon.c \
                 $(top_srcdir)/linux/include/ti/ipc/Std.h \
@@ -112,7 +113,7 @@ common_sources += \
                 GateMP_daemon.c \
 		GateHWSpinlock.c \
 		GateHWSpinlock_daemon.c \
-		GateHWSpinlockCfg_dra7xx.c \
+		cfg/GateHWSpinlockCfg_dra7xx.c \
 		$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 		$(top_srcdir)/linux/include/_GateMP.h \
                 $(top_srcdir)/linux/include/_GateMP_daemon.h \
@@ -127,14 +128,14 @@ endif
 #
 # NOTE:  6636_SOURCES using 6638.c is not a typo!  6636 has the same
 # MultiProc config as 6638, so we reuse that source file.
-lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
-lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
-lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
-lad_66ak2e_SOURCES = $(common_sources) MultiProcCfg_66ak2e.c
-lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
-lad_tci6630_SOURCES = $(common_sources) MultiProcCfg_tci6630.c
-lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
-lad_tci6638_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
+lad_omap54xx_smp_SOURCES = $(common_sources) cfg/MultiProcCfg_omap54xx_smp.c
+lad_dra7xx_SOURCES = $(common_sources) cfg/MultiProcCfg_dra7xx.c
+lad_omapl138_SOURCES = $(common_sources) cfg/MultiProcCfg_omapl138.c
+lad_66ak2e_SOURCES = $(common_sources) cfg/MultiProcCfg_66ak2e.c
+lad_tci6614_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6614.c
+lad_tci6630_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6630.c
+lad_tci6636_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
+lad_tci6638_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
 
 common_libraries = -lpthread \
                 $(top_builddir)/linux/src/utils/libtiipcutils_lad.la

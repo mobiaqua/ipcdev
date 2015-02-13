@@ -289,7 +289,7 @@ static Int detach(UInt16 rprocId)
 Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
 {
     TransportRpmsg_Object *obj = (TransportRpmsg_Object *)handle;
-    UInt16   queueIndex = queueId & 0x0000ffff;
+    UInt16   queuePort = queueId & 0x0000ffff;
     int      fd;
     int      err;
     uint64_t buf;
@@ -298,7 +298,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
     rprocId = obj->rprocId;
 
     PRINTVERBOSE2("TransportRpmsg_bind: creating endpoint for rprocId %d "
-            "queueIndex %d\n", rprocId, queueIndex)
+            "queuePort 0x%x\n", rprocId, queuePort)
 
     /*  Create the socket to receive messages for this messageQ. */
     fd = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
@@ -310,7 +310,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
 
     PRINTVERBOSE1("TransportRpmsg_bind: created socket fd %d\n", fd)
 
-    err = SocketBindAddr(fd, rprocId, (UInt32)queueIndex);
+    err = SocketBindAddr(fd, rprocId, (UInt32)queuePort);
     if (err < 0) {
         /* don't hard-printf since this is no longer fatal */
         PRINTVERBOSE2("TransportRpmsg_bind: bind failed: %d (%s)\n",
@@ -330,7 +330,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
 
     pthread_mutex_unlock(&TransportRpmsg_module->gate);
 
-    bindFdToQueueIndex(obj, fd, queueIndex);
+    bindFdToQueueIndex(obj, fd, queuePort);
 
     /*
      * Even though we use the unblock event as just a signalling event with
@@ -353,7 +353,7 @@ exit:
 Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
 {
     TransportRpmsg_Object *obj = (TransportRpmsg_Object *)handle;
-    UInt16 queueIndex = queueId & 0x0000ffff;
+    UInt16 queuePort = queueId & 0x0000ffff;
     uint64_t buf;
     Int    status = MessageQ_S_SUCCESS;
     int    maxFd;
@@ -361,7 +361,7 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
     int    i;
     int    j;
 
-    fd = queueIndexToFd(obj, queueIndex);
+    fd = queueIndexToFd(obj, queuePort);
     if (!fd) {
         PRINTVERBOSE1("TransportRpmsg_unbind: queueId 0x%x not bound\n",
                       queueId)
@@ -410,7 +410,7 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
         close(fd);
     }
 
-    unbindQueueIndex(obj, queueIndex);
+    unbindQueueIndex(obj, queuePort);
 
     pthread_mutex_unlock(&TransportRpmsg_module->gate);
 
@@ -620,39 +620,58 @@ exit:
     return status;
 }
 
-Void bindFdToQueueIndex(TransportRpmsg_Object *obj, Int fd, UInt16 qIndex)
+Void bindFdToQueueIndex(TransportRpmsg_Object *obj, Int fd, UInt16 queuePort)
 {
     Int *queues;
     Int *oldQueues;
     UInt oldSize;
+    UInt queueIndex;
 
-    if (qIndex >= obj->numQueues) {
+    /* subtract port offset from queue index */
+    queueIndex = queuePort - MessageQ_PORTOFFSET;
+
+    if (queueIndex >= obj->numQueues) {
         PRINTVERBOSE1("TransportRpmsg_bind: growing numQueues to %d\n",
-                      qIndex + TransportRpmsg_GROWSIZE)
+                queueIndex + TransportRpmsg_GROWSIZE)
 
+        /* allocate larget table */
         oldSize = obj->numQueues * sizeof (Int);
+        queues = calloc(queueIndex + TransportRpmsg_GROWSIZE, sizeof(Int));
 
-        queues = calloc(qIndex + TransportRpmsg_GROWSIZE, sizeof (Int));
+        /* copy contents from old table int new table */
         memcpy(queues, obj->qIndexToFd, oldSize);
 
+        /* swap in new table, delete old table */
         oldQueues = obj->qIndexToFd;
         obj->qIndexToFd = queues;
-        obj->numQueues = qIndex + TransportRpmsg_GROWSIZE;
-
+        obj->numQueues = queueIndex + TransportRpmsg_GROWSIZE;
         free(oldQueues);
     }
 
-    obj->qIndexToFd[qIndex] = fd;
+    /* add new entry */
+    obj->qIndexToFd[queueIndex] = fd;
 }
 
-Void unbindQueueIndex(TransportRpmsg_Object *obj, UInt16 qIndex)
+Void unbindQueueIndex(TransportRpmsg_Object *obj, UInt16 queuePort)
 {
-    obj->qIndexToFd[qIndex] = 0;
+    UInt queueIndex;
+
+    /* subtract port offset from queue index */
+    queueIndex = queuePort - MessageQ_PORTOFFSET;
+
+    /* clear table entry */
+    obj->qIndexToFd[queueIndex] = 0;
 }
 
-Int queueIndexToFd(TransportRpmsg_Object *obj, UInt16 qIndex)
+Int queueIndexToFd(TransportRpmsg_Object *obj, UInt16 queuePort)
 {
-    return obj->qIndexToFd[qIndex];
+    UInt queueIndex;
+
+    /* subtract port offset from queue index */
+    queueIndex = queuePort - MessageQ_PORTOFFSET;
+
+    /* return file descriptor */
+    return (obj->qIndexToFd[queueIndex]);
 }
 
 /*

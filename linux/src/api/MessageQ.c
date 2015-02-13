@@ -70,9 +70,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-/* Socket Protocol Family */
-#include <net/rpmsg.h>
-
 #include <ladclient.h>
 #include <_lad.h>
 
@@ -455,7 +452,7 @@ Void MessageQ_Params_init__S(MessageQ_Params *params, Int version)
 }
 
 /*
- *  MessageQ_create - create a MessageQ object for receiving.
+ *  ======== MessageQ_create ========
  */
 MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
 {
@@ -546,7 +543,6 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
    /* Populate the params member */
     memcpy(&obj->params, &ps, sizeof(ps));
 
-    queueIndex = (MessageQ_QueueIndex)(rsp.messageQCreate.queueId & 0x0000ffff);
 
     obj->queue = rsp.messageQCreate.queueId;
     obj->serverHandle = rsp.messageQCreate.serverHandle;
@@ -560,8 +556,11 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
         return NULL;
     }
 
+    /* lad returns the queue port # (queueIndex + PORT_OFFSET) */
+    queueIndex = MessageQ_getQueueIndex(rsp.messageQCreate.queueId);
+
     PRINTVERBOSE2("MessageQ_create: creating endpoints for '%s' "
-            "queueIndex %d\n", name, queueIndex)
+            "queueIndex %d\n", (name == NULL) ? "NULL" : name , queueIndex)
 
     for (clusterId = 0; clusterId < MultiProc_MAXPROCESSORS; clusterId++) {
 	for (priority = 0; priority < 2; priority++) {
@@ -592,16 +591,13 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
         }
     }
 
-    /*
-     * Since LAD's MessageQ_module can grow, we need to be able to grow as well
-     */
+    /* LAD's MessageQ module can grow, we need to grow as well */
     if (queueIndex >= MessageQ_module->numQueues) {
         _MessageQ_grow(queueIndex);
     }
 
-    /*
-     * No need to "allocate" slot since the queueIndex returned by
-     * LAD is guaranteed to be unique.
+    /*  No need to "allocate" slot since the queueIndex returned by
+     *  LAD is guaranteed to be unique.
      */
     MessageQ_module->queues[queueIndex] = (MessageQ_Handle)obj;
 
@@ -609,7 +605,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
 }
 
 /*
- * MessageQ_delete - delete a MessageQ object.
+ *  ======== MessageQ_delete ========
  */
 Int MessageQ_delete(MessageQ_Handle *handlePtr)
 {
@@ -685,7 +681,8 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr)
         }
     }
 
-    queueIndex = (MessageQ_QueueIndex)(obj->queue & 0x0000ffff);
+    /* extract the queue index from the queueId */
+    queueIndex = MessageQ_getQueueIndex(obj->queue);
     MessageQ_module->queues[queueIndex] = NULL;
 
     free(obj);
@@ -695,7 +692,8 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr)
 }
 
 /*
- *  MessageQ_open - Opens an instance of MessageQ for sending.
+ *  ======== MessageQ_open ========
+ *  Acquire a queueId for use in sending messages to the queue
  */
 Int MessageQ_open(String name, MessageQ_QueueId *queueId)
 {
@@ -730,7 +728,23 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId)
 }
 
 /*
- *  MessageQ_close - Closes previously opened instance of MessageQ.
+ *  ======== MessageQ_openQueueId ========
+ */
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 procId)
+{
+    MessageQ_QueueIndex queuePort;
+    MessageQ_QueueId queueId;
+
+    /* queue port is embedded in the queueId */
+    queuePort = queueIndex + MessageQ_PORTOFFSET;
+    queueId = ((MessageQ_QueueId)(procId) << 16) | queuePort;
+
+    return (queueId);
+}
+
+/*
+ *  ======== MessageQ_close ========
+ *  Closes previously opened instance of MessageQ
  */
 Int MessageQ_close(MessageQ_QueueId *queueId)
 {
@@ -743,18 +757,19 @@ Int MessageQ_close(MessageQ_QueueId *queueId)
 }
 
 /*
- * MessageQ_put - place a message onto a message queue.
+ *  ======== MessageQ_put ========
+ *  Place a message onto a message queue
  *
- * Calls transport's put(), which handles the sending of the message using the
- * appropriate kernel interface (socket, device ioctl) call for the remote
- * procId encoded in the queueId argument.
- *
+ *  Calls transport's put(), which handles the sending of the message
+ *  using the appropriate kernel interface (socket, device ioctl) call
+ *  for the remote procId encoded in the queueId argument.
  */
 Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
 {
     MessageQ_Object *obj;
     UInt16   dstProcId  = (UInt16)(queueId >> 16);
-    UInt16   queueIndex = (MessageQ_QueueIndex)(queueId & 0x0000ffff);
+    UInt16   queueIndex;
+    UInt16   queuePort = (MessageQ_QueueIndex)(queueId & 0x0000ffff);
     Int      status = MessageQ_S_SUCCESS;
     ITransport_Handle baseTrans;
     IMessageQTransport_Handle msgTrans;
@@ -763,8 +778,9 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     UInt tid;
     UInt16 clusterId;
 
-    msg->dstId     = queueIndex;
-    msg->dstProc   = dstProcId;
+    /* use the queue port # for destination address */
+    msg->dstId = queuePort;
+    msg->dstProc= dstProcId;
 
     /* invoke put hook function after addressing the message */
     if (MessageQ_module->putHookFxn != NULL) {
@@ -823,6 +839,8 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
         }
         else {
             /* check if destination queue is in this process */
+            queueIndex = queuePort - MessageQ_PORTOFFSET;
+
             if (queueIndex >= MessageQ_module->numQueues) {
                 printf("MessageQ_put: Error: unable to deliver message, "
                         "queueIndex too large or transportId missing.\n");
@@ -1116,7 +1134,11 @@ Void MessageQ_msgInit(MessageQ_Msg msg)
 }
 
 /*
- * Grow module's queues[] array to accommodate queueIndex from LAD
+ *  ======== _MessageQ_grow ========
+ *  Increase module's queues array to accommodate queueIndex from LAD
+ *
+ *  Note: this function takes the queue index value (i.e. without the
+ *  port offset).
  */
 Void _MessageQ_grow(UInt16 queueIndex)
 {
@@ -1126,7 +1148,7 @@ Void _MessageQ_grow(UInt16 queueIndex)
 
     oldSize = MessageQ_module->numQueues * sizeof (MessageQ_Handle);
 
-    queues = calloc(queueIndex + MessageQ_GROWSIZE, sizeof (MessageQ_Handle));
+    queues = calloc(queueIndex + MessageQ_GROWSIZE, sizeof(MessageQ_Handle));
     memcpy(queues, MessageQ_module->queues, oldSize);
 
     oldQueues = MessageQ_module->queues;
@@ -1137,4 +1159,3 @@ Void _MessageQ_grow(UInt16 queueIndex)
 
     return;
 }
-

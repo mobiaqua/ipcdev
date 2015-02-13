@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2014, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015 Texas Instruments Incorporated - http://www.ti.com
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #define MESSAGEQ_H_0xded2
 
 /* Utilities headers */
+#include <ti/ipc/MessageQ.h>
 #include <ti/ipc/NameServer.h>
 
 
@@ -79,7 +80,6 @@ extern "C" {
 /*! Shift for Trace setting */
 #define MessageQ_TRACESHIFT      (UInt) 12
 
-
 /*!
  *  @brief  Structure defining config parameters for the MessageQ Buf module.
  */
@@ -93,6 +93,8 @@ typedef struct MessageQ_Config_tag {
     /*!< Maximum number of MessageQs that can be dynamically created */
     UInt maxNameLen;
     /*!< Maximum length for Message queue names */
+    UInt numReservedEntries;
+    /*!< Number of reserved message queue indexes */
 } MessageQ_Config;
 
 /* =============================================================================
