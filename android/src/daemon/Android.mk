@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2013-2014, Texas Instruments Incorporated
+#   Copyright (c) 2013-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -46,11 +46,12 @@ LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/daemon/lad.c \
                   $(IPC_ROOT)/linux/src/daemon/MessageQ_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/MultiProc_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/NameServer_daemon.c \
-                  $(IPC_ROOT)/linux/src/daemon/MultiProcCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/daemon/cfg/MultiProcCfg_dra7xx.c \
                   $(IPC_ROOT)/linux/src/daemon/GateMP_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock.c \
                   $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock_daemon.c \
-                  $(IPC_ROOT)/linux/src/daemon/GateHWSpinlockCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/daemon/cfg/GateHWSpinlockCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/daemon/cfg/MessageQCfg.c \
                   $(IPC_ROOT)/linux/src/api/gates/GateMutex.c
 
 LOCAL_SHARED_LIBRARIES := \
