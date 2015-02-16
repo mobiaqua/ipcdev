@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2014, Texas Instruments Incorporated
+#   Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -66,6 +66,12 @@ TOOLCHAIN_PREFIX = $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
 # Path to Linux Kernel - needed to build the IPC user libraries
 #
 KERNEL_INSTALL_DIR =
+
+# Optional: Specify the Address Family for RPMSG. This value is specified
+# either from the Linux kernel specified by KERNEL_INSTALL_DIR above, or
+# the make variable AF_RPMSG below. Do not use both.
+#
+AF_RPMSG =
 
 # Optional: Path to DRM Library
 #
