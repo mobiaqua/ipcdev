@@ -50,6 +50,7 @@ extern "C" {
 #include <_GateMP.h>
 #include <GateHWSpinlock.h>
 #include <sys/time.h>
+#include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 
 extern Bool logFile;
 extern FILE *logPtr;
@@ -145,7 +146,7 @@ extern struct timeval start_tv;
 
 #define LAD_MESSAGEQCREATEMAXNAMELEN 32
 
-#define LAD_MAXENTRYNAMELEN 32   /* size limit for LAD NameServer name */
+#define LAD_MAXENTRYNAMELEN  MAXNAMEINCHAR /* max for LAD NameServer name */
 #define LAD_MAXENTRYVALUELEN 32  /* size limit for LAD NameServer value */
 
 typedef enum {

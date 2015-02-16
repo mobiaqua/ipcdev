@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,11 +56,116 @@
  */
 #define NSNAME "MyNS"
 #define NSNAME2 "MyNS2"
+#define NSLONGNAME "LongNameabcdefghijklmnopqrstuvwxyz1234567890abcdefghi" \
+    "jklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890"
 
 /** ============================================================================
  *  Globals
  *  ============================================================================
  */
+Int nameLenTest()
+{
+    NameServer_Params params;
+    NameServer_Handle nsHandle;
+    Int32 status = 0;
+    Ptr ptr;
+    UInt32 val;
+
+    printf("Testing long names...\n");
+
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
+    nsHandle = NameServer_create(NSLONGNAME, &params);
+    if (nsHandle == NULL) {
+        printf("Failed to create NameServer '%s'\n", NSLONGNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSLONGNAME);
+    }
+
+    /* This name should be too long for creation params and results in error */
+    printf("Trying to add a name that exceeds maxNameLen...\n");
+    ptr = NameServer_addUInt32(nsHandle, NSLONGNAME, 0xdeadbeef);
+    if (ptr == NULL) {
+        printf("    ...got expected Failure from NameServer_addUInt32()\n");
+    }
+    else {
+        printf("    Error: NameServer_addUInt32() returned non-NULL %p (but "
+            "was expected to fail)\n", ptr);
+        NameServer_delete(&nsHandle);
+        return -1;
+    }
+
+    printf("Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 180;
+
+    nsHandle = NameServer_create(NSLONGNAME, &params);
+    if (nsHandle == NULL) {
+        printf("Failed to create NameServer '%s'\n", NSLONGNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSLONGNAME);
+    }
+
+    /* This name is too long for remote to handle and results in error */
+    printf("Trying to get a name that the remote cannot handle...\n");
+    val = 0x00c0ffee;
+    status = NameServer_getUInt32(nsHandle, NSLONGNAME, &val, NULL);
+    if (status == NameServer_E_NAMETOOLONG) {
+        printf("    ...got expected Failure from NameServer_getUInt32()\n");
+    }
+    else {
+        printf("    Error: NameServer_getUint32() returned unexpected "
+            "result: %d\n", status);
+        return -1;
+    }
+
+    printf("Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
+    nsHandle = NameServer_create(NSLONGNAME, &params);
+    if (nsHandle == NULL) {
+        printf("Failed to create NameServer '%s'\n", NSLONGNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSLONGNAME);
+    }
+
+    /* The instance name is too long for remote and results in error */
+    printf("Trying to use an instance name that the remote cannot "
+        "handle...\n");
+    val = 0x00c0ffee;
+    status = NameServer_getUInt32(nsHandle, "Key", &val, NULL);
+    if (status == NameServer_E_NAMETOOLONG) {
+        printf("    ...got expected Failure from NameServer_getUInt32()\n");
+    }
+    else {
+        printf("    Error: NameServer_getUint32() returned unexpected "
+            "result: %d\n", status);
+        return -1;
+    }
+
+    printf("Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+
+    return 0;
+}
 
 Int testNS(NameServer_Handle nsHandle, String name)
 {
@@ -279,6 +384,12 @@ again:
     iteration++;
     if (iteration < 2) {
         goto again;
+    }
+
+    status = nameLenTest();
+    if (status != 0) {
+        printf("Name Length test failed\n");
+        return status;
     }
 
     printf("Calling NameServer_destroy()...\n");

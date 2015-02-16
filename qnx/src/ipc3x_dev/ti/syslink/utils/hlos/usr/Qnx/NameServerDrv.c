@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -139,7 +139,7 @@ NameServerDrv_ioctl (UInt32 cmd, Ptr args)
           SETIOV(&nameserver_add_iov[1], cargs->args.add.name,
               cargs->args.add.nameLen);
           SETIOV( &nameserver_add_iov[2], cargs->args.add.buf,
-		      cargs->args.add.len);
+              cargs->args.add.len);
 
           osStatus = devctlv(IpcDrv_handle, DCMD_NAMESERVER_ADD, 3, 3,
               nameserver_add_iov, nameserver_add_iov, NULL);
@@ -204,7 +204,7 @@ NameServerDrv_ioctl (UInt32 cmd, Ptr args)
               sizeof(NameServerDrv_CmdArgs));
           count++;
           SETIOV( &nameserver_get_iov[count], cargs->args.getUInt32.name,
-              NameServer_Params_MAXNAMELEN);
+              strlen(cargs->args.getUInt32.name) + 1);
           count++;
 
           if (cargs->args.getUInt32.procId != NULL) {

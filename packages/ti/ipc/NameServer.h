@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,6 +155,20 @@ extern "C" {
  *  @brief  Operation was interrupted. Please restart the operation
  */
 #define NameServer_E_RESTART            (-10)
+
+/*!
+ *  @brief  Name is too long.
+ *
+ *  The underlying remote implementation was unable to handle such a long
+ *  instance or entry name.
+ *  See these files for the maximum number of characters that can be specified
+ *  in a name for common NameServer remote implementations:
+ *
+ *  - NameServerRemoteRpmsg:
+ *     packages/ti/ipc/namesrv/_NameServerRemoteRpmsg.h
+ *
+ */
+#define NameServer_E_NAMETOOLONG        (-11)
 
 /* =============================================================================
  *  Macros
@@ -349,7 +363,7 @@ NameServer_Handle NameServer_getHandle(String name);
  *  @param      buf     Pointer to value for the name/value pair
  *  @param      len     length of the value
  *
- *  @return     Unique entry identifier
+ *  @return     Unique entry identifier, or NULL if unsuccessful
  *
  *  @sa         NameServer_addUInt32()
  *  @sa         NameServer_get()
@@ -382,7 +396,7 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt32 len);
  *  @param      name    Name for the name/value pair
  *  @param      value   Value for the name/value pair
  *
- *  @return     Unique entry identifier
+ *  @return     Unique entry identifier, or NULL if unsuccessful
  *
  *  @sa         NameServer_add()
  *  @sa         NameServer_getUInt32()
@@ -436,6 +450,8 @@ Ptr NameServer_addUInt32(NameServer_Handle handle, String name, UInt32 value);
  *              - #NameServer_S_SUCCESS:  Successfully found entry
  *              - #NameServer_E_NOTFOUND: Entry was not found, len unchanged
  *              - #NameServer_E_FAIL: Error searching for entry
+ *              - #NameServer_E_NAMETOOLONG: Instance name or query name is
+ *                    too long for NameServer remote to process
  *
  *  @sa         NameServer_add()
  *  @sa         NameServer_getLocal()

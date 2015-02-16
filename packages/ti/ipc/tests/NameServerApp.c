@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,8 @@
  */
 #define NSNAME "MyNS"
 #define NSNAME2 "MyNS2"
+#define NSLONGNAME "LongNameabcdefghijklmnopqrstuvwxyz1234567890abcdefghi" \
+    "jklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890"
 
 /* private data */
 Registry_Desc               Registry_CURDESC;
@@ -79,6 +81,118 @@ Void smain (UArg arg0, UArg arg1);
  *  Globals
  *  ============================================================================
  */
+Int nameLenTest()
+{
+    NameServer_Params params;
+    NameServer_Handle nsHandle;
+    Int32 status = 0;
+    UInt32 val;
+
+    Log_print0(Diags_INFO, "Testing long names...\n");
+#if 0 /* Commented out due to assertion thrown when name length > maxNameLen */
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
+    nsHandle = NameServer_create(NSLONGNAME, &params);
+    if (nsHandle == NULL) {
+        Log_print1(Diags_INFO, "Failed to create NameServer '%s'\n",
+            (IArg)NSLONGNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSLONGNAME);
+    }
+
+    /* This name should be too long for creation params and results in error */
+    printf("Trying to add a name that exceeds maxNameLen...\n");
+    ptr = NameServer_addUInt32(nsHandle, NSLONGNAME, 0xdeadbeef);
+    if (ptr == NULL) {
+        Log_print0(Diags_INFO,
+            "    ...got expected Failure from NameServer_addUInt32()\n");
+    }
+    else {
+        Log_print1(Diags_INFO,
+            "    Error: NameServer_addUInt32() returned non-NULL %p (but "
+            "was expected to fail)\n", (IArg)ptr);
+        NameServer_delete(&nsHandle);
+        return -1;
+    }
+
+    Log_print0(Diags_INFO, "Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+#endif
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 180;
+
+    nsHandle = NameServer_create(NSNAME, &params);
+    if (nsHandle == NULL) {
+        Log_print1(Diags_INFO, "Failed to create NameServer '%s'\n",
+            (IArg)NSNAME);
+        return -1;
+    }
+    else {
+        Log_print1(Diags_INFO, "Created NameServer '%s'\n", (IArg)NSNAME);
+    }
+
+    /* This name is too long for remote to handle and results in error */
+    Log_print0(Diags_INFO,
+        "Trying to get a name that the remote cannot handle...\n");
+    val = 0x00c0ffee;
+    status = NameServer_getUInt32(nsHandle, NSLONGNAME, &val, NULL);
+    if (status == NameServer_E_NAMETOOLONG) {
+        Log_print0(Diags_INFO,
+            "    ...got expected Failure from NameServer_getUInt32()\n");
+    }
+    else {
+        Log_print1(Diags_INFO,
+            "    Error: NameServer_getUint32() returned unexpected "
+            "result: %d\n", (IArg)status);
+        return -1;
+    }
+
+    Log_print0(Diags_INFO, "Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
+    nsHandle = NameServer_create(NSLONGNAME, &params);
+    if (nsHandle == NULL) {
+        Log_print1(Diags_INFO, "Failed to create NameServer '%s'\n",
+            (IArg)NSLONGNAME);
+        return -1;
+    }
+    else {
+        Log_print1(Diags_INFO, "Created NameServer '%s'\n", (IArg)NSLONGNAME);
+    }
+
+    /* The instance name is too long for remote and results in error */
+    Log_print0(Diags_INFO,
+        "Trying to use an instance name that the remote cannot handle...\n");
+    val = 0x00c0ffee;
+    status = NameServer_getUInt32(nsHandle, "Key", &val, NULL);
+    if (status == NameServer_E_NAMETOOLONG) {
+        Log_print0(Diags_INFO,
+            "    ...got expected Failure from NameServer_getUInt32()\n");
+    }
+    else {
+        Log_print1(Diags_INFO,
+            "    Error: NameServer_getUint32() returned unexpected "
+            "result: %d\n", (IArg)status);
+        return -1;
+    }
+
+    Log_print0(Diags_INFO, "Deleting nsHandle...\n");
+    NameServer_delete(&nsHandle);
+
+    return 0;
+}
 
 Int testNS(NameServer_Handle nsHandle, String name)
 {
@@ -297,6 +411,12 @@ again:
     iteration++;
     if (iteration < 2) {
         goto again;
+    }
+
+    status = nameLenTest();
+    if (status != 0) {
+        Log_print0(Diags_INFO, "Name Length test failed\n");
+        return status;
     }
 
 //    Log_print0(Diags_INFO, "Calling NameServer_destroy()...\n");

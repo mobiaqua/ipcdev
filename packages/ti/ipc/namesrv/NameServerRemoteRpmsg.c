@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -186,12 +186,24 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
     msg.seqNum = seqNum++;
 
     len = strlen(instanceName);
-    Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
+    if (len >= MAXNAMEINCHAR) {
+        Log_print1(Diags_INFO, FXNN": Instance name is too long. It exceeds"
+            " %d chars\n", MAXNAMEINCHAR - 1);
+        /* return timeout failure */
+        status = NameServer_E_NAMETOOLONG;
+        goto exit;
+    }
     strncpy((Char *)msg.instanceName, instanceName, MAXNAMEINCHAR - 1);
     ((Char *)msg.instanceName)[MAXNAMEINCHAR - 1] = '\0';
 
     len = strlen(name);
-    Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
+    if (len >= MAXNAMEINCHAR) {
+        Log_print1(Diags_INFO, FXNN": Entry name is too long. It exceeds"
+            " %d chars\n", MAXNAMEINCHAR - 1);
+        /* return timeout failure */
+        status = NameServer_E_NAMETOOLONG;
+        goto exit;
+    }
     strncpy((Char *)msg.name, name, MAXNAMEINCHAR - 1);
     ((Char *)msg.name)[MAXNAMEINCHAR - 1] = '\0';
 

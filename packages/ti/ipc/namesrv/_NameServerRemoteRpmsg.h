@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,12 +62,23 @@ typedef struct NameServerRemote_Msg {
 
 #define NAMESERVER_MSG_TOKEN   0x5678abcd
 
+#if defined (IPC_BUILDOS_QNX) || defined (IPC_BUILDOS_ANDROID) || \
+    defined (KERNEL_INSTALL_DIR)
+#define NAMESERVER_GET_TIMEOUT  40000 /* microseconds */
+
+#define NAMESERVER_REQUEST    0
+#define NAMESERVER_RESPONSE   1
+
+#else /* SYSBIOS only */
+
 /* That special per processor RPMSG channel reserved to multiplex MessageQ */
 /* Duplicated in _TransportRpmsg.h: move to a common rpmsg_ports.h? */
 #define RPMSG_MESSAGEQ_PORT         61
 
 extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
 extern void NameServerRemote_SetNameServerPort(UInt port);
+
+#endif
 
 #if defined (__cplusplus)
 }

@@ -66,7 +66,7 @@
 /* Internal stuff: */
 #include <_MessageQCopy.h>
 #include <_NameServer.h>
-#include <_NameServerRemoteRpmsg.h>
+#include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 #include <_IpcLog.h>
 
 /* TI Ipc utils: */
@@ -122,21 +122,21 @@ struct NameServer_Object {
 /* structure for NameServer module state */
 typedef struct NameServer_ModuleObject {
     CIRCLEQ_HEAD(dummy1, NameServer_Object) objList;
-    Int32               refCount;
-    MessageQCopy_Handle mq;
+    Int32                refCount;
+    MessageQCopy_Handle  mq;
     /* MessageQCopy instance to receive from remote proc nameserver ports: */
-    UInt32              recvAddr;
+    UInt32               recvAddr;
     /* Local endpoint for receiving from remote proc nameserver ports: */
-    pthread_t           listener;
+    pthread_t            listener;
     /* Listener thread for NameServer replies and requests. */
-    int                 waitFdW;
-    int                 waitFdR;
+    int                  waitFdW;
+    int                  waitFdR;
     /* Pipe to post to NameServer_get. */
-    NameServerMsg       nsMsg;
+    NameServerRemote_Msg nsMsg;
     /* NameServer Message cache. */
-    NameServer_Params   defInstParams;
+    NameServer_Params    defInstParams;
     /* Default instance paramters */
-    pthread_mutex_t     modGate;
+    pthread_mutex_t      modGate;
 } NameServer_ModuleObject;
 
 #define CIRCLEQ_destruct(head) { \
@@ -234,7 +234,7 @@ static UInt32 stringHash(String s)
     return (hash);
 }
 
-static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
+static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 procId)
 {
     NameServer_Handle handle;
     Int               status = NameServer_E_FAIL;
@@ -286,7 +286,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         /* send response message to remote processor */
         status = MessageQCopy_send(procId, MultiProc_self(),
             MESSAGEQ_RPMSG_PORT, RPMSG_RESERVED_ADDRESSES, msg,
-            sizeof(NameServerMsg), TRUE);
+            sizeof(NameServerRemote_Msg), TRUE);
         if (status < 0) {
             LOG0("NameServer: MessageQCopy_send failed\n")
         }
@@ -297,7 +297,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         LOG1(", value: 0x%x\n", msg->value)
 
         /* Save the response message.  */
-        memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerMsg));
+        memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerRemote_Msg));
 
         /* Post the eventfd upon which NameServer_get() is waiting */
         write(waitFd, &buf, sizeof(buf));
@@ -307,7 +307,7 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
 static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
     void * priv, UInt32 src, UInt16 srcProc)
 {
-    NameServerMsg msg;
+    NameServerRemote_Msg msg;
 
     LOG0("listener_cb: Entered Listener thread.\n")
 
@@ -316,8 +316,8 @@ static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
     /* Get NameServer message and process: */
     memcpy(&msg, data, len);
 
-    if (len != sizeof(NameServerMsg)) {
-        LOG1("NameServer: got bad NameServerMsg len (%d)\n",
+    if (len != sizeof(NameServerRemote_Msg)) {
+        LOG1("NameServer: got bad NameServerRemote_Msg len (%d)\n",
             len)
     }
     else {
@@ -586,14 +586,21 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
     /* Calculate the hash */
     hash = stringHash(name);
 
+    pthread_mutex_lock(&handle->gate);
+
+    if (strlen(name) > handle->params.maxNameLen - 1) {
+        status = NameServer_E_INVALIDARG;
+        LOG0("NameServer_add: name length exceeded maximum!\n")
+        new_node = NULL;
+        goto exit;
+    }
+
     if (len > handle->params.maxValueLen) {
         status = NameServer_E_INVALIDARG;
         LOG0("NameServer_add: value length exceeded maximum!\n")
         new_node = NULL;
         goto exit;
     }
-
-    pthread_mutex_lock(&handle->gate);
 
     /* Traverse the list to find duplicate check */
     CIRCLEQ_traverse(node, &handle->nameList, NameServer_TableEntry_tag) {
@@ -794,8 +801,8 @@ Int NameServer_getRemote(NameServer_Handle handle,
     Int status = NameServer_S_SUCCESS;
     Int mqcStatus = -1;
     struct NameServer_Object *obj = (struct NameServer_Object *)(handle);
-    NameServerMsg nsMsg;
-    NameServerMsg *replyMsg;
+    NameServerRemote_Msg nsMsg;
+    NameServerRemote_Msg *replyMsg;
     fd_set rfds;
     int ret = 0, maxfd, waitFd;
     struct timeval tv;
@@ -803,6 +810,16 @@ Int NameServer_getRemote(NameServer_Handle handle,
     int numBytes;
     static int seqNum = 0;
     Bool done = FALSE;
+
+    if (strlen(name) >= MAXNAMEINCHAR) {
+        LOG0("Name is too long in remote query\n");
+        return NameServer_E_NAMETOOLONG;
+    }
+
+    if (strlen(obj->name) >= MAXNAMEINCHAR) {
+        LOG0("Instance name is too long for remote query\n");
+        return NameServer_E_NAMETOOLONG;
+    }
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
@@ -826,7 +843,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
     /* send message */
     mqcStatus = MessageQCopy_send(procId, MultiProc_self(), MESSAGEQ_RPMSG_PORT,
-            RPMSG_RESERVED_ADDRESSES, &nsMsg, sizeof(NameServerMsg),
+            RPMSG_RESERVED_ADDRESSES, &nsMsg, sizeof(NameServerRemote_Msg),
         TRUE);
     if (mqcStatus < 0) {
         LOG0("NameServer_getRemote: Can't send to remote endpoint\n")
