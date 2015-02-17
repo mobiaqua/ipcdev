@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -407,7 +407,7 @@ var spinlockDelegates = {
     'ti.catalog.arm.cortexm4' : {
         'Vayu' : {
             baseAddr:   0x4A0F6800,
-            numLocks:   32
+            numLocks:   256
         },
         'TDA3X' : {
             baseAddr:   0x4A0F6800,
@@ -423,7 +423,7 @@ var spinlockDelegates = {
     'ti.catalog.arm.cortexa15' : {
         'Vayu' : {
             baseAddr:   0x4A0F6800,
-            numLocks:   32
+            numLocks:   256
         },
     },
     'ti.catalog.c6000' : {
@@ -441,7 +441,7 @@ var spinlockDelegates = {
         },
         'Vayu' : {
             baseAddr:   0x4A0F6800,
-            numLocks:   32
+            numLocks:   256
         },
         'TDA3X' : {
             baseAddr:   0x4A0F6800,
@@ -460,7 +460,7 @@ var spinlockDelegates = {
         },
         'Vayu' : {
             baseAddr:   0x4A0F6800,
-            numLocks:   32
+            numLocks:   256
         },
         'TDA3X' : {
             baseAddr:   0x4A0F6800,
