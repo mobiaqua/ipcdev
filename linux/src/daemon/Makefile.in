@@ -371,9 +371,9 @@ AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	-I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
-	@AM_CFLAGS@ $(am__empty)
+	-DKERNEL_INSTALL_DIR="$(KERNEL_INSTALL_DIR)" $(am__append_1) \
+	$(am__append_2) $(am__append_3) -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/packages @AM_CFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
