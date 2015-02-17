@@ -47,5 +47,5 @@ MessageQ_Config ti_ipc_MessageQ_cfg = {
     .traceFlag   = FALSE,
     .maxRuntimeEntries = 32,
     .maxNameLen = 32,
-    .numReservedEntries = 8
+    .numReservedEntries = 0
 };
