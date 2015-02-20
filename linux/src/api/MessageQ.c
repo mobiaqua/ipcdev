@@ -151,6 +151,7 @@ static MessageQ_ModuleObject MessageQ_state =
 {
     .refCount   = 0,
     .nameServer = NULL,
+    .gate       = PTHREAD_MUTEX_INITIALIZER,
     .putHookFxn = NULL
 };
 
@@ -305,7 +306,7 @@ Void MessageQ_getConfig(MessageQ_Config *cfg)
  */
 Int MessageQ_setup(const MessageQ_Config *cfg)
 {
-    Int status;
+    Int status = MessageQ_S_SUCCESS;
     LAD_ClientHandle handle;
     struct LAD_CommandObj cmd;
     union LAD_ResponseObj rsp;
@@ -313,57 +314,51 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
     Int i;
     Int tid;
 
+    /* this entire function must be serialized */
     pthread_mutex_lock(&MessageQ_module->gate);
 
-    MessageQ_module->refCount++;
-    if (MessageQ_module->refCount > 1) {
-
-        pthread_mutex_unlock(&MessageQ_module->gate);
-
+    /* ensure only first thread performs startup procedure */
+    if (++MessageQ_module->refCount > 1) {
         PRINTVERBOSE1("MessageQ module has been already setup, refCount=%d\n",
-                      MessageQ_module->refCount)
-
-        return MessageQ_S_ALREADYSETUP;
+                MessageQ_module->refCount)
+        status = MessageQ_S_ALREADYSETUP;
+        goto exit;
     }
-
-    pthread_mutex_unlock(&MessageQ_module->gate);
 
     handle = LAD_findHandle();
     if (handle == LAD_MAXNUMCLIENTS) {
-        PRINTVERBOSE1(
-          "MessageQ_setup: can't find connection to daemon for pid %d\n",
-           getpid())
-
-        return MessageQ_E_RESOURCE;
+        PRINTVERBOSE1("MessageQ_setup: can't find connection to daemon for "
+                "pid %d\n", getpid())
+        status = MessageQ_E_RESOURCE;
+        goto exit;
     }
 
     cmd.cmd = LAD_MESSAGEQ_SETUP;
     cmd.clientId = handle;
-    memcpy(&cmd.args.messageQSetup.cfg, cfg, sizeof (*cfg));
+    memcpy(&cmd.args.messageQSetup.cfg, cfg, sizeof(*cfg));
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
-        PRINTVERBOSE1(
-          "MessageQ_setup: sending LAD command failed, status=%d\n", status)
-        return MessageQ_E_FAIL;
+        PRINTVERBOSE1("MessageQ_setup: sending LAD command failed, "
+                "status=%d\n", status)
+        status = MessageQ_E_FAIL;
+        goto exit;
     }
 
     if ((status = LAD_getResponse(handle, &rsp)) != LAD_SUCCESS) {
         PRINTVERBOSE1("MessageQ_setup: no LAD response, status=%d\n", status)
-        return status;
+        status = MessageQ_E_FAIL;
+        goto exit;
     }
     status = rsp.setup.status;
 
-    PRINTVERBOSE2(
-      "MessageQ_setup: got LAD response for client %d, status=%d\n",
-      handle, status)
+    PRINTVERBOSE2("MessageQ_setup: LAD response for client %d, status=%d\n",
+            handle, status)
 
     MessageQ_module->seqNum = 0;
     MessageQ_module->nameServer = rsp.setup.nameServerHandle;
     MessageQ_module->numQueues = cfg->maxRuntimeEntries;
     MessageQ_module->queues = calloc(cfg->maxRuntimeEntries,
-                                     sizeof (MessageQ_Handle));
-
-    pthread_mutex_init(&MessageQ_module->gate, NULL);
+            sizeof(MessageQ_Handle));
 
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
         for (pri = 0; pri < 2; pri++) {
@@ -375,7 +370,15 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
         MessageQ_module->transInst[tid] = NULL;
     }
 
-    return status;
+exit:
+    /* if error, must decrement reference count */
+    if (status < 0) {
+        MessageQ_module->refCount--;
+    }
+
+    pthread_mutex_unlock(&MessageQ_module->gate);
+
+    return (status);
 }
 
 /*
@@ -383,40 +386,51 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
  */
 Int MessageQ_destroy(void)
 {
-    Int status;
+    Int status = MessageQ_S_SUCCESS;
     LAD_ClientHandle handle;
     struct LAD_CommandObj cmd;
     union LAD_ResponseObj rsp;
 
+    /* this entire function must be serialized */
+    pthread_mutex_lock(&MessageQ_module->gate);
+
+    /* ensure only last thread does the work */
+    if (--MessageQ_module->refCount > 0) {
+        goto exit;
+    }
+
     handle = LAD_findHandle();
     if (handle == LAD_MAXNUMCLIENTS) {
-        PRINTVERBOSE1(
-          "MessageQ_destroy: can't find connection to daemon for pid %d\n",
-           getpid())
-
-        return MessageQ_E_RESOURCE;
+        PRINTVERBOSE1("MessageQ_destroy: can't find connection to daemon "
+                "for pid %d\n", getpid())
+        status =  MessageQ_E_RESOURCE;
+        goto exit;
     }
 
     cmd.cmd = LAD_MESSAGEQ_DESTROY;
     cmd.clientId = handle;
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
-        PRINTVERBOSE1(
-          "MessageQ_destroy: sending LAD command failed, status=%d\n", status)
-        return MessageQ_E_FAIL;
+        PRINTVERBOSE1("MessageQ_destroy: sending LAD command failed, "
+                "status=%d\n", status)
+        status = MessageQ_E_FAIL;
+        goto exit;
     }
 
     if ((status = LAD_getResponse(handle, &rsp)) != LAD_SUCCESS) {
         PRINTVERBOSE1("MessageQ_destroy: no LAD response, status=%d\n", status)
-        return status;
+        status = MessageQ_E_FAIL;
+        goto exit;
     }
     status = rsp.status;
 
-    PRINTVERBOSE2(
-      "MessageQ_destroy: got LAD response for client %d, status=%d\n",
-      handle, status)
+    PRINTVERBOSE2("MessageQ_destroy: got LAD response for client %d, "
+            "status=%d\n", handle, status)
 
-    return status;
+exit:
+    pthread_mutex_unlock(&MessageQ_module->gate);
+
+    return (status);
 }
 
 /*
