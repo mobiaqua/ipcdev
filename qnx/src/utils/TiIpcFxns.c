@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,21 +77,19 @@ int Connect(int fd, UInt16 procId, int dst)
     return(0);
 }
 
-int BindAddr(int fd, UInt32 * localAddr)
+int BindAddr(int fd, UInt32 localAddr)
 {
     tiipc_local_params src_addr;
     int         err;
 
-    src_addr.local_addr = TIIPC_ADDRANY;
+    src_addr.local_addr = localAddr;
 
     /* This calls MessageQCopy_create():  */
     err = ioctl(fd, TIIPC_IOCSETLOCAL, &src_addr);
     if (err >= 0) {
         PRINTVERBOSE2("IOCSETLOCAL: bound fd: %d, src addr: %d\n",
-                      fd, src_addr.local_addr)
+                      fd, localAddr)
     }
-
-    *localAddr = src_addr.local_addr;
 
     return (err);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,31 +30,23 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*============================================================================
+ *  @file   MessageQCfg.c
+ *
+ *  @brief  Module configuration
+ */
+
+#include <ti/ipc/Std.h>
+#include <_MessageQ.h>
+
 /*
- *  ======== _MessageQ_daemon.h ========
- *
- *  Internal header
- *
+ *  ======== ti_ipc_MessageQ_cfg ========
+ *  The MessageQ module configuration object
+ *  See documentation for details on the various fields.
  */
-
-#ifndef _MESSAGEQ_DAEMON_H
-#define _MESSAGEQ_DAEMON_H
-
-#include <ti/ipc/MessageQ.h>
-
-#if defined (__cplusplus)
-extern "C" {
-#endif
-
-/*!
- * Internal MessageQ_create function that accepts a local queueId assignment
- * (i.e. bottom 16-bit of its queueId)
- */
-MessageQ_Handle MessageQ_createWithQueueId(String name, const
-    MessageQ_Params * params, UInt32 localQueueId);
-
-#if defined (__cplusplus)
-}
-#endif /* defined (__cplusplus) */
-
-#endif /* _MESSAGEQ_DAEMON_H */
+MessageQ_Config ti_ipc_MessageQ_cfg = {
+    .traceFlag   = FALSE,
+    .maxRuntimeEntries = 32,
+    .maxNameLen = 32,
+    .numReservedEntries = 0
+};

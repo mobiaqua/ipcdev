@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,7 +61,7 @@ extern "C" {
  *  @def    MessageQCopy_MAXMQS
  *  @brief  Maximum number of MQ handles (endpoints) per transport supported.
  */
-#define MessageQCopy_MAXMQS 1280u
+#define MessageQCopy_MAXMQS 2280u
 
 /*!
  *  @def    MessageQCopy_NUMVIRTQS

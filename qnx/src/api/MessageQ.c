@@ -171,9 +171,6 @@
 #define MESSAGEQ_RPMSG_MAXSIZE    512
 #define RPMSG_RESERVED_ADDRESSES  (1024)
 
-/* MessageQ needs local address bound to be a 16-bit value */
-#define MAX_LOCAL_ADDR            0x10000
-
 /* Trace flag settings: */
 #define TRACESHIFT    12
 #define TRACEMASK     0x1000
@@ -254,7 +251,7 @@ MessageQ_ModuleObject * MessageQ_module = &MessageQ_state;
  */
 
 /* This is a helper function to initialize a message. */
-static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex);
+static Int transportCreateEndpoint(int * fd, UInt16 queueIndex);
 static Int transportCloseEndpoint(int fd);
 static Int transportGet(int fd, MessageQ_Msg * retMsg);
 static Int transportPut(MessageQ_Msg msg, UInt16 dstId, UInt16 dstProcId);
@@ -374,7 +371,7 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
 {
     Int                   status    = MessageQ_S_SUCCESS;
     MessageQ_Object *     obj    = NULL;
-    UInt16                queueIndex = 0u;
+    UInt16                queuePort = 0u;
     MessageQDrv_CmdArgs   cmdArgs;
     int                   fildes[2];
     MessageQ_Params       ps;
@@ -417,20 +414,6 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
         return NULL;
     }
 
-    PRINTVERBOSE2("MessageQ_create: creating endpoint for: %s, \
-       queueIndex: %d\n", name, queueIndex)
-    status = transportCreateEndpoint(&obj->ipcFd, &queueIndex);
-    if (status < 0) {
-        goto cleanup;
-    }
-
-    /*
-     * We expect the endpoint creation to return a port number from
-     * the MessageQCopy layer. This port number will be greater than
-     * 1024 and less than 0x10000. Use this number as the queueIndex.
-     */
-    cmdArgs.args.create.queueId = queueIndex;
-
     status = MessageQDrv_ioctl (CMD_MESSAGEQ_CREATE, &cmdArgs);
     if (status < 0) {
         PRINTVERBOSE1("MessageQ_create: API (through IOCTL) failed, \
@@ -438,11 +421,21 @@ MessageQ_Handle MessageQ_create (String name, const MessageQ_Params * pp)
         goto cleanup;
     }
 
-   /* Populate the params member */
+    /* Populate the params member */
     memcpy(&obj->params, &ps, sizeof(ps));
 
     obj->queue = cmdArgs.args.create.queueId;
     obj->serverHandle = cmdArgs.args.create.handle;
+
+    /* Get the queue port # (queueIndex + PORT_OFFSET) */
+    queuePort = obj->queue & 0x0000FFFF;
+
+    PRINTVERBOSE2("MessageQ_create: creating endpoint for: %s"
+        "queuePort %d\n", (name == NULL) ? "NULL" : name , queuePort)
+    status = transportCreateEndpoint(&obj->ipcFd, queuePort);
+    if (status < 0) {
+       goto cleanup;
+    }
 
     /*
      * Now, to support MessageQ_unblock() functionality, create an event object.
@@ -550,6 +543,21 @@ Int MessageQ_open (String name, MessageQ_QueueId * queueId)
     return (status);
 }
 
+/*
+ *  ======== MessageQ_openQueueId ========
+ */
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 procId)
+{
+    MessageQ_QueueIndex queuePort;
+    MessageQ_QueueId queueId;
+
+    /* queue port is embedded in the queueId */
+    queuePort = queueIndex + MessageQ_PORTOFFSET;
+    queueId = ((MessageQ_QueueId)(procId) << 16) | queuePort;
+
+    return (queueId);
+}
+
 /* Closes previously opened instance of MessageQ module. */
 Int MessageQ_close (MessageQ_QueueId * queueId)
 {
@@ -573,9 +581,10 @@ Int MessageQ_put (MessageQ_QueueId queueId, MessageQ_Msg msg)
 {
     Int      status;
     UInt16   dstProcId  = (UInt16)(queueId >> 16);
-    UInt16   queueIndex = (MessageQ_QueueIndex)(queueId & 0x0000ffff);
+    UInt16   queuePort = queueId & 0x0000ffff;
 
-    msg->dstId     = queueIndex;
+    /* use the queue port # for destination address */
+    msg->dstId     = queuePort;
     msg->dstProc   = dstProcId;
 
     /* invoke put hook function after addressing the message */
@@ -583,7 +592,7 @@ Int MessageQ_put (MessageQ_QueueId queueId, MessageQ_Msg msg)
         MessageQ_module->putHookFxn(queueId, msg);
     }
 
-    status = transportPut(msg, queueIndex, dstProcId);
+    status = transportPut(msg, queuePort, dstProcId);
 
     return (status);
 }
@@ -806,7 +815,6 @@ SizeT MessageQ_sharedMemReq (Ptr sharedAddr)
 Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
 {
     Int     status = MessageQ_S_SUCCESS;
-    UInt32  localAddr;
     int     ipcFd;
     int     err;
 
@@ -837,7 +845,8 @@ Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
              * local endpoint
              */
             Connect(ipcFd, remoteProcId, MESSAGEQ_RPMSG_PORT);
-            err = BindAddr(ipcFd, &localAddr);
+            /* Bind to any port # above 1024 (MessageQCopy_MAXRESERVEDEPT) */
+            err = BindAddr(ipcFd, TIIPC_ADDRANY);
             if (err < 0) {
                 status = MessageQ_E_FAIL;
                 printf ("MessageQ_attach: bind failed: %d, %s\n",
@@ -915,11 +924,10 @@ Void MessageQ_msgInit (MessageQ_Msg msg)
  *
  * Create a communication endpoint to receive messages.
  */
-static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex)
+static Int transportCreateEndpoint(int * fd, UInt16 queuePort)
 {
     Int          status    = MessageQ_S_SUCCESS;
     int          err;
-    UInt32       localAddr;
 
     /* Create a fd to the ti-ipc to receive messages for this messageQ */
     *fd= open("/dev/tiipc", O_RDWR);
@@ -933,7 +941,8 @@ static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex)
 
     PRINTVERBOSE1("transportCreateEndpoint: opened fd: %d\n", *fd)
 
-    err = BindAddr(*fd, &localAddr);
+    /* Bind to this port # in the transport */
+    err = BindAddr(*fd, (UInt32)queuePort);
     if (err < 0) {
         status = MessageQ_E_FAIL;
         printf("transportCreateEndpoint: bind failed: %d, %s\n",
@@ -942,17 +951,6 @@ static Int transportCreateEndpoint(int * fd, UInt16 * queueIndex)
         close(*fd);
         goto exit;
     }
-
-    if (localAddr >= MAX_LOCAL_ADDR) {
-        status = MessageQ_E_FAIL;
-        printf("transportCreateEndpoint: local address returned is"
-            "by BindAddr is greater than max supported\n");
-
-        close(*fd);
-        goto exit;
-    }
-
-    *queueIndex = localAddr;
 
 exit:
     return (status);

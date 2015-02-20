@@ -61,7 +61,6 @@
 /* Module specific header files */
 #include <ti/ipc/MessageQ.h>
 #include <ti/syslink/inc/MessageQDrvDefs.h>
-#include <ti/syslink/inc/_MessageQ_daemon.h>
 
 /* Function prototypes */
 int ipc_messageq_getconfig(resmgr_context_t *ctp, io_devctl_t *msg,
@@ -155,7 +154,6 @@ int ipc_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
         (_DEVCTL_DATA (msg->o));
     MessageQ_Params *local_createparams = NULL;
     String local_createname = NULL;
-    UInt32 local_queueId;
 
     out->apiStatus = MessageQ_S_SUCCESS;
 
@@ -169,11 +167,8 @@ int ipc_messageq_create(resmgr_context_t *ctp, io_devctl_t *msg,
             local_createname = (String)(cargs+1);
     }
 
-    local_queueId = cargs->args.create.queueId;
-
-    /* Force MessageQ to use the id passed in as the bottom 16-bit of its queue id */
-    out->args.create.handle = MessageQ_createWithQueueId(local_createname,
-        local_createparams, local_queueId);
+    out->args.create.handle = MessageQ_create(local_createname,
+        local_createparams);
     GT_assert (curTrace, (out->args.create.handle != NULL));
 
     /* Set failure status if create has failed. */

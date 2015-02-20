@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,4 +31,4 @@
  */
 
 extern int Connect(int fd, UInt16 procId, int dst);
-extern int BindAddr(int fd, UInt32 * localAddr);
+extern int BindAddr(int fd, UInt32 localAddr);

@@ -120,7 +120,8 @@ EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl	\
 		$(IPC_ROOT)/ti/syslink/ti-ipc	\
 		$(IPC_ROOT)/ti/syslink/rpmsg-rpc	\
 		$(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS)/family/$(IPC_PLATFORM)	\
-		$(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS)
+		$(IPC_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(IPC_BUILDOS) \
+                $(IPC_REPO)/qnx/src/cfg
 
 ifeq ("$(IPC_PLATFORM)", "omap5430")
 EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
