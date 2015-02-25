@@ -76,7 +76,7 @@ Int curTrace = -1;//(GT_TraceState_Enable << GT_TRACESETFAILURE_SHIFT);
 int GT_getMask(void)
 {
     if (curTrace == -1) {
-        char *val = getenv("IPC_DEBUG_TRACE_LEVEL");
+        char *val = getenv("IPC_DEBUG_SLOG_LEVEL");
         int envTrace = val ? strtol(val, NULL, 0) : 2;
         curTrace = 0;
         switch (envTrace) {
