@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,9 @@
 #include <ti/syslink/inc/usr/Qnx/NameServerDrv.h>
 #include <ti/syslink/inc/NameServerDrvDefs.h>
 
-static Bool verbose = FALSE;
-
+/* traces in this file are controlled via _NameServer_verbose */
+Bool _NameServer_verbose = FALSE;
+#define verbose _NameServer_verbose
 
 /*
  * The NameServer_*() APIs are reproduced here.  These versions are just

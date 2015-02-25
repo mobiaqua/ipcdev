@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@
 #include <_NameServer.h>
 #include <_GateMP.h>
 #include <_GateMP_usr.h>
+#include <_TiIpcFxns.h>
 #include <ti/syslink/inc/GateHWSpinlock.h>
 #include <ti/syslink/inc/_MultiProc.h>
 
@@ -82,6 +83,36 @@ Int Ipc_start (Void)
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
+
+    if (getenv("IPC_DEBUG") != NULL) {
+        /* turn on tracing */
+        if (getenv("IPC_DEBUG")[0] == '1') {
+            /* level 1 enables typical user API tracing */
+            _MessageQ_verbose = TRUE;
+            _MultiProc_verbose = TRUE;
+            _NameServer_verbose = TRUE;
+#if defined(GATEMP_SUPPORT)
+            _GateMP_verbose = TRUE;
+
+            _GateHWSpinlock_verbose = TRUE;
+#endif
+        }
+        else if ((getenv("IPC_DEBUG")[0] == '2') ||
+                (getenv("IPC_DEBUG")[0] == '3')) {
+            /* levels 2 and 3 add TiIpcFxns tracing */
+            _MessageQ_verbose = TRUE;
+            _MultiProc_verbose = TRUE;
+            _NameServer_verbose = TRUE;
+
+#if defined(GATEMP_SUPPORT)
+            _GateMP_verbose = TRUE;
+
+            _GateHWSpinlock_verbose = TRUE;
+#endif
+
+            _TiIpcFxns_verbose = TRUE;
+        }
+    }
 
     status = IpcDrv_open();
     if (status < 0) {

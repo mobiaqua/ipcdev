@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,9 @@
 #if defined (__cplusplus)
 extern "C" {
 #endif
+
+/* Internal variable to enable/disable tracing throughout GateMP */
+extern Bool _GateMP_verbose;
 
 /*!
  * Start the GateMP module.

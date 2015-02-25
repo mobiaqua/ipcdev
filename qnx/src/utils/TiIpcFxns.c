@@ -54,7 +54,9 @@
 /* For PRINTVERBOSE* */
 #include <_IpcLog.h>
 
-static Bool verbose = FALSE;
+/*  Traces in this file are controlled via _TiIpcFxns_verbose */
+Bool _TiIpcFxns_verbose = FALSE;
+#define verbose _TiIpcFxns_verbose
 
 /* connect to remote service */
 int Connect(int fd, UInt16 procId, int dst)

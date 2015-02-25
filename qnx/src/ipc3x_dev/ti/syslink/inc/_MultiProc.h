@@ -83,6 +83,8 @@ typedef struct MultiProc_Config_tag {
     /*!< processor ID of first entry in cluster */
 } MultiProc_Config;
 
+/* Internal variable to enable/disable tracing throughout MultiProc */
+extern Bool _MultiProc_verbose;
 
 /* =============================================================================
  *  APIs

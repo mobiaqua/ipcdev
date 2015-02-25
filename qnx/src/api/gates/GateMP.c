@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,8 +73,9 @@ typedef struct {
     /* Number of remote system gates */
 } GateMP_ModuleObject;
 
-
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _GateMP_verbose */
+Bool _GateMP_verbose = FALSE;
+#define verbose _GateMP_verbose
 
 /* Internal structure defining parameters for GateMP_Instance_init */
 typedef struct {

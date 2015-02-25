@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, Texas Instruments Incorporated
+ * Copyright (c) 2008-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,6 +258,9 @@ UInt32 GateHWSpinlock_getNumInstances (Void);
  *
  */
 Void GateHWSpinlock_locksinit(Void);
+
+/* Internal variable to enable/disable tracing throughout GateHWSpinlock */
+extern Bool _GateHWSpinlock_verbose;
 
 #if defined (__cplusplus)
 }

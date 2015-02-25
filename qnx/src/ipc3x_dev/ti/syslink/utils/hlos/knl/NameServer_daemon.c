@@ -70,7 +70,7 @@
 #include <_IpcLog.h>
 
 /* TI Ipc utils: */
-#include <TiIpcFxns.h>
+#include <_TiIpcFxns.h>
 
 #include "ti/ipc/ti_ipc.h"
 

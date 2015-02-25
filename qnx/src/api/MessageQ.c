@@ -152,7 +152,7 @@
 #include <ti/syslink/inc/usr/Qnx/MessageQDrv.h>
 
 /* TI IPC utils: */
-#include <TiIpcFxns.h>
+#include <_TiIpcFxns.h>
 
 #include <ti/syslink/inc/ti/ipc/ti_ipc.h>
 
@@ -224,7 +224,9 @@ typedef struct MessageQ_Object_tag {
     void                    *serverHandle;
 } MessageQ_Object;
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _MessageQ_verbose */
+Bool _MessageQ_verbose = FALSE;
+#define verbose _MessageQ_verbose
 
 /* =============================================================================
  *  Globals

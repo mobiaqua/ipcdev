@@ -30,5 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+extern Bool _TiIpcFxns_verbose;
+
 extern int Connect(int fd, UInt16 procId, int dst);
 extern int BindAddr(int fd, UInt32 localAddr);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,9 @@ static GateHWSpinlock_Params GateHWSpinlock_defInstParams =
     .sharedAddr = NULL
 };
 
-static Bool verbose = FALSE;
+/* traces in this file are controlled via _GateHWSpinlock_verbose */
+Bool _GateHWSpinlock_verbose = FALSE;
+#define verbose _GateHWSpinlock_verbose
 
 /* =============================================================================
  * APIS
