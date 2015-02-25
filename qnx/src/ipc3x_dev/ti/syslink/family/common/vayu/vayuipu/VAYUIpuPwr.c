@@ -4,8 +4,7 @@
  *  @brief      PwrMgr implementation for VAYUIPU.
  *
  *              This module is responsible for handling power requests for
- *              the ProcMgr. The implementation is common to VAYUIPUCORE1 and
- *              VAYUIPUCORE0.
+ *              the ProcMgr.
  *
  *
  *  ============================================================================
@@ -765,7 +764,6 @@ VAYUIPUPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
     VAYUIPUPWR_Object *      object       = NULL;
     UInt16                   ipu1ProcId   = MultiProc_getId("IPU1");
     Memory_MapInfo           mapInfo;
-    /* Mapping for prcm base is done in VAYUIPUCORE1_phyShmemInit */
 
     GT_2trace (curTrace, GT_ENTER, "VAYUIPUPWR_attach", handle, params);
 

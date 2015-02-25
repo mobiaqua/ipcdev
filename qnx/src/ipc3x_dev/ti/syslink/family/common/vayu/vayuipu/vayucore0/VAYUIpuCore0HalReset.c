@@ -126,20 +126,12 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
     switch (cmd) {
         case Processor_ResetCtrlCmd_Reset:
         {
-#ifdef IPC_SYSBIOS_SMP
             /*Put Benelli M4_0 and M4_1 to Reset*/
             /* Put IPU core 0 and core 1 into reset */
             SETBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 1);
             SETBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 0);
             /* Read back the reset control register */
             reg = INREG32(prmBase + RM_IPU_RSTCTRL_OFFSET);
-#else
-            /*Put ONLY Benelli M4_0 to Reset*/
-            /* Put IPU core 0 into reset */
-            SETBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 0);
-            /* Read back the reset control register */
-            reg = INREG32(prmBase + RM_IPU_RSTCTRL_OFFSET);
-#endif
         }
         break;
 
@@ -209,7 +201,6 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
 
         case Processor_ResetCtrlCmd_Release:
         {
-#ifdef IPC_SYSBIOS_SMP
             /*Bring Benelli M4_0 and M4_1 out of Reset*/
             /* De-assert RST1 and RST2, and clear the Reset status */
             Osal_printf("De-assert RST1\n");
@@ -221,16 +212,6 @@ VAYUIPUCORE0_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
             Osal_printf("RST1 & RST2 released!");
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 0);
             SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 1);
-#else
-            /*Bring ONLY Benelli M4_0 out of Reset*/
-            /* De-assert RST1, and clear the Reset status */
-            Osal_printf("De-assert RST1\n");
-            CLRBITREG32(prmBase + RM_IPU_RSTCTRL_OFFSET, 0);
-
-            while (!(INREG32(prmBase + RM_IPU_RSTST_OFFSET) & 0x1));
-            Osal_printf("RST1 released!");
-            SETBITREG32(prmBase + RM_IPU_RSTST_OFFSET, 0);
-#endif
 
             /* Setting to HW_AUTO Mode */
             reg = INREG32(cmBase + CM_IPU_CLKSTCTRL_OFFSET);

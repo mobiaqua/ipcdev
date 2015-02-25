@@ -64,7 +64,6 @@
 #include <VAYUIpcInt.h>
 #include <VAYUDspPwr.h>
 #include <VAYUDspProc.h>
-#include <VAYUIpuCore1Proc.h>
 #include <VAYUIpuCore0Proc.h>
 #include <VAYUIpuPwr.h>
 

@@ -56,9 +56,6 @@ CCOPTS += -DIPC_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DIPC_USE_IPU_PM
 endif # ifeq ("$(IPC_PLATFORM)", "omap5430")
 
 ifeq ("$(IPC_PLATFORM)", "vayu")
-ifeq ("$(SMP)", "1")
-CCOPTS += -DIPC_SYSBIOS_SMP
-endif # ifeq ("$(SMP)", "1")
 CCOPTS += -DIPC_PLATFORM_VAYU -DARM_TARGET -DC60_TARGET
 endif # ifeq ("$(IPC_PLATFORM)", "vayu")
 
@@ -135,11 +132,9 @@ EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/common	\
 		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)dsp	\
 		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu	\
 		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core0	\
-		$(IPC_ROOT)/ti/syslink/family/common/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core1	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)dsp	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu	\
-		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu/$(IPC_PLATFORM)core1   \
                 $(IPC_REPO)/qnx/src/api/gates
 
 EXCLUDE_OBJS = GateMP.o
