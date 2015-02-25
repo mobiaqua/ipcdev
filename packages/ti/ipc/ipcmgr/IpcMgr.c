@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,16 @@
 #endif
 #endif
 
+#include "IpcMgr.h"
+
+
 /*
  *  ======== IpcMgr_rpmsgStartup ========
- *  Initialize the RPMSG module.  This calls VirtQueue_startup().
+ *  Initialize the RPMSG module. This calls VirtQueue_startup().
  *
  *  Use for stacks built on RPMessage only.
  */
-Void IpcMgr_rpmsgStartup()
+Void IpcMgr_rpmsgStartup(Void)
 {
     Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), NULL);
     RPMessage_init(MultiProc_getId("HOST"));
@@ -83,7 +86,7 @@ Void IpcMgr_rpmsgStartup()
  *
  *  Use for stacks built on MessageQ/TransportRpmsg only.
  */
-Void IpcMgr_ipcStartup()
+Void IpcMgr_ipcStartup(Void)
 {
     UInt procId = MultiProc_getId("HOST");
     Int status;
