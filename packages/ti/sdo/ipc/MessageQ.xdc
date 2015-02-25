@@ -154,7 +154,18 @@ import xdc.rov.ViewInfo;
  *  any two processors. The IMessageQTransport instances are created via the
  *  {@link #SetupTransportProxy}. The instances are responsible for
  *  registering themselves with MessageQ. This is accomplished via the
- * {@link #registerTransport} function.
+ *  {@link #registerTransport} function.
+ *
+ *  @a(Note)
+ *  This modules reflects upon the {@link ti.sdo.utils.MultiProc#procAddrMode}
+ *  configuration parameter. Some internal data structure allocations are
+ *  optimized for the given processor address mode. For example, when using
+ *  {@link ti.sdo.utils.MultiProc#ProcAddrMode_Global}, a message can be
+ *  addressed to any processor using only the destination queueId. However,
+ *  when using {@link ti.sdo.utils.MultiProc#ProcAddrMode_Cluster}, only
+ *  the processors within your cluster can be addressed using only the
+ *  destination queueId. For processors outside the cluster, you must also
+ *  specify the Transport ID.
  */
 
 @ModuleStartup
@@ -771,7 +782,7 @@ internal:
     };
 
     struct Module_State {
-        IMessageQTransport.Handle transports[][2];
+        IMessageQTransport.Handle transports[length][2];
         Handle               queues[];
         IHeap.Handle         heaps[];
         IGateProvider.Handle gate;

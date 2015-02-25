@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,12 @@
  *  ======== TransportShmNotifySetup ========
  *  Manages the setup of TransportShmNotify instances.
  *
- *  create or open the TransportShmNotify for each pair of devices.
+ *  Create or open the TransportShmNotify for each pair of devices.
+ *
+ *  @a(Note)
+ *  This modules reflects upon the {@link ti.sdo.utils.MultiProc#procAddrMode}
+ *  configuration parameter. Some internal data structure allocations are
+ *  optimized for the given processor address mode.
  */
 
 module TransportShmNotifySetup inherits ti.sdo.ipc.interfaces.ITransportSetup
@@ -47,6 +52,6 @@ internal:
 
     /* Module Status object */
     struct Module_State {
-        TransportShmNotify.Handle handles[]; /* handle per remote proc */
+        TransportShmNotify.Handle handles[]; /* handle per proc in cluster */
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -200,6 +200,70 @@ module MultiProc
      *  either at run-time or at config time.
      */
     config UInt16 numProcessors = 1;
+
+    /*!
+     *  ======== ProcAddrMode ========
+     *  Enumerate the Processor Addressing Modes
+     *
+     *  This enumeration defines the various processor addressing modes
+     *  which might impact the behavior and resource allocations of modules
+     *  that communicate with other processors in the system (i.e. IPC).
+     *
+     *  It is a way for the system integrator to control the internal
+     *  behavior and resource allocations of various module to suit the
+     *  needs of the program. However, it is at the discretion of each
+     *  module on how to respond to these processor addressing modes.
+     *
+     *  For example, the NameServer module reflects on this mode when
+     *  constructing its internal data structures. For the 'Global' mode,
+     *  it will allocate a resource for every processor in the system.
+     *  When using 'Cluster' mode, resources are only allocated for
+     *  processors in the cluster. A side-effect is that when using
+     *  Cluster mode, name queries cannot be addressed to processors
+     *  outside of the cluster.
+     *
+     *  Specify the addressing mode by setting the
+     *  {@link #procAddrMode MultiProc.procAddrMode} configuration
+     *  parameter.
+     *
+     *  @field(ProcAddrMode_Global) Every processor in the system must
+     *  be directly addressable. Usually, this requires a resource
+     *  allocation for each processor. This might require a dedicated
+     *  hardware resource and/or a memory allocation on behalf of every
+     *  processor in the sytem. For large systems, this might result in
+     *  significant memory requirements. Use with caution.
+     *
+     *  @field(ProcAddrMode_Cluster) Direct addressing is required
+     *  only for the processors in your cluster. Processors outside of
+     *  the cluster may share resources. This mode limits the per processor
+     *  resource allocations to just the processors within your cluster.
+     *  This address mode is typically used for large processor systems.
+     *
+     *  @see {@link #procAddrMode MultiProc.procAddrMode}
+     */
+    enum ProcAddrMode {
+        ProcAddrMode_Global,
+        ProcAddrMode_Cluster
+    };
+
+    /*!
+     *  ======== procAddrMode ========
+     *  Define which processor addressing mode is in operation
+     *
+     *  This configuration parameter is reflected upon by various system
+     *  components whose implementation is impacted by the processor
+     *  addressing mode currently in effect. It allows modules to optimize
+     *  their behavior and resource allocations for any given processor
+     *  address mode.
+     *
+     *  The MultiProc module has no specific behavior associated with
+     *  this configuration parameter. It is simply a convenient location
+     *  for such a configuration parameter as most processor aware
+     *  modules already depend on MultiProc.
+     *
+     *  @see {@link #ProcAddrMode MultiProc.ProcAddrMode}
+     */
+    config ProcAddrMode procAddrMode = MultiProc.ProcAddrMode_Global;
 
     /*! @_nodoc
      *  ======== getClusterId ========

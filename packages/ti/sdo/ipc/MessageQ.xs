@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,38 +172,68 @@ function module$static$init(state, mod)
         state.heaps[mod.staticHeaps[i].heapId] = mod.staticHeaps[i].heap;
     }
 
-    /* Set the length of the transport array */
-    state.transports.length = MultiProc.numProcessors;
+    if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Global) {
+        /* global address mode: need transport handle for every processor */
+        state.transports.length = MultiProc.numProcessors;
+    }
+    else if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Cluster) {
+        /* cluster address mode: need transport only for cluster members */
+        state.transports.length = MultiProc.numProcsInCluster;
+    }
+    else {
+        MessageQ.$logError("Unknown MultiProc.procAddrMode", this);
+    }
 
-    /* Initialize all the transports to null */
     for (var i = 0; i < state.transports.length; i++) {
         state.transports[i][0] = null;
         state.transports[i][1] = null;
     }
 
-    /*
-     *  Sort the static Transports by processor id into the
-     *  transport array
-     */
-    for (var i = 0; i < mod.staticTransports.length; i++) {
+    /*  sort the static transports by processor id into the transport array */
+    if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Global) {
+        for (var i = 0; i < mod.staticTransports.length; i++) {
+            /* make sure the procId is not too big */
+            if (mod.staticTransports[i].procId >= MultiProc.numProcessors) {
+                MessageQ.$logError("MessageQ Out of range procId ("
+                        + mod.staticTransports[i].procId + "). Max procId is "
+                        + (MultiProc.numProcessors) + " (MultiProc."
+                        + "numProcessors).", this);
+            }
 
-        /* Make sure the procId is not too big */
-        if (mod.staticTransports[i].procId >= MultiProc.numProcessors) {
-            MessageQ.$logError("MessageQ Out of range procId ("
-                    + mod.staticTransports[i].procId + "). Max procId is "
-                    + (MultiProc.numProcessors) + " (MultiProc.numProcessors).",
-                    this);
+            /* make sure the same id is not used twice */
+            if (state.transports[mod.staticTransports[i].procId] != null) {
+                MessageQ.$logError("Cannot register multiple transports to "
+                        + "same remote processor ("
+                        + mod.staticTransports[i].procId + ").", this);
+            }
+
+            state.transports[mod.staticTransports[i].procId] =
+                mod.staticTransports[i].transport;
         }
+    }
+    else if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Cluster) {
+        for (var i = 0; i < mod.staticTransports.length; i++) {
+            var clusterId = mod.staticTransports[i].procId
+                    - MultiProc.baseIdOfCluster;
 
-        /* Make sure the same id is not used twice */
-        if (state.transports[mod.staticTransports[i].procId] != null) {
-            MessageQ.$logError("Cannot register multiple transports to one"
-                    + " remote processor " + mod.staticTransports[i].procId
-                    + ".", this);
+            /* validate clusterId */
+            if (clusterId >= MultiProc.numProcsInCluster) {
+                MessageQ.$logError("procId=" + mod.staticTransports[i].procId
+                        + " is not in cluster", this);
+            }
+
+            /* make sure the same id is not used twice */
+            if (state.transports[clusterId] != null) {
+                MessageQ.$logError("Cannot register multiple transports to "
+                        + "same remote processor ("
+                        + mod.staticTransports[i].procId + ").", this);
+            }
+
+            state.transports[clusterId] = mod.staticTransports[i].transport;
         }
-
-        state.transports[mod.staticTransports[i].procId] =
-            mod.staticTransports[i].transport;
+    }
+    else {
+        MessageQ.$logError("Unknown MultiProc.procAddrMode", this);
     }
 
     /* initialize the registered transport array */

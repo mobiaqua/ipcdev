@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ function module$use()
 /*
  * ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
     /* This will result is some code reduction if building whole_program. */
     if (MultiProc.numProcessors == 1) {
@@ -87,11 +87,24 @@ function module$static$init(mod, params)
         NameServer.singleProcessor = false;
     }
 
-    /* Array of NameServerRemote instances */
-    mod.nsRemoteHandle.length = MultiProc.numProcessors;
+    if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Global) {
+        /* global address mode: NameServerRemote instance for every processor */
+        state.nsRemoteHandle.length = MultiProc.numProcessors;
+    }
+    else if (MultiProc.procAddrMode == MultiProc.ProcAddrMode_Cluster) {
+        /* cluster address mode: need instance only for cluster members */
+        state.nsRemoteHandle.length = MultiProc.numProcsInCluster;
+    }
+    else {
+        NameServer.$logError("Unknown MultiProc.procAddrMode", this);
+    }
+
+    for (var i = 0; i < state.nsRemoteHandle.length; i++) {
+        state.nsRemoteHandle[i] = null;
+    }
 
     /* Gate for all NameServer critical regions */
-    mod.gate = GateSwi.create();
+    state.gate = GateSwi.create();
 }
 
 /*

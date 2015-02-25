@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,25 +48,29 @@
 /*
  *  ======== TransportShmNotifySetup_attach ========
  */
-Int TransportShmNotifySetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
+Int TransportShmNotifySetup_attach(UInt16 procId, Ptr sharedAddr)
 {
     TransportShmNotify_Handle handle;
     TransportShmNotify_Params params;
     Int status = MessageQ_E_FAIL;
     Error_Block eb;
+    Int index;
 
     Error_init(&eb);
+
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
 
     /* init the transport parameters */
     TransportShmNotify_Params_init(&params);
     params.priority = TransportShmNotifySetup_priority;
 
     /* make sure notify driver has been created */
-    if (Notify_intLineRegistered(remoteProcId, 0)) {
-        handle = TransportShmNotify_create(remoteProcId, &params, &eb);
+    if (Notify_intLineRegistered(procId, 0)) {
+        handle = TransportShmNotify_create(procId, &params, &eb);
 
         if (handle != NULL) {
-            TransportShmNotifySetup_module->handles[remoteProcId] = handle;
+            TransportShmNotifySetup_module->handles[index] = handle;
             status = MessageQ_S_SUCCESS;
         }
     }
@@ -77,11 +81,14 @@ Int TransportShmNotifySetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 /*
  *  ======== TransportShmNotifySetup_detach ========
  */
-Int TransportShmNotifySetup_detach(UInt16 remoteProcId)
+Int TransportShmNotifySetup_detach(UInt16 procId)
 {
     TransportShmNotify_Handle handle;
+    Int index;
 
-    handle = TransportShmNotifySetup_module->handles[remoteProcId];
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
+    handle = TransportShmNotifySetup_module->handles[index];
 
     /* Trying to detach an un-attached processor should fail */
     if (handle == NULL) {
@@ -89,7 +96,7 @@ Int TransportShmNotifySetup_detach(UInt16 remoteProcId)
     }
 
     /* Unregister the instance */
-    TransportShmNotifySetup_module->handles[remoteProcId] = NULL;
+    TransportShmNotifySetup_module->handles[index] = NULL;
 
     TransportShmNotify_delete(&handle);
 
@@ -99,11 +106,14 @@ Int TransportShmNotifySetup_detach(UInt16 remoteProcId)
 /*
  *  ======== TransportShmNotifySetup_isRegistered ========
  */
-Bool TransportShmNotifySetup_isRegistered(UInt16 remoteProcId)
+Bool TransportShmNotifySetup_isRegistered(UInt16 procId)
 {
     Bool registered;
+    Int index;
 
-    registered = (TransportShmNotifySetup_module->handles[remoteProcId] != NULL);
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
+    registered = (TransportShmNotifySetup_module->handles[index] != NULL);
 
     return (registered);
 }

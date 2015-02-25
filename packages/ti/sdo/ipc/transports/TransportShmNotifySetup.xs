@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== TransportShmNotifySetup.xs ========
  */
-
-var TransportShmNotifySetup = null;
-var TransportShmNotify      = null;
-var MultiProc         = null;
+var MultiProc = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    TransportShmNotifySetup = this;
-    TransportShmNotify =
-            xdc.useModule("ti.sdo.ipc.transports.TransportShmNotify");
+    xdc.useModule("ti.sdo.ipc.transports.TransportShmNotify");
     MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
 }
 
 /*
  * ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-    /* set the length of handles to the number of processors */
-    mod.handles.length = MultiProc.numProcessors;
 
-    /* init the remote processor handles to null */
-    for (var i=0; i < mod.handles.length; i++) {
-        mod.handles[i] = null;
+    /*  This module is used only for attaching to processors in the
+     *  cluster. The cluster size is either a subset of all processors
+     *  or contains all processors (i.e. no cluster defined).
+     */
+    state.handles.length = MultiProc.numProcsInCluster;
+
+    for (var i = 0; i < state.handles.length; i++) {
+        state.handles[i] = null;
     }
 }

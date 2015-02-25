@@ -498,6 +498,7 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     ITransport_Handle baseTrans;
     INetworkTransport_Handle netTrans;
     MessageQ_QueueIndex queueIndex;
+    UInt16 index;
 
     Assert_isTrue((msg != NULL), ti_sdo_ipc_MessageQ_A_invalidMsg);
 
@@ -561,12 +562,33 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
         priority = (UInt)((msg->flags) &
             ti_sdo_ipc_MessageQ_TRANSPORTPRIORITYMASK);
 
+        switch (ti_sdo_utils_MultiProc_procAddrMode) {
+            case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+                index = dstProcId;
+                break;
+
+            case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+                index = dstProcId - MultiProc_getBaseIdOfCluster();
+                break;
+
+            default:
+                Assert_isTrue(FALSE, NULL);
+                break;
+        }
+
+        if (index >= MessageQ_module->transports.length) {
+            /* raise error */
+            status = MessageQ_E_FAIL;
+            goto leave;
+        }
+
         /* Call the transport associated with this message queue */
-        transport = MessageQ_module->transports[dstProcId][priority];
+        transport = MessageQ_module->transports.elem[index][priority];
+
         if (transport == NULL) {
             /* Try the other transport */
             priority = !priority;
-            transport = MessageQ_module->transports[dstProcId][priority];
+            transport = MessageQ_module->transports.elem[index][priority];
         }
 
         /* assert transport is not null */
@@ -806,23 +828,40 @@ Int ti_sdo_ipc_MessageQ_Module_startup(Int phase)
 
 /*
  *  ======== ti_sdo_ipc_MessageQ_registerTransport ========
- *  Register a transport
  */
 Bool ti_sdo_ipc_MessageQ_registerTransport(IMessageQTransport_Handle handle,
     UInt16 procId, UInt priority)
 {
     Bool flag = FALSE;
     UInt key;
+    UInt16 index;
 
-    /* Make sure the procId is valid */
-    Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors, ti_sdo_ipc_MessageQ_A_procIdInvalid);
+    Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors,
+            ti_sdo_ipc_MessageQ_A_procIdInvalid);
+
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            index = procId;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            index = procId - MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
+
+    Assert_isTrue(index < MessageQ_module->transports.length,
+            ti_sdo_ipc_MessageQ_A_procIdInvalid);
 
     /* lock scheduler */
     key = Hwi_disable();
 
-    /* Make sure the id is not already in use */
-    if (MessageQ_module->transports[procId][priority] == NULL) {
-        MessageQ_module->transports[procId][priority] = handle;
+    /* make sure the id is not already in use */
+    if (MessageQ_module->transports.elem[index][priority] == NULL) {
+        MessageQ_module->transports.elem[index][priority] = handle;
         flag = TRUE;
     }
 
@@ -834,19 +873,36 @@ Bool ti_sdo_ipc_MessageQ_registerTransport(IMessageQTransport_Handle handle,
 
 /*
  *  ======== ti_sdo_ipc_MessageQ_unregisterTransport ========
- *  Unregister a heap
  */
 Void ti_sdo_ipc_MessageQ_unregisterTransport(UInt16 procId, UInt priority)
 {
     UInt key;
+    UInt16 index;
 
-    /* Make sure the procId is valid */
-    Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors, ti_sdo_ipc_MessageQ_A_procIdInvalid);
+    Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors,
+            ti_sdo_ipc_MessageQ_A_procIdInvalid);
+
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            index = procId;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            index = procId - MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
+
+    Assert_isTrue(index < MessageQ_module->transports.length,
+            ti_sdo_ipc_MessageQ_A_procIdInvalid);
 
     /* lock scheduler */
     key = Hwi_disable();
 
-    MessageQ_module->transports[procId][priority] = NULL;
+    MessageQ_module->transports.elem[index][priority] = NULL;
 
     /* unlock scheduler */
     Hwi_restore(key);

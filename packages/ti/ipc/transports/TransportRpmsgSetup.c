@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,26 +50,29 @@
 /*
  *  ======== TransportRpmsgSetup_attach ========
  */
-Int TransportRpmsgSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
+Int TransportRpmsgSetup_attach(UInt16 procId, Ptr sharedAddr)
 {
     TransportRpmsg_Handle handle;
     TransportRpmsg_Params params;
     Int status = MessageQ_E_FAIL;
     Error_Block eb;
+    Int index;
 
-    Log_print1(Diags_INFO, "TransportRpmsgSetup_attach: remoteProcId: %d",
-                   remoteProcId);
+    Log_print1(Diags_INFO, "TransportRpmsgSetup_attach: procId=%d", procId);
 
     Error_init(&eb);
+
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
 
     /* init the transport parameters */
     TransportRpmsg_Params_init(&params);
     params.sharedAddr = sharedAddr;  /* Not used yet */
 
-    handle = TransportRpmsg_create(remoteProcId, &params, &eb);
+    handle = TransportRpmsg_create(procId, &params, &eb);
 
     if (handle != NULL) {
-       TransportRpmsgSetup_module->handles[remoteProcId] = handle;
+       TransportRpmsgSetup_module->handles[index] = handle;
        status = MessageQ_S_SUCCESS;
     }
 
@@ -79,14 +82,16 @@ Int TransportRpmsgSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 /*
  *  ======== TransportRpmsgSetup_detach ========
  */
-Int TransportRpmsgSetup_detach(UInt16 remoteProcId)
+Int TransportRpmsgSetup_detach(UInt16 procId)
 {
     TransportRpmsg_Handle handle;
+    Int index;
 
-    System_printf("TransportRpmsgSetup_detach: remoteProcId: %d\n",
-                   remoteProcId);
+    Log_print1(Diags_INFO, "TransportRpmsgSetup_detach: procId=%d", procId);
 
-    handle = TransportRpmsgSetup_module->handles[remoteProcId];
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
+    handle = TransportRpmsgSetup_module->handles[index];
 
     /* Trying to detach an un-attached processor should fail */
     if (handle == NULL) {
@@ -94,7 +99,7 @@ Int TransportRpmsgSetup_detach(UInt16 remoteProcId)
     }
 
     /* Unregister the instance */
-    TransportRpmsgSetup_module->handles[remoteProcId] = NULL;
+    TransportRpmsgSetup_module->handles[index] = NULL;
 
     TransportRpmsg_delete(&handle);
 
@@ -104,11 +109,22 @@ Int TransportRpmsgSetup_detach(UInt16 remoteProcId)
 /*
  *  ======== TransportRpmsgSetup_isRegistered ========
  */
-Bool TransportRpmsgSetup_isRegistered(UInt16 remoteProcId)
+Bool TransportRpmsgSetup_isRegistered(UInt16 procId)
 {
     Bool registered;
+    Int index;
 
-    registered = (TransportRpmsgSetup_module->handles[remoteProcId] != NULL);
+    /* procId is always in cluster */
+    index = ti_sdo_utils_MultiProc_getClusterId(procId);
+    registered = (TransportRpmsgSetup_module->handles[index] != NULL);
 
     return (registered);
+}
+
+/*
+ *  ======== TransportRpmsgSetup_sharedMemReq ========
+ */
+SizeT TransportRpmsgSetup_sharedMemReq(Ptr sharedAddr)
+{
+    return (0);
 }

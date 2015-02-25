@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,15 @@ import xdc.rov.ViewInfo;
  *  module configuration, Errors, and Asserts.
  *  @p
  *
+ *  @a(Note)
+ *  This modules reflects upon the {@link ti.sdo.utils.MultiProc#procAddrMode}
+ *  configuration parameter. Some internal data structure allocations are
+ *  optimized for the given processor address mode. For example, when using
+ *  MultiProc.ProcAddrMode_Global, resource is allocated for every processor
+ *  in the system. When using MultiProc.ProcAddrMode_Cluster, resources are
+ *  only allocated for processors in the cluster. A side-effect is that when
+ *  using Cluster mode, name queries cannot be addressed to processors
+ *  outside of the cluster.
  */
 
 @ModuleStartup
@@ -494,7 +503,7 @@ internal:
     };
 
     struct Module_State {
-        INameServerRemote.Handle nsRemoteHandle[];
+        INameServerRemote.Handle nsRemoteHandle[length];
         GateSwi.Handle gate;
     };
 }

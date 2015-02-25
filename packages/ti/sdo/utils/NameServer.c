@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -345,8 +345,26 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
     Int i;
     Int status = NameServer_E_FAIL;
     Error_Block eb;
+    UInt16 baseId;
+    UInt16 length;
+    UInt16 index;
 
     Error_init(&eb);
+
+    /* processor address mode determines cluster baseId */
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            baseId = 0;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            baseId = MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
 
     /*
      *  Query all the processors.
@@ -357,63 +375,51 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
         if (status == NameServer_E_NOTFOUND) {
             /* To eliminate code if possible */
             if (ti_sdo_utils_NameServer_singleProcessor == FALSE) {
-                /* Query all the remote processors */
-                for (i = 0; i < ti_sdo_utils_MultiProc_numProcessors; i++) {
-                    /* Skip the local table. It was already searched */
-                    if (i != MultiProc_self()) {
-                        if (NameServer_module->nsRemoteHandle[i] != NULL) {
-                            status = INameServerRemote_get(
-                                     NameServer_module->nsRemoteHandle[i],
-                                     obj->name, name, value, len, NULL, &eb);
-                        }
+                length = (UInt16)NameServer_module->nsRemoteHandle.length;
 
-                        /* continue only if not found */
-                        if ((status >= 0) ||
-                            ((status < 0) &&
-                            (status != NameServer_E_NOTFOUND) &&
-                            (status != NameServer_E_TIMEOUT))) {
-                             break;
-                        }
+                for (i = 0; i < length; i++) {
+                    /* skip myself, local table already searched above */
+                    if ((baseId + i) == MultiProc_self()) {
+                        continue;
+                    }
+                    if (NameServer_module->nsRemoteHandle.elem[i] != NULL) {
+                        status = INameServerRemote_get(
+                                NameServer_module->nsRemoteHandle.elem[i],
+                                obj->name, name, value, len, NULL, &eb);
+                    }
+                    /* stop looking if found or encoutered fatal error */
+                    if ((status >= 0) || ((status != NameServer_E_NOTFOUND)
+                            && (status != NameServer_E_TIMEOUT))) {
+                        break;
                     }
                 }
             }
         }
     }
     else {
-        /*
-         *  Search the query list. It might contain the local proc
+        /*  Search the query list. It might contain the local proc
          *  somewhere in the list.
          */
-        i = 0;
         status = NameServer_E_NOTFOUND;
-        while (procId[i] != MultiProc_INVALIDID) {
+
+        for (i = 0; procId[i] != MultiProc_INVALIDID; i++) {
             if (procId[i] == MultiProc_self()) {
-                /* Check local */
+                /* check local */
                 status = NameServer_getLocal(handle, name, value, len);
             }
             else if (ti_sdo_utils_NameServer_singleProcessor == FALSE) {
-                /* Check remote */
-                if (NameServer_module->nsRemoteHandle[procId[i]] != NULL) {
+                index = procId[i] - baseId;
+                /* check remote */
+                if (NameServer_module->nsRemoteHandle.elem[index] != NULL) {
                     status = INameServerRemote_get(
-                             NameServer_module->nsRemoteHandle[procId[i]],
-                             obj->name, name, value, len, NULL, &eb);
+                            NameServer_module->nsRemoteHandle.elem[index],
+                            obj->name, name, value, len, NULL, &eb);
                 }
             }
-
-            /* continue only if not found */
-            if ((status >= 0) ||
-                ((status < 0) &&
-                (status != NameServer_E_NOTFOUND) &&
-                (status != NameServer_E_TIMEOUT))) {
-                 break;
-            }
-            else {
-                i++;
-
-                /* if we've queried all procs then exit */
-                if (i == MultiProc_getNumProcsInCluster()) {
-                    break;
-                }
+            /* stop looking if found or encoutered fatal error */
+            if ((status >= 0) || ((status != NameServer_E_NOTFOUND)
+                    && (status != NameServer_E_TIMEOUT))) {
+                break;
             }
         }
     }
@@ -836,10 +842,6 @@ Int ti_sdo_utils_NameServer_Module_startup( Int phase )
     Int i;
     ti_sdo_utils_NameServer_Object *obj;
 
-    for (i = 0; i < ti_sdo_utils_MultiProc_numProcessors; i++) {
-        NameServer_module->nsRemoteHandle[i] = NULL;
-    }
-
     /* Finish setting up the freeList */
     for (i = 0; i < ti_sdo_utils_NameServer_Object_count(); i++) {
         obj = ti_sdo_utils_NameServer_Object_get(NULL, i);
@@ -859,11 +861,29 @@ Int ti_sdo_utils_NameServer_Module_startup( Int phase )
 Bool ti_sdo_utils_NameServer_isRegistered(UInt16 procId)
 {
     Bool registered;
+    UInt16 index;
 
     Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors,
             ti_sdo_utils_NameServer_A_invArgument);
 
-    registered = (NameServer_module->nsRemoteHandle[procId] != NULL);
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            index = procId;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            index = procId - MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
+
+    Assert_isTrue(index < NameServer_module->nsRemoteHandle.length,
+            ti_sdo_utils_NameServer_A_invArgument);
+
+    registered = (NameServer_module->nsRemoteHandle.elem[index] != NULL);
 
     return (registered);
 }
@@ -871,22 +891,40 @@ Bool ti_sdo_utils_NameServer_isRegistered(UInt16 procId)
 /*
  *  ======== ti_sdo_utils_NameServer_registerRemoteDriver ========
  */
-Int ti_sdo_utils_NameServer_registerRemoteDriver(INameServerRemote_Handle nsrHandle,
-        UInt16 procId)
+Int ti_sdo_utils_NameServer_registerRemoteDriver(INameServerRemote_Handle
+        nsrHandle, UInt16 procId)
 {
-    Int   status;
+    Int status;
+    UInt16 index;
     UInt key;
 
     Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors,
             ti_sdo_utils_NameServer_A_invArgument);
 
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            index = procId;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            index = procId - MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
+
+    Assert_isTrue(index < NameServer_module->nsRemoteHandle.length,
+            ti_sdo_utils_NameServer_A_invArgument);
+
     key = Hwi_disable();
 
-    if (NameServer_module->nsRemoteHandle[procId] != NULL) {
+    if (NameServer_module->nsRemoteHandle.elem[index] != NULL) {
         status = NameServer_E_FAIL;
     }
     else {
-        NameServer_module->nsRemoteHandle[procId] = nsrHandle;
+        NameServer_module->nsRemoteHandle.elem[index] = nsrHandle;
         status = NameServer_S_SUCCESS;
     }
 
@@ -900,14 +938,32 @@ Int ti_sdo_utils_NameServer_registerRemoteDriver(INameServerRemote_Handle nsrHan
  */
 Void ti_sdo_utils_NameServer_unregisterRemoteDriver(UInt16 procId)
 {
+    UInt16 index;
     UInt key;
 
     Assert_isTrue(procId < ti_sdo_utils_MultiProc_numProcessors,
             ti_sdo_utils_NameServer_A_invArgument);
 
+    switch (ti_sdo_utils_MultiProc_procAddrMode) {
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Global:
+            index = procId;
+            break;
+
+        case ti_sdo_utils_MultiProc_ProcAddrMode_Cluster:
+            index = procId - MultiProc_getBaseIdOfCluster();
+            break;
+
+        default:
+            Assert_isTrue(FALSE, NULL);
+            break;
+    }
+
+    Assert_isTrue(index < NameServer_module->nsRemoteHandle.length,
+            ti_sdo_utils_NameServer_A_invArgument);
+
     key = Hwi_disable();
 
-    NameServer_module->nsRemoteHandle[procId] = NULL;
+    NameServer_module->nsRemoteHandle.elem[index] = NULL;
 
     Hwi_restore(key);
 }
