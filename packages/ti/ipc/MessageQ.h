@@ -295,18 +295,33 @@ extern "C" {
 /*!
  *  @brief      Extract the destination queue ID from a message.
  *
- *  Can only be used on the same processor where the destination queue resides.
- *  This function should only be used by Message Queue Transport writers.
+ *  This function is typically used be a transport.
+ *
+ *  The destination address is written into the message header when
+ *  calling MessageQ_put(). Therefore, you can only use this function
+ *  to extract the destination queue ID after MessageQ_put() has been
+ *  called on the given message. However, ownership rules dictate that
+ *  you cannot dereference a message after calling MessageQ_put() (because
+ *  you have transfered ownership to the transport).
+ *
+ *  After receiving a message by calling MessageQ_get(), you may safely
+ *  use this function. Although there is little benefit from doing so.
+ *
+ *  When the message is given to the transport, the destination address
+ *  has been written into the message header. In addition, the transport
+ *  now has ownership of the message. So, it is appropriate for the transport
+ *  to use this macro.
  *
  *  @param[in]  msg     Message of type #MessageQ_Msg
  *
  *  @retval  queueId    Destination message queue ID of type #MessageQ_QueueId
  */
-#define MessageQ_getDstQueue(msg)                                             \
-        ((msg)->dstId == (MessageQ_QueueIndex)MessageQ_INVALIDMESSAGEQ) ?     \
-            (MessageQ_QueueId)MessageQ_INVALIDMESSAGEQ :                      \
-            (MessageQ_QueueId)(((MessageQ_QueueId)MultiProc_self() << 16u)    \
-            | (((MessageQ_Msg)(msg))->dstId))
+#define MessageQ_getDstQueue(msg) \
+        (((MessageQ_Msg)(msg))->dstId == \
+        (MessageQ_QueueIndex)MessageQ_INVALIDMESSAGEQ) ? \
+        (MessageQ_QueueId)MessageQ_INVALIDMESSAGEQ : \
+        (((MessageQ_QueueId)((MessageQ_Msg)(msg))->dstProc << 16u) \
+        | (((MessageQ_Msg)(msg))->dstId))
 
 
 /*!
