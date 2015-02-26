@@ -289,7 +289,7 @@ extern "C" {
  *  collisions with reserved port numbers which are typically in the
  *  same range as the queue indexes.
  */
-#define MessageQ_PORTOFFSET             (0x800)
+#define MessageQ_PORTOFFSET             (0x80)
 /** @endcond INTERNAL */
 
 /*!
