@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,6 +133,7 @@ Int GateMP_setup(Void)
     UInt32            len;
     UInt32            size;
     UInt32            alignDiff;
+    UInt32            offset;
     Int32             fdMem;
 
     NameServer_Params_init(&params);
@@ -191,59 +192,77 @@ Int GateMP_setup(Void)
             size = GateMP_module->numRemoteSystem * sizeof (UInt8) +
                 (nsValue[0] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
+            offset = nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1);
+#if defined(IPC_BUILDOS_ANDROID)
+            GateMP_module->remoteSystemInUse = mmap64(NULL, size,
+                (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
+                (off64_t)offset);
+#else
             GateMP_module->remoteSystemInUse = mmap(NULL, size,
                 (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
-                (off_t)nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                (off_t)offset);
+#endif
             if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
-                 GateMP_module->remoteSystemInUse = NULL;
-                 status = GateMP_E_MEMORY;
                  LOG1("Failed to map remoteSystemInUse=0x%p to host address" \
                       "  space!", GateMP_module->remoteSystemInUse);
+                 GateMP_module->remoteSystemInUse = NULL;
+                 status = GateMP_E_MEMORY;
             }
             else {
-                alignDiff = (off_t)nsValue[0] -
-                    ((off_t)nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                alignDiff = nsValue[0] - offset;
                 GateMP_module->remoteSystemInUse =
                     GateMP_module->remoteSystemInUse + alignDiff;
             }
 
             size = GateMP_module->numRemoteCustom1 * sizeof (UInt8) +
-                (nsValue[0] & (sysconf(_SC_PAGE_SIZE) - 1));
+                (nsValue[1] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
+            offset = nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1);
             if (status == GateMP_S_SUCCESS) {
+#if defined(IPC_BUILDOS_ANDROID)
+                GateMP_module->remoteCustom1InUse = mmap64(NULL, size,
+                    (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
+                    (off64_t)offset);
+#else
                 GateMP_module->remoteCustom1InUse = mmap(NULL, size,
                     (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
-                    (off_t)nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    (off_t)offset);
+#endif
                 if (GateMP_module->remoteCustom1InUse == MAP_FAILED) {
-                    GateMP_module->remoteCustom1InUse = NULL;
-                    status = GateMP_E_MEMORY;
                     LOG1("Failed to map remoteCustom1InUse=%p to host address" \
                         " space!", GateMP_module->remoteCustom1InUse);
+                    GateMP_module->remoteCustom1InUse = NULL;
+                    status = GateMP_E_MEMORY;
                 }
                 else {
-                    alignDiff = (off_t)nsValue[1] -
-                        ((off_t)nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    alignDiff = nsValue[1] - offset;
                     GateMP_module->remoteCustom1InUse =
                         GateMP_module->remoteCustom1InUse + alignDiff;
                 }
             }
 
             size = GateMP_module->numRemoteCustom2 * sizeof (UInt8) +
-                (nsValue[0] & (sysconf(_SC_PAGE_SIZE) - 1));
+                (nsValue[2] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
+            offset = nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1);
             if (status == GateMP_S_SUCCESS) {
+#if defined(IPC_BUILDOS_ANDROID)
+                GateMP_module->remoteCustom2InUse = mmap64(NULL, size,
+                    (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
+                    (off64_t)offset);
+#else
                 GateMP_module->remoteCustom2InUse = mmap(NULL, size,
                     (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
-                    (off_t)nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    (off_t)offset);
+#endif
                 if (GateMP_module->remoteCustom2InUse == MAP_FAILED) {
-                    GateMP_module->remoteCustom2InUse = NULL;
-                    status = GateMP_E_MEMORY;
                     LOG1("Failed to map remoteCustom2InUse=%p to host address" \
                         " space!", GateMP_module->remoteCustom2InUse);
+                    GateMP_module->remoteCustom2InUse = NULL;
+                    status = GateMP_E_MEMORY;
                 }
                 else {
-                    alignDiff = (off_t)nsValue[2] -
-                        ((off_t)nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1));
+                    alignDiff = nsValue[2] - offset;
                     GateMP_module->remoteCustom2InUse =
                         GateMP_module->remoteCustom2InUse + alignDiff;
                 }

@@ -65,9 +65,6 @@
 #define L3_PERIPHERAL_DMM       0x4E000000
 #define DSP_PERIPHERAL_DMM      0x4E000000
 
-#define L3_PERIPHERAL_ISS       0x52000000
-#define DSP_PERIPHERAL_ISS      0x52000000
-
 #define L3_TILER_MODE_0_1       0x60000000
 #define DSP_TILER_MODE_0_1      0x60000000
 
@@ -177,9 +174,6 @@ struct my_resource_table {
 
     /* devmem entry */
     struct fw_rsc_devmem devmem10;
-
-    /* devmem entry */
-    struct fw_rsc_devmem devmem11;
 };
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
@@ -189,7 +183,7 @@ struct my_resource_table {
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    18,     /* number of entries in the table */
+    17,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
@@ -210,7 +204,6 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         offsetof(struct my_resource_table, devmem8),
         offsetof(struct my_resource_table, devmem9),
         offsetof(struct my_resource_table, devmem10),
-        offsetof(struct my_resource_table, devmem11),
     },
 
     /* rpmsg vdev entry */
@@ -315,12 +308,6 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         TYPE_DEVMEM,
         DSP_PERIPHERAL_DMM, L3_PERIPHERAL_DMM,
         SZ_1M, 0, 0, "DSP_PERIPHERAL_DMM",
-    },
-
-    {
-        TYPE_DEVMEM,
-        DSP_PERIPHERAL_ISS, L3_PERIPHERAL_ISS,
-        SZ_256K, 0, 0, "DSP_PERIPHERAL_ISS",
     },
 };
 

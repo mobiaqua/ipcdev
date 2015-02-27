@@ -531,7 +531,7 @@ Int RPMessage_recv(RPMessage_Handle handle, Ptr data, UInt16 *len,
     }
     else  {
        payload = (Queue_elem *)List_get(obj->queue);
-       Assert_isTrue((!payload), NULL);
+       Assert_isTrue((payload), NULL);
     }
 
     if (status == RPMessage_S_SUCCESS)  {
