@@ -1,6 +1,6 @@
 %%{
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -31,7 +31,15 @@
  */
 %%}
 
-%if (xdc.module('ti.sysbios.BIOS').$used) {
+%var resource = xdc.module('ti.ipc.remoteproc.Resource');
+
+%/*
+% * This check effectively verifies if we are a slave core
+% * (loaded by remoteproc), and not just a peer core that
+% * was not loaded by 'us'.
+% */
+%if (resource.$used) {
+% if (xdc.module('ti.sysbios.BIOS').$used) {
 %  if ((Program.build.target.$name.match(/C64P/)) ||
 %    (Program.build.target.$name.match(/C674/)) ||
 %    (Program.build.target.$name.match(/C64T/)) ||
@@ -54,4 +62,5 @@
      */
     --diag_suppress=10063
 %  }
+% }
 %}
