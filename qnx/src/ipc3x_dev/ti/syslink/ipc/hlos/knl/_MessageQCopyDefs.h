@@ -61,7 +61,7 @@ extern "C" {
  *  @def    MessageQCopy_MAXMQS
  *  @brief  Maximum number of MQ handles (endpoints) per transport supported.
  */
-#define MessageQCopy_MAXMQS 2280u
+#define MessageQCopy_MAXMQS 1280u
 
 /*!
  *  @def    MessageQCopy_NUMVIRTQS
