@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2013, Texas Instruments Incorporated
+#   Copyright (c) 2012-2015, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -134,7 +134,7 @@ export XDCOPTIONS
 # Note that XDCBUILDCFG points to the ipc-bios.bld file which uses
 # the arguments specified by XDCARGS
 #
-XDC = $(XDC_INSTALL_DIR)/xdc XDCARGS="$(XDCARGS)" XDCBUILDCFG=./ipc-bios.bld
+XDC = $(XDC_INSTALL_DIR)/xdc $(JOBS) XDCARGS="$(XDCARGS)" XDCBUILDCFG=./ipc-bios.bld
 
 ######################################################
 ## Shouldnt have to modify anything below this line ##
