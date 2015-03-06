@@ -348,6 +348,7 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
     UInt16 baseId;
     UInt16 length;
     UInt16 index;
+    UInt16 cluster;
 
     Error_init(&eb);
 
@@ -401,8 +402,9 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
          *  somewhere in the list.
          */
         status = NameServer_E_NOTFOUND;
+        cluster = MultiProc_getNumProcsInCluster();
 
-        for (i = 0; procId[i] != MultiProc_INVALIDID; i++) {
+        for (i = 0; (procId[i] != MultiProc_INVALIDID) && (i < cluster); i++) {
             if (procId[i] == MultiProc_self()) {
                 /* check local */
                 status = NameServer_getLocal(handle, name, value, len);
