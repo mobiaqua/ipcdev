@@ -69,11 +69,6 @@
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 #include <_IpcLog.h>
 
-/* TI Ipc utils: */
-#include <_TiIpcFxns.h>
-
-#include "ti/ipc/ti_ipc.h"
-
 #define MESSAGEQ_RPMSG_PORT       61
 #define NAME_SERVER_RPMSG_ADDR    0
 #define RPMSG_RESERVED_ADDRESSES  (1024)

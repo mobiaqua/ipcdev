@@ -29,18 +29,18 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _TIIPCFXNS_H
-#define _TIIPCFXNS_H
+#ifndef TIIPCFXNS_H
+#define TIIPCFXNS_H
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-/* Internal variable to enable/disable tracing throughout TiIpcFxns */
-extern Bool _TiIpcFxns_verbose;
+extern int TiIpcFxns_connect(int fd, UInt16 procId, int dst);
+extern int TiIpcFxns_bindAddr(int fd, UInt32 localAddr);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
 
-#endif /* _TIIPCFXNS_H */
+#endif /* TIIPCFXNS_H */

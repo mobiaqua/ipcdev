@@ -152,7 +152,7 @@
 #include <ti/syslink/inc/usr/Qnx/MessageQDrv.h>
 
 /* TI IPC utils: */
-#include <_TiIpcFxns.h>
+#include <ti/ipc/TiIpcFxns.h>
 
 #include <ti/syslink/inc/ti/ipc/ti_ipc.h>
 
@@ -846,9 +846,9 @@ Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
              * Connect to the remote endpoint and bind any reserved address as
              * local endpoint
              */
-            Connect(ipcFd, remoteProcId, MESSAGEQ_RPMSG_PORT);
+            TiIpcFxns_connect(ipcFd, remoteProcId, MESSAGEQ_RPMSG_PORT);
             /* Bind to any port # above 1024 (MessageQCopy_MAXRESERVEDEPT) */
-            err = BindAddr(ipcFd, TIIPC_ADDRANY);
+            err = TiIpcFxns_bindAddr(ipcFd, TIIPC_ADDRANY);
             if (err < 0) {
                 status = MessageQ_E_FAIL;
                 printf ("MessageQ_attach: bind failed: %d, %s\n",
@@ -944,7 +944,7 @@ static Int transportCreateEndpoint(int * fd, UInt16 queuePort)
     PRINTVERBOSE1("transportCreateEndpoint: opened fd: %d\n", *fd)
 
     /* Bind to this port # in the transport */
-    err = BindAddr(*fd, (UInt32)queuePort);
+    err = TiIpcFxns_bindAddr(*fd, (UInt32)queuePort);
     if (err < 0) {
         status = MessageQ_E_FAIL;
         printf("transportCreateEndpoint: bind failed: %d, %s\n",

@@ -53,13 +53,14 @@
 
 /* For PRINTVERBOSE* */
 #include <_IpcLog.h>
+#include <_TiIpcFxns.h>
 
 /*  Traces in this file are controlled via _TiIpcFxns_verbose */
 Bool _TiIpcFxns_verbose = FALSE;
 #define verbose _TiIpcFxns_verbose
 
 /* connect to remote service */
-int Connect(int fd, UInt16 procId, int dst)
+int TiIpcFxns_connect(int fd, UInt16 procId, int dst)
 {
     tiipc_remote_params dst_addr;
     int                   err;
@@ -79,7 +80,7 @@ int Connect(int fd, UInt16 procId, int dst)
     return(0);
 }
 
-int BindAddr(int fd, UInt32 localAddr)
+int TiIpcFxns_bindAddr(int fd, UInt32 localAddr)
 {
     tiipc_local_params src_addr;
     int         err;
