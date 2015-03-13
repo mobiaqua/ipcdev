@@ -930,15 +930,28 @@ Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout)
         sem_wait(&obj->synchronizer);
     }
     else {
+        /* add timeout (microseconds) to current time of day */
         gettimeofday(&tv, NULL);
+        tv.tv_sec += timeout / 1000000;
+        tv.tv_usec += timeout % 1000000;
+
+        if (tv.tv_usec >= 1000000) {
+              tv.tv_sec++;
+              tv.tv_usec -= 1000000;
+        }
+
+        /* set absolute timeout value */
         ts.tv_sec = tv.tv_sec;
-        ts.tv_nsec = (tv.tv_usec + timeout) * 1000;
+        ts.tv_nsec = tv.tv_usec * 1000; /* convert to nanoseconds */
 
         if (sem_timedwait(&obj->synchronizer, &ts) < 0) {
             if (errno == ETIMEDOUT) {
                 PRINTVERBOSE0("MessageQ_get: operation timed out\n")
-
-                return MessageQ_E_TIMEOUT;
+                return (MessageQ_E_TIMEOUT);
+            }
+            else {
+                PRINTVERBOSE0("MessageQ_get: sem_timedwait error\n")
+                return (MessageQ_E_FAIL);
             }
         }
     }
