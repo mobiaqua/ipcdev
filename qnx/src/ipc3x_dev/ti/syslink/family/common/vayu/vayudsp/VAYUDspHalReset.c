@@ -66,15 +66,15 @@ extern "C" {
  * =============================================================================
  */
 /* DSP PRCM Regs*/
-#define CM_DSP_CLKSTCTRL      0x400
-#define CM_DSP_STATICDEP      0x404
-#define CM_DSP_DYNMICDEP      0x408
-#define CM_DSP_DSP_CLKCTRL    0x420
+#define CM_DSP_CLKSTCTRL      0x00
+#define CM_DSP_STATICDEP      0x04
+#define CM_DSP_DYNMICDEP      0x08
+#define CM_DSP_DSP_CLKCTRL    0x20
 
-#define PM_DSP_PWRSTCTRL      0x400
-#define PM_DSP_PWRSTST        0x404
-#define RM_DSP_RSTCTRL        0x410
-#define RM_DSP_RSTST          0x414
+#define PM_DSP_PWRSTCTRL      0x00
+#define PM_DSP_PWRSTST        0x04
+#define RM_DSP_RSTCTRL        0x10
+#define RM_DSP_RSTST          0x14
 
 #define DSP_SYS_MMU_CONFIG_OFFSET 0x18
 

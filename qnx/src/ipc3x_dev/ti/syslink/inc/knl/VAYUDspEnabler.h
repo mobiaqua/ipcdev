@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -92,7 +92,7 @@ typedef unsigned short u16;
     Taken from iommu2.h of Linux
 */
 
-#define MMU_DSP_ENABLER_BASE     0x55082000
+#define MMU_DSP_ENABLER_BASE     0x55082000 // Praveen...wrong for DSP.. looks like copied from IPU
 #define MMU_REVISION                 MMU_DSP_ENABLER_BASE + 0x00
 #define MMU_SYSCONFIG                MMU_DSP_ENABLER_BASE + 0x10
 #define MMU_SYSSTATUS                MMU_DSP_ENABLER_BASE + 0x14

@@ -90,11 +90,22 @@ extern "C" {
 #define MPU_INT_OFFSET               32
 
 /*!
- *  @brief  Interrupt Id for DSP MMU faults
+ *  @brief  Interrupt Id for DSP1 MMU faults
  */
-#define MMU_FAULT_INTR_DSP1_MMU0     60
+#define MMU_FAULT_INTR_DSP1_MMU0     28
+
 #define MMU_FAULT_INTR_DSP1_MMU1     143
 #define MMU_XBAR_INTR_DSP1_MMU1      145
+
+/*!
+ *  @brief  Interrupt Id for DSP2 MMU faults
+ */
+#define MMU_FAULT_INTR_DSP2_MMU0     144
+#define MMU_XBAR_INTR_DSP2_MMU0      146
+
+#define MMU_FAULT_INTR_DSP2_MMU1     145
+#define MMU_XBAR_INTR_DSP2_MMU1      147
+
 
 /*!
  *  @brief  CAM register field values
@@ -461,7 +472,8 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
     Int                           status    = PROCESSOR_SUCCESS;
     VAYUDSP_HalMmuObject *        mmu0Obj, *mmu1Obj;
     OsalIsr_Params                isrParams;
-    UInt32 reg = 0;
+    UInt32                        reg = 0;
+    UInt16                        dsp1ProcId = MultiProc_getId("DSP1");
 
     GT_3trace (curTrace, GT_ENTER, "_VAYUDSP_halMmuEnable",
                halObject, numMemEntries, memTable);
@@ -479,25 +491,50 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
     REG32(halObject->ctrlModBase + CTRL_MODULE_MMR_OFFSET) = 0xF757FDC0;
 
     /* Program the IntXbar */
-    reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1));
-    if ((MMU_FAULT_INTR_DSP1_MMU1 - CTRL_MODULE_INT_BASE) % 2) {
-        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
-            (reg & 0x0000FFFF) | (MMU_XBAR_INTR_DSP1_MMU1 << 16);
+    if (halObject->procId == dsp1ProcId) {
+        reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1));
+        if ((MMU_FAULT_INTR_DSP1_MMU1 - CTRL_MODULE_INT_BASE) % 2) {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
+                (reg & 0x0000FFFF) | (MMU_XBAR_INTR_DSP1_MMU1 << 16);
+        }
+        else {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
+                (reg & 0xFFFF0000) | (MMU_XBAR_INTR_DSP1_MMU1);
+        }
     }
     else {
-        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
-            (reg & 0xFFFF0000) | (MMU_XBAR_INTR_DSP1_MMU1);
+        reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU0));
+        if ((MMU_FAULT_INTR_DSP2_MMU0 - CTRL_MODULE_INT_BASE) % 2) {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU0)) =
+                (reg & 0x0000FFFF) | (MMU_XBAR_INTR_DSP2_MMU0 << 16);
+        }
+        else {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU0)) =
+                (reg & 0xFFFF0000) | (MMU_XBAR_INTR_DSP2_MMU0);
+        }
+
+        reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU1));
+        if ((MMU_FAULT_INTR_DSP2_MMU1 - CTRL_MODULE_INT_BASE) % 2) {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU1)) =
+                (reg & 0x0000FFFF) | (MMU_XBAR_INTR_DSP2_MMU1 << 16);
+        }
+        else {
+            REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP2_MMU1)) =
+                (reg & 0xFFFF0000) | (MMU_XBAR_INTR_DSP2_MMU1);
+        }
     }
 
     /* Create the ISR to listen for MMU Faults */
     isrParams.sharedInt        = FALSE;
     isrParams.checkAndClearFxn = &_VAYUDSP_halMmuCheckAndClearFunc;
     isrParams.fxnArgs          = halObject;
-    isrParams.intId            = MMU_FAULT_INTR_DSP1_MMU0;
+    isrParams.intId            = (dsp1ProcId == halObject->procId ?
+        MMU_FAULT_INTR_DSP1_MMU0 + MPU_INT_OFFSET: MMU_FAULT_INTR_DSP2_MMU0 + MPU_INT_OFFSET);
     mmu0Obj->isrHandle = OsalIsr_create (&_VAYUDSP_halMmuInt_isr,
                                         halObject,
                                         &isrParams);
-    isrParams.intId            = MMU_FAULT_INTR_DSP1_MMU1;
+    isrParams.intId            = (dsp1ProcId == halObject->procId ?
+        MMU_FAULT_INTR_DSP1_MMU1 + MPU_INT_OFFSET: MMU_FAULT_INTR_DSP2_MMU1+ MPU_INT_OFFSET);
     mmu1Obj->isrHandle = OsalIsr_create (&_VAYUDSP_halMmuInt_isr,
                                         halObject,
                                         &isrParams);

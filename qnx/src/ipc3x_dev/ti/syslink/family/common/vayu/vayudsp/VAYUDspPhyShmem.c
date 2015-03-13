@@ -10,7 +10,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -101,6 +101,7 @@ VAYUDSP_phyShmemInit (Ptr halObj)
     Int                  status    = PROCESSOR_SUCCESS;
     VAYUDSP_HalObject *  halObject = NULL;
     Memory_MapInfo       mapInfo;
+    UInt16              dsp1ProcId = MultiProc_getId("DSP1");
 
     GT_1trace (curTrace, GT_ENTER, "VAYUDSP_phyShmemInit", halObj);
 
@@ -108,7 +109,12 @@ VAYUDSP_phyShmemInit (Ptr halObj)
 
     halObject = (VAYUDSP_HalObject *) halObj;
 
-    mapInfo.src = DSP_BOOT_ADDR;
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src = DSP1_BOOT_ADDR;
+    }
+    else {
+        mapInfo.src = DSP2_BOOT_ADDR;
+    }
     mapInfo.size = DSP_BOOT_ADDR_SIZE;
     mapInfo.isCached = FALSE;
 
@@ -126,39 +132,16 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->generalCtrlBase = mapInfo.dst;
     }
 
-    mapInfo.src      = DSP_BOOT_STAT;
-    mapInfo.size     = DSP_BOOT_STAT_SIZE;
-    mapInfo.isCached = FALSE;
-    status = Memory_map (&mapInfo);
-    if (status < 0) {
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUDSP_phyShmemInit",
-                             status,
-                             "Failure in Memory_map for MMU base registers");
-        halObject->bootStatBase = 0;
+    /* Not used */
+    halObject->bootStatBase = 0;
+    halObject->l2ClkBase = 0;
+
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src      = CM_DSP1_BASE_ADDR;
     }
     else {
-        halObject->bootStatBase = mapInfo.dst;
+        mapInfo.src      = CM_DSP2_BASE_ADDR;
     }
-
-    mapInfo.src      = L2_RAM_CLK_ENABLE;
-    mapInfo.size     = L2_RAM_CLK_ENABLE_SIZE;
-    mapInfo.isCached = FALSE;
-    status = Memory_map (&mapInfo);
-    if (status < 0) {
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "VAYUDSP_phyShmemInit",
-                             status,
-                             "Failure in Memory_map for MMU base registers");
-        halObject->l2ClkBase = 0;
-    }
-    else {
-        halObject->l2ClkBase = mapInfo.dst;
-    }
-
-    mapInfo.src      = CM_BASE_ADDR;
     mapInfo.size     = CM_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -174,7 +157,12 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->cmBase = mapInfo.dst;
     }
 
-    mapInfo.src      = PRM_BASE_ADDR;
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src      = PRM_DSP1_BASE_ADDR;
+    }
+    else {
+        mapInfo.src      = PRM_DSP2_BASE_ADDR;
+    }
     mapInfo.size     = PRM_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -190,7 +178,12 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->prmBase = mapInfo.dst;
     }
 
-    mapInfo.src      = MMU0_BASE;
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src      = MMU0_DSP1_BASE;
+    }
+    else {
+        mapInfo.src      = MMU0_DSP2_BASE;
+    }
     mapInfo.size     = MMU0_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -206,7 +199,12 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->mmu0Base = mapInfo.dst;
     }
 
-    mapInfo.src      = MMU1_BASE;
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src      = MMU1_DSP1_BASE;
+    }
+    else {
+        mapInfo.src      = MMU1_DSP2_BASE;
+    }
     mapInfo.size     = MMU1_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -222,7 +220,12 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->mmu1Base = mapInfo.dst;
     }
 
-    mapInfo.src      = DSP_SYS_MMU_CONFIG_BASE;
+    if (halObject->procId == dsp1ProcId) {
+        mapInfo.src      = DSP1_SYS_MMU_CONFIG_BASE;
+        }
+    else {
+        mapInfo.src      = DSP2_SYS_MMU_CONFIG_BASE;
+    }
     mapInfo.size     = DSP_SYS_MMU_CONFIG_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
@@ -372,35 +375,9 @@ VAYUDSP_phyShmemExit (Ptr halObj)
         halObject->prmBase = 0 ;
     }
 
-    unmapInfo.addr = halObject->l2ClkBase;
-    unmapInfo.size = L2_RAM_CLK_ENABLE_SIZE;
-    unmapInfo.isCached = FALSE;
-    if (unmapInfo.addr != 0) {
-        status = Memory_unmap (&unmapInfo);
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                              GT_4CLASS,
-                              "VAYUDSP_phyShmemExit",
-                              status,
-                              "Failure in Memory_Unmap for MMU base registers");
-        }
-        halObject->l2ClkBase = 0 ;
-    }
-
-    unmapInfo.addr = halObject->bootStatBase;
-    unmapInfo.size = DSP_BOOT_STAT_SIZE;
-    unmapInfo.isCached = FALSE;
-    if (unmapInfo.addr != 0) {
-        status = Memory_unmap (&unmapInfo);
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                              GT_4CLASS,
-                              "VAYUDSP_phyShmemExit",
-                              status,
-                              "Failure in Memory_Unmap for MMU base registers");
-        }
-        halObject->bootStatBase = 0 ;
-    }
+    /* Not used */
+    halObject->l2ClkBase = 0 ;
+    halObject->bootStatBase = 0 ;
 
     unmapInfo.addr = halObject->generalCtrlBase;
     unmapInfo.size = DSP_BOOT_ADDR_SIZE;

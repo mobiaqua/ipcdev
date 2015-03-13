@@ -1555,7 +1555,7 @@ static Void printUsage (Char * app)
 #else
     printf("\n%s: [-gdca] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
         app);
-    printf("  <core_id#> should be set to a core name (e.g. DSP1, IPU2)\n");
+    printf("  <core_id#> should be set to a core name (e.g. DSP1, DSP2, IPU1, IPU2)\n");
     printf("      followed by the path to the executable to load on that core.\n");
     printf("Options:\n");
     printf("  -g   enable GateMP support on host\n");

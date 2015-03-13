@@ -12,7 +12,7 @@
 /*
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -70,64 +70,48 @@ extern "C" {
  *  See _ProcDefs.h
  * =============================================================================
  */
-/*!
- *  @brief  Base addresses of dsp boot stat reg to indicate the boot complete.
- */
-#define DSP_BOOT_STAT           0x48140044
-
-#define DSP_BOOT_STAT_SIZE      0x4
-/*!
- *  @brief  Base addresses of L2_RAM for Ducati.
- */
-#define DSP_BOOT_ADDR           0x4a00255c
 
 /*!
- *  @brief  Base addresses of L2_RAM for Ducati.
+ *  @brief  Base addresses of Reset Vector  for DSP
  */
+#define DSP1_BOOT_ADDR          0x4a00255c
+#define DSP2_BOOT_ADDR          0x4a002560
+
 #define DSP_BOOT_ADDR_SIZE      0x4
 
 /*!
- *  @brief  Base addresses of L2_RAM for clock enable.
- */
-#define L2_RAM_CLK_ENABLE       0x48140650
-
-#define L2_RAM_CLK_ENABLE_SIZE  0x4
-/*!
  *  @brief  Base addresses of PRCM module.
  */
-#define PRM_BASE_ADDR           0x4Ae06000
-/*!
- *  @brief  Base addresses of different peripherals.
- */
+#define PRM_DSP1_BASE_ADDR      0x4Ae06400
+#define PRM_DSP2_BASE_ADDR      0x4Ae07b00
 
-#define PRM_SIZE                0x00002000
+#define PRM_SIZE                0x00000200
 
 /*!
- *  @brief  Base addresses of PRCM module.
+ *  @brief  Base addresses of CM module.
  */
-#define CM_BASE_ADDR            0x4A005000
-/*!
- *  @brief  Base addresses of different peripherals.
- */
+#define CM_DSP1_BASE_ADDR       0x4A005400
+#define CM_DSP2_BASE_ADDR       0x4A005600
 
-#define CM_SIZE                 0x00002000
+#define CM_SIZE                 0x00000200
 
-#define DSP_SYS_MMU_CONFIG_BASE 0x40D00000
 /*!
- *  @brief  size to be ioremapped.
+ *  @brief   Base addresses to be DSP MMU
  */
+#define DSP1_SYS_MMU_CONFIG_BASE 0x40D00000
+#define DSP2_SYS_MMU_CONFIG_BASE 0x41500000
+
+
 #define DSP_SYS_MMU_CONFIG_SIZE   0x1000
 
-#define MMU0_BASE                0x40D01000
-/*!
- *  @brief  size to be ioremapped.
- */
-#define MMU0_SIZE                0x1000
+#define MMU0_DSP1_BASE          0x40D01000
+#define MMU0_DSP2_BASE          0x41501000
 
-#define MMU1_BASE                0x40D02000
-/*!
- *  @brief  size to be ioremapped.
- */
+#define MMU0_SIZE               0x1000
+
+#define MMU1_DSP1_BASE          0x40D02000
+#define MMU1_DSP2_BASE          0x41502000
+
 #define MMU1_SIZE                0x1000
 
 /*!

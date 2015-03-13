@@ -137,7 +137,7 @@ typedef struct Platform_Object {
             /*!< Handle to the PwrMgr instance used */
             ElfLoader_Handle   ldrHandle;
             /*!< Handle to the Loader instance used */
-        } dsp0;
+        } dsp;
         struct {
             VAYUIPUCORE0PROC_Handle pHandle;
             /*!< Handle to the Processor instance used */
@@ -278,6 +278,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         /* Override the MESSAGEQCOPY default config */
         config->MQCopyConfig.intId[1] = 173; // 141 + 32
         config->MQCopyConfig.intId[2] = 168; // 136 + 32
+        config->MQCopyConfig.intId[3] = 173; // 141 + 32
         config->MQCopyConfig.intId[4] = 168; // 136 + 32
 
 #if !defined(IPC_BUILD_OPTIMIZE)
@@ -876,20 +877,20 @@ _Platform_setup (Ipc_Config * cfg)
             /* Create an instance of the Processor object for
              * VAYUDSP */
             VAYUDSPPROC_Params_init (NULL, &lv->dspProcParams);
-            handle->sHandles.dsp0.pHandle = VAYUDSPPROC_create (procId,
+            handle->sHandles.dsp.pHandle = VAYUDSPPROC_create (procId,
                                                               &lv->dspProcParams);
 
             /* Create an instance of the ELF Loader object */
             ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
-            handle->sHandles.dsp0.ldrHandle =
+            handle->sHandles.dsp.ldrHandle =
                                            ElfLoader_create (procId,
                                                              &lv->elfLoaderParams);
             /* Create an instance of the PwrMgr object for VAYUDSP */
             VAYUDSPPWR_Params_init (&lv->dspPwrParams);
-            handle->sHandles.dsp0.pwrHandle = VAYUDSPPWR_create (procId,
+            handle->sHandles.dsp.pwrHandle = VAYUDSPPWR_create (procId,
                                                     &lv->dspPwrParams);
 
-            if (handle->sHandles.dsp0.pHandle == NULL) {
+            if (handle->sHandles.dsp.pHandle == NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -897,7 +898,7 @@ _Platform_setup (Ipc_Config * cfg)
                                      status,
                                      "VAYUDSPPROC_create failed!");
             }
-            else if (handle->sHandles.dsp0.ldrHandle ==  NULL) {
+            else if (handle->sHandles.dsp.ldrHandle ==  NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -905,7 +906,7 @@ _Platform_setup (Ipc_Config * cfg)
                                      status,
                                      "Failed to create loader instance!");
             }
-            else if (handle->sHandles.dsp0.pwrHandle ==  NULL) {
+            else if (handle->sHandles.dsp.pwrHandle ==  NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
@@ -916,9 +917,95 @@ _Platform_setup (Ipc_Config * cfg)
             else {
                 /* Initialize parameters */
                 ProcMgr_Params_init (NULL, &lv->params);
-                lv->params.procHandle = handle->sHandles.dsp0.pHandle;
-                lv->params.loaderHandle = handle->sHandles.dsp0.ldrHandle;
-                lv->params.pwrHandle = handle->sHandles.dsp0.pwrHandle;
+                lv->params.procHandle = handle->sHandles.dsp.pHandle;
+                lv->params.loaderHandle = handle->sHandles.dsp.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.dsp.pwrHandle;
+                handle->pmHandle = ProcMgr_create (procId, &lv->params);
+                if (handle->pmHandle == NULL) {
+                    status = Platform_E_FAIL;
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "_Platform_setup",
+                                         status,
+                                         "ProcMgr_create failed!");
+                }
+            }
+        }
+    }
+
+    if (status >= 0) {
+        /* Get MultiProc ID by name. */
+        procId = MultiProc_getId ("DSP2");
+
+        handle = &Platform_objects [procId];
+        VAYUDSPPROC_getConfig (&lv->dspProcConfig);
+        status = VAYUDSPPROC_setup (&lv->dspProcConfig);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_setup",
+                                 status,
+                                 "VAYUDSPPROC_setup failed!");
+        }
+        else {
+            VAYUDSPPWR_getConfig (&lv->dspPwrConfig);
+            status = VAYUDSPPWR_setup (&lv->dspPwrConfig);
+            if (status < 0) {
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPWR_setup failed!");
+            }
+        }
+
+        if (status >= 0) {
+            /* Create an instance of the Processor object for
+             * VAYUDSP */
+            VAYUDSPPROC_Params_init (NULL, &lv->dspProcParams);
+            handle->sHandles.dsp.pHandle = VAYUDSPPROC_create (procId,
+                                                              &lv->dspProcParams);
+
+            /* Create an instance of the ELF Loader object */
+            ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
+            handle->sHandles.dsp.ldrHandle =
+                                           ElfLoader_create (procId,
+                                                             &lv->elfLoaderParams);
+            /* Create an instance of the PwrMgr object for VAYUDSP */
+            VAYUDSPPWR_Params_init (&lv->dspPwrParams);
+            handle->sHandles.dsp.pwrHandle = VAYUDSPPWR_create (procId,
+                                                    &lv->dspPwrParams);
+
+            if (handle->sHandles.dsp.pHandle == NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPROC_create failed!");
+            }
+            else if (handle->sHandles.dsp.ldrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "Failed to create loader instance!");
+            }
+            else if (handle->sHandles.dsp.pwrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPWR_create failed!");
+            }
+            else {
+                /* Initialize parameters */
+                ProcMgr_Params_init (NULL, &lv->params);
+                lv->params.procHandle = handle->sHandles.dsp.pHandle;
+                lv->params.loaderHandle = handle->sHandles.dsp.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.dsp.pwrHandle;
                 handle->pmHandle = ProcMgr_create (procId, &lv->params);
                 if (handle->pmHandle == NULL) {
                     status = Platform_E_FAIL;
@@ -955,7 +1042,7 @@ _Platform_destroy (void)
 
     GT_0trace (curTrace, GT_ENTER, "_Platform_destroy");
 
-    /* ------------------------- DSP cleanup -------------------------------- */
+    /* ------------------------- DSP1 cleanup -------------------------------- */
     handle = &Platform_objects [MultiProc_getId ("DSP1")];
     if (handle->pmHandle != NULL) {
         status = ProcMgr_delete (&handle->pmHandle);
@@ -972,8 +1059,70 @@ _Platform_destroy (void)
     }
 
     /* Delete the Processor, Loader and PwrMgr instances */
-    if (handle->sHandles.dsp0.pwrHandle != NULL) {
-        tmpStatus = VAYUDSPPWR_delete (&handle->sHandles.dsp0.pwrHandle);
+    if (handle->sHandles.dsp.pwrHandle != NULL) {
+        tmpStatus = VAYUDSPPWR_delete (&handle->sHandles.dsp.pwrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUDSPPWR_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.dsp.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.dsp.ldrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "Failed to delete loader instance!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.dsp.pHandle != NULL) {
+        tmpStatus = VAYUDSPPROC_delete (&handle->sHandles.dsp.pHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUDSPPROC_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    /* ------------------------- DSP2 cleanup -------------------------------- */
+    handle = &Platform_objects [MultiProc_getId ("DSP2")];
+    if (handle->pmHandle != NULL) {
+        status = ProcMgr_delete (&handle->pmHandle);
+        GT_assert (curTrace, (status >= 0));
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "ProcMgr_delete failed!");
+        }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+    /* Delete the Processor, Loader and PwrMgr instances */
+    if (handle->sHandles.dsp.pwrHandle != NULL) {
+        tmpStatus = VAYUDSPPWR_delete (&handle->sHandles.dsp.pwrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -987,8 +1136,8 @@ _Platform_destroy (void)
         }
     }
 
-    if (handle->sHandles.dsp0.ldrHandle != NULL) {
-        tmpStatus = ElfLoader_delete (&handle->sHandles.dsp0.ldrHandle);
+    if (handle->sHandles.dsp.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.dsp.ldrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -1002,8 +1151,8 @@ _Platform_destroy (void)
         }
     }
 
-    if (handle->sHandles.dsp0.pHandle != NULL) {
-        tmpStatus = VAYUDSPPROC_delete (&handle->sHandles.dsp0.pHandle);
+    if (handle->sHandles.dsp.pHandle != NULL) {
+        tmpStatus = VAYUDSPPROC_delete (&handle->sHandles.dsp.pHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;

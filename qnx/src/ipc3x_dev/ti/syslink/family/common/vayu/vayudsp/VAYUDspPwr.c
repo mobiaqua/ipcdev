@@ -101,7 +101,8 @@ extern "C" {
 #define RM_ACTIVE_RSTCTRL           0x00000A10
 #define RM_ACTIVE_RSTST             0x00000A14
 
-#define GEM_L2RAM_BASE_ADDR         0x40800000
+#define GEM_L2RAM_DSP1_BASE_ADDR    0x40800000
+#define GEM_L2RAM_DSP2_BASE_ADDR    0x41000000
 #define GEM_L2RAM_SIZE              0x00040000
 
 #define CTRL_MODULE_BASE_ADDR       0x48140000
@@ -721,6 +722,7 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
     Int status                        = PWRMGR_SUCCESS;
     PwrMgr_Object *      pwrMgrHandle = (PwrMgr_Object *) handle;
     VAYUDSPPWR_Object *  object    = NULL;
+    UInt16               dsp1ProcId   = MultiProc_getId("DSP1");
     Memory_MapInfo       mapInfo;
     /* Mapping for prcm base is done in VAYUVIDEOM3_phyShmemInit */
 
@@ -780,7 +782,12 @@ VAYUDSPPWR_attach (PwrMgr_Handle handle, PwrMgr_AttachParams * params)
                 object->controlVA = mapInfo.dst;
 
                 /* Map and get the virtual address for system l2 ram */
-                mapInfo.src      = GEM_L2RAM_BASE_ADDR;
+                if (handle->procId == dsp1ProcId) {
+                    mapInfo.src      = GEM_L2RAM_DSP1_BASE_ADDR;
+                }
+                else {
+                    mapInfo.src      = GEM_L2RAM_DSP2_BASE_ADDR;
+                }
                 mapInfo.size     = GEM_L2RAM_SIZE;
                 mapInfo.isCached = FALSE;
                 status = Memory_map (&mapInfo);

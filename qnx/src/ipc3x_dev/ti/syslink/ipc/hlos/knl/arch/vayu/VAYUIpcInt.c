@@ -173,7 +173,7 @@ extern "C" {
 #define HOST_IPU2_SUB_MBOX  6
 
 /*!
- *  @def    VAYU_HOST_DSP1_2_MBOX
+ *  @def    VAYU_HOST_DSP1_MBOX
  *  @brief  Mailbox used for HOST<->DSP1 communication.
  */
 #define VAYU_HOST_DSP1_MBOX 5
@@ -189,6 +189,24 @@ extern "C" {
  *  @brief  Mailbox used for HOST->DSP1 communication.
  */
 #define HOST_DSP1_SUB_MBOX  5
+
+/*!
+ *  @def    VAYU_HOST_DSP2_MBOX
+ *  @brief  Mailbox used for HOST<->DSP2 communication.
+ */
+#define VAYU_HOST_DSP2_MBOX 6
+
+/*!
+ *  @def    DSP2_HOST_SUB_MBOX
+ *  @brief  Mailbox used for DSP2->HOST communication.
+ */
+#define DSP2_HOST_SUB_MBOX  1
+
+/*!
+ *  @def    HOST_DSP2_SUB_MBOX
+ *  @brief  Mailbox used for HOST->DSP2 communication.
+ */
+#define HOST_DSP2_SUB_MBOX  5
 
 /*!
  *  @def    VAYU_HOST_USER_ID
@@ -213,6 +231,12 @@ extern "C" {
  *  @brief  User ID of DSP1.
  */
 #define VAYU_DSP1_USER_ID 0
+
+/*!
+ *  @def    VAYU_DSP2_USER_ID
+ *  @brief  User ID of DSP2.
+ */
+#define VAYU_DSP2_USER_ID 0
 
 /* Macro to make a correct module magic number with refCount */
 #define VAYUIPCINT_MAKE_MAGICSTAMP(x) \
@@ -295,6 +319,12 @@ extern "C" {
  *  @brief  irq xbar num for dsp1.
  */
 #define IRQ_XBAR_DSP1                    IRQ_XBAR_MBOX_5_USR_2
+
+/*!
+ *  @def    IRQ_XBAR_DSP2
+ *  @brief  irq xbar num for dsp2.
+ */
+#define IRQ_XBAR_DSP2                    IRQ_XBAR_MBOX_6_USR_2
 
 /*!
  *  @def    IRQ_XBAR_IPU1
@@ -663,6 +693,8 @@ VAYUIpcInt_setup (VAYUIpcInt_Config * cfg)
              */
             VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1] =
                                                        MultiProc_getId ("DSP1");
+            VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2] =
+                                                       MultiProc_getId ("DSP2");
             VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1] =
                                                        MultiProc_getId ("IPU1");
             VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2] =
@@ -832,6 +864,9 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
     if (elem == &((List_Object *)VAYUIpcInt_state.isrHandles)->elem) {
         if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
             mboxId = IRQ_XBAR_DSP1;
+        }
+        else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2]) {
+            mboxId = IRQ_XBAR_DSP2;
         }
         else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]){
             mboxId = IRQ_XBAR_IPU1;
@@ -1034,6 +1069,14 @@ VAYUIpcInt_interruptEnable (UInt16 procId, UInt32 intId)
                     VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
                 ( (DSP1_HOST_SUB_MBOX) << 1));
     }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2]) {
+        /*
+         * Mailbox 6 is used for HOST<->DSP2 communication
+         */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
+                    VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
+                ( (DSP2_HOST_SUB_MBOX) << 1));
+    }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*
          * Mailbox 5 is used for HOST<->IPU1 communication
@@ -1089,6 +1132,18 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
             MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
             1 << ((DSP1_HOST_SUB_MBOX) << 1);
     }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2]) {
+        /*
+         * Mailbox 6 is used for HOST<->DSP2 communication
+         */
+        REG(VAYUIpcInt_state.mailbox6Base + \
+            MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
+            1 << ((DSP2_HOST_SUB_MBOX) << 1);
+
+/*        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
+                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
+                ( (DSP2_HOST_SUB_MBOX) << 1));*/
+    }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*
          * Mailbox 5 is used for HOST<->IPU1 communication
@@ -1142,6 +1197,12 @@ VAYUIpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
         /* Wait for DSP to clear the previous interrupt */
         while( (  REG32((  VAYUIpcInt_state.mailbox5Base
                         + MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX)))
+                & 0x3F ));
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2]) {
+        /* Wait for DSP to clear the previous interrupt */
+        while( (  REG32((  VAYUIpcInt_state.mailbox6Base
+                        + MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP2_SUB_MBOX)))
                 & 0x3F ));
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
@@ -1203,6 +1264,13 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
         REG32(VAYUIpcInt_state.mailbox5Base + \
                   MAILBOX_MESSAGE_m_OFFSET(HOST_DSP1_SUB_MBOX)) = value;
     }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2]) {
+        /*
+         * Mailbox 6 is used for HOST<->DSP2 communication
+         */
+        REG32(VAYUIpcInt_state.mailbox6Base + \
+                  MAILBOX_MESSAGE_m_OFFSET(HOST_DSP2_SUB_MBOX)) = value;
+    }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*
          * Mailbox 5 is used for HOST<->IPU1 communication
@@ -1254,8 +1322,8 @@ VAYUIpcInt_clearInterrupt (UInt16 procId, UInt16 mboxNum)
     GT_1trace (curTrace,GT_ENTER,"VAYUIpcInt_clearInterrupt", mboxNum);
 
     GT_assert (curTrace,(ArchIpcInt_object.isSetup == TRUE));
-
-    if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2])
+    if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2] ||
+        procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2])
         mailboxBase = VAYUIpcInt_state.mailbox6Base;
     else
         mailboxBase = VAYUIpcInt_state.mailbox5Base;
@@ -1375,6 +1443,20 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
             List_put(VAYUIpcInt_state.isrLists[procId], (List_Elem *)elem);
         }
     }
+    if (REG32(VAYUIpcInt_state.mailbox6Base
+              + MAILBOX_MSGSTATUS_m_OFFSET(DSP2_HOST_SUB_MBOX)) != 0 ){
+        procId = VAYUIpcInt_state.procIds [VAYU_INDEX_DSP2];
+        msg = VAYUIpcInt_clearInterrupt (procId, DSP2_HOST_SUB_MBOX);
+
+        GT_1trace (curTrace, GT_1CLASS, "Got msg [0x%08x] from DSP2", msg);
+
+        /* This is a message from DSP2, put the message in DSP2's list */
+        elem = get_msg();
+        if (elem) {
+            elem->msg = msg;
+            List_put(VAYUIpcInt_state.isrLists[procId], (List_Elem *)elem);
+        }
+    }
     if (REG32(VAYUIpcInt_state.mailbox5Base
               + MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX)) != 0 ){
         procId = VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1];
@@ -1382,7 +1464,7 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
 
         GT_1trace (curTrace, GT_1CLASS, "Got msg [0x%08x] from DSP1", msg);
 
-        /* This is a message from DSP, put the message in DSP's list */
+        /* This is a message from DSP1, put the message in DSP1's list */
         elem = get_msg();
         if (elem) {
             elem->msg = msg;
