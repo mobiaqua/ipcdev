@@ -314,19 +314,21 @@ exit:
  */
 Int Ipc_transportConfig(Ipc_TransportFactoryFxns *factory)
 {
-    Int status;
+    Int status = Ipc_S_SUCCESS;
 
     pthread_mutex_lock(&Ipc_module.gate);
-    status = Ipc_S_SUCCESS;
 
-    /* transport configuration must happen before start phase */
-    if (Ipc_module.refCount != 0) {
-        status = Ipc_E_INVALIDSTATE;
+    /*  Only the first caller can actually set the transport factory.
+     *  Subsequent callers (e.g. multi-threaded application) must be
+     *  using the same factory. Otherwise, it is an error.
+     */
+    if (Ipc_module.transportFactory == NULL) {
+        Ipc_module.transportFactory = factory;
+    }
+    else if (Ipc_module.transportFactory != factory) {
+        status = Ipc_E_INVALIDARG;
         goto exit;
     }
-
-    /* store factory address in module state */
-    Ipc_module.transportFactory = factory;
 
 exit:
     pthread_mutex_unlock(&Ipc_module.gate);
