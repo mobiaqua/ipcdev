@@ -154,7 +154,7 @@ Bool IpcPower_canHibernate();
  *  @param[in]  fxn    Function being registered.
  *  @param[in]  data   Data to be passed as argument to function.
  *
- *  @Returns    Returns SUCCESS or FAIL
+ *  @return     SUCCESS or FAIL
  *
  *  @sa         IpcPower_registerCallback
  */
@@ -167,7 +167,7 @@ Int IpcPower_registerCallback(Int event, IpcPower_CallbackFuncPtr fxn,
  *  @param[in]  event  Power Management callback event type.
  *  @param[in]  fxn    Function being unregistered.
  *
- *  @Returns    Returns SUCCESS or FAIL
+ *  @return     SUCCESS or FAIL
  *
  *  @sa         IpcPower_unregisterCallback
  */
