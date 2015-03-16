@@ -776,7 +776,7 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr);
 Int MessageQ_open(String name, MessageQ_QueueId *queueId);
 
 /*!
- *  @brief      Opens a MessageQ given the queue index and remote processor ID
+ *  @brief      Open a MessageQ given the queue index and processor ID
  *
  *  This function can be used instead of MessageQ_open() if the queue
  *  was created with a reserved queue index. In the example below, the
@@ -791,8 +791,8 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId);
  *          MessageQ_Params params;
  *
  *          MessageQ_Params_init(&params);
- *          params.queueIndex = SERVER_QIDX;
- *          messageQ = MessageQ_create("server", &params);
+ *          params.queueIndex = SERVER_QUEIDX;
+ *          messageQ = MessageQ_create(NULL, &params);
  *          ...
  *      }
  *
@@ -807,8 +807,9 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId);
  *  opened has already been created. MessageQ_openQueueId() does not validate
  *  that the queue has been created (unlike the MessageQ_open() function).
  *
- *  @param[in] queueIndex   QueueIndex specified in MessageQ_Params
- *  @param[in] remoteProcId Multiproc_Id of where the created queue resides
+ *  @param[in] queueIndex   QueueIndex specified in MessageQ_Params when
+ *                          the message queue was created.
+ *  @param[in] procId       Multiproc_Id of where the created queue resides.
  *
  *  @return     The MessageQ_QueueId associated with the queueIndex
  *              and remoteProcId
