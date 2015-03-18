@@ -66,6 +66,8 @@
 
 #define TransportRpmsg_GROWSIZE 32
 
+#define _MAX(a,b) (((a)>(b))?(a):(b))
+
 /* traces in this file are controlled via _TransportMessageQ_verbose */
 Bool _TransportMessageQ_verbose = FALSE;
 #define verbose _TransportMessageQ_verbose
@@ -325,7 +327,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
 
     /* add to our fat fd array and update select() parameters */
     TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds++] = fd;
-    TransportRpmsg_module->maxFd = MAX(TransportRpmsg_module->maxFd, fd);
+    TransportRpmsg_module->maxFd = _MAX(TransportRpmsg_module->maxFd, fd);
     FD_SET(fd, &TransportRpmsg_module->rfds);
 
     pthread_mutex_unlock(&TransportRpmsg_module->gate);
@@ -390,7 +392,7 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
                 /* find new max fd */
                 maxFd = TransportRpmsg_module->unblockEvent;
                 for (j = 0; j < TransportRpmsg_module->nInFds; j++) {
-                    maxFd = MAX(TransportRpmsg_module->inFds[j], maxFd);
+                    maxFd = _MAX(TransportRpmsg_module->inFds[j], maxFd);
                 }
                 TransportRpmsg_module->maxFd = maxFd;
             }

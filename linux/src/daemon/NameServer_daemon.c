@@ -338,7 +338,7 @@ static void *listener_cb(void *arg)
             }
             sock = NameServer_module->recvSock[i];
             FD_SET(sock, &rfds);
-            maxfd = MAX(sock, maxfd);
+            maxfd = sock > maxfd ? sock : maxfd;
         }
 
         maxfd = maxfd + 1;

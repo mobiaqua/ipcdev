@@ -216,7 +216,9 @@ int main (int argc, char * argv[])
     }
 
     if (argc > 2) {
-        payloadSize = MAX(strtoul(argv[2], NULL, 0), MINPAYLOADSIZE);
+        payloadSize = strtoul(argv[2], NULL, 0);
+        payloadSize = payloadSize > MINPAYLOADSIZE ? payloadSize :
+                                                     MINPAYLOADSIZE;
     }
 
     if (argc > 3) {

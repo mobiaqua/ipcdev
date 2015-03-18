@@ -94,12 +94,6 @@ typedef PVOID           HANDLE;         /* h    */
 #define FAIL   -1
 //#define NULL            '\0'
 
-#define MAX(a,b) (((a)>(b))?(a):(b))
-
-#if defined (IPC_BUILDOS_ANDROID)
-#define MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-
 #if defined (__cplusplus)
 }
 #endif
