@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 
 /* package headers */
 #include <ti/ipc/Std.h>
@@ -55,6 +56,7 @@
 #include <ti/ipc/MultiProc.h>
 #include <GateHWSpinlock.h>
 #include <_GateMP.h>
+#include <_Ipc.h>
 #include <_MultiProc.h>
 #include <_MessageQ.h>
 #include <_NameServer.h>
@@ -64,6 +66,8 @@ typedef struct {
     Int                         refCount;
     pthread_mutex_t             gate;
     Ipc_TransportFactoryFxns   *transportFactory;
+    Ipc_Config                  config;
+    Int                         attached[MultiProc_MAXPROCESSORS];
 } Ipc_Module;
 
 
@@ -73,13 +77,22 @@ typedef struct {
  */
 static Ipc_Module Ipc_module = {
     .refCount           = 0,
-    .gate               = PTHREAD_MUTEX_INITIALIZER,
-    .transportFactory   = NULL
+#if defined(IPC_BUILDOS_ANDROID)
+    .gate               = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
+#else
+// only _NP (non-portable) type available in CG tools which we're using
+    .gate               = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
+#endif
+    .transportFactory   = NULL,
+    .config.procSync    = Ipc_ProcSync_NONE
 };
 
 GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
 static LAD_ClientHandle ladHandle;
 
+/* traces in this file are controlled via _Ipc_verbose */
+Bool _Ipc_verbose = FALSE;
+#define verbose _Ipc_verbose
 
 /** ============================================================================
  *  Functions
@@ -100,12 +113,18 @@ Int Ipc_start(Void)
 #endif
     Int         status;
     LAD_Status  ladStatus;
+    UInt16      procId;
+    UInt16      clusterSize;
+    UInt16      baseId;
+    UInt16      clusterId;
+    Int         i;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
 
     /* ensure only first thread performs startup procedure */
-    if (++Ipc_module.refCount > 1) {
+    if (Ipc_module.refCount >= 1) {
+        Ipc_module.refCount++;
         status = Ipc_S_ALREADYSETUP;
         goto exit;
     }
@@ -114,6 +133,11 @@ Int Ipc_start(Void)
     if (Ipc_module.transportFactory == NULL) {
         status = Ipc_E_INVALIDSTATE;
         goto exit;
+    }
+
+    /* initialize module object */
+    for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
+        Ipc_module.attached[i] = 0;
     }
 
     /* Catch ctrl-C, and cleanup: */
@@ -154,35 +178,63 @@ Int Ipc_start(Void)
         }
     }
 
+    /* establish a communication link to the LAD daemon */
     ladStatus = LAD_connect(&ladHandle);
+
     if (ladStatus != LAD_SUCCESS) {
         printf("Ipc_start: LAD_connect() failed: %d\n", ladStatus);
         status = Ipc_E_FAIL;
         goto exit;
     }
 
-    /*  Get MultiProc configuration from LAD and initialize local
-     *  MultiProc config structure.
-     */
+    /* get global configuration from LAD */
+    Ipc_getConfig(&Ipc_module.config);
+
+    /* get global configuration from LAD */
     MultiProc_getConfig(&mpCfg);
     _MultiProc_initCfg(&mpCfg);
 
+    /* setup name server thread in LAD daemon */
     status = NameServer_setup();
 
-    if (status >= 0) {
-        MessageQ_getConfig(&msgqCfg);
-        MessageQ_setup(&msgqCfg);
-
-        /* invoke the transport factory create method */
-        status = Ipc_module.transportFactory->createFxn();
-
-        if (status < 0) {
-            goto exit;
-        }
-    }
-    else {
+    if (status < 0) {
         printf("Ipc_start: NameServer_setup() failed: %d\n", status);
         status = Ipc_E_FAIL;
+        goto exit;
+    }
+
+    /* get global configuration from LAD */
+    MessageQ_getConfig(&msgqCfg);
+    MessageQ_setup(&msgqCfg);
+
+    /* invoke the transport factory create method */
+    status = Ipc_module.transportFactory->createFxn();
+
+    if (status < 0) {
+        goto exit;
+    }
+
+    /* if using ProcSync_ALL, then attach to all processors in the cluster */
+    if (Ipc_module.config.procSync == Ipc_ProcSync_ALL) {
+        clusterSize = MultiProc_getNumProcsInCluster();
+        baseId = MultiProc_getBaseIdOfCluster();
+
+        for (clusterId = 0; clusterId < clusterSize; clusterId++) {
+            procId = baseId + clusterId;
+
+            if (procId == MultiProc_self()) {
+                continue;
+            }
+
+            status = Ipc_attach(procId);
+
+            /*  For backward compatibility, it is okay for attach to fail.
+             *  We don't expect all remote processors to be running.
+             */
+            if (status < 0) {
+                /* do nothing */
+            }
+        }
     }
 
     /* Start GateMP only if device has support */
@@ -197,41 +249,25 @@ Int Ipc_start(Void)
 
         status = GateHWSpinlock_start();
         if (status < 0) {
-            printf("Ipc_start: GateHWSpinlock_start failed: %d\n",
-                status);
+            printf("Ipc_start: GateHWSpinlock_start failed: %d\n", status);
             status = Ipc_E_FAIL;
-            goto gatehwspinlockstart_fail;
+            goto exit;
         }
-        else {
-            status = GateMP_start();
-            if (status < 0) {
-                printf("Ipc_start: GateMP_start failed: %d\n",
-                status);
-                status = Ipc_E_FAIL;
-                goto gatempstart_fail;
-            }
+
+        status = GateMP_start();
+        if (status < 0) {
+            printf("Ipc_start: GateMP_start failed: %d\n", status);
+            status = Ipc_E_FAIL;
+            GateHWSpinlock_stop();
+            goto exit;
         }
     }
 #endif
-    /* Success */
-    goto exit;
-#if defined(GATEMP_SUPPORT)
-gatempstart_fail:
-    GateHWSpinlock_stop();
-gatehwspinlockstart_fail:
-#if 0
-    for (procId = procId - 1; (procId > 0) && (status >= 0); procId--) {
-        MessageQ_detach(procId);
-    }
-#endif
-#endif
+
+    /* getting here means we have successfully started */
+    Ipc_module.refCount++;
 
 exit:
-    /* if error, must decrement reference count */
-    if (status < 0) {
-        Ipc_module.refCount--;
-    }
-
     pthread_mutex_unlock(&Ipc_module.gate);
 
     return (status);
@@ -244,43 +280,52 @@ Int Ipc_stop(Void)
 {
     Int32       status = Ipc_S_SUCCESS;
     LAD_Status  ladStatus;
-    Int         i;
     UInt16      procId;
     UInt16      clusterSize;
-    UInt16      clusterBase;
+    UInt16      baseId;
+    UInt16      clusterId;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
+
+    if (Ipc_module.refCount == 0) {
+        status = Ipc_E_INVALIDSTATE;
+        goto exit;
+    }
 
     /* ensure only last thread performs stop procedure */
     if (--Ipc_module.refCount > 0) {
         goto exit;
     }
 
-    /* invoke the transport factory delete method */
-    Ipc_module.transportFactory->deleteFxn();
+    /* if using ProcSync_ALL, then detach from all processors in the cluster */
+    if (Ipc_module.config.procSync == Ipc_ProcSync_ALL) {
+        clusterSize = MultiProc_getNumProcsInCluster();
+        baseId = MultiProc_getBaseIdOfCluster();
 
-    /* needed to enumerate processors in cluster */
-    clusterSize = MultiProc_getNumProcsInCluster();
-    clusterBase = MultiProc_getBaseIdOfCluster();
+        for (clusterId = 0; clusterId < clusterSize; clusterId++) {
+            procId = baseId + clusterId;
 
-    /* detach from all remote processors, assuming they are up */
-    for (i = 0, procId = clusterBase; i < clusterSize; i++, procId++) {
+            if (MultiProc_self() == procId) {
+                continue;
+            }
 
-        /*  no need to detach from myself */
-        if (MultiProc_self() == procId) {
-            continue;
+            /*  For backward compatibility, we might not be attached to
+             *  all cluster members. Skip unattached processors.
+             */
+            if (!Ipc_isAttached(procId)) {
+                continue;
+            }
+
+            status = Ipc_detach(procId);
+
+            if (status < 0) {
+                /* Should we keep going or stop? */
+            }
         }
-#if 0
-        status = MessageQ_detach(procId);
-        if (status < 0) {
-            printf("Ipc_stop: MessageQ_detach(%d) failed: %d\n",
-                procId, status);
-            status = Ipc_E_FAIL;
-            goto exit;
-       }
-#endif
     }
+
+    Ipc_module.transportFactory->deleteFxn();
 
     status = MessageQ_destroy();
     if (status < 0) {
@@ -341,4 +386,184 @@ static void cleanup(int arg)
     printf("Ipc: Caught SIGINT, calling Ipc_stop...\n");
     Ipc_stop();
     exit(0);
+}
+
+/*
+ *  ======== Ipc_attach ========
+ */
+Int Ipc_attach(UInt16 procId)
+{
+    Int status = Ipc_S_SUCCESS;
+    UInt16 clusterId;
+
+    /* cannot attach to yourself */
+    if (MultiProc_self() == procId) {
+        status =  Ipc_E_INVALIDARG;
+        goto done;
+    }
+
+    /* processor must be a member of the cluster */
+    clusterId = procId - MultiProc_getBaseIdOfCluster();
+
+    if (clusterId >= MultiProc_getNumProcsInCluster()) {
+        status =  Ipc_E_INVALIDARG;
+        goto done;
+    }
+
+    /* function must be serialized */
+    pthread_mutex_lock(&Ipc_module.gate);
+
+    /* if already attached, just increment reference count */
+    if (Ipc_module.attached[clusterId] > 0) {
+        Ipc_module.attached[clusterId]++;
+        goto done;
+    }
+
+    /* establish name server connection to remote processor */
+    status = NameServer_attach(procId);
+
+    if (status < 0) {
+        status = Ipc_E_FAIL;
+        goto done;
+    }
+
+    /* attach the transport to remote processor */
+    status = Ipc_module.transportFactory->attachFxn(procId);
+
+    if (status < 0) {
+        status = Ipc_E_FAIL;
+        goto done;
+    }
+
+    /* getting here means we have successfully attached */
+    Ipc_module.attached[clusterId]++;
+
+done:
+    pthread_mutex_unlock(&Ipc_module.gate);
+
+    return (status);
+}
+
+/*
+ *  ======== Ipc_detach ========
+ */
+Int Ipc_detach(UInt16 procId)
+{
+    Int status = Ipc_S_SUCCESS;
+    UInt16 clusterId;
+
+    /* cannot detach from yourself */
+    if (MultiProc_self() == procId) {
+        status =  Ipc_E_INVALIDARG;
+        goto done;
+    }
+
+    /* processor must be a member of the cluster */
+    clusterId = procId - MultiProc_getBaseIdOfCluster();
+
+    if (clusterId >= MultiProc_getNumProcsInCluster()) {
+        status =  Ipc_E_INVALIDARG;
+        goto done;
+    }
+
+    /* function must be serialized */
+    pthread_mutex_lock(&Ipc_module.gate);
+
+    if (Ipc_module.attached[clusterId] == 0) {
+        status = Ipc_E_INVALIDSTATE;
+        goto done;
+    }
+
+    if (--Ipc_module.attached[clusterId] > 0) {
+        goto done;
+    }
+
+    /* detach transport from remote processor */
+    status = Ipc_module.transportFactory->detachFxn(procId);
+
+    if (status < 0) {
+        status = Ipc_E_FAIL;
+        /* report the error */
+        goto done;
+    }
+
+    /* remove connection to remote processor */
+    status = NameServer_detach(procId);
+
+    if (status < 0) {
+        status = Ipc_E_FAIL;
+        /* report the error */
+        goto done;
+    }
+
+done:
+    if (status < 0) {
+        /* report error */
+        printf("Ipc_detach: Error %d, procId %d\n", status, procId);
+    }
+    pthread_mutex_unlock(&Ipc_module.gate);
+
+    return (status);
+}
+
+/*
+ *  ======== Ipc_isAttached ========
+ */
+Bool Ipc_isAttached(UInt16 procId)
+{
+    Bool attached;
+    UInt16 clusterId;
+
+    /* cannot be attached to yourself */
+    if (MultiProc_self() == procId) {
+        return (FALSE);
+    }
+
+    /* processor must be a member of the cluster */
+    clusterId = procId - MultiProc_getBaseIdOfCluster();
+
+    if (clusterId >= MultiProc_getNumProcsInCluster()) {
+        return (FALSE);
+    }
+
+    attached = (Ipc_module.attached[clusterId] > 0 ? TRUE : FALSE);
+    return (attached);
+}
+
+/*
+ *  ======== Ipc_getConfig ========
+ *  Get the run-time configuration for the Ipc module
+ *
+ *  This is an IPC internal function. It is used to acquire
+ *  the global Ipc module configuration values from LAD.
+ */
+Void Ipc_getConfig(Ipc_Config *cfg)
+{
+    Int status;
+    LAD_ClientHandle handle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    handle = LAD_findHandle();
+    if (handle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("Ipc_getConfig: no connection to LAD\n");
+        return;
+    }
+
+    cmd.cmd = LAD_IPC_GETCONFIG;
+    cmd.clientId = handle;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("Ipc_getConfig: sending LAD command failed, "
+                "status=%d\n", status);
+        return;
+    }
+
+    if ((status = LAD_getResponse(handle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("Ipc_getConfig: no LAD response, status=%d\n", status);
+        return;
+    }
+
+    memcpy(cfg, &rsp.ipcConfig, sizeof(Ipc_Config));
+    return;
 }

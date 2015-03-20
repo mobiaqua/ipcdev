@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,20 @@ Int NameServer_setup (Void);
  *  @sa         NameServer_setup
  */
 Int NameServer_destroy (void);
+
+/** @cond INTERNAL */
+/*!
+ *  @brief      Establish connection to remote processor
+ */
+/** @endcond INTERNAL */
+Int NameServer_attach(UInt16 procId);
+
+/** @cond INTERNAL */
+/*!
+ *  @brief       Remove connection to remote processor
+ */
+/** @endcond INTERNAL */
+Int NameServer_detach(UInt16 procId);
 
 #if defined (__cplusplus)
 }

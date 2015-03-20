@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,20 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/*============================================================================
+ *  @file   Ipc.c
+ *
+ *  @brief  Module configuration
+ */
+
+#include <ti/ipc/Std.h>
+#include <_Ipc.h>
+
 /*
- *  ======== TransportRpmsg.h ========
+ *  ======== ti_ipc_Ipc_config ========
+ *  The Ipc module configuration object
  */
-
-/**
- *  @file       TransportRpmsg.h
- *
- *  @brief      Rpmsg transports implemenation
- *
- *              The transports can be register with MessageQ. This is done
- *              via the MessageQ_registerTransport function.
- */
-
-#ifndef _TransportRpmsg_
-#define _TransportRpmsg_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <ti/ipc/Ipc.h>
-#include <ti/ipc/interfaces/IMessageQTransport.h>
-
-extern Ipc_TransportFactoryFxns TransportRpmsg_Factory;
-
-struct TransportRpmsg_Params {
-    UInt16 rprocId;
+Ipc_Config ti_ipc_Ipc_config = {
+    .procSync = Ipc_ProcSync_ALL
 };
-typedef struct TransportRpmsg_Params TransportRpmsg_Params;
-
-typedef IMessageQTransport_Handle TransportRpmsg_Handle;
-
-TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params);
-Void TransportRpmsg_delete(TransportRpmsg_Handle *hp);
-
-IMessageQTransport_Handle TransportRpmsg_upCast(TransportRpmsg_Handle handle);
-TransportRpmsg_Handle TransportRpmsg_downCast(IMessageQTransport_Handle base);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

@@ -372,6 +372,10 @@ opencommandFIFO:
 
             break;
 
+          case LAD_IPC_GETCONFIG:
+            Ipc_getConfig(&rsp.ipcConfig);
+            break;
+
           case LAD_NAMESERVER_SETUP:
             LOG0("LAD_NAMESERVER_SETUP: calling NameServer_setup()...\n")
 
@@ -520,6 +524,14 @@ opencommandFIFO:
             LOG1("    status = %d\n", rsp.status)
             LOG0("DONE\n")
 
+            break;
+
+          case LAD_NAMESERVER_ATTACH:
+            rsp.status = NameServer_attach(cmd.args.attach.procId);
+            break;
+
+          case LAD_NAMESERVER_DETACH:
+            rsp.status = NameServer_detach(cmd.args.detach.procId);
             break;
 
           case LAD_MESSAGEQ_GETCONFIG:
@@ -699,6 +711,7 @@ opencommandFIFO:
           case LAD_DISCONNECT:
             break;
 
+          case LAD_IPC_GETCONFIG:
           case LAD_NAMESERVER_SETUP:
           case LAD_NAMESERVER_DESTROY:
           case LAD_NAMESERVER_PARAMS_INIT:
@@ -710,6 +723,8 @@ opencommandFIFO:
           case LAD_NAMESERVER_GETUINT32:
           case LAD_NAMESERVER_REMOVE:
           case LAD_NAMESERVER_REMOVEENTRY:
+          case LAD_NAMESERVER_ATTACH:
+          case LAD_NAMESERVER_DETACH:
           case LAD_MESSAGEQ_GETCONFIG:
           case LAD_MESSAGEQ_SETUP:
           case LAD_MESSAGEQ_DESTROY:

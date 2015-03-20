@@ -48,6 +48,7 @@ extern "C" {
 #include <stdio.h>
 #include <ti/ipc/GateMP.h>
 #include <_GateMP.h>
+#include <_Ipc.h>
 #include <GateHWSpinlock.h>
 #include <sys/time.h>
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
@@ -152,6 +153,7 @@ extern struct timeval start_tv;
 typedef enum {
     LAD_CONNECT = 0,
     LAD_DISCONNECT,
+    LAD_IPC_GETCONFIG,
     LAD_NAMESERVER_SETUP,
     LAD_NAMESERVER_DESTROY,
     LAD_NAMESERVER_PARAMS_INIT,
@@ -163,6 +165,8 @@ typedef enum {
     LAD_NAMESERVER_GETUINT32,
     LAD_NAMESERVER_REMOVE,
     LAD_NAMESERVER_REMOVEENTRY,
+    LAD_NAMESERVER_ATTACH,
+    LAD_NAMESERVER_DETACH,
     LAD_MESSAGEQ_GETCONFIG,
     LAD_MESSAGEQ_SETUP,
     LAD_MESSAGEQ_DESTROY,
@@ -225,6 +229,12 @@ struct LAD_CommandObj {
             NameServer_Handle handle;
             Ptr entryPtr;
         } removeEntry;
+        struct {
+            UInt16 procId;
+        } attach;
+        struct {
+            UInt16 procId;
+        } detach;
         struct {
             MessageQ_Config cfg;
         } messageQSetup;
@@ -316,6 +326,7 @@ union LAD_ResponseObj {
        Int status;
        GateHWSpinlock_Config cfgParams;
     } gateHWSpinlockGetConfig;
+    Ipc_Config ipcConfig;
     NameServer_Params params;
     NameServer_Handle handle;
     Ptr entryPtr;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -536,4 +536,82 @@ Int NameServer_delete(NameServer_Handle *nsHandle)
                    clHandle)
 
     return status;
+}
+
+/*
+ *  ======== NameServer_attach ========
+ *  Internal function.
+ */
+Int NameServer_attach(UInt16 procId)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("NameServer_attach: not connected to LAD\n");
+        return (NameServer_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_NAMESERVER_ATTACH;
+    cmd.clientId = clHandle;
+    cmd.args.attach.procId = procId;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_attach: sending LAD command failed, "
+                "status=%d\n", status);
+        return (NameServer_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_attach: no LAD response, status=%d\n",
+                status);
+        return (NameServer_E_FAIL);
+    }
+
+    status = rsp.status;
+    PRINTVERBOSE1("NameServer_attach: LAD response, status=%d\n", status)
+    return (status);
+}
+
+/*
+ *  ======== NameServer_detach ========
+ *  Internal function.
+ */
+Int NameServer_detach(UInt16 procId)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("NameServer_detach: not connected to LAD\n");
+        return (NameServer_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_NAMESERVER_DETACH;
+    cmd.clientId = clHandle;
+    cmd.args.detach.procId = procId;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_detach: sending LAD command failed, "
+                "status=%d\n", status);
+        return (NameServer_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_detach: no LAD response, status=%d\n",
+                status);
+        return (NameServer_E_FAIL);
+    }
+
+    status = rsp.status;
+    PRINTVERBOSE1("NameServer_detach: LAD response, status=%d\n", status)
+    return (status);
 }

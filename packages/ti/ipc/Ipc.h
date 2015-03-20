@@ -147,6 +147,8 @@ extern "C" {
 typedef struct {
     Int (*createFxn)(Void);             /*!< factory create method      */
     Void (*deleteFxn)(Void);            /*!< factory finalize method    */
+    Int (*attachFxn)(UInt16 procId);    /*!< attach transport to processor */
+    Int (*detachFxn)(UInt16 procId);    /*!< detach transport from processor */
 } Ipc_TransportFactoryFxns;
 
 

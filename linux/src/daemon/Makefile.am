@@ -92,6 +92,8 @@ endif
 
 common_sources = \
                 lad.c \
+                Ipc_daemon.c \
+                cfg/IpcCfg.c \
                 MessageQ_daemon.c \
                 cfg/MessageQCfg.c \
                 MultiProc_daemon.c \
@@ -100,6 +102,7 @@ common_sources = \
                 $(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
                 $(top_srcdir)/hlos_common/include/_MessageQ.h \
                 $(top_srcdir)/hlos_common/include/_NameServer.h \
+                $(top_srcdir)/linux/include/_Ipc.h \
                 $(top_srcdir)/linux/include/_MultiProc.h \
                 $(top_srcdir)/linux/include/_lad.h \
                 $(top_srcdir)/linux/include/SocketFxns.h \
