@@ -4,7 +4,7 @@
 * Simple helper functions to assist core loader with endian-ness issues
 * when the host endian-ness may be opposite the endian-ness of the target.
 *
-* Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2009-2015 Texas Instruments Incorporated - http://www.ti.com/
 *
 *
 * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ int DLIMP_get_endian()
 {
    int32_t x = 0x1;
 
-   if (*((int16_t*)(&x))) return ELFDATA2LSB;
+   if (*((char *)(&x))) return ELFDATA2LSB;
 
    return ELFDATA2MSB;
 }
