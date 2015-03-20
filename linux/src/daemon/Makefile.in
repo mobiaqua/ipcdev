@@ -92,12 +92,13 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__lad_66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_66ak2e_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -122,21 +123,23 @@ am__lad_66ak2e_SOURCES_DIST = lad.c MessageQ_daemon.c \
 @DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
 @DRA7XX_TRUE@	GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
 @DRA7XX_TRUE@	GateMutex.$(OBJEXT)
-am__objects_2 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
-	MessageQCfg.$(OBJEXT) MultiProc_daemon.$(OBJEXT) \
-	NameServer_daemon.$(OBJEXT) $(am__objects_1)
+am__objects_2 = lad.$(OBJEXT) Ipc_daemon.$(OBJEXT) IpcCfg.$(OBJEXT) \
+	MessageQ_daemon.$(OBJEXT) MessageQCfg.$(OBJEXT) \
+	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT) \
+	$(am__objects_1)
 am_lad_66ak2e_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2e.$(OBJEXT)
 lad_66ak2e_OBJECTS = $(am_lad_66ak2e_OBJECTS)
 am__DEPENDENCIES_1 =  \
 	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 am__DEPENDENCIES_2 =
 lad_66ak2e_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_dra7xx_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -159,12 +162,13 @@ am__lad_dra7xx_SOURCES_DIST = lad.c MessageQ_daemon.c \
 am_lad_dra7xx_OBJECTS = $(am__objects_2) MultiProcCfg_dra7xx.$(OBJEXT)
 lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
 lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_omap54xx_smp_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_omap54xx_smp_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -189,12 +193,13 @@ am_lad_omap54xx_smp_OBJECTS = $(am__objects_2) \
 lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am__lad_omapl138_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_omapl138_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -219,12 +224,13 @@ am_lad_omapl138_OBJECTS = $(am__objects_2) \
 lad_omapl138_OBJECTS = $(am_lad_omapl138_OBJECTS)
 lad_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am__lad_tci6614_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_tci6614_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -248,12 +254,13 @@ am_lad_tci6614_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6614.$(OBJEXT)
 lad_tci6614_OBJECTS = $(am_lad_tci6614_OBJECTS)
 lad_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_tci6630_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_tci6630_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -277,12 +284,13 @@ am_lad_tci6630_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6630.$(OBJEXT)
 lad_tci6630_OBJECTS = $(am_lad_tci6630_OBJECTS)
 lad_tci6630_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_tci6636_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_tci6636_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -306,12 +314,13 @@ am_lad_tci6636_OBJECTS = $(am__objects_2) \
 	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6636_OBJECTS = $(am_lad_tci6636_OBJECTS)
 lad_tci6636_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__lad_tci6638_SOURCES_DIST = lad.c MessageQ_daemon.c \
-	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
-	$(top_srcdir)/linux/include/ti/ipc/Std.h \
+am__lad_tci6638_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
+	MessageQ_daemon.c cfg/MessageQCfg.c MultiProc_daemon.c \
+	NameServer_daemon.c $(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -495,12 +504,13 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-common_sources = lad.c MessageQ_daemon.c cfg/MessageQCfg.c \
-	MultiProc_daemon.c NameServer_daemon.c \
+common_sources = lad.c Ipc_daemon.c cfg/IpcCfg.c MessageQ_daemon.c \
+	cfg/MessageQCfg.c MultiProc_daemon.c NameServer_daemon.c \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h \
 	$(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
 	$(top_srcdir)/hlos_common/include/_MessageQ.h \
 	$(top_srcdir)/hlos_common/include/_NameServer.h \
+	$(top_srcdir)/linux/include/_Ipc.h \
 	$(top_srcdir)/linux/include/_MultiProc.h \
 	$(top_srcdir)/linux/include/_lad.h \
 	$(top_srcdir)/linux/include/SocketFxns.h \
@@ -648,6 +658,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IpcCfg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQCfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_66ak2e.Po@am__quote@
@@ -681,6 +693,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+IpcCfg.o: cfg/IpcCfg.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IpcCfg.o -MD -MP -MF "$(DEPDIR)/IpcCfg.Tpo" -c -o IpcCfg.o `test -f 'cfg/IpcCfg.c' || echo '$(srcdir)/'`cfg/IpcCfg.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/IpcCfg.Tpo" "$(DEPDIR)/IpcCfg.Po"; else rm -f "$(DEPDIR)/IpcCfg.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/IpcCfg.c' object='IpcCfg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IpcCfg.o `test -f 'cfg/IpcCfg.c' || echo '$(srcdir)/'`cfg/IpcCfg.c
+
+IpcCfg.obj: cfg/IpcCfg.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IpcCfg.obj -MD -MP -MF "$(DEPDIR)/IpcCfg.Tpo" -c -o IpcCfg.obj `if test -f 'cfg/IpcCfg.c'; then $(CYGPATH_W) 'cfg/IpcCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/IpcCfg.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/IpcCfg.Tpo" "$(DEPDIR)/IpcCfg.Po"; else rm -f "$(DEPDIR)/IpcCfg.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg/IpcCfg.c' object='IpcCfg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IpcCfg.obj `if test -f 'cfg/IpcCfg.c'; then $(CYGPATH_W) 'cfg/IpcCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/IpcCfg.c'; fi`
 
 MessageQCfg.o: cfg/MessageQCfg.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageQCfg.o -MD -MP -MF "$(DEPDIR)/MessageQCfg.Tpo" -c -o MessageQCfg.o `test -f 'cfg/MessageQCfg.c' || echo '$(srcdir)/'`cfg/MessageQCfg.c; \
