@@ -212,6 +212,12 @@ int ipc_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
     GT_assert (curTrace, (entry != NULL));
 
     out->args.add.entry = entry;
+    if (entry) {
+        out->apiStatus = NameServer_S_SUCCESS;
+    }
+    else {
+        out->apiStatus = NameServer_E_FAIL;
+    }
 
     return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
         sizeof(NameServerDrv_CmdArgs)));
@@ -289,6 +295,12 @@ int ipc_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
     GT_assert (curTrace, (entry != NULL));
 
     out->args.addUInt32.entry = entry;
+    if (entry) {
+        out->apiStatus = NameServer_S_SUCCESS;
+    }
+    else {
+        out->apiStatus = NameServer_E_FAIL;
+    }
 
     return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
         sizeof(NameServerDrv_CmdArgs)));
@@ -408,6 +420,8 @@ int ipc_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
 {
     NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
         (_DEVCTL_DATA (msg->i));
+    NameServerDrv_CmdArgs *     out  = (NameServerDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->o));
 
     NameServer_Params *params = (NameServer_Params *)(cargs+1);
 
@@ -416,6 +430,8 @@ int ipc_nameserver_params_init(resmgr_context_t *ctp, io_devctl_t *msg,
     SETIOV(&ctp->iov[0], &msg->o, sizeof(msg->o) +
         sizeof(NameServerDrv_CmdArgs));
     SETIOV(&ctp->iov[1], params, sizeof(NameServer_Params));
+
+    out->apiStatus = NameServer_S_SUCCESS;
 
     return _RESMGR_NPARTS(2);
 }
@@ -443,6 +459,13 @@ int ipc_nameserver_create(resmgr_context_t *ctp, io_devctl_t *msg,
     String name = (String)(params+1);
 
     out->args.create.handle = NameServer_create (name, params);
+    if (out->args.create.handle) {
+        out->apiStatus = NameServer_S_SUCCESS;
+    }
+    else {
+        out->apiStatus = NameServer_E_FAIL;
+    }
+
     GT_assert (curTrace, (out->args.create.handle != NULL));
 
     return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
