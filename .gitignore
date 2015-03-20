@@ -87,3 +87,17 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /qnx/src/tests/*/arm/o.le.v7/MessageQMulti
 /qnx/src/tests/*/arm/o.le.v7/NameServerApp
 /qnx/src/tests/*/arm/o.le.v7/mmrpc_test
+
+/qnx/src/ipc3x_dev/sharedmemallocator/resmgr/arm/le.v7/shmemallocator
+/qnx/src/ipc3x_dev/sharedmemallocator/samples/sharedMemAllocator/usr/arm/le.v7/SharedMemoryAllocatorTestApp
+/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/resmgr/arm/le.v7/ipc
+/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/traceDaemon/arm/le.v7/ipc_trace_daemon
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/MessageQCopy/usr/arm/le.v7/mqcopytestapp
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/benchmark/usr/arm/le.v7/rpmsg-omx-benchmark
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/hwspinlock/usr/arm/le.v7/HwSpinLockTestApp
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/rpmsg-omx/usr/arm/le.v7/rpmsg-omx-test
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/stress/usr/arm/le.v7/rpmsg-omx-stress
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/deh/usr/arm/le.v7/rpmsg-omx-errors
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/ti-ipc/arm/le.v7/ti-ipc-test
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/rpmsg-rpc-stress/usr/arm/le.v7/rpmsg-rpc-stress
+/qnx/src/ipc3x_dev/ti/syslink/samples/hlos/rpmsg-rpc-stress/usr/arm/g.le.v7/rpmsg-rpc-stress_g
