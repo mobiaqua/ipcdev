@@ -97,13 +97,8 @@ static char * logFilename = NULL;
 static int numAttach = 0;
 
 #if defined(IPC_PLATFORM_VAYU)
-/* DSP2 is invalid on Vayu */
-#define INVALID_PROC     "DSP2"
-
 static bool gatempEnabled = false;
 static Int32 sr0OwnerProcId = -1;
-#else
-#define INVALID_PROC     ""
 #endif
 
 // IPC hibernation global variables
@@ -335,11 +330,6 @@ static int slave_state_read(resmgr_context_t *ctp, io_read_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
-        fprintf(stderr, "Unsupported core\n");
-        return (EPERM);
-    }
-
     pthread_mutex_lock(&dev->firmwareLock);
 
     for (i = 0; i < ipc_num_cores; i++) {
@@ -421,11 +411,6 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
         return (ENOSYS);
     }
 
-    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
-        fprintf(stderr, "Unsupported core\n");
-        return (EPERM);
-    }
-
     /* set up the number of bytes (returned by client's write()) */
     _IO_SET_WRITE_NBYTES (ctp, msg->i.nbytes);
 
@@ -462,7 +447,14 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
     if (strcmp("1", buf) == 0) {
         if ((ipc_firmware[i].procState == RESET_STATE) &&
            (ipc_firmware[i].firmware != NULL)) {
-            runSlave(ocb->ocb.attr->dev, procId, &ipc_firmware[i]);
+            status = runSlave(ocb->ocb.attr->dev, procId, &ipc_firmware[i]);
+            if (status < 0) {
+                pthread_mutex_unlock(&dev->firmwareLock);
+                free(buf);
+                fprintf(stderr, "IPC: failed to run slave core %s\n",
+                    MultiProc_getName(procId));
+                return (EIO);
+            }
 #if defined(IPC_PLATFORM_VAYU)
             if (gatempEnabled) {
                 if (sr0OwnerProcId == -1) {
@@ -472,6 +464,7 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
                         resetSlave(ocb->ocb.attr->dev, procId);
                         pthread_mutex_unlock(&dev->firmwareLock);
                         free(buf);
+                        fprintf(stderr, "GateMP_setup failed\n");
                         return (EIO);
                     }
                     else if (status == 0) {
@@ -493,8 +486,17 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
             ipc_firmware[i].reload = true;
             status = init_ipc_trace_device(dev);
             if (status < 0) {
+#if defined(IPC_PLATFORM_VAYU)
+                if ((gatempEnabled) && (procId == sr0OwnerProcId)) {
+                    sr0OwnerProcId = -1;
+                    GateMP_destroy(FALSE);
+                }
+#endif
+                resetSlave(ocb->ocb.attr->dev, procId);
                 pthread_mutex_unlock(&dev->firmwareLock);
                 free(buf);
+                fprintf(stderr, "IPC: init_ipc_trace_device failed %d\n",
+                    status);
                 return (EIO);
             }
             printf("Core %s has been started.\n", MultiProc_getName(procId));
@@ -515,14 +517,21 @@ static int slave_state_write(resmgr_context_t *ctp, io_write_t *msg,
                 }
             }
 #endif
-            resetSlave(ocb->ocb.attr->dev, procId);
+            status = resetSlave(ocb->ocb.attr->dev, procId);
+            if (status < 0) {
+                pthread_mutex_unlock(&dev->firmwareLock);
+                free(buf);
+                fprintf(stderr, "IPC: failed to reset slave core %s\n",
+                    MultiProc_getName(procId));
+                return (EIO);
+            }
             ipc_firmware[i].procState = RESET_STATE;
             ipc_firmware[i].reload = false;
             status = deinit_ipc_trace_device(dev);
             if (status < 0) {
                 pthread_mutex_unlock(&dev->firmwareLock);
                 free(buf);
-                Osal_printf("IPC: deinit_ipc_trace_device failed %d",
+                fprintf(stderr, "IPC: deinit_ipc_trace_device failed %d\n",
                     status);
                 return (EIO);
             }
@@ -562,11 +571,6 @@ static int slave_file_read(resmgr_context_t *ctp, io_read_t *msg,
 
     if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE) {
         return (ENOSYS);
-    }
-
-    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
-        fprintf(stderr, "Unsupported core\n");
-        return (EPERM);
     }
 
     pthread_mutex_lock(&dev->firmwareLock);
@@ -657,11 +661,6 @@ static int slave_file_write(resmgr_context_t *ctp, io_write_t *msg,
 
     if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE) {
         return (ENOSYS);
-    }
-
-    if (strcmp(MultiProc_getName(procId), INVALID_PROC) == 0) {
-        fprintf(stderr, "Unsupported core\n");
-        return (EPERM);
     }
 
     /* set up the number of bytes (returned by client's write()) */
@@ -1349,6 +1348,8 @@ int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware, bool recover)
                     continue;
                 }
                 else {
+                    fprintf(stderr, "Failed to run core %s\n",
+                        MultiProc_getName(procId));
                     break;
                 }
             }
@@ -1641,10 +1642,6 @@ int main(int argc, char *argv[])
     for (; optind + 1 < argc; optind+=2) {
         if (ipc_num_cores == MultiProc_MAXPROCESSORS) {
             printUsage(argv[0]);
-            return (error);
-        }
-        if (strcmp(argv[optind], INVALID_PROC) == 0) {
-            fprintf (stderr, "Unsupported core specified\n");
             return (error);
         }
 
