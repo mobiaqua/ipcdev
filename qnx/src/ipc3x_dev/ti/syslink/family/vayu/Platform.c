@@ -938,26 +938,6 @@ _Platform_setup (Ipc_Config * cfg)
         procId = MultiProc_getId ("DSP2");
 
         handle = &Platform_objects [procId];
-        VAYUDSPPROC_getConfig (&lv->dspProcConfig);
-        status = VAYUDSPPROC_setup (&lv->dspProcConfig);
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "_Platform_setup",
-                                 status,
-                                 "VAYUDSPPROC_setup failed!");
-        }
-        else {
-            VAYUDSPPWR_getConfig (&lv->dspPwrConfig);
-            status = VAYUDSPPWR_setup (&lv->dspPwrConfig);
-            if (status < 0) {
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "_Platform_setup",
-                                     status,
-                                     "VAYUDSPPWR_setup failed!");
-            }
-        }
 
         if (status >= 0) {
             /* Create an instance of the Processor object for
@@ -1064,13 +1044,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "VAYUDSPPWR_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1079,13 +1059,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "Failed to delete loader instance!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1094,13 +1074,13 @@ _Platform_destroy (void)
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "VAYUDSPPROC_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
         }
     }
 
@@ -1109,7 +1089,7 @@ _Platform_destroy (void)
     if (handle->pmHandle != NULL) {
         status = ProcMgr_delete (&handle->pmHandle);
         GT_assert (curTrace, (status >= 0));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
@@ -1117,7 +1097,7 @@ _Platform_destroy (void)
                                  status,
                                  "ProcMgr_delete failed!");
         }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Delete the Processor, Loader and PwrMgr instances */

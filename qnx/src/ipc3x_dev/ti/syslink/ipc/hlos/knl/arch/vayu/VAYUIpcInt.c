@@ -1139,10 +1139,6 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
         REG(VAYUIpcInt_state.mailbox6Base + \
             MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)) =
             1 << ((DSP2_HOST_SUB_MBOX) << 1);
-
-/*        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (DSP2_HOST_SUB_MBOX) << 1));*/
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU1]) {
         /*

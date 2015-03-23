@@ -93,6 +93,13 @@ extern "C" {
  */
 #define AddrTable_SIZE 32
 
+/* Number of DSPs supported */
+#define NUM_DSPS 2
+
+/* Convert procId to DSP # */
+#define PROCID_TO_DSP(procId) (procId == VAYUDSPPROC_state.dsp1ProcId ?\
+    0 : 1)
+
 
 /*!
  *  @brief  VAYUDSPPROC Module state object
@@ -112,15 +119,27 @@ typedef struct VAYUDSPPROC_ModuleObject_tag {
     /*!< Processor handle array. */
     IGateProvider_Handle         gateHandle;
     /*!< Handle of gate to be used for local thread safety */
+    UInt16                     dsp1ProcId;
+    /*!< MultiProc id of DSP1 (to avoid multiple lookups) */
 } VAYUDSPPROC_ModuleObject;
 
-/* Default memory regions */
-static UInt32 AddrTable_count = 0;
+/* Memory region counters */
+static UInt32 AddrTable_count[NUM_DSPS] = {
+    0,
+    0
+};
 
 /*
  * Address translation table
  */
-static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE];
+static ProcMgr_AddrInfo AddrTable_DSP1[AddrTable_SIZE];
+static ProcMgr_AddrInfo AddrTable_DSP2[AddrTable_SIZE];
+
+static ProcMgr_AddrInfo * AddrTable[NUM_DSPS] =
+{
+    AddrTable_DSP1,
+    AddrTable_DSP2
+};
 
 /* =============================================================================
  *  Globals
@@ -254,6 +273,8 @@ VAYUDSPPROC_setup (VAYUDSPPROC_Config * cfg)
         Memory_set (&VAYUDSPPROC_state.procHandles,
                     0,
                     (sizeof (VAYUDSPPROC_Handle) * MultiProc_MAXPROCESSORS));
+
+        VAYUDSPPROC_state.dsp1ProcId = MultiProc_getId("DSP1");
         VAYUDSPPROC_state.isSetup = TRUE;
 #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
@@ -322,8 +343,6 @@ VAYUDSPPROC_Params_init(
         VAYUDSPPROC_Params *  params)
 {
     VAYUDSPPROC_Object * procObject = (VAYUDSPPROC_Object *) handle;
-    Int                    i          = 0;
-    ProcMgr_AddrInfo *     ai         = NULL;
 
     GT_2trace (curTrace, GT_ENTER, "VAYUDSPPROC_Params_init", handle, params);
 
@@ -344,26 +363,6 @@ VAYUDSPPROC_Params_init(
 
             Memory_copy(params, &(VAYUDSPPROC_state.defInstParams),
                 sizeof(VAYUDSPPROC_Params));
-
-            /* initialize the translation table */
-            for (i = AddrTable_count; i < AddrTable_SIZE; i++) {
-                ai = &AddrTable[i];
-                ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
-                ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                ai->size = 0u;
-                ai->isCached = FALSE;
-                ai->mapMask = 0u;
-                ai->isMapped = FALSE;
-            }
-
-            /* initialize refCount for all entries */
-            for(i = 0; i < AddrTable_SIZE; i++) {
-                AddrTable[i].refCount = 0u;
-            }
-            Memory_copy((Ptr)params->memEntries, AddrTable, sizeof(AddrTable));
         }
         else {
             /* return updated VAYUDSPPROC instance specific parameters */
@@ -391,6 +390,8 @@ VAYUDSPPROC_create (      UInt16                procId,
     Int                   status    = PROCESSOR_SUCCESS;
     Processor_Object *    handle    = NULL;
     VAYUDSPPROC_Object *  object    = NULL;
+    Int i                            = 0;
+    ProcMgr_AddrInfo *ai             = NULL;
     IArg                  key;
     List_Params           listParams;
 
@@ -456,6 +457,7 @@ VAYUDSPPROC_create (      UInt16                procId,
                 handle->procFxnTable.unmap         = &VAYUDSPPROC_unmap;
                 handle->procFxnTable.translateAddr = &VAYUDSPPROC_translate;
                 handle->procFxnTable.translateFromPte = NULL;
+
                 handle->state = ProcMgr_State_Unknown;
 
                 /* Allocate memory for the VAYUDSPPROC handle */
@@ -480,6 +482,33 @@ VAYUDSPPROC_create (      UInt16                procId,
                     Memory_copy (&(object->params),
                                  (Ptr) params,
                                  sizeof (VAYUDSPPROC_Params));
+
+                    /* initialize the translation table */
+                    for (i = AddrTable_count[PROCID_TO_DSP(procId)];
+                        i < AddrTable_SIZE; i++) {
+                        ai = &AddrTable[PROCID_TO_DSP(procId)][i];
+                        ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
+                        ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
+                        ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+                        ai->size = 0u;
+                        ai->isCached = FALSE;
+                        ai->mapMask = 0u;
+                        ai->isMapped = FALSE;
+                    }
+
+                    /*
+                     * initialize refCount for all entries
+                     */
+                    for (i = 0; i < AddrTable_SIZE; i++) {
+                        AddrTable[PROCID_TO_DSP(procId)][i].refCount = 0u;
+                    }
+                    Memory_copy((Ptr)(object->params.memEntries),
+                        AddrTable[PROCID_TO_DSP(procId)],
+                        (procId == VAYUDSPPROC_state.dsp1ProcId ?
+                        sizeof(AddrTable_DSP1) : sizeof(AddrTable_DSP2)));
+
                     /* Set the handle in the state object. */
                     VAYUDSPPROC_state.procHandles [procId] =
                                                      (VAYUDSPPROC_Handle) object;
@@ -842,6 +871,15 @@ VAYUDSPPROC_attach(
         object = (VAYUDSPPROC_Object *) procHandle->object;
         GT_assert (curTrace, (object != NULL));
 
+        /* Initialize halObject */
+        halParams.procId = procHandle->procId;
+        status = VAYUDSP_halInit(&(object->halObject), &halParams);
+
+        if (status < 0) {
+            GT_setFailureReason(curTrace, GT_4CLASS,
+                "VAYUDSPPROC_attach", status,
+                "VAYUDSP_halInit failed");
+        }
         params->procArch = Processor_ProcArch_C66x;
 
         object->pmHandle = params->pmHandle;
@@ -886,20 +924,22 @@ VAYUDSPPROC_attach(
 
             if (entry->map == FALSE) {
                 /* update table with entries which don't require mapping */
-                if (AddrTable_count != AddrTable_SIZE) {
-                    me = &AddrTable[AddrTable_count];
+                if (AddrTable_count[PROCID_TO_DSP(procHandle->procId)] !=
+                   AddrTable_SIZE) {
+                    me = &AddrTable[PROCID_TO_DSP(procHandle->procId)][
+                        AddrTable_count[PROCID_TO_DSP(procHandle->procId)]];
 
                     me->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterPhys] =
-                            entry->masterPhysAddr;
+                        entry->masterPhysAddr;
                     me->addr[ProcMgr_AddrType_SlaveVirt] = entry->slaveVirtAddr;
                     me->addr[ProcMgr_AddrType_SlavePhys] = -1u;
                     me->size = entry->size;
                     me->isCached = entry->isCached;
                     me->mapMask = entry->mapMask;
 
-                    AddrTable_count++;
+                    AddrTable_count[PROCID_TO_DSP(procHandle->procId)]++;
                 }
                 else {
                     status = PROCESSOR_E_FAIL;
@@ -918,7 +958,7 @@ VAYUDSPPROC_attach(
                     me->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterPhys] =
-                            entry->masterPhysAddr;
+                        entry->masterPhysAddr;
                     me->addr[ProcMgr_AddrType_SlaveVirt] = entry->slaveVirtAddr;
                     me->addr[ProcMgr_AddrType_SlavePhys] = -1u;
                     me->size = entry->size;
@@ -948,69 +988,49 @@ VAYUDSPPROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            halParams.procId = procHandle->procId;
-            status = VAYUDSP_halInit(&(object->halObject), &halParams);
 
-#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
-            if (status < 0) {
-                GT_setFailureReason(curTrace, GT_4CLASS,
-                    "VAYUDSPPROC_attach", status,
-                    "VAYUDSP_halInit failed");
-            }
-            else {
-#endif
-                if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
-                    || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
+            /* Setup the xbar for MMU fault interrupts */
+            GT_0trace(curTrace, GT_3CLASS,
+                "VAYUDSPPROC_attach: slave is now in reset");
 
+            mmuEnableArgs.numMemEntries = 0;
+            status = VAYUDSP_halMmuCtrl(object->halObject,
+                Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
+
+            if ((procHandle->bootMode == ProcMgr_BootMode_Boot)
+                || (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
 #if !defined(IPC_BUILD_OPTIMIZE)
-                    if (status < 0) {
-                        GT_setFailureReason(curTrace, GT_4CLASS,
-                            "VAYUDSPPROC_attach", status,
-                            "Failed to reset the slave processor");
-                    }
-                    else {
-#endif
-                        GT_0trace(curTrace, GT_3CLASS,
-                            "VAYUDSPPROC_attach: slave is now in reset");
-
-                        mmuEnableArgs.numMemEntries = 0;
-                        status = VAYUDSP_halMmuCtrl(object->halObject,
-                            Processor_MmuCtrlCmd_Enable, &mmuEnableArgs);
-
-#if !defined(IPC_BUILD_OPTIMIZE)
-                        if (status < 0) {
-                            GT_setFailureReason(curTrace, GT_4CLASS,
-                                "VAYUDSPPROC_attach", status,
-                                "Failed to enable the slave MMU");
-                        }
-                        else {
-#endif
-                            GT_0trace(curTrace, GT_2CLASS,
-                                "VAYUDSPPROC_attach: Slave MMU "
-                                "is configured!");
-
-                            /*
-                             * Pull DSP MMU out of reset to make internal
-                             * memory "loadable"
-                             */
-                            status = VAYUDSP_halResetCtrl(object->halObject,
-                                Processor_ResetCtrlCmd_MMU_Release);
-                            if (status < 0) {
-                                /*! @retval status */
-                                GT_setFailureReason(curTrace,
-                                    GT_4CLASS,
-                                    "VAYUDSP_halResetCtrl",
-                                        status,
-                                    "Reset MMU_Release failed");
-                            }
-#if !defined(IPC_BUILD_OPTIMIZE)
-                         }
-                    }
-#endif
+                if (status < 0) {
+                    GT_setFailureReason(curTrace, GT_4CLASS,
+                        "VAYUDSPPROC_attach", status,
+                        "Failed to enable the slave MMU");
                 }
-#if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
-            }
+                else {
 #endif
+                    GT_0trace(curTrace, GT_2CLASS,
+                        "VAYUDSPPROC_attach: Slave MMU "
+                        "is configured!");
+
+                    /*
+                     * Pull DSP MMU out of reset to make internal
+                     * memory "loadable"
+                     */
+                    status = VAYUDSP_halResetCtrl(
+                        object->halObject,
+                        Processor_ResetCtrlCmd_MMU_Release);
+                    if (status < 0) {
+                        /*! @retval status */
+                        GT_setFailureReason(curTrace,
+                            GT_4CLASS,
+                            "VAYUDSP_halResetCtrl",
+                            status,
+                            "Reset MMU_Release failed");
+                    }
+#if !defined(IPC_BUILD_OPTIMIZE)
+                }
+#endif
+            }
+
         }
 #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
     }
@@ -1089,42 +1109,43 @@ VAYUDSPPROC_detach (Processor_Handle handle)
                     "Failed to disable the slave MMU");
             }
 #endif
+        }
 
-            /* delete all dynamically added entries */
-            for (i = 0; i < AddrTable_count; i++) {
-                ai = &AddrTable[i];
-                ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
-                ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
-                ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
-                ai->size = 0u;
-                ai->isCached = FALSE;
-                ai->mapMask = 0u;
-                ai->isMapped = FALSE;
-                ai->refCount = 0u;
-            }
-            object->params.numMemEntries = 0;
-            AddrTable_count = 0;
+        /* delete all dynamically added entries */
+        for (i = 0; i <
+            AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; i++) {
+            ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][i];
+            ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_MasterPhys] = -1u;
+            ai->addr[ProcMgr_AddrType_SlaveVirt] = -1u;
+            ai->addr[ProcMgr_AddrType_SlavePhys] = -1u;
+            ai->size = 0u;
+            ai->isCached = FALSE;
+            ai->mapMask = 0u;
+            ai->isMapped = FALSE;
+            ai->refCount = 0u;
+        }
+        object->params.numMemEntries = 0;
+        AddrTable_count[PROCID_TO_DSP(procHandle->procId)] = 0;
 
-            //No need to reset.. that will be done in STOP
-            /*tmpStatus = VAYUDSP_halResetCtrl(object->halObject,
-                VAYUDspHal_Reset_Detach);
+        //No need to reset.. that will be done in STOP
+        /*tmpStatus = VAYUDSP_halResetCtrl(object->halObject,
+            VAYUDspHal_Reset_Detach);
 
-            GT_0trace(curTrace, GT_2CLASS,
-                "VAYUDSPPROC_detach: Slave processor is now in reset");*/
+        GT_0trace(curTrace, GT_2CLASS,
+            "VAYUDSPPROC_detach: Slave processor is now in reset");*/
 
 #if !defined(IPC_BUILD_OPTIMIZE)
-            if ((tmpStatus < 0) && (status >= 0)) {
-                status = tmpStatus;
-                GT_setFailureReason(curTrace,
-                                     GT_4CLASS,
-                                     "VAYUDSPPROC_detach",
-                                     status,
-                                     "Failed to reset the slave processor");
-            }
-#endif
+        if ((tmpStatus < 0) && (status >= 0)) {
+            status = tmpStatus;
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "VAYUDSPPROC_detach",
+                                 status,
+                                 "Failed to reset the slave processor");
         }
+#endif
 
         GT_0trace (curTrace,
                    GT_2CLASS,
@@ -1638,14 +1659,19 @@ VAYUDSPPROC_translate(
         GT_assert(curTrace, (object != NULL));
         *dstAddr = -1u;
 
-        for (i = 0; i < AddrTable_count; i++) {
-            ai = &AddrTable[i];
+        /* search all entries AddrTable */
+        for (i = 0; i < AddrTable_count[PROCID_TO_DSP(procHandle->procId)];
+            i++) {
+            ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][i];
             startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
             endAddr = startAddr + ai->size;
 
             if ((startAddr <= srcAddr) && (srcAddr < endAddr)) {
                 offset = srcAddr - startAddr;
                 *dstAddr = ai->addr[ProcMgr_AddrType_MasterPhys] + offset;
+                GT_3trace(curTrace, GT_1CLASS, "VAYUDSPPROC_translate: "
+                    "translated [%d] srcAddr=0x%x --> dstAddr=0x%x",
+                    i, srcAddr, *dstAddr);
                 break;
             }
         }
@@ -1666,7 +1692,6 @@ VAYUDSPPROC_translate(
     /*! @retval PROCESSOR_SUCCESS Operation successful */
     return status;
 }
-
 
 /*!
  *  @brief      Map the given address translation into the slave mmu
@@ -1738,8 +1763,9 @@ VAYUDSPPROC_map(
              * is required. Add the entry only if the range does not exist
              * in the translation table.
              */
-            for (j = 0; j < AddrTable_count; j++) {
-                ai = &AddrTable [j];
+            for (j = 0;
+                j < AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; j++) {
+                ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][j];
 
                 if (ai->isMapped == TRUE) {
                     startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
@@ -1756,9 +1782,11 @@ VAYUDSPPROC_map(
 
             /* if not found and mmu is enabled, add new entry to table */
             if (!found) {
-                if (AddrTable_count != AddrTable_SIZE) {
-                    ai = &AddrTable[AddrTable_count];
-
+                if (AddrTable_count[PROCID_TO_DSP(procHandle->procId)] !=
+                    AddrTable_SIZE) {
+                    ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)]
+                        [AddrTable_count[PROCID_TO_DSP
+                        (procHandle->procId)]];
                     ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                     ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
                     ai->addr[ProcMgr_AddrType_MasterPhys] = sglist[i].paddr;
@@ -1769,7 +1797,7 @@ VAYUDSPPROC_map(
                     ai->refCount++;
                     ai->isMapped = TRUE;
 
-                    AddrTable_count++;
+                    AddrTable_count[PROCID_TO_DSP(procHandle->procId)]++;
                 }
                 else {
                     status = PROCESSOR_E_FAIL;
@@ -1847,8 +1875,9 @@ VAYUDSPPROC_unmap(
         /* Delete entries from translation
          * table only in last unmap called on that entry
          */
-        for (i = 0; i < AddrTable_count; i++) {
-            ai = &AddrTable[i];
+        for (i = 0;
+            i < AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; i++) {
+            ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][i];
 
             if (!ai->isMapped) {
                 continue;
