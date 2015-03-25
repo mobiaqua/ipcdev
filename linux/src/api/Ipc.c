@@ -232,6 +232,7 @@ Int Ipc_start(Void)
              *  We don't expect all remote processors to be running.
              */
             if (status < 0) {
+                status = 0;
                 /* do nothing */
             }
         }
