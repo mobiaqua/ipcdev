@@ -503,6 +503,19 @@ opencommandFIFO:
 
             break;
 
+          case LAD_NAMESERVER_GETLOCAL:
+            rsp.get.status = NameServer_getLocal(cmd.args.getLocal.handle,
+                cmd.args.getLocal.name, &rsp.get.buf, &cmd.args.getLocal.len);
+            rsp.get.len = cmd.args.getLocal.len;
+            break;
+
+          case LAD_NAMESERVER_GETLOCALUINT32:
+            rsp.getUInt32.status = NameServer_getLocalUInt32(
+                cmd.args.getLocalUInt32.handle,
+                cmd.args.getLocalUInt32.name,
+                &rsp.getUInt32.val);
+            break;
+
           case LAD_NAMESERVER_REMOVE:
             LOG2("LAD_NAMESERVER_REMOVE: calling NameServer_remove(%p, '%s')...\n", cmd.args.remove.handle, cmd.args.remove.name)
 
@@ -721,6 +734,8 @@ opencommandFIFO:
           case LAD_NAMESERVER_GET:
           case LAD_NAMESERVER_ADDUINT32:
           case LAD_NAMESERVER_GETUINT32:
+          case LAD_NAMESERVER_GETLOCAL:
+          case LAD_NAMESERVER_GETLOCALUINT32:
           case LAD_NAMESERVER_REMOVE:
           case LAD_NAMESERVER_REMOVEENTRY:
           case LAD_NAMESERVER_ATTACH:

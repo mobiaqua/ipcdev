@@ -163,6 +163,8 @@ typedef enum {
     LAD_NAMESERVER_GET,
     LAD_NAMESERVER_ADDUINT32,
     LAD_NAMESERVER_GETUINT32,
+    LAD_NAMESERVER_GETLOCAL,
+    LAD_NAMESERVER_GETLOCALUINT32,
     LAD_NAMESERVER_REMOVE,
     LAD_NAMESERVER_REMOVEENTRY,
     LAD_NAMESERVER_ATTACH,
@@ -221,6 +223,15 @@ struct LAD_CommandObj {
             Char name[LAD_MAXENTRYNAMELEN];
             UInt16 procId[MultiProc_MAXPROCESSORS];
         } getUInt32;
+        struct {
+            NameServer_Handle handle;
+            Char name[LAD_MAXENTRYNAMELEN];
+            UInt32 len;
+        } getLocal;
+        struct {
+            NameServer_Handle handle;
+            Char name[LAD_MAXENTRYNAMELEN];
+        } getLocalUInt32;
         struct {
             NameServer_Handle handle;
             Char name[LAD_MAXENTRYNAMELEN];

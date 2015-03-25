@@ -414,6 +414,96 @@ Int NameServer_getUInt32(NameServer_Handle nsHandle, String name, Ptr buf,
     return status;
 }
 
+/*
+ *  ======== NameServer_getLocal ========
+ */
+Int NameServer_getLocal(NameServer_Handle ns, String name, Ptr buf, UInt32 *len)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("NameServer_getLocal: not connected to LAD\n");
+        return (NameServer_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_NAMESERVER_GETLOCAL;
+    cmd.clientId = clHandle;
+    cmd.args.getLocal.handle = ns;
+    strncpy(cmd.args.getLocal.name, name, LAD_MAXENTRYNAMELEN);
+    cmd.args.getLocal.len = *len;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_getLocal: sending LAD command failed, "
+                "status=%d\n", status)
+        return (NameServer_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_getLocal: no LAD response, status=%d\n",
+                status)
+        return (NameServer_E_FAIL);
+    }
+
+    *len = rsp.get.len;
+    if (rsp.get.buf != NULL) {
+        memcpy(buf, rsp.get.buf, *len);
+    }
+
+    status = rsp.get.status;
+
+    PRINTVERBOSE1("NameServer_getLocal: LAD response, status=%d\n", status)
+    return (status);
+}
+
+/*
+ *  ======== NameServer_getLocalUInt32 ========
+ */
+Int NameServer_getLocalUInt32(NameServer_Handle ns, String name, Ptr buf)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    UInt32 *val;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("NameServer_getLocalUInt32: not connected to LAD\n");
+        return (NameServer_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_NAMESERVER_GETLOCALUINT32;
+    cmd.clientId = clHandle;
+    cmd.args.getLocalUInt32.handle = ns;
+    strncpy(cmd.args.getLocalUInt32.name, name, LAD_MAXENTRYNAMELEN);
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_getLocalUInt32: sending LAD command failed, "
+                "status=%d\n", status)
+        return (NameServer_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("NameServer_getLocalUInt32: no LAD response, status=%d\n",
+                status)
+        return (NameServer_E_FAIL);
+    }
+
+    val = (UInt32 *)buf;
+    *val = rsp.getUInt32.val;
+    status = rsp.getUInt32.status;
+
+    PRINTVERBOSE1("NameServer_getLocalUInt32: LAD response, status=%d\n",
+            status)
+    return (status);
+}
+
 Int NameServer_remove(NameServer_Handle nsHandle, String name)
 {
     Int status;
