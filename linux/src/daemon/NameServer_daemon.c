@@ -143,11 +143,6 @@ typedef struct NameServer_ModuleObject {
     pthread_mutex_t      modGate;
 } NameServer_ModuleObject;
 
-#define CIRCLEQ_destruct(head) { \
-        (head)->cqh_first = NULL; \
-        (head)->cqh_last = NULL; \
-}
-
 #define CIRCLEQ_elemClear(elem) { \
         (elem)->cqe_next = (elem)->cqe_prev = (Void *)(elem); \
 }
@@ -514,7 +509,7 @@ Int NameServer_destroy(void)
         goto exit;
     }
 
-    CIRCLEQ_destruct(&NameServer_module->objList);
+    /* TODO: delete any remaining instances */
 
     /* shutdown the NameServer listener thread */
     LOG0("NameServer_destroy: shutdown listener...\n")
@@ -647,37 +642,47 @@ leave:
     return (handle);
 }
 
-
-/* Function to delete a name server. */
-Int NameServer_delete(NameServer_Handle * handle)
+/*
+ *  ======== NameServer_delete ========
+ *  Delete a name server instance
+ */
+Int NameServer_delete(NameServer_Handle *handle)
 {
     Int status = NameServer_S_SUCCESS;
+    struct NameServer_Object *obj;
 
     assert(handle != NULL);
     assert(*handle != NULL);
-    assert((*handle)->count == 0);
     assert(NameServer_module->refCount != 0);
+
+    obj = *(struct NameServer_Object **)handle;
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    (*handle)->refCount--;
-    if ((*handle)->refCount != 0) {
+    obj->refCount--;
+    if (obj->refCount != 0) {
         goto leave;
     }
 
-    if ((*handle)->count == 0) {
-        CIRCLEQ_REMOVE(&NameServer_module->objList, *handle, elem);
-
-        if ((*handle)->name != NULL) {
-            free((*handle)->name);
-            (*handle)->name = NULL;
-        }
-
-        CIRCLEQ_destruct(&(*handle)->nameList);
-
-        free((*handle));
-        (*handle) = NULL;
+    /* delete each entry on the name list */
+    while (obj->nameList.cqh_first != (void *)&obj->nameList) {
+        NameServer_removeEntry(*handle, (Ptr)(obj->nameList.cqh_first));
     }
+
+    /* free the instance name */
+    if (obj->name != NULL) {
+        free(obj->name);
+        obj->name = NULL;
+    }
+
+    /* destroy the mutex */
+    pthread_mutex_destroy(&obj->gate);
+
+    /* finally, free the instance object */
+    free(obj);
+
+    /* set the caller's handle to null */
+    (*handle) = NULL;
 
 leave:
     pthread_mutex_unlock(&NameServer_module->modGate);
