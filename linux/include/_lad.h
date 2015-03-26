@@ -200,7 +200,7 @@ struct LAD_CommandObj {
         } create;
         struct {
             NameServer_Handle handle;
-        } delete;
+        } nsdelete;
         struct {
             NameServer_Handle handle;
             Char name[LAD_MAXENTRYNAMELEN];
@@ -289,7 +289,7 @@ union LAD_ResponseObj {
     struct {
        Int status;
        NameServer_Handle handle;
-    } delete;
+    } nsdelete;
     struct {
        Int status;
        NameServer_Handle nameServerHandle;

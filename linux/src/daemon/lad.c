@@ -417,12 +417,13 @@ opencommandFIFO:
             break;
 
           case LAD_NAMESERVER_DELETE:
-            LOG1("LAD_NAMESERVER_DELETE: calling NameServer_delete(%p)...\n", cmd.args.delete.handle)
+            LOG1("LAD_NAMESERVER_DELETE: calling NameServer_delete(%p)...\n",
+                    cmd.args.nsdelete.handle)
 
-            rsp.delete.handle = cmd.args.delete.handle;
-            rsp.delete.status = NameServer_delete(&rsp.delete.handle);
+            rsp.nsdelete.handle = cmd.args.nsdelete.handle;
+            rsp.nsdelete.status = NameServer_delete(&rsp.nsdelete.handle);
 
-            LOG1("    status = %d\n", rsp.status)
+            LOG1("    status = %d\n", rsp.nsdelete.status)
             LOG0("DONE\n")
 
             break;
@@ -445,7 +446,7 @@ opencommandFIFO:
 
           case LAD_NAMESERVER_GET:
             LOG2("LAD_NAMESERVER_GET: calling NameServer_get(%p, '%s'",
-                cmd.args.get.handle, cmd.args.get.name)
+                    cmd.args.get.handle, cmd.args.get.name)
             LOG0(")...\n")
 
             if (cmd.args.get.procId[0] == (UInt16)-1) {
@@ -454,7 +455,7 @@ opencommandFIFO:
             else {
                 procIdPtr = cmd.args.get.procId;
             }
-            rsp.status = NameServer_get(
+            rsp.get.status = NameServer_get(
                 cmd.args.get.handle,
                 cmd.args.get.name,
                 rsp.get.buf,
@@ -463,14 +464,15 @@ opencommandFIFO:
             rsp.get.len = cmd.args.get.len;
 
             LOG1("    value = 0x%x\n", rsp.get.len)
-            LOG1("    status = %d\n", rsp.status)
+            LOG1("    status = %d\n", rsp.get.status)
             LOG0("DONE\n")
 
             break;
 
           case LAD_NAMESERVER_ADDUINT32:
-            LOG1("LAD_NAMESERVER_ADDUINT32: calling NameServer_addUInt32(%p, ", cmd.args.addUInt32.handle)
-            LOG2("'%s', 0x%x)...\n", cmd.args.addUInt32.name, cmd.args.addUInt32.val)
+            LOG3("LAD_NAMESERVER_ADDUINT32: calling NameServer_addUInt32"
+                    "(%p, '%s', 0x%x)...\n", cmd.args.addUInt32.handle,
+                    cmd.args.addUInt32.name, cmd.args.addUInt32.val)
 
             rsp.entryPtr = NameServer_addUInt32(
                 cmd.args.addUInt32.handle,
@@ -483,7 +485,9 @@ opencommandFIFO:
             break;
 
           case LAD_NAMESERVER_GETUINT32:
-            LOG2("LAD_NAMESERVER_GETUINT32: calling NameServer_getUInt32(%p, '%s')...\n", cmd.args.getUInt32.handle, cmd.args.getUInt32.name)
+            LOG2("LAD_NAMESERVER_GETUINT32: calling NameServer_getUInt32"
+                    "(%p, '%s')...\n", cmd.args.getUInt32.handle,
+                    cmd.args.getUInt32.name)
 
             if (cmd.args.getUInt32.procId[0] == (UInt16)-1) {
                 procIdPtr = NULL;
@@ -491,14 +495,14 @@ opencommandFIFO:
             else {
                 procIdPtr = cmd.args.getUInt32.procId;
             }
-            rsp.status = NameServer_getUInt32(
+            rsp.getUInt32.status = NameServer_getUInt32(
                 cmd.args.getUInt32.handle,
                 cmd.args.getUInt32.name,
                 &rsp.getUInt32.val,
                 procIdPtr);
 
             LOG1("    value = 0x%x\n", rsp.getUInt32.val)
-            LOG1("    status = %d\n", rsp.status)
+            LOG1("    status = %d\n", rsp.getUInt32.status)
             LOG0("DONE\n")
 
             break;

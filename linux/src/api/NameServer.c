@@ -312,7 +312,7 @@ Int NameServer_get(NameServer_Handle nsHandle, String name, Ptr buf,
         memcpy(buf, rsp.get.buf, *len);
     }
 
-    status = rsp.status;
+    status = rsp.get.status;
 
     PRINTVERBOSE1("NameServer_get: got LAD response for client %d\n",
                    clHandle)
@@ -406,7 +406,7 @@ Int NameServer_getUInt32(NameServer_Handle nsHandle, String name, Ptr buf,
 
     val = (UInt32 *)buf;
     *val = rsp.getUInt32.val;
-    status = rsp.status;
+    status = rsp.getUInt32.status;
 
     PRINTVERBOSE1("NameServer_getUInt32: got LAD response for client %d\n",
                    clHandle)
@@ -605,7 +605,7 @@ Int NameServer_delete(NameServer_Handle *nsHandle)
 
     cmd.cmd = LAD_NAMESERVER_DELETE;
     cmd.clientId = clHandle;
-    cmd.args.delete.handle = *nsHandle;
+    cmd.args.nsdelete.handle = *nsHandle;
 
     if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
         PRINTVERBOSE1(
@@ -619,8 +619,8 @@ Int NameServer_delete(NameServer_Handle *nsHandle)
         return NameServer_E_FAIL;
     }
 
-    *nsHandle = rsp.delete.handle;
-    status = rsp.status;
+    *nsHandle = rsp.nsdelete.handle;
+    status = rsp.nsdelete.status;
 
     PRINTVERBOSE1("NameServer_delete: got LAD response for client %d\n",
                    clHandle)
