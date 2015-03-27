@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,7 @@ metaonly module Build
      *  considerably improve runtime performance as well significantly
      *  reduce the application's code size.
      *
-     *  see {@link #libType Build.libType}.
+     *  @see #libType
      */
     config Bool assertsEnabled = true;
 
@@ -181,7 +181,7 @@ metaonly module Build
      *  performance as well signficantly reduce the application's code
      *  size.
      *
-     *  see {@link #libType Build.libType}.
+     *  @see #libType
      */
     config Bool logsEnabled = true;
 

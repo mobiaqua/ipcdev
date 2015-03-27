@@ -239,7 +239,7 @@ module MultiProc
      *  resource allocations to just the processors within your cluster.
      *  This address mode is typically used for large processor systems.
      *
-     *  @see {@link #procAddrMode MultiProc.procAddrMode}
+     *  @see #procAddrMode
      */
     enum ProcAddrMode {
         ProcAddrMode_Global,
@@ -261,7 +261,7 @@ module MultiProc
      *  for such a configuration parameter as most processor aware
      *  modules already depend on MultiProc.
      *
-     *  @see {@link #ProcAddrMode MultiProc.ProcAddrMode}
+     *  @see #ProcAddrMode
      */
     config ProcAddrMode procAddrMode = MultiProc.ProcAddrMode_Global;
 
