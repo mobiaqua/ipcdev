@@ -135,7 +135,8 @@ EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/common	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)dsp	\
 		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/$(IPC_PLATFORM)ipu	\
-                $(IPC_REPO)/qnx/src/api/gates
+                $(IPC_REPO)/qnx/src/api/gates \
+                $(IPC_REPO)/qnx/src/cfg/dra7xx
 
 EXCLUDE_OBJS = GateMP.o
 endif

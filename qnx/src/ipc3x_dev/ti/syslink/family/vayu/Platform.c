@@ -83,7 +83,7 @@
 #include <IpcKnl.h>
 #include <sys/mman.h>
 #include <GateHWSpinlock.h>
-#include <gptimers.h>
+#include <Gpt.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -460,10 +460,10 @@ Platform_setup (Ipc_Config * cfg)
 
     /* Enable GP timers */
     if (status >= 0) {
-        status = gpt_setup();
+        status = Gpt_setup(&ti_ipc_Gpt_cfg);
         if (status < 0) {
             GT_setFailureReason(curTrace, GT_4CLASS, "Platform_setup",
-                    status, "gpt_setup failed!");
+                    status, "Gpt_setup failed!");
         }
     }
 
@@ -507,7 +507,7 @@ Platform_destroy (void)
     }
 
     /* disable GP timers */
-    gpt_destroy();
+    Gpt_destroy();
 
     /* Finalize elf loader */
     if (Platform_module->elfLoaderInitFlag == TRUE) {

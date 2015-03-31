@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,33 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _GPTIMERS_H
-#define _GPTIMERS_H
 
-#include <stdint.h>
+/*============================================================================
+ *  @file   GptCfg.c
+ *
+ *  @brief  GP Timer configuration
+ */
 
-#if defined (__cplusplus)
-extern "C" {
-#endif
+#include <ti/ipc/Std.h>
+#include <Gpt.h>
 
-/* Enable GP timers */
-int gpt_setup();
-
-/* Disable GP timers */
-int gpt_destroy();
-
-/* Wire the Watchdog interrupts to trigger recovery */
-int gpt_wdt_attach(int proc_id);
-
-/* Un-hook the Watchdog interrupt handler */
-int gpt_wdt_detach(int proc_id);
-
-#if defined (__cplusplus)
-}
-#endif /* defined (__cplusplus) */
-
-#endif /* _GPTIMERS_H */
+/*
+ *  ======== ti_ipc_Gpt_cfg ========
+ *  The GP Timer configuration object
+ */
+Gpt_Config ti_ipc_Gpt_cfg = {
+    /* List the processor that uses each timer as a watchdog timer */
+    .wdtOwnerProcessor   = {
+        NULL,     /* GPT_TIMER_1 */
+        NULL,     /* GPT_TIMER_2 */
+        NULL,     /* GPT_TIMER_3 */
+        "IPU2",   /* GPT_TIMER_4 */
+        NULL,     /* GPT_TIMER_5 */
+        NULL,     /* GPT_TIMER_6 */
+        "IPU1",   /* GPT_TIMER_7 */
+        "IPU1",   /* GPT_TIMER_8 */
+        "IPU2",   /* GPT_TIMER_9 */
+        "DSP1",   /* GPT_TIMER_10 */
+        NULL      /* GPT_TIMER_11 */
+    }
+};

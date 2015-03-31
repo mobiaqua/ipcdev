@@ -44,7 +44,7 @@
 #include <ti/ipc/MessageQCopy.h>
 
 #if defined(IPC_PLATFORM_VAYU)
-#include <gptimers.h>
+#include <Gpt.h>
 #endif
 
 /*  ----------------------------------- utils Headers   */
@@ -216,7 +216,7 @@ Int Ipc_attach (UInt16 remoteProcId)
 
 #if !defined(IPC_DISABLE_WATCHDOG) && defined(IPC_PLATFORM_VAYU)
         if (status >= 0) {
-            status = gpt_wdt_attach(remoteProcId);
+            status = Gpt_wdt_attach(remoteProcId);
             if (status < 0) {
                 MessageQCopy_detach(remoteProcId);
             }
@@ -262,7 +262,7 @@ Int Ipc_detach (UInt16 remoteProcId)
 #endif
 
 #if !defined(IPC_DISABLE_WATCHDOG) && defined(IPC_PLATFORM_VAYU)
-        status = gpt_wdt_detach(remoteProcId);
+        status = Gpt_wdt_detach(remoteProcId);
 #endif
 
         status = MessageQCopy_detach (remoteProcId);
