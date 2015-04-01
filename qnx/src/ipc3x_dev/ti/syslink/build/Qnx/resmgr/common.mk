@@ -122,7 +122,8 @@ EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/procMgr/hlos/knl	\
 
 ifeq ("$(IPC_PLATFORM)", "omap5430")
 EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)	\
-		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/ipu
+		$(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)/ipu \
+                $(IPC_REPO)/qnx/src/cfg/$(IPC_PLATFORM)
 
 EXCLUDE_OBJS = GateMP_daemon.o gatemp_devctl.o
 endif

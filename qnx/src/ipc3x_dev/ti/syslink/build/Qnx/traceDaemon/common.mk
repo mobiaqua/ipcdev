@@ -53,8 +53,12 @@ CCOPTS+= -O0
 
 LDFLAGS += -M
 
-EXTRA_SRCVPATH += $(IPC_ROOT)/ti/syslink/family/$(IPC_PLATFORM)
-SRCS += SystemCfg_$(IPC_PLATFORM).c IpcTraceDaemon.c
+ifeq ("$(IPC_PLATFORM)", "vayu")
+EXTRA_SRCVPATH = $(IPC_REPO)/qnx/src/cfg/dra7xx
+else
+EXTRA_SRCVPATH = $(IPC_REPO)/qnx/src/cfg/$(IPC_PLATFORM)
+endif
+SRCS += MultiProcCfg.c IpcTraceDaemon.c
 
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
 LIBS += utils_g
