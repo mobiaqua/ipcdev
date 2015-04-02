@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,68 +43,313 @@ var Swi  = null;
 var taskHook = null;
 var swiHook  = null;
 var catalogName = null;
+var timerIds = [];
 
 if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
     var deviceTable = {
         "ti.catalog.c6000": {
             "OMAP5430": {
-                wdtimer: [
-                   {
-                        name: "WdTimerDsp",     /* GpTimer 6 */
-                        baseAddr: 0x01d3A000,
-                        clkCtrl: 0x4A004570,    /* Virtual address */
-                        intNum:  15,
-                        eventId: 52,
-                    },
+                "GPTimer5": {
+                    name: "WdTimer5Dsp",    /* GpTimer 5 */
+                    baseAddr: 0x01D38000,
+                    clkCtrl: 0x4A004568,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 51,
+                },
+                "GPTimer6": {
+                    name: "WdTimer6Dsp",    /* GpTimer 6 */
+                    baseAddr: 0x01D3A000,
+                    clkCtrl: 0x4A004570,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 52,
+                },
+                "GPTimer7": {
+                    name: "WdTimer7Dsp",    /* GpTimer 7 */
+                    baseAddr: 0x01D3C000,
+                    clkCtrl: 0x4A004578,    /* Virtual address */
+                    intNum:  4,
+                    eventId: 53,
+                },
+                "GPTimer8": {
+                    name: "WdTimer8Dsp",    /* GpTimer 8 */
+                    baseAddr: 0x01D3E000,
+                    clkCtrl: 0x4A004580,    /* Virtual address */
+                    intNum:  5,
+                    eventId: 54,
+                },
+                "Default": [
+                    { name: "GPTimer6" },
                 ]
             },
             "DRA7XX": {
-                wdtimer: [
-                    {
-                        name: "WdTimerDsp",     /* GpTimer 10 */
-                        baseAddr: 0x48086000,   /* Virtual address */
-                        clkCtrl: 0x4A009728,    /* Virtual address */
-                        intNum:  15,
-                        eventId: 72,
-                    },
+                "GPTimer1": {
+                    name: "WdTimer1Dsp",    /* GpTimer 1 */
+                    baseAddr: 0x4AE18000,   /* Virtual address */
+                    clkCtrl: 0x4AE07840,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 63,
+                },
+                "GPTimer2": {
+                    name: "WdTimer2Dsp",    /* GpTimer 2 */
+                    baseAddr: 0x48032000,   /* Virtual address */
+                    clkCtrl: 0x4A009738,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 64,
+                },
+                "GPTimer3": {
+                    name: "WdTimer3Dsp",    /* GpTimer 3 */
+                    baseAddr: 0x48034000,   /* Virtual address */
+                    clkCtrl: 0x4A009740,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 65,
+                },
+                "GPTimer4": {
+                    name: "WdTimer4Dsp",    /* GpTimer 4 */
+                    baseAddr: 0x48036000,   /* Virtual address */
+                    clkCtrl: 0x4A009748,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 66,
+                },
+                "GPTimer5": {
+                    name: "WdTimer5Dsp",    /* GpTimer 5 */
+                    baseAddr: 0x48820000,   /* Virtual address */
+                    clkCtrl: 0x4a005558,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 67,
+                },
+                "GPTimer6": {
+                    name: "WdTimer6Dsp",    /* GpTimer 6 */
+                    baseAddr: 0x48822000,   /* Virtual address */
+                    clkCtrl: 0x4A005560,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 68,
+                },
+                "GPTimer7": {
+                    name: "WdTimer7Dsp",    /* GpTimer 7 */
+                    baseAddr: 0x48824000,   /* Virtual address */
+                    clkCtrl: 0x4A005568,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 69,
+                },
+                "GPTimer8": {
+                    name: "WdTimer8Dsp",    /* GpTimer 8 */
+                    baseAddr: 0x48826000,   /* Virtual address */
+                    clkCtrl: 0x4A005570,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 70,
+                },
+                "GPTimer9": {
+                    name: "WdTimer9Dsp",    /* GpTimer 9 */
+                    baseAddr: 0x4803E000,   /* Virtual address */
+                    clkCtrl: 0x4A009750,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 71,
+                },
+                "GPTimer10": {
+                    name: "WdTimer10Dsp",   /* GpTimer 10 */
+                    baseAddr: 0x48086000,   /* Virtual address */
+                    clkCtrl: 0x4A009728,    /* Virtual address */
+                    intNum:  15,
+                    eventId: 72,
+                },
+                "GPTimer11": {
+                    name: "WdTimer11Dsp",   /* GpTimer 11 */
+                    baseAddr: 0x48088000,   /* Virtual address */
+                    clkCtrl: 0x4A009730,    /* Virtual address */
+                    intNum:  14,
+                    eventId: 73,
+                },
+                "GPTimer12": {
+                    name: "WdTimer12Dsp",   /* GpTimer 12 */
+                    baseAddr: 0x4AE20000,   /* Virtual address */
+                    clkCtrl: 0x4AE07848,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: 75,
+                },
+                "GPTimer13": {
+                    name: "WdTimer13Dsp",   /* GpTimer 13 */
+                    baseAddr: 0x48822000,   /* Virtual address */
+                    clkCtrl: 0x4A0097C8,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: 76,
+                },
+                "GPTimer14": {
+                    name: "WdTimer14Dsp",   /* GpTimer 14 */
+                    baseAddr: 0x4882A000,   /* Virtual address */
+                    clkCtrl: 0x4A0097D0,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: 77,
+                },
+                "GPTimer15": {
+                    name: "WdTimer15Dsp",   /* GpTimer 15 */
+                    baseAddr: 0x4882C000,   /* Virtual address */
+                    clkCtrl: 0x4A0097D8,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: 78,
+                },
+                "GPTimer16": {
+                    name: "WdTimer16Dsp",   /* GpTimer 16 */
+                    baseAddr: 0x4882E000,   /* Virtual address */
+                    clkCtrl: 0x4A009830,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: 81,
+                },
+                "Default": [
+                    { name: "GPTimer10" },
                 ]
             },
         },
         "ti.catalog.arm.cortexm4": {
             "OMAP5430": {
-                wdtimer: [
-                    {
-                        name: "WdTimerCore0",   /* GpTimer 9 */
-                        baseAddr: 0xA803E000,   /* Virtual address */
-                        clkCtrl: 0xAA009450,    /* Virtual address */
-                        intNum:  55,
-                        eventId: -1,
-                    },
-                    {
-                        name: "WdTimerCore1",   /* GpTimer 11 */
-                        baseAddr: 0xA8088000,   /* Virtual address */
-                        clkCtrl: 0xAA009430,    /* Virtual address */
-                        intNum:  56,
-                        eventId: -1,
-                    },
+                "GPTimer3": {
+                    name: "WdTimer3Ipu",    /* GpTimer 3 */
+                    baseAddr: 0xA8034000,   /* Virtual address */
+                    clkCtrl: 0xAA009040,    /* Virtual address */
+                    intNum:  53,
+                    eventId: -1,
+                },
+                "GPTimer4": {
+                    name: "WdTimer4Ipu",    /* GpTimer 4 */
+                    baseAddr: 0xA8036000,   /* Virtual address */
+                    clkCtrl: 0xAA009048,    /* Virtual address */
+                    intNum:  54,
+                    eventId: -1,
+                },
+                "GPTimer9": {
+                    name: "WdTimer9Ipu",    /* GpTimer 9 */
+                    baseAddr: 0xA803E000,   /* Virtual address */
+                    clkCtrl: 0xAA009050,    /* Virtual address */
+                    intNum:  55,
+                    eventId: -1,
+                },
+                "GPTimer11": {
+                    name: "WdTimer11Ipu",   /* GpTimer 11 */
+                    baseAddr: 0xA8088000,   /* Virtual address */
+                    clkCtrl: 0xAA009030,    /* Virtual address */
+                    intNum:  56,
+                    eventId: -1,
+                },
+                "Default": [
+                    { name: "GPTimer9" },
+                    { name: "GPTimer11" },
                 ]
             },
             "DRA7XX": {
-                wdtimer: [
-                    {
-                        name: "WdTimerCore0",   /* GpTimer 9 */
-                        baseAddr: 0x6803E000,   /* Virtual address */
-                        clkCtrl: 0x6A009750,    /* Virtual address */
-                        intNum:  55,
-                        eventId: -1,
-                    },
-                    {
-                        name: "WdTimerCore1",   /* GpTimer 4 */
-                        baseAddr: 0x68036000,   /* Virtual address */
-                        clkCtrl: 0x6A009748,    /* Virtual address */
-                        intNum:  54,
-                        eventId: -1,
-                    },
+                "GPTimer1": {
+                    name: "WdTimer1Ipu",    /* GpTimer 1 */
+                    baseAddr: 0x6AE18000,   /* Virtual address */
+                    clkCtrl: 0x6AE07840,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer2": {
+                    name: "WdTimer2Ipu",    /* GpTimer 2 */
+                    baseAddr: 0x68032000,   /* Virtual address */
+                    clkCtrl: 0x6A009738,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer3": {
+                    name: "WdTimer3Ipu",    /* GpTimer 3 */
+                    baseAddr: 0x68034000,   /* Virtual address */
+                    clkCtrl: 0x6A009740,    /* Virtual address */
+                    intNum:  53,
+                    eventId: -1,
+                },
+                "GPTimer4": {
+                    name: "WdTimer4Ipu",    /* GpTimer 4 */
+                    baseAddr: 0x68036000,   /* Virtual address */
+                    clkCtrl: 0x6A009748,    /* Virtual address */
+                    intNum:  54,
+                    eventId: -1,
+                },
+                "GPTimer5": {
+                    name: "WdTimer5Ipu",    /* GpTimer 5 */
+                    baseAddr: 0x68820000,   /* Virtual address */
+                    clkCtrl: 0x6a005558,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer6": {
+                    name: "WdTimer6Ipu",    /* GpTimer 6 */
+                    baseAddr: 0x68822000,   /* Virtual address */
+                    clkCtrl: 0x6A005560,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer7": {
+                    name: "WdTimer7Ipu",    /* GpTimer 7 */
+                    baseAddr: 0x68824000,   /* Virtual address */
+                    clkCtrl: 0x6A005568,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer8": {
+                    name: "WdTimer8Ipu",    /* GpTimer 8 */
+                    baseAddr: 0x68826000,   /* Virtual address */
+                    clkCtrl: 0x6A005570,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer9": {
+                    name: "WdTimer9Ipu",    /* GpTimer 9 */
+                    baseAddr: 0x6803E000,   /* Virtual address */
+                    clkCtrl: 0x6A009750,    /* Virtual address */
+                    intNum:  55,
+                    eventId: -1,
+                },
+                "GPTimer10": {
+                    name: "WdTimer10Ipu",   /* GpTimer 10 */
+                    baseAddr: 0x68086000,   /* Virtual address */
+                    clkCtrl: 0x6A009728,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer11": {
+                    name: "WdTimer11Ipu",   /* GpTimer 11 */
+                    baseAddr: 0x68088000,   /* Virtual address */
+                    clkCtrl: 0x6A009730,    /* Virtual address */
+                    intNum:  56,
+                    eventId: -1,
+                },
+                "GPTimer12": {
+                    name: "WdTimer12Ipu",   /* GpTimer 12 */
+                    baseAddr: 0x6AE20000,   /* Virtual address */
+                    clkCtrl: 0x6AE07848,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer13": {
+                    name: "WdTimer13Ipu",   /* GpTimer 13 */
+                    baseAddr: 0x68828000,   /* Virtual address */
+                    clkCtrl: 0x6A0097C8,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer14": {
+                    name: "WdTimer14Ipu",   /* GpTimer 14 */
+                    baseAddr: 0x6882A000,   /* Virtual address */
+                    clkCtrl: 0x6A0097D0,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer15": {
+                    name: "WdTimer15Ipu",   /* GpTimer 15 */
+                    baseAddr: 0x6882C000,   /* Virtual address */
+                    clkCtrl: 0x6A0097D8,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "GPTimer16": {
+                    name: "WdTimer16Ipu",   /* GpTimer 16 */
+                    baseAddr: 0x6882E000,   /* Virtual address */
+                    clkCtrl: 0x6A009830,    /* Virtual address */
+                    intNum:  -1,
+                    eventId: -1,
+                },
+                "Default": [
+                    { name: "GPTimer9" },
+                    { name: "GPTimer4" },
                 ]
             },
         },
@@ -116,7 +361,7 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
  */
 function module$use()
 {
-    var found = false;
+    var device;
 
     /* Only process during "cfg" phase */
     if (xdc.om.$name != "cfg") {
@@ -125,38 +370,43 @@ function module$use()
 
     Watchdog = this;
 
+    timerIds = Watchdog.timerIds;
+
     catalogName = Program.cpu.catalogName;
 
     /* Loop through the device table */
-    /* TODO: This lookup table can be replaced to use the dmTimer module
-     *       later on, and eliminate the need for this device table */
     for (deviceName in deviceTable[catalogName]) {
         if (deviceName == Program.cpu.deviceName) {
-            var device = deviceTable[catalogName][deviceName].wdtimer;
+            dflts = deviceTable[catalogName][deviceName]["Default"];
+            timerIds.length = dflts.length;
+            for (var id in dflts) {
+                if (timerIds[id] == undefined) {
+                    timerIds[id] = dflts[id].name;
+                }
+                device = deviceTable[catalogName][deviceName][timerIds[id]];
+                if (device != undefined) {
+                    var i = Watchdog.timerSettings.length++;
 
-            Watchdog.timerSettings.length = device.length;
-            for (var i = 0; i < device.length; i++) {
-                Watchdog.timerSettings[i].baseAddr = null;
-                Watchdog.timerSettings[i].clkCtrl = null;
-                Watchdog.timerSettings[i].intNum = device[i].intNum;
-                Watchdog.timerSettings[i].eventId = device[i].eventId;
+                    Watchdog.timerSettings[i].baseAddr = null;
+                    Watchdog.timerSettings[i].clkCtrl = null;
+                    Watchdog.timerSettings[i].intNum = device.intNum;
+                    Watchdog.timerSettings[i].eventId = device.eventId;
+                }
+                else {
+                    print("Watchdog Timer configuration is not found for " +
+                      "timer " + timerIds[id] + " for the specified device (" +
+                      Program.cpu.deviceName + ").");
+
+                    for (device in deviceTable[catalogName]) {
+                        print("\t" + device);
+                    }
+
+                    throw new Error ("Watchdog Timer unsupported on device!");
+                }
             }
 
-            found = true;
-
-	    break;
+            break;
         }
-    }
-
-    if (!found) {
-        print("Watchdog Timer configuration is not found for the " +
-              "specified device (" + Program.cpu.deviceName + ").");
-
-        for (device in deviceTable[catalogName]) {
-            print("\t" + device);
-        }
-
-        throw new Error ("Watchdog Timer unsupported on device!");
     }
 
     var Settings = xdc.module("ti.sysbios.family.Settings");
@@ -187,8 +437,6 @@ function module$use()
  */
 function module$static$init(mod, params)
 {
-    var device = deviceTable[catalogName][Program.cpu.deviceName].wdtimer;
-
     swiHook.beginFxn = this.swiPrehook;
     Swi.addHookSet(swiHook);
 
@@ -196,12 +444,13 @@ function module$static$init(mod, params)
     Task.addHookSet(taskHook);
 
     /* Assign default values if not supplied through configuration */
-    for (var i = 0; i < device.length; i++) {
-        if (Watchdog.timerSettings[i].baseAddr == null) {
-            Watchdog.timerSettings[i].baseAddr = $addr(device[i].baseAddr);
+    for (var id = 0; id < timerIds.length; id++) {
+        device = deviceTable[catalogName][deviceName][timerIds[id]];
+        if (Watchdog.timerSettings[id].baseAddr == null) {
+            Watchdog.timerSettings[id].baseAddr = $addr(device.baseAddr);
         }
-        if (Watchdog.timerSettings[i].clkCtrl == null) {
-            Watchdog.timerSettings[i].clkCtrl = $addr(device[i].clkCtrl);
+        if (Watchdog.timerSettings[id].clkCtrl == null) {
+            Watchdog.timerSettings[id].clkCtrl = $addr(device.clkCtrl);
         }
     }
 

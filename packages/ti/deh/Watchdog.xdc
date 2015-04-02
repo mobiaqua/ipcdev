@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ module Watchdog {
     struct TimerDevice {
         Ptr     baseAddr;
         Ptr     clkCtrl;
-        UInt32  intNum;
+        Int32   intNum;
         Int     eventId;
     };
 
@@ -113,6 +113,8 @@ module Watchdog {
      *  Global Control configuration for each physical timer.
      */
     metaonly config TimerDevice timerSettings[] = [];
+
+    metaonly config String timerIds[] = [];
 
     /*!
      *  ======== init ========

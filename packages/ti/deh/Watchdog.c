@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -185,8 +185,21 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
         }
 
         if (Watchdog_module->status[i] != Watchdog_Mode_ENABLED) {
-            /* Configure the timer */
-            initTimer(timer, TRUE);
+            if (Watchdog_module->device[i].intNum == -1) {
+                System_printf("Watchdog timer @TimerBase = 0x%x does not have"
+                              " a valid intNum setting (it is -1). This"
+                              " timer's intNum must be set in the .cfg file\n",
+                              timer);
+                continue;
+            }
+#if defined(DSP)
+            if (Watchdog_module->device[i].eventId == -1) {
+                System_printf("Watchdog timer @TimerBase = 0x%x does not have"
+                              " a valid eventId setting (it is -1).  This"
+                              " timer's eventId must be set in the .cfg file\n",                              timer);
+                continue;
+            }
+#endif
 
             /* Enable interrupt in BIOS */
             Hwi_Params_init(&hwiParams);
@@ -195,8 +208,12 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
             hwiParams.maskSetting = Hwi_MaskingOption_LOWER;
             hwiParams.arg = 1;     /* Exception_handler(abortFlag) */
             key = Hwi_disable();
-            Hwi_create(Watchdog_module->device[i].intNum, (Hwi_FuncPtr) timerFxn,
-                                                            &hwiParams, NULL);
+            Hwi_create(Watchdog_module->device[i].intNum,
+                       (Hwi_FuncPtr)timerFxn, &hwiParams, NULL);
+
+            /* Configure the timer */
+            initTimer(timer, TRUE);
+
             Hwi_enableInterrupt(Watchdog_module->device[i].intNum);
 #if defined(DSP) && defined(OMAP5)
             Wugen_enableEvent(Watchdog_module->device[i].eventId);
