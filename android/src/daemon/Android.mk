@@ -43,6 +43,7 @@ LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/daemon/lad.c \
+                  $(IPC_ROOT)/linux/src/daemon/Ipc_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/MessageQ_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/MultiProc_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/NameServer_daemon.c \
@@ -51,11 +52,12 @@ LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/daemon/lad.c \
                   $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock.c \
                   $(IPC_ROOT)/linux/src/daemon/GateHWSpinlock_daemon.c \
                   $(IPC_ROOT)/linux/src/daemon/cfg/GateHWSpinlockCfg_dra7xx.c \
+                  $(IPC_ROOT)/linux/src/daemon/cfg/IpcCfg.c \
                   $(IPC_ROOT)/linux/src/daemon/cfg/MessageQCfg.c \
                   $(IPC_ROOT)/linux/src/api/gates/GateMutex.c
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog libtiipcutils_lad libtiipc
+    liblog libtiipcutils_lad
 
 LOCAL_MODULE:= lad_dra7xx
 include $(BUILD_EXECUTABLE)
