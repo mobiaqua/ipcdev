@@ -50,7 +50,8 @@ EXTRA_INCVPATH+=$(IPC_ROOT)	\
 				$(IPC_ROOT)/ti/syslink/inc	\
 				$(IPC_ROOT)/ti/syslink/inc/usr/$(IPC_BUILDOS)	\
 				$(IPC_ROOT)/ti/syslink/inc/usr	\
-				$(IPC_ROOT)/ti/syslink/inc/$(IPC_BUILDOS)
+				$(IPC_ROOT)/ti/syslink/inc/$(IPC_BUILDOS)  \
+                                $(IPC_REPO)/qnx/include
 
 EXTRA_SRCVPATH+=$(PROJECT_ROOT)/$(IPC_BUILDOS)	\
 				$(PROJECT_ROOT)/..

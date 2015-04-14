@@ -83,6 +83,7 @@
 #include <IpcKnl.h>
 #include <sys/mman.h>
 #include <GateHWSpinlock.h>
+#include <_GateHWSpinlock.h>
 #include <Gpt.h>
 
 #if defined (__cplusplus)
@@ -94,10 +95,6 @@ extern "C" {
  *  Macros.
  *  ============================================================================
  */
-/* Hardware spinlocks info */
-#define HWSPINLOCK_BASE             0x4A0F6000
-#define HWSPINLOCK_SIZE             0x1000
-#define HWSPINLOCK_OFFSET           0x800
 
 /** ============================================================================
  *  Application specific configuration, please change these value according to
@@ -167,8 +164,6 @@ typedef struct Platform_Module_State {
     /*!< Flag to indicate platform initialization status */
     Bool              gateHWSpinlockInitFlag;
     /*!< GateHWSpinlock Initialize flag */
-    Ptr               gateHWSpinlockVAddr;
-    /*!< GateHWSpinlock Virtual Address */
 } Platform_Module_State;
 
 
@@ -272,7 +267,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     else {
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-        /* Set the MultiProc config as defined in SystemCfg.c */
+        /* Set the MultiProc config as defined in MultiProcCfg.c */
         config->multiProcConfig = _MultiProc_cfg;
 
         /* Override the MESSAGEQCOPY default config */
@@ -280,6 +275,9 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         config->MQCopyConfig.intId[2] = 168; // 136 + 32
         config->MQCopyConfig.intId[3] = 173; // 141 + 32
         config->MQCopyConfig.intId[4] = 168; // 136 + 32
+
+        /* Set the GateHWSpinlock config as defined in GateHWSpinlockCfg.c */
+        config->gateHWSpinlockConfig = _GateHWSpinlock_cfg;
 
 #if !defined(IPC_BUILD_OPTIMIZE)
     }
@@ -302,7 +300,6 @@ Platform_setup (Ipc_Config * cfg)
     Platform_Config   _config;
     Platform_Config * config;
     VAYUIpcInt_Config VAYUcfg;
-    Memory_MapInfo    minfo;
 
     Platform_getConfig (&_config);
     config = &_config;
@@ -415,47 +412,31 @@ Platform_setup (Ipc_Config * cfg)
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
     if (status >= 0) {
-        minfo.src  = HWSPINLOCK_BASE;
-        minfo.size = HWSPINLOCK_SIZE;
-        minfo.isCached = FALSE;
-        status = Memory_map (&minfo);
+        status = GateHWSpinlock_setup (&config->gateHWSpinlockConfig);
+#if !defined(IPC_BUILD_OPTIMIZE)
         if (status < 0) {
-           GT_setFailureReason (curTrace,
-                                GT_4CLASS,
-                                "Platform_setup",
-                                status,
-                                "Memory_map failed!");
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "Platform_setup",
+                                 status,
+                                 "GateHWSpinlock_setup failed!");
         }
         else {
-            Platform_module->gateHWSpinlockVAddr = (Ptr)minfo.dst;
-            config->gateHWSpinlockConfig.numLocks = 32;
-            config->gateHWSpinlockConfig.baseAddr = minfo.dst  + HWSPINLOCK_OFFSET;
-            status = GateHWSpinlock_setup (&config->gateHWSpinlockConfig);
-#if !defined(IPC_BUILD_OPTIMIZE)
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+            status = GateHWSpinlock_start();
             if (status < 0) {
                 GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "Platform_setup",
-                                     status,
-                                     "GateHWSpinlock_setup failed!");
+                                 GT_4CLASS,
+                                 "Platform_setup",
+                                 status,
+                                 "GateHWSpinlock_start failed!");
             }
             else {
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
-                status = GateHWSpinlock_start();
-                if (status < 0) {
-                    GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "Platform_setup",
-                                     status,
-                                     "GateHWSpinlock_start failed!");
-                }
-                else {
-                    Platform_module->gateHWSpinlockInitFlag = TRUE;
-                }
-#if !defined(IPC_BUILD_OPTIMIZE)
+                Platform_module->gateHWSpinlockInitFlag = TRUE;
             }
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+#if !defined(IPC_BUILD_OPTIMIZE)
         }
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     }
 
     /* Enable GP timers */
@@ -483,7 +464,6 @@ Int32
 Platform_destroy (void)
 {
     Int32  status = Platform_S_SUCCESS;
-    Memory_UnmapInfo minfo;
 
     GT_0trace (curTrace, GT_ENTER, "Platform_destroy");
 
@@ -619,27 +599,10 @@ Platform_destroy (void)
             else {
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
                 Platform_module->gateHWSpinlockInitFlag = FALSE;
+#if !defined(IPC_BUILD_OPTIMIZE)
             }
-#if !defined(IPC_BUILD_OPTIMIZE)
-        }
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
-    }
-
-    if (Platform_module->gateHWSpinlockVAddr) {
-        minfo.addr = (UInt32)Platform_module->gateHWSpinlockVAddr;
-        minfo.size = HWSPINLOCK_SIZE;
-        minfo.isCached = FALSE;
-        status = Memory_unmap(&minfo);
-#if !defined(IPC_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_destroy",
-                                 status,
-                                 "Memory_unmap failed!");
         }
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
-        Platform_module->gateHWSpinlockVAddr = NULL;
     }
 
     GT_1trace (curTrace, GT_LEAVE, "Platform_destroy", status);

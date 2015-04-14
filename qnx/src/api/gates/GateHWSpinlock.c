@@ -42,14 +42,12 @@
 #include <ti/ipc/GateMP.h>
 
 #include <ti/syslink/inc/GateHWSpinlock.h>
+#include <ti/syslink/inc/usr/Qnx/GateHWSpinlockDrv.h>
+#include <ti/syslink/inc/GateHWSpinlockDrvDefs.h>
+#include <ti/syslink/inc/_GateHWSpinlock.h>
 
 #include <ti/syslink/utils/IGateProvider.h>
 
-/*
- * TODO: does this belong in ti/ipc/Std.h? We should consider getting rid of
- *       error blocks from the GateMutex.h interface.
- */
-typedef UInt32            Error_Block;
 #include <ti/syslink/utils/GateMutex.h>
 
 /* Module level headers */
@@ -62,25 +60,11 @@ typedef UInt32            Error_Block;
 #include <stdlib.h>
 #include <sys/mman.h>
 
-/*
- * TODO: Hardcoding these for now. In daemon, we should ideally pass these in
- * through config in GateHWSpinlock_setup and user lib can query the daemon.
- */
-#define HWSPINLOCK_BASE             0x4A0F6000
-#define HWSPINLOCK_SIZE             0x1000
-#define HWSPINLOCK_OFFSET           0x800
-
 
 /* =============================================================================
  * Structures & Enums
  * =============================================================================
  */
-/* GateHWSpinlock Module Local State */
-typedef struct {
-    UInt32 *                        baseAddr;   /* base addr lock registers */
-    GateMutex_Handle                gmHandle;   /* handle to gate mutex */
-} GateHWSpinlock_Module_State;
-
 /* GateHWSpinlock instance object */
 struct GateHWSpinlock_Object {
     IGateProvider_SuperObject; /* For inheritance from IGateProvider */
@@ -95,13 +79,18 @@ struct GateHWSpinlock_Object {
  * Globals
  * =============================================================================
  */
-static GateHWSpinlock_Module_State GateHWSpinlock_state =
+GateHWSpinlock_Module_State _GateHWSpinlock_state =
 {
-    .baseAddr = NULL,
-    .gmHandle = NULL
+    .vAddr                  = NULL,
+    .gmHandle               = NULL,
+    .cfg.numLocks           = 128,
+    .cfg.baseAddr           = 0,
+    .cfg.offset             = 0,
+    .cfg.size               = 0,
+    .numLocks               = 128u
 };
 
-static GateHWSpinlock_Module_State *Mod = &GateHWSpinlock_state;
+static GateHWSpinlock_Module_State *Mod = &_GateHWSpinlock_state;
 
 static GateHWSpinlock_Params GateHWSpinlock_defInstParams =
 {
@@ -124,22 +113,24 @@ Bool _GateHWSpinlock_verbose = FALSE;
  */
 Int32 GateHWSpinlock_start(Void)
 {
-    Int32               status = GateHWSpinlock_S_SUCCESS;
-    UInt32              dst;
+    Int32                 status = GateHWSpinlock_S_SUCCESS;
+    UInt32                dst;
+
+    GateHWSpinlock_getConfig(&Mod->cfg);
 
     /* map the hardware lock registers into the local address space */
     if (status == GateHWSpinlock_S_SUCCESS) {
-        dst = (UInt32)mmap(NULL, HWSPINLOCK_SIZE,
+        dst = (UInt32)mmap(NULL, Mod->cfg.size,
                             (PROT_READ | PROT_WRITE | PROT_NOCACHE),
                             (MAP_PHYS|MAP_SHARED), NOFD,
-                            (off_t)HWSPINLOCK_BASE);
+                            (off_t)Mod->cfg.baseAddr);
 
         if (dst == (UInt32)MAP_FAILED) {
             PRINTVERBOSE0("GateHWSpinlock_start: Memory map failed")
             status = GateHWSpinlock_E_OSFAILURE;
         }
         else {
-            Mod->baseAddr = (UInt32 *)(dst + HWSPINLOCK_OFFSET);
+            Mod->vAddr = (UInt32 *)(dst + Mod->cfg.offset);
             status = GateHWSpinlock_S_SUCCESS;
         }
     }
@@ -171,8 +162,8 @@ Int GateHWSpinlock_stop(Void)
     }
 
     /* release lock register mapping */
-    if (Mod->baseAddr != NULL) {
-        munmap((void *)HWSPINLOCK_BASE, HWSPINLOCK_SIZE);
+    if (Mod->vAddr != NULL) {
+        munmap((void *)Mod->vAddr, Mod->cfg.size);
     }
 
     return(status);
@@ -241,7 +232,7 @@ Int GateHWSpinlock_delete (GateHWSpinlock_Handle * handle)
  */
 IArg GateHWSpinlock_enter(GateHWSpinlock_Object *obj)
 {
-    volatile UInt32 *baseAddr = Mod->baseAddr;
+    volatile UInt32 *baseAddr = Mod->vAddr;
     IArg key;
 
     key = IGateProvider_enter(obj->localGate);
@@ -272,7 +263,7 @@ IArg GateHWSpinlock_enter(GateHWSpinlock_Object *obj)
  */
 Int GateHWSpinlock_leave(GateHWSpinlock_Object *obj, IArg key)
 {
-    volatile UInt32 *baseAddr = Mod->baseAddr;
+    volatile UInt32 *baseAddr = Mod->vAddr;
 
     obj->nested--;
 

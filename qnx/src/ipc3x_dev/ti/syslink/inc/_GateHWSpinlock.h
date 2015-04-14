@@ -1,15 +1,6 @@
-/**
- *  @file   Std.h
- *
- *  @brief      This will have definitions of standard data types for
- *              platform abstraction.
- *
- *
- *  @ver        02.00.00.46_alpha1
- *
- *  ============================================================================
- *
- *  Copyright (c) 2008-2015, Texas Instruments Incorporated
+/*
+ *  Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -37,47 +28,48 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
+ */
+/** ============================================================================
+ *  @file   _GateHWSpinlock.h
  *
+ *  @brief  Header file for_GateHWSpinlock on HLOS side
+ *  ============================================================================
  */
 
-#if !defined(SYSLINK_STD_H)
-#define SYSLINK_STD_H
 
-#include <ti/ipc/Std.h>
-#include <ti/syslink/inc/Qnx/std_qnx.h>
+#ifndef _GATEHWSPINLOCK_H
+#define _GATEHWSPINLOCK_H
+
+#include <ti/syslink/Std.h>
+#include <ti/syslink/inc/GateHWSpinlock.h>
+#include <ti/syslink/utils/GateMutex.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#ifndef _UINT_DEFINED
-#define _UINT_DEFINED
-typedef unsigned int      uint;
-#endif
-typedef unsigned int      UINT32;
-typedef unsigned long     ULONG;
-typedef unsigned long     DWORD;
-typedef void             * HANDLE;
-typedef unsigned int     atomic_t;
 
-typedef unsigned short    BOOL;
+/* =============================================================================
+ *  Macros and types
+ * =============================================================================
+ */
 
-/*! Data type for errors */
-typedef UInt32            Error_Block;
+/* GateHWSpinlock Module Local State */
+typedef struct {
+    UInt32 *                  vAddr;     /* virtual addr of lock registers */
+    GateMutex_Handle          gmHandle;  /* handle to gate mutex */
+    GateHWSpinlock_Config     cfg;       /* Module configuration */
+    UInt32                    numLocks;  /* Maximum number of locks */
+} GateHWSpinlock_Module_State;
 
-/*! Initialize error block */
-#define Error_init(eb) *eb = 0
+/* Module configuration structure */
+extern GateHWSpinlock_Config _GateHWSpinlock_cfg;
+
+/* Internal variable to enable/disable tracing throughout GateHWSpinlock */
+extern Bool _GateHWSpinlock_verbose;
 
 #if defined (__cplusplus)
 }
-#endif
+#endif /* defined (__cplusplus) */
 
-#endif
+#endif /* if !defined(_GATEHWSPINLOCK_H) */

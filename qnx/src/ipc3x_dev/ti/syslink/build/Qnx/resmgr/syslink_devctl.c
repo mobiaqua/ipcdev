@@ -85,6 +85,8 @@ extern int ipc_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                      ipc_ocb_t * ocb);
 extern int ipc_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                  ipc_ocb_t * ocb);
+extern int ipc_gatehwspinlock_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                 ipc_ocb_t * ocb);
 
 /**
  * Handler for devctl() messages.
@@ -137,6 +139,9 @@ int ipc_devctl(resmgr_context_t *ctp, io_devctl_t *msg, ipc_ocb_t *ocb)
 #ifdef IPC_PLATFORM_VAYU
         case _DCMD_IPC_GATEMP:
             status = ipc_gatemp_devctl(ctp, msg, ocb);
+            break;
+        case _DCMD_IPC_GATEHWSPINLOCK:
+            status = ipc_gatehwspinlock_devctl(ctp, msg, ocb);
             break;
 #endif
         default:

@@ -139,7 +139,7 @@ EXTRA_SRCVPATH+=$(IPC_ROOT)/ti/syslink/family/common	\
                 $(IPC_REPO)/qnx/src/api/gates \
                 $(IPC_REPO)/qnx/src/cfg/dra7xx
 
-EXCLUDE_OBJS = GateMP.o
+EXCLUDE_OBJS = GateMP.o GateHWSpinlock_client.o
 endif
 
 include $(MKFILES_ROOT)/qtargets.mk

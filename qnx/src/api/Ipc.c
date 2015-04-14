@@ -62,10 +62,11 @@
 #include <_GateMP.h>
 #include <_GateMP_usr.h>
 #include <_TiIpcFxns.h>
-#include <ti/syslink/inc/GateHWSpinlock.h>
+#include <ti/syslink/inc/_GateHWSpinlock.h>
 #include <ti/syslink/inc/_MultiProc.h>
 
 MultiProc_Config _MultiProc_cfg;
+
 
 static void cleanup(int arg);
 
@@ -156,6 +157,7 @@ Int Ipc_start (Void)
     /* Start GateMP only if it is setup in the resource manager */
 #if defined(GATEMP_SUPPORT)
     if (GateMP_isSetup()) {
+        /* Get GateHWSpinlock configuration from resource manager */
         status = GateHWSpinlock_start();
         if (status < 0) {
             printf("Ipc_start: GateHWSpinlock_start failed: %d\n",

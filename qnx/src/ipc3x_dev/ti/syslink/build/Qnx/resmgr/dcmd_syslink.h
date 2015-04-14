@@ -51,7 +51,8 @@ typedef enum {
     _DCMD_IPC_NAMESERVER = 0x2A,
     _DCMD_IPC_MESSAGEQ,
     _DCMD_IPC_MULTIPROC,
-    _DCMD_IPC_GATEMP
+    _DCMD_IPC_GATEMP,
+    _DCMD_IPC_GATEHWSPINLOCK
 } dcmd_class_t_val;
 
 /*  ----------------------------------------------------------------------------
@@ -222,6 +223,18 @@ typedef enum {
 #define DCMD_GATEMP_ISSETUP                 __DIOTF(_DCMD_IPC_GATEMP,\
                                             6,\
                                             GateMPDrv_CmdArgs)
+
+/*  ----------------------------------------------------------------------------
+*   IOCTL command IDs for GateHWSpinlock
+*   ----------------------------------------------------------------------------
+*/
+
+/*!
+ *  @brief  Command for GateHWSpinlock_getConfig
+*/
+#define DCMD_GATEHWSPINLOCK_GETCONFIG       __DIOTF(_DCMD_IPC_GATEHWSPINLOCK,\
+                                            1,\
+                                            GateHWSpinlockDrv_CmdArgs)
 
 #if defined (__cplusplus)
 }

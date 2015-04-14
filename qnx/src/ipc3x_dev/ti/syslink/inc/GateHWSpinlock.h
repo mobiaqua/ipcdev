@@ -162,18 +162,13 @@ typedef struct GateHWSpinlock_Object * GateHWSpinlock_Handle;
  *  @brief  Structure defining config parameters for the GateHWSpinlock module.
  */
 typedef struct GateHWSpinlock_Config {
-    GateMP_LocalProtect defaultProtection;
-    /*!< Default module-wide local context protection level. The level of
-     * protection specified here determines which local gate is created per
-     * GateHWSpinlock instance for local protection during create. The instance
-     * configuration parameter may be used to override this module setting per
-     * instance.  The configuration used here should reflect both the context
-     * in which enter and leave are to be called, as well as the maximum level
-     * of protection needed locally.
-     */
     UInt32               baseAddr;
     /* Device-specific base address for HW Semaphore subsystem in HOST OS
-     * address space, this is updated in Ipc module */
+     * address space */
+    UInt32               size;
+    /* Device-specific size for HW Semaphore subsystem */
+    UInt32               offset;
+    /* Device-specific offset for HW Semaphore registers */
     UInt                 numLocks;
     /* Device-specific number of semphores in the HW Semaphore subsystem */
 } GateHWSpinlock_Config;
@@ -258,9 +253,6 @@ UInt32 GateHWSpinlock_getNumInstances (Void);
  *
  */
 Void GateHWSpinlock_locksinit(Void);
-
-/* Internal variable to enable/disable tracing throughout GateHWSpinlock */
-extern Bool _GateHWSpinlock_verbose;
 
 #if defined (__cplusplus)
 }

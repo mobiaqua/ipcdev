@@ -57,6 +57,7 @@
 #include <ti/syslink/utils/String.h>
 
 #include <ti/syslink/utils/GateSpinlock.h>
+#include <_GateHWSpinlock.h>
 #include <GateHWSpinlock.h>
 #include <HwSpinLockCmdBase.h>
 
@@ -66,23 +67,121 @@ extern "C" {
 #endif
 
 #ifdef IPC_PLATFORM_VAYU
-/* TODO: implement these to handle config passed in through Platform.c */
-Void GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
+/*!
+ *  @var    GateHWSpinlock_state
+ *
+ *  @brief  GateHWSpinlock Module state object.
+ */
+#if !defined(IPC_BUILD_DEBUG)
+static
+#endif /* if !defined(IPC_BUILD_DEBUG) */
+extern GateHWSpinlock_Module_State _GateHWSpinlock_state;
+GateHWSpinlock_Module_State * GateHWSpinlock_module = &_GateHWSpinlock_state;
+
+
+/* =============================================================================
+ * APIS
+ * =============================================================================
+ */
+/*!
+ *  @brief      Get the default configuration for the GateHWSpinlock module.
+ *
+ *              This function can be called by the application to get their
+ *              configuration parameter to GateHWSpinlock_setup filled in by
+ *              the GateHWSpinlock module.
+ *
+ *  @param      cfgParams  Pointer to the GateHWSpinlock module configuration
+ *                         structure in which the module config is to be
+ *                         returned.
+ */
+Void GateHWSpinlock_getConfig(GateHWSpinlock_Config * cfgParams)
 {
+    GT_1trace (curTrace, GT_ENTER, "GateHWSpinlock_getConfig", cfgParams);
+
+    GT_assert (curTrace, (cfgParams != NULL));
+
+#if !defined(IPC_BUILD_OPTIMIZE)
+    if (cfgParams == NULL) {
+        /* No retVal since this is a Void function. */
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "GateHWSpinlock_getConfig",
+                             GateHWSpinlock_E_INVALIDARG,
+                             "Argument of type (GateHWSpinlock_Config *) passed "
+                             "is null!");
+    }
+    else {
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+        Memory_copy((Ptr) cfgParams,
+                     (Ptr) &GateHWSpinlock_module->cfg,
+                     sizeof (GateHWSpinlock_Config));
+#if !defined(IPC_BUILD_OPTIMIZE)
+    }
+#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+
+    GT_0trace (curTrace, GT_ENTER, "GateHWSpinlock_getConfig");
+
     return;
 }
 
-
+/*!
+ *  @brief      Setup the GateHWSpinlock module.
+ *
+ *              This function sets up the GateHWSpinlock module. This function
+ *              must be called before any other instance-level APIs can be
+ *              invoked.
+ *              Module-level configuration needs to be provided to this
+ *              function.
+ *
+ *  @param      cfg   GateHWSpinlock module configuration. Cannot be NULL.
+ */
 Int32 GateHWSpinlock_setup(const GateHWSpinlock_Config * cfg)
 {
-    return GateHWSpinlock_S_SUCCESS;
+    Int32                 status = GateHWSpinlock_S_SUCCESS;
+
+    GT_1trace (curTrace, GT_ENTER, "GateHWSpinlock_setup", cfg);
+
+    if (cfg == NULL) {
+        return (GateHWSpinlock_E_INVALIDARG);
+    }
+
+    /* Copy the cfg */
+    Memory_copy((Ptr) &GateHWSpinlock_module->cfg,
+                 (Ptr) cfg,
+                 sizeof (GateHWSpinlock_Config));
+
+    GateHWSpinlock_module->numLocks = cfg->numLocks;
+
+    GT_1trace (curTrace, GT_LEAVE, "GateHWSpinlock_setup", status);
+
+    /*! @retval GateHWSpinlock_S_SUCCESS Operation successful */
+    return status;
 }
 
+
+/*!
+ *  @brief      Function to destroy the GateHWSpinlock module.
+ */
 Int GateHWSpinlock_destroy(Void)
 {
-    return GateHWSpinlock_S_SUCCESS;
+    Int32 status = GateHWSpinlock_S_SUCCESS;
+
+    GT_0trace (curTrace, GT_ENTER, "GateHWSpinlock_destroy");
+    /* Clear cfg area */
+    Memory_set((Ptr) &GateHWSpinlock_module->cfg,
+                0,
+                sizeof (GateHWSpinlock_Config));
+
+    GT_1trace (curTrace, GT_LEAVE, "GateHWSpinlock_destroy", status);
+
+    /*! @retval GateHWSpinlock_S_SUCCESS Operation successful */
+    return status;
 }
 #else
+/*************************************************************************
+ *  Code below is kept for legacy HWSpinlock module
+ *  Deprecated and should be removed at some point along with the module
+ ************************************************************************/
 /* =============================================================================
  * Macros
  * =============================================================================
@@ -147,8 +246,10 @@ static
 #endif /* if !defined(IPC_BUILD_DEBUG) */
 GateHWSpinlock_Module_State GateHWSpinlock_state =
 {
-    .defaultCfg.defaultProtection  = GateHWSpinlock_LocalProtect_INTERRUPT,
     .defaultCfg.numLocks           = 128,
+    .defaultCfg.baseAddr           = 0,
+    .defaultCfg.offset             = 0,
+    .defaultCfg.size               = 0,
     .numLocks                      = 128u,
 };
 

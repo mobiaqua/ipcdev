@@ -46,7 +46,8 @@ EXTRA_INCVPATH+=$(IPC_ROOT)/inc	\
                 $(IPC_ROOT)/inc/ti/ipc	\
                 $(IPC_REPO)/packages	\
                 $(IPC_ROOT)/inc/Qnx \
-                $(IPC_ROOT)/../..
+                $(IPC_ROOT)/../.. \
+                $(IPC_REPO)/qnx/include
 
 CCOPTS+=-g -O0
 

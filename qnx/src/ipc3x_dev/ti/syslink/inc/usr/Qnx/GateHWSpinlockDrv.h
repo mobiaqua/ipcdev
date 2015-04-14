@@ -1,15 +1,16 @@
 /**
- *  @file   Std.h
+ *  @file   GateHWSpinlockDrv.h
  *
- *  @brief      This will have definitions of standard data types for
- *              platform abstraction.
+ *  @brief      Declarations of OS-specific functionality for GateHWSpinlock
  *
+ *              This file contains declarations of OS-specific functions for
+ *              GateHWSpinlock.
  *
- *  @ver        02.00.00.46_alpha1
- *
+ */
+/*
  *  ============================================================================
  *
- *  Copyright (c) 2008-2015, Texas Instruments Incorporated
+ *  Copyright (c) 2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -37,47 +38,28 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
 
-#if !defined(SYSLINK_STD_H)
-#define SYSLINK_STD_H
+#ifndef GateHWSpinlockDrv_H
+#define GateHWSpinlockDrv_H
 
-#include <ti/ipc/Std.h>
-#include <ti/syslink/inc/Qnx/std_qnx.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#ifndef _UINT_DEFINED
-#define _UINT_DEFINED
-typedef unsigned int      uint;
-#endif
-typedef unsigned int      UINT32;
-typedef unsigned long     ULONG;
-typedef unsigned long     DWORD;
-typedef void             * HANDLE;
-typedef unsigned int     atomic_t;
 
-typedef unsigned short    BOOL;
+/* =============================================================================
+ *  APIs
+ * =============================================================================
+ */
+/* Function to invoke the APIs through ioctl. */
+Int GateHWSpinlockDrv_ioctl (UInt32 cmd, Ptr args);
 
-/*! Data type for errors */
-typedef UInt32            Error_Block;
-
-/*! Initialize error block */
-#define Error_init(eb) *eb = 0
 
 #if defined (__cplusplus)
 }
-#endif
+#endif /* defined (__cplusplus) */
 
-#endif
+
+#endif /* GateHWSpinlockDrv_H */
