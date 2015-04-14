@@ -45,7 +45,6 @@
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/hal/Cache.h>
 #include <ti/sysbios/hal/Hwi.h>
-#include <ti/sysbios/knl/Task.h>
 
 #include <ti/sdo/ipc/_Ipc.h>
 #include <ti/sdo/ipc/_Notify.h>
@@ -1190,7 +1189,6 @@ Int ti_sdo_ipc_Ipc_procSyncFinish(UInt16 remoteProcId, Ptr sharedAddr)
     volatile ti_sdo_ipc_Ipc_Reserved *self, *remote;
     SizeT reservedSize = ti_sdo_ipc_Ipc_reservedSizePerProc();
     Bool cacheEnabled = SharedRegion_isCacheEnabled(0);
-    UInt oldPri;
 
     /* don't do any synchronization if procSync is NONE */
     if (ti_sdo_ipc_Ipc_procSync == ti_sdo_ipc_Ipc_ProcSync_NONE) {
@@ -1217,28 +1215,14 @@ Int ti_sdo_ipc_Ipc_procSyncFinish(UInt16 remoteProcId, Ptr sharedAddr)
 
     /* if slave processor, wait for remote to finish sync */
     if (MultiProc_self() < remoteProcId) {
-        if (BIOS_getThreadType() == BIOS_ThreadType_Task) {
-            oldPri = Task_getPri(Task_self());
-        }
 
         /* wait for remote processor to finish */
         while (remote->startedKey != ti_sdo_ipc_Ipc_PROCSYNCFINISH &&
                 remote->startedKey != ti_sdo_ipc_Ipc_PROCSYNCDETACH) {
-            /* Set self priority to 1 [lowest] and yield cpu */
-            if (BIOS_getThreadType() == BIOS_ThreadType_Task) {
-                Task_setPri(Task_self(), 1);
-                Task_yield();
-            }
 
-            /* Check the remote's sync flag */
             if (cacheEnabled) {
                 Cache_inv((Ptr)remote, reservedSize, Cache_Type_ALL, TRUE);
             }
-        }
-
-        /* Restore self priority */
-        if (BIOS_getThreadType() == BIOS_ThreadType_Task) {
-            Task_setPri(Task_self(), oldPri);
         }
     }
 
