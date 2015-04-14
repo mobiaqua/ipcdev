@@ -73,6 +73,10 @@
 
 #include <_lad.h>
 
+#if !defined(EFD_SEMAPHORE)
+#  define EFD_SEMAPHORE (1 << 0)
+#endif
+
 #define MESSAGEQ_RPMSG_PORT       61
 #define NAME_SERVER_RPMSG_ADDR    0
 

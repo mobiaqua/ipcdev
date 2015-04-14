@@ -46,6 +46,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 
+
 /* Socket Protocol Family */
 #include <net/rpmsg.h>
 
@@ -59,6 +60,10 @@
 #include <ti/ipc/transports/TransportRpmsg.h>
 #include <_MessageQ.h>
 #include <_lad.h>
+
+#if !defined(EFD_SEMAPHORE)
+#  define EFD_SEMAPHORE (1 << 0)
+#endif
 
 /* More magic rpmsg port numbers: */
 #define MESSAGEQ_RPMSG_PORT       61
