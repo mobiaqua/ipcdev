@@ -275,16 +275,17 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg *msg,
             }
         }
 
-        LOG2("NameServer Response: instanceName: %s, name: %s,",
-             (String)msg->instanceName, (String)msg->name)
         /* set the request status */
         if (status < 0) {
-            LOG1(" Value not found, status: %d\n", status)
+            LOG3("NameServer Response: instance: %s, name: %s, value not "
+                    "found, status: %d\n", (String)msg->instanceName,
+                    (String)msg->name, status);
             msg->requestStatus = 0;
         }
         else {
+            LOG3("NameServer Response: instance: %s, name: %s, value: 0x%x\n",
+                    (String)msg->instanceName, (String)msg->name, msg->value);
             msg->requestStatus = 1;
-            LOG1(" Value: 0x%x\n", msg->value)
         }
 
         /* specify message as a response */
@@ -387,9 +388,9 @@ static void *listener_cb(void *arg)
                 }
                 else {
                     LOG1("listener_cb: recvfrom socket: fd: %d\n", sock)
-                    LOG2("\tReceived ns msg: nbytes: %d, from addr: %d, ",
-                         nbytes, fromAddr.addr)
-                    LOG1("from vproc: %d\n", fromAddr.vproc_id)
+                    LOG3("\tReceived ns msg: nbytes: %d, from addr: %d, "
+                            "from vproc: %d\n", nbytes, fromAddr.addr,
+                            fromAddr.vproc_id);
                     NameServerRemote_processMessage(&msg, procId);
                 }
             }
@@ -974,9 +975,8 @@ Int NameServer_getRemote(NameServer_Handle handle,
     strncpy((char *)nsMsg.instanceName, obj->name, strlen(obj->name) + 1);
     strncpy((char *)nsMsg.name, name, strlen(name) + 1);
 
-    LOG2("NameServer_getRemote: Requesting from procId %d, %s:",
-           procId, (String)nsMsg.instanceName)
-    LOG1("%s...\n", (String)nsMsg.name)
+    LOG3("NameServer_getRemote: requesting from procId %d, %s: %s\n",
+            procId, (String)nsMsg.instanceName, (String)nsMsg.name);
 
     err = send(sock, &nsMsg, sizeof(NameServerRemote_Msg), 0);
     if (err < 0) {
@@ -1028,10 +1028,10 @@ Int NameServer_getRemote(NameServer_Handle handle,
                 /* set the contents of value */
                 if (*len <= sizeof (Bits32)) {
                     *(UInt32 *)value = (UInt32)replyMsg->value;
-                    LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                        procId, (String)replyMsg->instanceName)
-                    LOG2("%s, value: 0x%x...\n",
-                        (String)replyMsg->name, *(UInt32 *)value)
+                    LOG4("NameServer_getRemote: Reply from: %d, %s: "
+                            "name: %s, value: 0x%x\n", procId,
+                            (String)replyMsg->instanceName,
+                            (String)replyMsg->name, *(UInt32 *)value);
                 }
                 else {
                     memcpy(value, replyMsg->valueBuf, *len);

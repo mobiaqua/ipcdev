@@ -106,6 +106,16 @@ extern struct timeval start_tv;
         fflush(logPtr); \
     }
 
+#define LOG4(a, b, c, d, e)  \
+    if (logFile == TRUE) { \
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        fprintf(logPtr, "[%d.%06d] " a, \
+                (unsigned int)(tv.tv_sec - start_tv.tv_sec), \
+                (unsigned int)tv.tv_usec, b, c, d, e); \
+        fflush(logPtr); \
+    }
+
 /* macros for generating verbose output: */
 #define PRINTVERBOSE0(a)  \
     if (verbose == TRUE) {  printf(a); }
