@@ -518,7 +518,7 @@ Int Ipc_detach(UInt16 remoteProcId)
             return (Ipc_E_FAIL);
         }
 
-        if (slave->transportSRPtr) {
+        if (slave->transportSRPtr != SharedRegion_invalidSRPtr()) {
             /* free the memory if slave processor */
             if (MultiProc_self() < remoteProcId) {
                 /* get the pointer to MessageQ transport instance */
@@ -544,7 +544,7 @@ Int Ipc_detach(UInt16 remoteProcId)
             return (Ipc_E_FAIL);
         }
 
-        if (slave->nsrnSRPtr) {
+        if (slave->nsrnSRPtr != SharedRegion_invalidSRPtr()) {
             /* free the memory if slave processor */
             if (MultiProc_self() < remoteProcId) {
                 /* get the pointer to NSRN instance */
@@ -570,7 +570,7 @@ Int Ipc_detach(UInt16 remoteProcId)
             return (Ipc_E_FAIL);
         }
 
-        if (slave->notifySRPtr) {
+        if (slave->notifySRPtr != SharedRegion_invalidSRPtr()) {
             /* free the memory if slave processor */
             if (MultiProc_self() < remoteProcId) {
                 /* get the pointer to Notify instance */
