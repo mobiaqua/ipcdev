@@ -206,7 +206,7 @@ RscTable_alloc (Char * fileName, UInt16 procId)
     status = DLOAD_get_section_offset((LOADER_FILE_DESC *)fileDesc,
                                       RSC_TABLE_STRING, &res_offs, &res_size,
                                       &res_addr);
-    if (status >= 0) {
+    if (status == TRUE) {
         obj = Memory_calloc(NULL, sizeof (RscTable_Object), 0, NULL);
         if (obj != NULL) {
             // Allocate memory to hold the table
