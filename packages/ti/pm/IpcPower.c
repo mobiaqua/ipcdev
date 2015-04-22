@@ -60,6 +60,7 @@
 #include <ti/sysbios/family/arm/ducati/omap4430/Power.h>
 #include <ti/sysbios/family/arm/ducati/Core.h>
 #else
+#include <ti/sysbios/hal/Core.h>
 #include <ti/sysbios/family/arm/ducati/smp/Power.h>
 #endif
 
@@ -83,7 +84,11 @@ static UInt32 IpcPower_hibLocks; /* Only one lock in SMP mode */
 #endif
 
 /* PM transition debug counters */
+#ifndef SMP
 UInt32 IpcPower_idleCount = 0;
+#else
+UInt32 IpcPower_idleCount[2] = { 0, 0 };
+#endif
 UInt32 IpcPower_suspendCount = 0;
 UInt32 IpcPower_resumeCount = 0;
 
@@ -380,7 +385,12 @@ Void IpcPower_suspend()
  */
 Void IpcPower_idle()
 {
+#ifndef SMP
     IpcPower_idleCount++;
+#else
+    UInt coreId = Core_getId();
+    IpcPower_idleCount[coreId]++;
+#endif
 
     REG32(M3_SCR_REG) = IpcPower_deepSleep ? SET_DEEPSLEEP : CLR_DEEPSLEEP;
     asm(" wfi");
