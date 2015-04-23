@@ -76,3 +76,27 @@ Void MultiProc_getConfig (MultiProc_Config * cfg)
         LOG2("\tProcId %d - \"%s\"\n", baseId + i, _MultiProc_cfg.nameList[i]);
     }
 }
+
+/*
+ *  ======== MultiProc_rprocSetId ========
+ */
+Int MultiProc_rprocSetId(UInt16 procId, UInt rprocId)
+{
+    UInt16 clusterId;
+
+
+    if (procId >= _MultiProc_cfg.numProcessors) {
+        return (MultiProc_E_INVALIDARG);
+    }
+
+    if (rprocId >= _MultiProc_cfg.numProcsInCluster) {
+        return (MultiProc_E_INVALIDARG);
+    }
+
+    clusterId = procId - _MultiProc_cfg.baseIdOfCluster;
+    _MultiProc_cfg.rprocList[clusterId] = rprocId;
+    LOG2("MultiProc_rprocSetId: clusterId=%d, rprocId=%d\n", clusterId,
+            _MultiProc_cfg.rprocList[clusterId]);
+
+    return (MultiProc_S_SUCCESS);
+}
