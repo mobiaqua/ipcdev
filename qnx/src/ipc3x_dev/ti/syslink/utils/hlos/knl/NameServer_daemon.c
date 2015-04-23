@@ -553,6 +553,8 @@ Int NameServer_delete(NameServer_Handle * handle)
 
         CIRCLEQ_destruct(&(*handle)->nameList);
 
+        pthread_mutex_destroy(&(*handle)->gate);
+
         free((*handle));
         (*handle) = NULL;
     }

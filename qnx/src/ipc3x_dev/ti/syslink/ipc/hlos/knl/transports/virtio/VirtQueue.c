@@ -421,6 +421,10 @@ Int VirtQueue_delete (VirtQueue_Handle * vq)
     VirtQueue_Object * obj = (VirtQueue_Object *)(*vq);
     /* Store the VirtQueue locally */
     queueRegistry[obj->procId][obj->id%2] = NULL;
+
+    /* Destroy mutex */
+    pthread_mutex_destroy(&obj->mutex);
+
     Memory_free(NULL, obj, sizeof(VirtQueue_Object));
     *vq = NULL;
     numQueues--;

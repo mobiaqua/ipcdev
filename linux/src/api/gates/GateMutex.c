@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,12 +102,15 @@ GateMutex_Handle GateMutex_create(const GateMutex_Params * params,
 
 Int GateMutex_delete(GateMutex_Handle * handle)
 {
+    GateMutex_Object * obj = (GateMutex_Object *)*handle;
+
     if (handle == NULL) {
         return GateMutex_E_INVALIDARG;
     }
     if (*handle == NULL) {
         return GateMutex_E_INVALIDARG;
     }
+    pthread_mutex_destroy(&(obj->mutex));
     free(*handle);
     *handle = NULL;
 

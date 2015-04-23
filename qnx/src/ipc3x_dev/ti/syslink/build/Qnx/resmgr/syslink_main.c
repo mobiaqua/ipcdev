@@ -1161,6 +1161,9 @@ int deinit_ipc_device(ipc_dev_t *dev)
         Osal_printf("IPC: deinit_slave_devices failed %d", status);
     }
 
+    pthread_mutex_destroy(&dev->lock);
+    pthread_mutex_destroy(&dev->firmwareLock);
+
     return(status);
 }
 

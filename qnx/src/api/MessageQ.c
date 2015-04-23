@@ -321,6 +321,8 @@ Int MessageQ_destroy (void)
     Int status;
     MessageQDrv_CmdArgs    cmdArgs;
 
+    pthread_mutex_destroy(&(MessageQ_module->gate));
+
     status = MessageQDrv_ioctl (CMD_MESSAGEQ_DESTROY, &cmdArgs);
     if (status < 0) {
         PRINTVERBOSE1("MessageQ_destroy: API (through IOCTL) failed, \
