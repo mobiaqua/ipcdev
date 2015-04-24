@@ -49,11 +49,15 @@ function init()
     }
 
     /* plug-in the power event hooks for SMP/BIOS */
-    if (Program.build.target.name.match(/M3/) &&
-        Program.platformName.match(/ipu/)) {
-        var Power = xdc.useModule('ti.sysbios.family.arm.ducati.smp.Power');
-        Power.preSuspendHooks.$add("&IpcPower_preSuspend");
-        Power.postSuspendHooks.$add("&IpcPower_postResume");
+    if (Program.build.target.isa.match(/v7M4/) &&
+        (Program.platformName.match(/IPU/) ||
+         Program.platformName.match(/ipu/))) {
+        var BIOS = xdc.module('ti.sysbios.BIOS');
+        if (BIOS.smpEnabled) {
+            var Power = xdc.useModule('ti.sysbios.family.arm.ducati.smp.Power');
+            Power.preSuspendHooks.$add("&IpcPower_preSuspend");
+            Power.postSuspendHooks.$add("&IpcPower_postResume");
+        }
     }
 
     if (Program.build.target.name.match(/M3/) &&
