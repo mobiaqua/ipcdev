@@ -46,11 +46,12 @@ host_triplet = @host@
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
 	MessageQMultiMulti$(EXEEXT) NameServerApp$(EXEEXT) \
-	Msgq100$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_1) $(am__EXEEXT_3) $(am__EXEEXT_4) \
-	$(am__EXEEXT_1) $(am__EXEEXT_5) $(am__EXEEXT_1) \
+	Msgq100$(EXEEXT) fault$(EXEEXT) $(am__EXEEXT_1) \
+	$(am__EXEEXT_2) $(am__EXEEXT_1) $(am__EXEEXT_3) \
+	$(am__EXEEXT_4) $(am__EXEEXT_1) $(am__EXEEXT_5) \
 	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_1) \
-	$(am__EXEEXT_1) $(am__EXEEXT_6) $(am__EXEEXT_7)
+	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_6) \
+	$(am__EXEEXT_7)
 
 # Add platform specific bin application's here
 @OMAP54XX_SMP_TRUE@am__append_5 = 
@@ -129,6 +130,9 @@ am_NameServerApp_OBJECTS = $(am__objects_2)
 NameServerApp_OBJECTS = $(am_NameServerApp_OBJECTS)
 NameServerApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
+am_fault_OBJECTS = $(am__objects_1) fault.$(OBJEXT)
+fault_OBJECTS = $(am_fault_OBJECTS)
+fault_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am_mmrpc_test_OBJECTS = Mx.$(OBJEXT) mmrpc_test.$(OBJEXT)
 mmrpc_test_OBJECTS = $(am_mmrpc_test_OBJECTS)
 mmrpc_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -157,13 +161,15 @@ LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
 	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
 	$(MessageQMultiMulti_SOURCES) $(Msgq100_SOURCES) \
-	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
+	$(NameServerApp_SOURCES) $(fault_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 DIST_SOURCES = $(GateMPApp_SOURCES) $(MessageQApp_SOURCES) \
 	$(MessageQBench_SOURCES) $(MessageQMulti_SOURCES) \
 	$(MessageQMultiMulti_SOURCES) $(Msgq100_SOURCES) \
-	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
+	$(NameServerApp_SOURCES) $(fault_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -324,6 +330,9 @@ mmrpc_test_SOURCES = $(top_srcdir)/packages/ti/ipc/tests/Mx.c \
                 $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
 
 
+# list of sources for the 'fault' binary
+fault_SOURCES = $(common_sources) fault.c
+
 # list of sources for the 'MessageQApp' binary
 MessageQApp_SOURCES = $(common_sources) MessageQApp.c
 
@@ -366,6 +375,11 @@ mmrpc_test_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/mm/libmmrpc.la \
                 $(DRM_PREFIX)/usr/lib/libdrm.la \
                 $(DRM_PREFIX)/usr/lib/libdrm_omap.la
+
+
+# the additional libraries needed to link fault
+fault_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link MessageQApp
@@ -491,6 +505,9 @@ Msgq100$(EXEEXT): $(Msgq100_OBJECTS) $(Msgq100_DEPENDENCIES)
 NameServerApp$(EXEEXT): $(NameServerApp_OBJECTS) $(NameServerApp_DEPENDENCIES) 
 	@rm -f NameServerApp$(EXEEXT)
 	$(LINK) $(NameServerApp_LDFLAGS) $(NameServerApp_OBJECTS) $(NameServerApp_LDADD) $(LIBS)
+fault$(EXEEXT): $(fault_OBJECTS) $(fault_DEPENDENCIES) 
+	@rm -f fault$(EXEEXT)
+	$(LINK) $(fault_LDFLAGS) $(fault_OBJECTS) $(fault_LDADD) $(LIBS)
 mmrpc_test$(EXEEXT): $(mmrpc_test_OBJECTS) $(mmrpc_test_DEPENDENCIES) 
 	@rm -f mmrpc_test$(EXEEXT)
 	$(LINK) $(mmrpc_test_LDFLAGS) $(mmrpc_test_OBJECTS) $(mmrpc_test_LDADD) $(LIBS)
@@ -515,6 +532,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Msgq100.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fault.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main_host.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmrpc_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nano_test.Po@am__quote@
