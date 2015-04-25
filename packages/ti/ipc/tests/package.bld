@@ -515,6 +515,12 @@ for (var i = 0; i < Build.targets.length; i++) {
             extraDefs = " -DRPMSG_NS_2_0";
         }
 
+        /* fault */
+        Pkg.addExecutable(name + "/fault", targ, platform, {
+            cfgScript: "rpmsg_transport",
+            defs: extraDefs
+        }).addObjects(["fault.c"]);
+
         /* ping_rpmsg */
         Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
             cfgScript: "ping_rpmsg",

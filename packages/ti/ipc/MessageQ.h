@@ -254,6 +254,11 @@ extern "C" {
  */
 #define MessageQ_E_UNBLOCKED            (-19)
 
+/*!
+ *  @brief  MessageQ was shutdown
+ */
+#define MessageQ_E_SHUTDOWN             (-20)
+
 /* =============================================================================
  *  Macros
  * =============================================================================
@@ -671,6 +676,12 @@ Void MessageQ_unregisterTransport(UInt16 rprocId, UInt priority);
  */
 
 /** @cond INTERNAL */
+/* Returns the local handle associated with queueId. */
+MessageQ_Handle MessageQ_getLocalHandle(MessageQ_QueueId queueId);
+/** @endcond INTERNAL */
+
+
+/** @cond INTERNAL */
 Void MessageQ_Params_init__S(MessageQ_Params *params, Int version);
 /** @endcond INTERNAL */
 
@@ -1032,8 +1043,10 @@ Void MessageQ_setPutHookFxn(MessageQ_PutHookFxn putHookFxn);
  *  returns immediately and if no message is available, the msg
  *  is set to NULL and the status is #MessageQ_E_TIMEOUT. The
  *  #MessageQ_E_UNBLOCKED status is return, if MessageQ_unblock is called
- *  on the MessageQ handle. If a message is successfully retrieved, the msg
- *  is set to the message and a #MessageQ_S_SUCCESS status is returned.
+ *  on the MessageQ handle. The #MessageQ_E_SHUTDOWN status is returned if
+ *  MessageQ_shutdown is called on the MessageQ handle. If a message is
+ *  successfully retrieved, the msg is set to the message and a
+ *  #MessageQ_S_SUCCESS status is returned.
  *
  *  @param[in]  handle      MessageQ handle
  *  @param[out] msg         Pointer to the message
@@ -1048,6 +1061,7 @@ Void MessageQ_setPutHookFxn(MessageQ_PutHookFxn putHookFxn);
  *
  *  @sa         MessageQ_put()
  *  @sa         MessageQ_unblock()
+ *  @sa         MessageQ_shutdown()
  */
 Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout);
 
@@ -1150,8 +1164,43 @@ Void MessageQ_setReplyQueue(MessageQ_Handle handle, MessageQ_Msg msg);
  *  @param[in]  handle      MessageQ handle
  *
  *  @sa         MessageQ_get
+ *  @sa         MessageQ_shutdown()
  */
 Void MessageQ_unblock(MessageQ_Handle handle);
+
+/*!
+ *  @brief      Shuts down a MessageQ
+ *
+ *  Similar to MessageQ_unblock(), MessageQ_shutdown() unblocks a reader thread
+ *  that is blocked on a MessageQ_get(), but causes a different return code
+ *  to be returned from MessageQ_get().  The MessageQ_get() call will return
+ *  with status #MessageQ_E_SHUTDOWN indicating that it returned due to a
+ *  MessageQ_shutdown() rather than MessageQ_unblock(), a timeout or a
+ *  received message.  This call is intended to be used by MessageQ transports
+ *  when the transport detects that the transport framework corresponding to
+ *  the MessageQ has become unusable.  This call should only be used during a
+ *  shutdown sequence in order to ensure that there is no blocked reader on a
+ *  queue before deleting the queue.  A queue may not be used after it has been
+ *  shut down.
+ *
+ *  MessageQ_shutdown() works by raising a flag in the queue indicating that it
+ *  is shut down and then signaling the synchronizer that is configured with
+ *  the target queue.  If MessageQ_shutdown() is called upon a queue that has
+ *  no blocked listeners, then any subsequent MessageQ_get will not block and
+ *  will immediately return #MessageQ_E_SHUTDOWN regardless of whether there
+ *  is a message on the queue.
+ *
+ *  Restrictions:
+ *  -  A queue may not be used after it has been shut down.
+ *  -  MessageQ_shutdown() may only be called on a local queue.
+ *  -  May only be used with a queue configured with a blocking synchronizer.
+ *
+ *  @param[in]  handle      MessageQ handle
+ *
+ *  @sa         MessageQ_get
+ *  @sa         MessageQ_unblock
+ */
+Void MessageQ_shutdown(MessageQ_Handle handle);
 
 #if defined (__cplusplus)
 }

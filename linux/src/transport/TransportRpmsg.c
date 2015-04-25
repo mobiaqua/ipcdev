@@ -92,7 +92,10 @@ typedef struct TransportRpmsg_Module {
     int             sock[MultiProc_MAXPROCESSORS];
     fd_set          rfds;
     int             maxFd;
-    int             inFds[1024];
+    struct {
+        int     fd;
+        UInt32  qId;
+    } inFds[1024];
     int	            nInFds;
     pthread_mutex_t gate;
     int             unblockEvent;    /* unblock the dispatch thread */
@@ -309,7 +312,8 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
             (int)event, (unsigned int)tid);
 
     /* add to our fat fd array and update select() parameters */
-    TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds++] = fd;
+    TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds].fd = fd;
+    TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds++].qId = queueId;
     TransportRpmsg_module->maxFd = _MAX(TransportRpmsg_module->maxFd, fd);
     FD_SET(fd, &TransportRpmsg_module->rfds);
     bindFdToQueueIndex(obj, fd, queuePort);
@@ -363,7 +367,7 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
 
     /* remove from input fd array */
     for (i = 0; i < TransportRpmsg_module->nInFds; i++) {
-        if (TransportRpmsg_module->inFds[i] == fd) {
+        if (TransportRpmsg_module->inFds[i].fd == fd) {
             TransportRpmsg_module->nInFds--;
 
             /* shift subsequent elements down */
@@ -371,7 +375,8 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
                 TransportRpmsg_module->inFds[j] =
                         TransportRpmsg_module->inFds[j + 1];
             }
-            TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds] = -1;
+            TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds].fd = -1;
+            TransportRpmsg_module->inFds[TransportRpmsg_module->nInFds].qId = 0;
             break;
         }
     }
@@ -382,7 +387,7 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
         /* find new max fd */
         maxFd = TransportRpmsg_module->unblockEvent;
         for (i = 0; i < TransportRpmsg_module->nInFds; i++) {
-            maxFd = _MAX(TransportRpmsg_module->inFds[i], maxFd);
+            maxFd = _MAX(TransportRpmsg_module->inFds[i].fd, maxFd);
         }
         TransportRpmsg_module->maxFd = maxFd;
     }
@@ -463,8 +468,10 @@ void *rpmsgThreadFxn(void *arg)
     int      nfds;
     MessageQ_Msg     retMsg;
     MessageQ_QueueId queueId;
+    MessageQ_Handle handle;
     Bool run = TRUE;
     int i;
+    int j;
     int fd;
 
 
@@ -486,16 +493,52 @@ void *rpmsgThreadFxn(void *arg)
 
         /* dispatch all pending messages, do this first */
         for (i = 0; i < nfds; i++) {
-            fd = TransportRpmsg_module->inFds[i];
+            fd = TransportRpmsg_module->inFds[i].fd;
 
             if (FD_ISSET(fd, &rfds)) {
                 PRINTVERBOSE1("rpmsgThreadFxn: getting from fd %d\n",
-                        TransportRpmsg_module->inFds[i]);
+                        TransportRpmsg_module->inFds[i].fd);
 
                 /* transport input fd was signalled: get the message */
                 tmpStatus = transportGet(fd, &retMsg);
                 if (tmpStatus < 0) {
-                    printf("rpmsgThreadFxn: transportGet failed\n");
+                    printf("rpmsgThreadFxn: transportGet failed on fd %d,"
+                           " returned %d\n", fd, tmpStatus);
+
+                    pthread_mutex_lock(&TransportRpmsg_module->gate);
+
+                    /*
+                     * Don't close(fd) at this time since it will get closed
+                     * later when MessageQ_delete() is called in response to
+                     * this failure.  Just remove fd's bit from the select mask
+                     * 'rfds' for now, but don't remove it from inFds[].
+                     */
+                    FD_CLR(fd, &TransportRpmsg_module->rfds);
+                    if (fd == TransportRpmsg_module->maxFd) {
+                        /* find new max fd */
+                        maxFd = TransportRpmsg_module->unblockEvent;
+                        for (j = 0; j < TransportRpmsg_module->nInFds; j++) {
+                            maxFd = _MAX(TransportRpmsg_module->inFds[j].fd,
+                                         maxFd);
+                        }
+                        TransportRpmsg_module->maxFd = maxFd;
+                    }
+                    queueId = TransportRpmsg_module->inFds[i].qId;
+
+                    pthread_mutex_unlock(&TransportRpmsg_module->gate);
+
+                    handle = MessageQ_getLocalHandle(queueId);
+
+                    PRINTVERBOSE2("rpmsgThreadFxn: shutting down MessageQ "
+                                  "%p (queueId 0x%x)...\n", handle, queueId)
+
+                    if (handle != NULL) {
+                        MessageQ_shutdown(handle);
+                    }
+                    else {
+                        printf("rpmsgThreadFxn: MessageQ_getLocalHandle(0x%x) "
+                               "returned NULL, can't shutdown\n", queueId);
+                    }
                 }
                 else {
                     queueId = MessageQ_getDstQueue(retMsg);
@@ -574,12 +617,17 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
     if (len != sizeof (fromAddr)) {
         printf("recvfrom: got bad addr len (%d)\n", len);
         status = MessageQ_E_FAIL;
-        goto exit;
+        goto freeMsg;
     }
     if (byteCount < 0) {
         printf("recvfrom failed: %s (%d)\n", strerror(errno), errno);
-        status = MessageQ_E_FAIL;
-        goto exit;
+        if (errno == ESHUTDOWN) {
+            status = MessageQ_E_SHUTDOWN;
+        }
+        else {
+            status = MessageQ_E_FAIL;
+        }
+        goto freeMsg;
     }
     else {
          /*
@@ -606,6 +654,11 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
             msg->msgSize)
 
     *retMsg = msg;
+
+    goto exit;
+
+freeMsg:
+    MessageQ_free(msg);
 
 exit:
     return status;

@@ -63,7 +63,7 @@ VPATH = ../../../packages/ti/ipc/tests
 
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
-                MessageQMultiMulti NameServerApp Msgq100
+                MessageQMultiMulti NameServerApp Msgq100 fault
 
 
 if OMAP54XX_SMP
@@ -153,6 +153,9 @@ mmrpc_test_SOURCES = $(top_srcdir)/packages/ti/ipc/tests/Mx.c \
                 $(top_srcdir)/packages/ti/ipc/tests/Mx.h \
                 $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
 
+# list of sources for the 'fault' binary
+fault_SOURCES = $(common_sources) fault.c
+
 # list of sources for the 'MessageQApp' binary
 MessageQApp_SOURCES = $(common_sources) MessageQApp.c
 
@@ -195,6 +198,10 @@ mmrpc_test_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/mm/libmmrpc.la \
                 $(DRM_PREFIX)/usr/lib/libdrm.la \
                 $(DRM_PREFIX)/usr/lib/libdrm_omap.la
+
+# the additional libraries needed to link fault
+fault_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_LDADD = $(common_libraries) \

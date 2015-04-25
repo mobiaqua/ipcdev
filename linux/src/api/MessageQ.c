@@ -957,7 +957,7 @@ Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout)
     }
 
     if (obj->unblocked) {
-        return MessageQ_E_UNBLOCKED;
+        return obj->unblocked;
     }
 
     pthread_mutex_lock(&MessageQ_module->gate);
@@ -1073,7 +1073,16 @@ Void MessageQ_unblock(MessageQ_Handle handle)
 {
     MessageQ_Object *obj = (MessageQ_Object *)handle;
 
-    obj->unblocked = TRUE;
+    obj->unblocked = MessageQ_E_UNBLOCKED;
+    sem_post(&obj->synchronizer);
+}
+
+/* Unblocks a MessageQ that's been shutdown due to transport failure */
+Void MessageQ_shutdown(MessageQ_Handle handle)
+{
+    MessageQ_Object *obj = (MessageQ_Object *)handle;
+
+    obj->unblocked = MessageQ_E_SHUTDOWN;
     sem_post(&obj->synchronizer);
 }
 
@@ -1095,6 +1104,24 @@ MessageQ_QueueId MessageQ_getQueueId(MessageQ_Handle handle)
     queueId = (obj->queue);
 
     return queueId;
+}
+
+/* Returns the local handle associated with queueId. */
+MessageQ_Handle MessageQ_getLocalHandle(MessageQ_QueueId queueId)
+{
+    MessageQ_Object *obj;
+    MessageQ_QueueIndex queueIndex;
+    UInt16 procId;
+
+    procId = MessageQ_getProcId(queueId);
+    if (procId != MultiProc_self()) {
+        return NULL;
+    }
+
+    queueIndex = MessageQ_getQueueIndex(queueId);
+    obj = (MessageQ_Object *)MessageQ_module->queues[queueIndex];
+
+    return (MessageQ_Handle)obj;
 }
 
 /* Sets the tracing of a message */
