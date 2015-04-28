@@ -70,6 +70,10 @@ typedef struct {
     Int                         attached[MultiProc_MAXPROCESSORS];
 } Ipc_Module;
 
+/* hack: rpmsgproto driver work around */
+Void MessageQ_bind(UInt16 procId);
+Void MessageQ_unbind(UInt16 procId);
+
 
 /* =============================================================================
  *  Globals
@@ -436,6 +440,9 @@ Int Ipc_attach(UInt16 procId)
         goto done;
     }
 
+    /* hack: bind all existing message queues to remote processor */
+    MessageQ_bind(procId);
+
     /* getting here means we have successfully attached */
     Ipc_module.attached[clusterId]++;
 
@@ -478,6 +485,9 @@ Int Ipc_detach(UInt16 procId)
     if (--Ipc_module.attached[clusterId] > 0) {
         goto done;
     }
+
+    /* hack: unbind all existing message queues from remote processor */
+    MessageQ_unbind(procId);
 
     /* detach transport from remote processor */
     status = Ipc_module.transportFactory->detachFxn(procId);
