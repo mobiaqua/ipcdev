@@ -1368,6 +1368,7 @@ Int NameServer_detach(UInt16 procId)
     /* procId already validated in API layer */
     clId = procId - MultiProc_getBaseIdOfCluster();
 
+    /* decrement reference count regardless of outcome below */
     if (--NameServer_module->comm[clId].refCount > 0) {
         goto done;
     }
@@ -1387,15 +1388,12 @@ Int NameServer_detach(UInt16 procId)
     read(NameServer_module->waitFd, &event, sizeof(event));
 
     /* close the sending socket */
-    LOG1("NameServer_destroy: closing socket: %d\n", sendSock)
+    LOG1("NameServer_detach: closing socket: %d\n", sendSock)
     close(sendSock);
 
     /* close the receiving socket */
-    LOG1("NameServer_destroy: closing socket: %d\n", recvSock)
+    LOG1("NameServer_detach: closing socket: %d\n", recvSock)
     close(recvSock);
-
-    /* decrement the reference count */
-    NameServer_module->comm[clId].refCount--;
 
 done:
     return (status);
