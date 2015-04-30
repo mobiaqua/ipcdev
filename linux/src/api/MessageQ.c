@@ -860,7 +860,9 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
             case INetworkTransport_TypeId:
                 netTrans = INetworkTransport_downCast(baseTrans);
                 delivered = INetworkTransport_put(netTrans, (Ptr)msg);
-                status = (delivered ? MessageQ_S_SUCCESS : MessageQ_E_FAIL);
+                status = (delivered ? MessageQ_S_SUCCESS :
+                          (errno == ESHUTDOWN ? MessageQ_E_SHUTDOWN :
+                           MessageQ_E_FAIL));
                 break;
 
             default:
@@ -886,7 +888,8 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
 
         msgTrans = MessageQ_module->transports[clusterId][priority];
         delivered = IMessageQTransport_put(msgTrans, (Ptr)msg);
-        status = (delivered ? MessageQ_S_SUCCESS : MessageQ_E_FAIL);
+        status = (delivered ? MessageQ_S_SUCCESS :
+                  (errno == ESHUTDOWN ? MessageQ_E_SHUTDOWN : MessageQ_E_FAIL));
     }
 
 done:
