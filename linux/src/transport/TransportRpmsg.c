@@ -522,7 +522,11 @@ void *rpmsgThreadFxn(void *arg)
 
                 /* transport input fd was signalled: get the message */
                 tmpStatus = transportGet(fd, &retMsg);
-                if (tmpStatus < 0) {
+                if (tmpStatus < 0 && tmpStatus != MessageQ_E_SHUTDOWN) {
+                    printf("rpmsgThreadFxn: transportGet failed on fd %d,"
+                           " returned %d\n", fd, tmpStatus);
+                }
+                else if (tmpStatus == MessageQ_E_SHUTDOWN) {
                     printf("rpmsgThreadFxn: transportGet failed on fd %d,"
                            " returned %d\n", fd, tmpStatus);
 
