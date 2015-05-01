@@ -128,6 +128,7 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
         status = MessageQ_put(queueId, msg);
         if (status < 0) {
             printf("Error in MessageQ_put [%d]\n", status);
+            MessageQ_free(msg);
             break;
         }
 
@@ -162,9 +163,9 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
 
     if (status >= 0) {
        printf("Sample application successfully completed!\n");
+       MessageQ_free(msg);
     }
 
-    MessageQ_free(msg);
     MessageQ_close(&queueId);
 
 cleanup:
