@@ -642,7 +642,7 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
     }
     if (byteCount < 0) {
         printf("recvfrom failed: %s (%d)\n", strerror(errno), errno);
-        if (errno == ESHUTDOWN) {
+        if (errno == ENOLINK) {
             status = MessageQ_E_SHUTDOWN;
         }
         else {
