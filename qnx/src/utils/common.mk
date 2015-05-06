@@ -61,7 +61,8 @@ OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)
 # install the headers
 POST_INSTALL += \
         $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/MultiProc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/MultiProc.h; \
-        $(CP_HOST) -Rv $(IPC_REPO)/qnx/include/ti/ipc/TiIpcFxns.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/TiIpcFxns.h;
+        $(CP_HOST) -Rv $(IPC_REPO)/qnx/include/ti/ipc/TiIpcFxns.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/TiIpcFxns.h; \
+        $(CP_HOST) -Rv $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/inc/ti/ipc/ti_ipc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/ti_ipc.h;
 
 # Quiet the build output
 include $(IPC_REPO)/qnx/quiet.mk
