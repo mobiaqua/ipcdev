@@ -103,8 +103,6 @@ typedef struct MessageQ_ModuleObject {
     /*!< Handle of gate to be used for local thread safety */
     MessageQ_Config    *cfg;
     /*!< Current config values */
-    MessageQ_Config     defaultCfg;
-    /*!< Default config values */
     MessageQ_Params     defaultInstParams;
     /*!< Default instance creation parameters */
     MessageQ_Handle *   queues;
@@ -151,10 +149,6 @@ static MessageQ_ModuleObject MessageQ_state =
     .gate                   = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
 #endif
     .cfg = &ti_ipc_MessageQ_cfg,
-    .defaultCfg.traceFlag   = FALSE,
-    .defaultCfg.maxRuntimeEntries = 32u,
-    .defaultCfg.maxNameLen    = 32u,
-    .defaultCfg.numReservedEntries = 0
 };
 
 /*!
@@ -183,13 +177,7 @@ Void MessageQ_getConfig(MessageQ_Config * cfg)
 {
     assert(cfg != NULL);
 
-    /* If setup has not yet been called... */
-    if (MessageQ_module->refCount < 1) {
-        memcpy(cfg, &MessageQ_module->defaultCfg, sizeof(MessageQ_Config));
-    }
-    else {
-        memcpy(cfg, MessageQ_module->cfg, sizeof(MessageQ_Config));
-    }
+    memcpy(cfg, MessageQ_module->cfg, sizeof(MessageQ_Config));
 }
 
 /* Function to setup the MessageQ module. */
@@ -528,4 +516,9 @@ Void MessageQ_cleanupOwner(Int pid)
             MessageQ_delete(&queue);
         }
     }
+}
+
+Void _MessageQ_setNumReservedEntries(UInt n)
+{
+    MessageQ_module->cfg->numReservedEntries = n;
 }

@@ -54,3 +54,12 @@ Void Ipc_getConfig(Ipc_Config *cfg)
     assert(cfg != NULL);
     memcpy(cfg, &ti_ipc_Ipc_config, sizeof(Ipc_Config));
 }
+
+/*
+ *  ======== Ipc_setConfig ========
+ */
+Void Ipc_setConfig(Ipc_Config *cfg)
+{
+    assert(cfg != NULL);
+    memcpy(&ti_ipc_Ipc_config, cfg, sizeof(Ipc_Config));
+}

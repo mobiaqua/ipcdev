@@ -96,7 +96,10 @@ Options:\n\
     h            : print this help message\n\
     g            : enable GateMP support \n\
     l <logfile>  : name of logfile for LAD\n\
+    n <nprocs>   : total number of processors in the system\n\
     p <oct value>: set LAD's directory permissions\n\
+    r <nreserve> : number of reserved queues\n\
+    s <synctype> : type of Ipc_ProcSync (ALL|PAIR|NONE)\n\
     b <value>    : Processor's base cluster id \n\
 \n\
 Examples:\n\
@@ -113,6 +116,7 @@ Examples:\n\
 int main(int argc, char * argv[])
 {
     MessageQ_Handle handle;
+    Ipc_Config ipcCfg;
     UInt16 *procIdPtr;
     Int statusIO;
     Int clientId;
@@ -156,7 +160,7 @@ int main(int argc, char * argv[])
 
     /* process command line args */
     while (1) {
-        c = getopt(argc, argv, "b:ghl:p:");
+        c = getopt(argc, argv, "b:ghl:n:p:r:s:");
         if (c == -1) {
             break;
         }
@@ -171,17 +175,9 @@ int main(int argc, char * argv[])
 #endif
                 break;
             case 'b':
-                if (_MultiProc_cfg.id == 0xFFFF &&
-                    _MultiProc_cfg.baseIdOfCluster == 0xFFFF) {
-                    printf("\nSetting base cluster id to %s\n", optarg);
-                    _MultiProc_cfg.id = atoi(optarg);
-                    _MultiProc_cfg.baseIdOfCluster = atoi(optarg);
-                }
-                else {
-                   printf("\nBase cluster id in the MultiProcCfg file must be\n"
-                    "set to MultiProc_INVALIDID(0xFFFF) when using -b option\n");
-                   exit(EXIT_FAILURE);
-                }
+                printf("\nSet LAD's base cluster id to %s\n", optarg);
+                _MultiProc_cfg.id = atoi(optarg);
+                _MultiProc_cfg.baseIdOfCluster = atoi(optarg);
                 break;
             case 'h':
                 printf("%s", LAD_USAGE);
@@ -204,10 +200,41 @@ int main(int argc, char * argv[])
                     }
                 }
                 break;
+            case 'n':
+                printf("\nSet LAD's number of processors to %s\n", optarg);
+                _MultiProc_cfg.numProcessors = atoi(optarg);
+                break;
             case 'p':
                 printf("\nSet LAD's directory permissions to '%s'\n", optarg);
                 chmod(LAD_ROOTDIR, strtol(optarg, NULL, 8));
                 chmod(LAD_WORKINGDIR, strtol(optarg, NULL, 8));
+                break;
+            case 'r':
+                printf("\nSet LAD's number of reserved queues to %s\n", optarg);
+                _MessageQ_setNumReservedEntries(atoi(optarg));
+                break;
+            case 's':
+                printf("\nSet LAD's synchronization scheme to ProcSync_%s\n",
+                       optarg);
+
+                Ipc_getConfig(&ipcCfg);
+
+                if (!strcmp(optarg, "ALL")) {
+                    ipcCfg.procSync = Ipc_ProcSync_ALL;
+                }
+                else if (!strcmp(optarg, "PAIR")) {
+                    ipcCfg.procSync = Ipc_ProcSync_PAIR;
+                }
+                else if (!strcmp(optarg, "NONE")) {
+                    ipcCfg.procSync = Ipc_ProcSync_NONE;
+                }
+                else {
+                    printf("Error: bad synchronization specified, must be "
+                           "ALL|PAIR|NONE\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                Ipc_setConfig(&ipcCfg);
                 break;
             default:
                 fprintf (stderr, "\nUnrecognized argument\n");
@@ -216,10 +243,22 @@ int main(int argc, char * argv[])
     }
 
     /* Check to ensure id and baseId are not invalid */
-    printf ("id = %d baseId= %d\n", _MultiProc_cfg.id, _MultiProc_cfg.baseIdOfCluster);
-    if (_MultiProc_cfg.id == 0xFFFF || _MultiProc_cfg.baseIdOfCluster == 0xFFFF){
+    printf ("\nnumProcessors = %d id = %d baseId = %d\n",
+            _MultiProc_cfg.numProcessors, _MultiProc_cfg.id,
+            _MultiProc_cfg.baseIdOfCluster);
+
+    if (_MultiProc_cfg.id == 0xFFFF ||
+        _MultiProc_cfg.baseIdOfCluster == 0xFFFF) {
          printf("\nBase cluster id is set to an INVALID value\n");
          printf("Use -b option to set value or modify the MultiProcCfg file\n");
+         exit(EXIT_FAILURE);
+    }
+    if ((_MultiProc_cfg.baseIdOfCluster + _MultiProc_cfg.numProcsInCluster) >
+        _MultiProc_cfg.numProcessors) {
+        printf("\nNumber of processors (%d) must be >= base cluster id + "
+               "number of processors in cluster (%d + %d)\n",
+               _MultiProc_cfg.numProcessors, _MultiProc_cfg.baseIdOfCluster,
+               _MultiProc_cfg.numProcsInCluster);
          exit(EXIT_FAILURE);
     }
 

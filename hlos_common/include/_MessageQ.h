@@ -170,6 +170,8 @@ Void MessageQ_cleanupOwner(Int pid);
 
 Void MessageQ_msgInit(MessageQ_Msg msg);
 
+Void _MessageQ_setNumReservedEntries(UInt n);
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */

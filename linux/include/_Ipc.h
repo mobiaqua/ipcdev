@@ -56,6 +56,8 @@ typedef struct {
 
 Void Ipc_getConfig(Ipc_Config *cfg);
 
+Void Ipc_setConfig(Ipc_Config *cfg);
+
 #if defined (__cplusplus)
 }
 #endif
