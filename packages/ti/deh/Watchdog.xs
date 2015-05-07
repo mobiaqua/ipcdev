@@ -362,6 +362,7 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
 function module$use()
 {
     var device;
+    var found = false;
 
     /* Only process during "cfg" phase */
     if (xdc.om.$name != "cfg") {
@@ -391,11 +392,13 @@ function module$use()
                     Watchdog.timerSettings[i].clkCtrl = null;
                     Watchdog.timerSettings[i].intNum = device.intNum;
                     Watchdog.timerSettings[i].eventId = device.eventId;
+
+                    found = true;
                 }
                 else {
                     print("Watchdog Timer configuration is not found for " +
                       "timer " + timerIds[id] + " for the specified device (" +
-                      Program.cpu.deviceName + ").");
+                      Program.cpu.deviceName + ").  Supported devices:");
 
                     for (device in deviceTable[catalogName]) {
                         print("\t" + device);
@@ -407,6 +410,17 @@ function module$use()
 
             break;
         }
+    }
+
+    if (!found) {
+        print("Watchdog Timer configuration is not found for the specified " +
+          "device (" + Program.cpu.deviceName + ").  Supported devices:");
+
+        for (device in deviceTable[catalogName]) {
+            print("\t" + device);
+        }
+
+        throw new Error ("Watchdog Timer unsupported on device!");
     }
 
     var Settings = xdc.module("ti.sysbios.family.Settings");
