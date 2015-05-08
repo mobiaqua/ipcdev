@@ -153,7 +153,11 @@ static MessageQ_ModuleObject MessageQ_state =
 {
     .refCount   = 0,
     .nameServer = NULL,
+#if defined(IPC_BUILDOS_ANDROID)
+    .gate       = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
+#else
     .gate       = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
+#endif
     .seqNumGate = PTHREAD_MUTEX_INITIALIZER,
     .putHookFxn = NULL
 };
