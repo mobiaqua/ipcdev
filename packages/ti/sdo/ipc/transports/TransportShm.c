@@ -104,7 +104,7 @@ Void TransportShm_swiFxn(UArg arg)
         /* put the message to the destination queue */
         MessageQ_put(queueId, msg);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(gnu_targets_STD_) && defined (xdc_target__isaCompatible_v7A)
         __asm__ __volatile__ (
             "dmb"
             ::: "memory"
