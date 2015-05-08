@@ -74,11 +74,11 @@ Int32 fxnFault(UInt32 faultId)
             fxn();
             break;
         case 4:
-            System_printf("Generating exception (w/ divide-by-zero...\n");
+            System_printf("Generating exception (w/ divide-by-zero...)\n");
             dummy = dummy / dummy;
             break;
         case 5:
-            System_printf("Generating Watchdog interrupt...\n");
+            System_printf("Forcing Watchdog interrupt (w/ spin)...\n");
             dummy = 1;
             while(dummy);
             break;

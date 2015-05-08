@@ -244,16 +244,16 @@ int main (int argc, char ** argv)
         goto exit;
     }
 
-    if ((procId == 0) || (procId >= MultiProc_getNumProcessors())) {
+    if ((procId == 0) || (procId >= (MultiProc_getBaseIdOfCluster() + MultiProc_getNumProcessors()))) {
         printf("ProcId (%d) must be nonzero and less than %d\n",
-                procId, MultiProc_getNumProcessors());
+                procId, MultiProc_getBaseIdOfCluster() + MultiProc_getNumProcessors());
         Ipc_stop();
         exit(0);
     }
     printf("Using numLoops: %d; procId : %d\n", numLoops, procId);
 
     if (MessageQApp_execute(numLoops, procId, faultId) < 0) {
-        int nAttachAttempts = 0;
+        int nAttachAttempts = 1;
 
         printf("MessageQApp_execute failed, attempting detach/attach...\n");
         Ipc_detach(procId);
