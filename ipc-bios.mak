@@ -148,7 +148,7 @@ all:
 libs:
 	@echo "#"
 	@echo "# Making $@ ..."
-	@$(XDC) .dlls -P $(LIST)
+	@$(XDC) .dlls -P $(patsubst %/tests,,$(LIST))
 
 release:
 	@echo building ipc packages ...
