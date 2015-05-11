@@ -667,7 +667,7 @@ Int MessageQ_get (MessageQ_Handle handle, MessageQ_Msg * msg ,UInt timeout)
                 /* Our transport's fd was signalled: Get the message: */
                 tmpStatus = transportGet(obj->ipcFd, msg);
                 if (tmpStatus < 0) {
-                    printf ("MessageQ_get: tranposrtshm_get failed.");
+                    printf ("MessageQ_get: transportGet failed.\n");
                     status = MessageQ_E_FAIL;
                 }
             }
