@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,17 @@
 extern "C" {
 #endif
 
-/* Timeout of GateMP_setup in seconds */
-#define SETUP_TIMEOUT         2
+/* How often to poll for default gate during setup (in microseconds) */
+#define POLL_INTERVAL         10000
+
+/*
+ * Number of times to repeatedly poll for default gate in GateMP_setup before
+ * timing out.
+ * The default adds up to a total of roughly 2 seconds, which means the slave
+ * core that owns SR0 must have setup GateMP within that time. Otherwise the
+ * driver will simply move on without setting up GateMP.
+ */
+#define SETUP_TIMEOUT         200
 
 #define NUM_INFO_FIELDS       6    /* Number of fields in info entry */
 
@@ -164,7 +173,7 @@ Int GateMP_setup(Int32 * sr0ProcId)
         /* The default gate creator is the owner of SR0 */
         while (((status = GateMP_openDefaultGate(&GateMP_module->defaultGate,
             &procId)) == GateMP_E_NOTFOUND) && (timeout > 0)) {
-            sleep(1);
+            usleep(POLL_INTERVAL);
             timeout--;
         }
 
