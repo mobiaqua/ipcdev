@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -210,7 +210,6 @@ Int NameServerMessageQ_get(NameServerMessageQ_Object *obj,
                            ISync_Handle syncHandle,
                            Error_Block *eb)
 {
-    Int len;
     Int status;
     IArg key;
     MessageQ_QueueId queueId;
@@ -236,21 +235,17 @@ Int NameServerMessageQ_get(NameServerMessageQ_Object *obj,
     msg->request = NameServerMessageQ_REQUEST;
     msg->requestStatus = 0;
 
-    /* get the length of instanceName */
-    len = strlen(instanceName);
-
     /* assert length is smaller than max (must have room for null character) */
-    Assert_isTrue(len < MAXNAMEINCHAR, NameServerMessageQ_A_nameIsTooLong);
+    Assert_isTrue(strlen(instanceName) < MAXNAMEINCHAR,
+            NameServerMessageQ_A_nameIsTooLong);
 
     /* copy the name of instance into putMsg */
     strncpy((Char *)msg->instanceName, instanceName, MAXNAMEINCHAR - 1);
     ((Char *)msg->instanceName) [MAXNAMEINCHAR - 1] = '0';
 
-    /* get the length of name */
-    len = strlen(name);
-
     /* assert length is smaller than max (must have room for null character) */
-    Assert_isTrue(len < MAXNAMEINCHAR, NameServerMessageQ_A_nameIsTooLong);
+    Assert_isTrue(strlen(name) < MAXNAMEINCHAR,
+            NameServerMessageQ_A_nameIsTooLong);
 
     /* copy the name of nameserver entry into putMsg */
     strncpy((Char *)msg->name, name, MAXNAMEINCHAR - 1);
