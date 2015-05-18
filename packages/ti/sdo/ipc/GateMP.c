@@ -755,6 +755,7 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
         ret = _GateMP_virtToPhys(
             (UInt32)GateMP_module->remoteSystemInUse, &nsValue[0]);
         Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+        (void)ret;   /* silence unused var warning when asserts disabled */
         ret = _GateMP_virtToPhys(
             (UInt32)GateMP_module->remoteCustom1InUse, &nsValue[1]);
         Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
