@@ -1504,7 +1504,7 @@ int deinit_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
                                 fprintf(log, "%c",
                                     *(char *)((uint32_t)proc_traces[id].va + i));
                             }
-                            for (i = 0; i < *proc_traces[id].widx; i++) {
+                            for (i = 0; (i < *proc_traces[id].widx) && (i < proc_traces[id].len - 8); i++) {
                                 fprintf(log, "%c",
                                     *(char *)((uint32_t)proc_traces[id].va + i));
                             }
