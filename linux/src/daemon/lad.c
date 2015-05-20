@@ -127,6 +127,7 @@ int main(int argc, char * argv[])
     Int c;
 #if defined(GATEMP_SUPPORT)
     Int status;
+    UInt16 procId;
 #endif
     String tmpString;
 #if DAEMON
@@ -686,11 +687,33 @@ opencommandFIFO:
             break;
 
 #if defined(GATEMP_SUPPORT)
+          case LAD_GATEMP_ATTACH:
+            procId = cmd.args.attach.procId;
+            LOG1("LAD_GATEMP_ATTACH: calling GateMP_attach(%d)...\n", procId)
+
+            rsp.status = GateMP_attach(procId);
+
+            LOG1("    status = %d\n", rsp.status)
+            LOG0("DONE\n")
+
+            break;
+
+          case LAD_GATEMP_DETACH:
+            procId = cmd.args.detach.procId;
+            LOG1("LAD_GATEMP_DETACH: calling GateMP_detach(%d)...\n", procId)
+
+            rsp.status = GateMP_detach(procId);
+
+            LOG1("    status = %d\n", rsp.status)
+            LOG0("DONE\n")
+
+            break;
+
           case LAD_GATEMP_START:
             LOG0("LAD_GATEMP_START: calling GateMP_start()...\n")
 
             rsp.gateMPStart.nameServerHandle = GateMP_getNameServer();
-            rsp.gateMPStart.status = GateMP_S_SUCCESS;;
+            rsp.gateMPStart.status = GateMP_S_SUCCESS;
 
             LOG1("    status = %d\n", rsp.gateMPStart.status)
             LOG0("DONE\n")
@@ -797,6 +820,8 @@ opencommandFIFO:
           case LAD_MESSAGEQ_MSGINIT:
           case LAD_MULTIPROC_GETCONFIG:
 #if defined(GATEMP_SUPPORT)
+          case LAD_GATEMP_ATTACH:
+          case LAD_GATEMP_DETACH:
           case LAD_GATEMP_START:
           case LAD_GATEMP_GETNUMRESOURCES:
           case LAD_GATEMP_GETFREERESOURCE:
