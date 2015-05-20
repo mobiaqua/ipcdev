@@ -104,13 +104,6 @@ Void TransportShm_swiFxn(UArg arg)
         /* put the message to the destination queue */
         MessageQ_put(queueId, msg);
 
-#if defined(gnu_targets_STD_) && defined (xdc_target__isaCompatible_v7A)
-        __asm__ __volatile__ (
-            "dmb"
-            ::: "memory"
-        );
-#endif
-
         /* check to see if there are more messages */
         msg = (MessageQ_Msg)ListMP_getHead((ListMP_Handle)obj->localList);
     }

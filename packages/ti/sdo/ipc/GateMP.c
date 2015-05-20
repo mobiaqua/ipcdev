@@ -1367,7 +1367,7 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
 
     ti_sdo_ipc_GateMP_Handle *remoteHandles;
     UInt8 *inUseArray;
-    UInt numResources;
+    UInt size;
 
     /* Cannot call when numOpen is non-zero. */
     Assert_isTrue(obj->numOpens == 0, ti_sdo_ipc_GateMP_A_invalidDelete);
@@ -1406,7 +1406,7 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
 
             inUseArray = GateMP_module->remoteSystemInUse;
             remoteHandles = GateMP_module->remoteSystemGates;
-            numResources = GateMP_module->numRemoteSystem;
+            size = GateMP_module->numRemoteSystem * sizeof(UInt8);
             break;
 
         case GateMP_RemoteProtect_CUSTOM1:
@@ -1419,7 +1419,7 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
 
             inUseArray = GateMP_module->remoteCustom1InUse;
             remoteHandles = GateMP_module->remoteCustom1Gates;
-            numResources = GateMP_module->numRemoteCustom1;
+            size = GateMP_module->numRemoteCustom1 * sizeof(UInt8);
             break;
 
         case GateMP_RemoteProtect_CUSTOM2:
@@ -1432,7 +1432,7 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
 
             inUseArray = GateMP_module->remoteCustom2InUse;
             remoteHandles = GateMP_module->remoteCustom2Gates;
-            numResources = GateMP_module->numRemoteCustom2;
+            size = GateMP_module->numRemoteCustom2 * sizeof(UInt8);
             break;
         case GateMP_RemoteProtect_NONE:
             /*
@@ -1464,13 +1464,16 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
             systemKey = Hwi_disable();
         }
 
+#ifdef xdc_target__isaCompatible_v7A
+        /* ARM speculative execution might have pulled array into cache */
+        if (obj->cacheEnabled) {
+            Cache_inv(inUseArray, size, Cache_Type_ALL, TRUE);
+        }
+#endif
         /* update the GateMP resource tracker */
         inUseArray[obj->resourceId] = UNUSED;
         if (obj->cacheEnabled) {
-            Cache_wbInv(inUseArray,
-                        numResources * sizeof(UInt8),
-                        Cache_Type_ALL,
-                        TRUE);
+            Cache_wbInv(inUseArray, size, Cache_Type_ALL, TRUE);
         }
 
         if (GateMP_module->defaultGate != NULL) {
