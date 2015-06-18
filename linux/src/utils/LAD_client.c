@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -119,6 +120,7 @@ LAD_Status LAD_connect(LAD_ClientHandle * handle)
     double delta;
     Int assignedId;
     FILE * filePtr;
+    int flags;
     Int n;
     Int pid;
     struct LAD_CommandObj cmd;
@@ -176,6 +178,12 @@ LAD_Status LAD_connect(LAD_ClientHandle * handle)
 
             return(LAD_IOFAILURE);
         }
+    }
+
+    /* make sure FIFO fd doesn't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(fileno(filePtr), F_GETFD);
+    if (flags != -1) {
+        fcntl(fileno(filePtr), F_SETFD, flags | FD_CLOEXEC);
     }
 
     /* now get LAD's response to the connection request */
@@ -380,6 +388,8 @@ static LAD_Status initWrappers(Void)
  */
 static Bool openCommandFIFO(Void)
 {
+    int flags;
+
     /* open a file for writing to FIFO */
     commandFIFOFilePtr = fopen(commandFIFOFileName, "w");
 
@@ -387,6 +397,12 @@ static Bool openCommandFIFO(Void)
         PRINTVERBOSE2("\nERROR: failed to open %s, errno = %x\n",
             commandFIFOFileName, errno)
         return(FALSE);
+    }
+
+    /* make sure FIFO fd doesn't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(fileno(commandFIFOFilePtr), F_GETFD);
+    if (flags != -1) {
+        fcntl(fileno(commandFIFOFilePtr), F_SETFD, flags | FD_CLOEXEC);
     }
 
     return(TRUE);

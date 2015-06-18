@@ -171,12 +171,19 @@ Int32 GateHWSpinlock_start(Void)
     Int32               status = GateHWSpinlock_S_SUCCESS;
     UInt32              dst;
     Int32               fdMem;
+    int                 flags;
 
     fdMem = open ("/dev/mem", O_RDWR | O_SYNC);
 
     if (fdMem < 0){
         PRINTVERBOSE0("GateHWSpinlock_start: failed to open the /dev/mem");
         status = GateHWSpinlock_E_OSFAILURE;
+    }
+
+    /* make sure /dev/mem fd doesn't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(fdMem, F_GETFD);
+    if (flags != -1) {
+        fcntl(fdMem, F_SETFD, flags | FD_CLOEXEC);
     }
 
     /* map the hardware lock registers into the local address space */

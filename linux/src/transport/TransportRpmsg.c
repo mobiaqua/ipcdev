@@ -172,6 +172,7 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
     Int status = MessageQ_S_SUCCESS;
     TransportRpmsg_Object *obj = NULL;
     int sock;
+    int flags;
     UInt16 clusterId;
     int i;
 
@@ -197,6 +198,12 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
         printf("TransportRpmsg_create: connect failed: %d (%s) procId: %d\n",
                 errno, strerror(errno), params->rprocId);
         goto done;
+    }
+
+    /* make sure socket fd doesn't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(sock, F_GETFD);
+    if (flags != -1) {
+        fcntl(sock, F_SETFD, flags | FD_CLOEXEC);
     }
 
     /* create the instance object */
@@ -274,6 +281,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
     TransportRpmsg_Object *obj = (TransportRpmsg_Object *)handle;
     UInt16 queuePort = queueId & 0x0000ffff;
     int fd;
+    int flags;
     int err;
     uint64_t event;
     UInt16 rprocId;
@@ -317,6 +325,12 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
         close(fd);
         status = MessageQ_E_OSFAILURE;
         goto done;
+    }
+
+    /* make sure socket fd doesn't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(fd, F_GETFD);
+    if (flags != -1) {
+        fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
     }
 
     /*  pause the dispatch thread */
@@ -782,6 +796,7 @@ Int TransportRpmsg_Factory_create(Void)
     Int i;
     UInt16 clusterSize;
     TransportRpmsg_Handle *inst;
+    int flags;
 
 
     /* needed to enumerate processors in cluster */
@@ -826,6 +841,16 @@ Int TransportRpmsg_Factory_create(Void)
 
     PRINTVERBOSE1("create: created wait event %d\n",
             TransportRpmsg_module->waitEvent)
+
+    /* make sure eventfds don't exist for 'fork() -> exec*()'ed child */
+    flags = fcntl(TransportRpmsg_module->waitEvent, F_GETFD);
+    if (flags != -1) {
+        fcntl(TransportRpmsg_module->waitEvent, F_SETFD, flags | FD_CLOEXEC);
+    }
+    flags = fcntl(TransportRpmsg_module->unblockEvent, F_GETFD);
+    if (flags != -1) {
+        fcntl(TransportRpmsg_module->unblockEvent, F_SETFD, flags | FD_CLOEXEC);
+    }
 
     FD_ZERO(&TransportRpmsg_module->rfds);
     FD_SET(TransportRpmsg_module->unblockEvent,
