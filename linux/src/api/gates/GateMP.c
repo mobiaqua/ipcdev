@@ -124,6 +124,86 @@ static GateMP_Params GateMP_defInstParams =
     .remoteProtect  = GateMP_RemoteProtect_SYSTEM
 };
 
+/*
+ *  ======== GateMP_attach ========
+ *  Internal function.
+ */
+Int GateMP_attach(UInt16 procId)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("GateMP_attach: not connected to LAD\n");
+        return (GateMP_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_GATEMP_ATTACH;
+    cmd.clientId = clHandle;
+    cmd.args.attach.procId = procId;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("GateMP_attach: sending LAD command failed, "
+                "status=%d\n", status);
+        return (GateMP_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("GateMP_attach: no LAD response, status=%d\n",
+                status);
+        return (GateMP_E_FAIL);
+    }
+
+    status = rsp.status;
+    PRINTVERBOSE1("GateMP_attach: LAD response, status=%d\n", status)
+
+    return (status);
+}
+
+/*
+ *  ======== GateMP_detach ========
+ *  Internal function.
+ */
+Int GateMP_detach(UInt16 procId)
+{
+    Int status;
+    LAD_ClientHandle clHandle;
+    struct LAD_CommandObj cmd;
+    union LAD_ResponseObj rsp;
+
+    clHandle = LAD_findHandle();
+
+    if (clHandle == LAD_MAXNUMCLIENTS) {
+        PRINTVERBOSE0("GateMP_detach: not connected to LAD\n");
+        return (GateMP_E_RESOURCE);
+    }
+
+    cmd.cmd = LAD_GATEMP_DETACH;
+    cmd.clientId = clHandle;
+    cmd.args.detach.procId = procId;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("GateMP_detach: sending LAD command failed, "
+                "status=%d\n", status);
+        return (GateMP_E_FAIL);
+    }
+
+    if ((status = LAD_getResponse(clHandle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("GateMP_detach: no LAD response, status=%d\n",
+                status);
+        return (GateMP_E_FAIL);
+    }
+
+    status = rsp.status;
+    PRINTVERBOSE1("GateMP_detach: LAD response, status=%d\n", status)
+
+    return (status);
+}
+
 Int GateMP_start(Void)
 {
     Int status;

@@ -92,10 +92,12 @@ typedef struct {
     GateMP_Handle     defaultGate;
     NameServer_Handle nameServer;
     Bool              isSetup;
+    Int               refCount[MultiProc_MAXPROCESSORS];
+    UInt16            attachedProcId;
 } GateMP_ModuleObject;
 
 /* Internal functions */
-static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr);
+static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr, UInt16 procId[]);
 static Int GateMP_closeDefaultGate(GateMP_Handle *handlePtr);
 
 /* =============================================================================
@@ -114,7 +116,9 @@ static GateMP_ModuleObject GateMP_state = {
     .remoteCustom2InUse              = NULL,
     .defaultGate                     = NULL,
     .nameServer                      = NULL,
-    .isSetup                         = FALSE
+    .isSetup                         = FALSE,
+    .refCount                        = {0},
+    .attachedProcId                  = MultiProc_INVALIDID,
 };
 
 static GateMP_ModuleObject * GateMP_module = &GateMP_state;
@@ -124,17 +128,15 @@ static GateMP_ModuleObject * GateMP_module = &GateMP_state;
  * =============================================================================
  */
 
-/* Function to setup the gatemp module. */
+/*
+ * Function to setup the gatemp module.
+ *
+ * No need to refCount this since it's not callable by user.
+ */
 Int GateMP_setup(Void)
 {
     Int               status = GateMP_S_SUCCESS;
     NameServer_Params params;
-    UInt32            nsValue[NUM_INFO_FIELDS];
-    UInt32            len;
-    UInt32            size;
-    UInt32            alignDiff;
-    UInt32            offset;
-    Int32             fdMem;
 
     NameServer_Params_init(&params);
     params.maxRuntimeEntries = MAX_RUNTIME_ENTRIES;
@@ -150,38 +152,81 @@ Int GateMP_setup(Void)
         status = GateMP_E_FAIL;
         LOG0("GateMP_setup: NameServer_create failed\n");
     }
+    else {
+        GateMP_module->isSetup = TRUE;
+    }
 
-    if (status == GateMP_S_SUCCESS) {
-        do {
-            sleep(1);   /* Give the slaves some time to get NameServer ready */
-            status = GateMP_openDefaultGate(&GateMP_module->defaultGate);
-        } while (status == GateMP_E_NOTFOUND);
+    return status;
+}
 
+Int GateMP_attach(UInt16 procId)
+{
+    GateMP_Handle     deflateGate;  /* that's right, Pats fan here */
+    Int               status = GateMP_S_SUCCESS;
+    UInt32            nsValue[NUM_INFO_FIELDS];
+    UInt32            len;
+    UInt32            size;
+    UInt32            alignDiff;
+    UInt32            offset;
+    Int32             fdMem;
+    UInt16            procList[2];
+    UInt16            clId;
 
-        if (status < 0) {
-            LOG0("GateMP_setup: failed to open default gate\n");
-            status = GateMP_E_FAIL;
-        }
+    /* procId already validated in API layer */
+    clId = procId - MultiProc_getBaseIdOfCluster();
+    if (clId >= MultiProc_getNumProcsInCluster()) {
+        LOG1("GateMP_attach: procId %d not in range for local cluster\n",
+             procId);
+        return GateMP_E_INVALIDARG;
+    }
+
+    /* must reference count because we have multiple clients */
+    if (GateMP_module->refCount[clId] > 0) {
+        GateMP_module->refCount[clId]++;
+        goto done;
+    }
+
+    procList[0] = procId;
+    procList[1] = MultiProc_INVALIDID;
+    status = GateMP_openDefaultGate(&deflateGate, procList);
+
+    if (status < 0) {
+        LOG1("GateMP_attach: failed to open default gate on procId %d\n",
+             procId);
+        goto done;
     }
 
     if (status == GateMP_S_SUCCESS) {
+        if (GateMP_module->attachedProcId != MultiProc_INVALIDID) {
+            LOG1("GateMP_attach: can't attach to procId %d\n", procId);
+            LOG1("               already attached to %d\n",
+                 GateMP_module->attachedProcId);
+            status = GateMP_E_ALREADYEXISTS;
+            goto done;
+        }
+
+        GateMP_module->attachedProcId = procId;
+        GateMP_module->defaultGate = deflateGate;
+
+        GateMP_module->refCount[clId]++;
+
         /* Process global info NameServer entry */
         len = sizeof(nsValue);
 
         status = NameServer_get(GateMP_module->nameServer, "_GateMP_TI_info",
-            &nsValue, &len, NULL);
+            &nsValue, &len, procList);
 
         if (status < 0) {
-            LOG0("GateMP_setup: failed to find info entry\n");
+            LOG0("GateMP_attach: failed to find info entry\n");
             status = GateMP_E_NOTFOUND;
         }
         else {
             fdMem = open ("/dev/mem", O_RDWR | O_SYNC);
 
             if (fdMem < 0){
-                LOG0("GateMP_setup: failed to open the /dev/mem!\n");
-                status = GateMP_E_FAIL;
-                goto cleanup;
+                LOG0("GateMP_attach: failed to open the /dev/mem!\n");
+                status = GateMP_E_OSFAILURE;
+                goto done;
             }
 
             GateMP_module->numRemoteSystem = nsValue[3];
@@ -272,19 +317,33 @@ Int GateMP_setup(Void)
 
     /* TODO: setup the proxy map */
 
-cleanup:
-    /* clean up if error */
-    if (status < 0) {
-        GateMP_destroy();
-    }
-
-    GateMP_module->isSetup = TRUE;
+done:
 
     return (status);
 }
 
-Void GateMP_destroy(Void)
+Int GateMP_detach(UInt16 procId)
 {
+    UInt16 clId;
+
+    if (procId != GateMP_module->attachedProcId) {
+        return GateMP_E_NOTFOUND;
+    }
+
+    /* procId already validated in API layer */
+    clId = procId - MultiProc_getBaseIdOfCluster();
+    if (clId >= MultiProc_getNumProcsInCluster()) {
+        LOG1("GateMP_detach: procId %d not in range for local cluster\n",
+             procId);
+        return GateMP_E_INVALIDARG;
+    }
+
+
+    /* decrement reference count regardless of outcome below */
+    if (--GateMP_module->refCount[clId] > 0) {
+        goto done;
+    }
+
     if (GateMP_module->remoteSystemInUse) {
         munmap((unsigned int *)GateMP_module->remoteSystemInUse,
             GateMP_module->numRemoteSystem * sizeof (UInt8));
@@ -305,8 +364,16 @@ Void GateMP_destroy(Void)
 
     if (GateMP_module->defaultGate) {
         GateMP_closeDefaultGate(&GateMP_module->defaultGate);
+        GateMP_module->attachedProcId = MultiProc_INVALIDID;
     }
 
+done:
+
+    return GateMP_S_SUCCESS;
+}
+
+Void GateMP_destroy(Void)
+{
     if (GateMP_module->nameServer) {
         NameServer_delete(&GateMP_module->nameServer);
         GateMP_module->nameServer = NULL;
@@ -317,8 +384,8 @@ Void GateMP_destroy(Void)
     return;
 }
 
-/* Open default gate during GateMP_setup. Should only be called once */
-static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
+/* Open default gate during GateMP_attach. Should only be called once */
+static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr, UInt16 procId[])
 {
     Int             status = GateMP_S_SUCCESS;
     UInt32          len;
@@ -326,13 +393,12 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
     GateMP_Object * obj = NULL;
     UInt32          arg;
     UInt32          mask;
-    UInt32          creatorProcId;
 
     GateMP_RemoteSystemProxy_Params     systemParams;
 
     /* assert that a valid pointer has been supplied */
     if (handlePtr == NULL) {
-        LOG0("GateMP_open: argument cannot be null\n");
+        LOG0("GateMP_openDefaultGate: argument cannot be null\n");
         status = GateMP_E_INVALIDARG;
     }
 
@@ -340,7 +406,7 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
         len = sizeof(nsValue);
 
         status = NameServer_get(GateMP_module->nameServer, "_GateMP_TI_dGate",
-            &nsValue, &len, NULL);
+            &nsValue, &len, procId);
 
         if (status < 0) {
             *handlePtr = NULL;
@@ -349,7 +415,6 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr)
         else {
             arg = nsValue[2];
             mask = nsValue[3];
-            creatorProcId = nsValue[1] >> 16;
         }
     }
 

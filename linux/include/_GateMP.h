@@ -89,6 +89,9 @@ Int GateMP_start(Void);
 /* Stop the GateMP module */
 Int GateMP_stop(Void);
 
+Int GateMP_attach(UInt16 procId);
+Int GateMP_detach(UInt16 procId);
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */

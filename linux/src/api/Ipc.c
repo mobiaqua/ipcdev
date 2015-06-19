@@ -400,6 +400,9 @@ Int Ipc_attach(UInt16 procId)
 {
     Int status = Ipc_S_SUCCESS;
     UInt16 clusterId;
+#if defined(GATEMP_SUPPORT)
+    Int ret;
+#endif
 
     /* cannot attach to yourself */
     if (MultiProc_self() == procId) {
@@ -443,6 +446,18 @@ Int Ipc_attach(UInt16 procId)
     /* hack: bind all existing message queues to remote processor */
     MessageQ_bind(procId);
 
+#if defined(GATEMP_SUPPORT)
+    if (GateMP_isSetup()) {
+        /* establish GateMP connection to remote processor */
+        ret = GateMP_attach(procId);
+
+        if (ret < 0) {
+            PRINTVERBOSE1("Ipc_attach: failed to GateMP_attach to procId %d\n",
+                          procId);
+        }
+    }
+#endif
+
     /* getting here means we have successfully attached */
     Ipc_module.attached[clusterId]++;
 
@@ -459,6 +474,9 @@ Int Ipc_detach(UInt16 procId)
 {
     Int status = Ipc_S_SUCCESS;
     UInt16 clusterId;
+#if defined(GATEMP_SUPPORT)
+    Int ret;
+#endif
 
     /* cannot detach from yourself */
     if (MultiProc_self() == procId) {
@@ -485,6 +503,18 @@ Int Ipc_detach(UInt16 procId)
     if (--Ipc_module.attached[clusterId] > 0) {
         goto done;
     }
+
+#if defined(GATEMP_SUPPORT)
+    if (GateMP_isSetup()) {
+        /* establish GateMP connection to remote processor */
+        ret = GateMP_detach(procId);
+
+        if (ret < 0) {
+            PRINTVERBOSE1("Ipc_detach: failed to GateMP_detach from procId %d\n",
+                          procId);
+        }
+    }
+#endif
 
     /* hack: unbind all existing message queues from remote processor */
     MessageQ_unbind(procId);

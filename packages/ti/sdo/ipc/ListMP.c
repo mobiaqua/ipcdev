@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -257,6 +257,7 @@ SizeT ListMP_sharedMemReq(const ListMP_Params *params)
 Bool ListMP_empty(ListMP_Handle handle)
 {
     ti_sdo_ipc_ListMP_Object *obj = (ti_sdo_ipc_ListMP_Object *)handle;
+    ti_sdo_ipc_ListMP_Attrs *attrs = obj->attrs;
     Bool flag = FALSE;
     IArg key;
     SharedRegion_SRPtr sharedHead;
@@ -264,25 +265,30 @@ Bool ListMP_empty(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
+    }
+#endif
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
         /* get the SRPtr for the head */
-        sharedHead = (SharedRegion_SRPtr)&(obj->attrs->head);
+        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
     }
     else {
         /* get the SRPtr for the head */
-        sharedHead = SharedRegion_getSRPtr(&(obj->attrs->head), obj->regionId);
+        sharedHead = SharedRegion_getSRPtr(&(attrs->head), obj->regionId);
     }
 
     /* if 'next' is ourself, then the ListMP must be empty */
-    if (obj->attrs->head.next == sharedHead) {
+    if (attrs->head.next == sharedHead) {
         flag = TRUE;
     }
 
     if (obj->cacheEnabled) {
         /* invalidate the head to make sure we are not getting stale data */
-        Cache_inv(&(obj->attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL,
-                  TRUE);
+        Cache_inv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
 
     /* leave the gate */
@@ -307,6 +313,7 @@ GateMP_Handle ListMP_getGate(ListMP_Handle handle)
 Ptr ListMP_getHead(ListMP_Handle handle)
 {
     ti_sdo_ipc_ListMP_Object *obj = (ti_sdo_ipc_ListMP_Object *)handle;
+    ti_sdo_ipc_ListMP_Attrs *attrs = obj->attrs;
     ListMP_Elem *elem;
     ListMP_Elem *localHeadNext;
     ListMP_Elem *localNext;
@@ -316,18 +323,25 @@ Ptr ListMP_getHead(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
+    }
+#endif
+
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        localHeadNext = (ListMP_Elem *)obj->attrs->head.next;
+        localHeadNext = (ListMP_Elem *)attrs->head.next;
     }
     else {
-        localHeadNext = SharedRegion_getPtr(obj->attrs->head.next);
+        localHeadNext = SharedRegion_getPtr(attrs->head.next);
     }
 
     /* Assert that pointer is not NULL */
     Assert_isTrue(localHeadNext != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
 
     /* See if the ListMP was empty */
-    if (localHeadNext == (ListMP_Elem *)(&(obj->attrs->head))) {
+    if (localHeadNext == (ListMP_Elem *)(&(attrs->head))) {
         /* Empty, return NULL */
         elem = NULL;
     }
@@ -356,7 +370,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
         }
 
         /* Fix the head of the list next pointer */
-        obj->attrs->head.next = elem->next;
+        attrs->head.next = elem->next;
 
         /* Fix the prev pointer of the new first elem on the list */
         localNext->prev = localHeadNext->prev;
@@ -366,8 +380,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
     }
 
     if (obj->cacheEnabled) {
-        Cache_wbInv(&(obj->attrs->head), sizeof(ListMP_Elem),
-                    Cache_Type_ALL, TRUE);
+        Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
@@ -381,6 +394,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
 Ptr ListMP_getTail(ListMP_Handle handle)
 {
     ti_sdo_ipc_ListMP_Object *obj = (ti_sdo_ipc_ListMP_Object *)handle;
+    ti_sdo_ipc_ListMP_Attrs *attrs = obj->attrs;
     ListMP_Elem *elem;
     ListMP_Elem *localHeadPrev;
     ListMP_Elem *localPrev;
@@ -390,18 +404,25 @@ Ptr ListMP_getTail(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
+    }
+#endif
+
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        localHeadPrev = (ListMP_Elem *)obj->attrs->head.prev;
+        localHeadPrev = (ListMP_Elem *)attrs->head.prev;
     }
     else {
-        localHeadPrev = SharedRegion_getPtr(obj->attrs->head.prev);
+        localHeadPrev = SharedRegion_getPtr(attrs->head.prev);
     }
 
     /* Assert that pointer is not NULL */
     Assert_isTrue(localHeadPrev != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
 
     /* See if the ListMP was empty */
-    if (localHeadPrev == (ListMP_Elem *)(&(obj->attrs->head))) {
+    if (localHeadPrev == (ListMP_Elem *)(&(attrs->head))) {
         /* Empty, return NULL */
         elem = NULL;
     }
@@ -430,7 +451,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
         }
 
         /* Fix the head of the list prev pointer */
-        obj->attrs->head.prev = elem->prev;
+        attrs->head.prev = elem->prev;
 
         /* Fix the next pointer of the new last elem on the list */
         localPrev->next = localHeadPrev->next;
@@ -440,8 +461,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
     }
 
     if (obj->cacheEnabled) {
-        Cache_wbInv(&(obj->attrs->head), sizeof(ListMP_Elem),
-                    Cache_Type_ALL, TRUE);
+        Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
@@ -469,7 +489,6 @@ Int ListMP_insert(ListMP_Handle handle, ListMP_Elem *newElem,
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
         sharedNewElem = (SharedRegion_SRPtr)newElem;
         sharedCurElem = (SharedRegion_SRPtr)curElem;
-        localPrevElem = (ListMP_Elem *)(curElem->prev);
     }
     else {
         /* get SRPtr for newElem */
@@ -537,7 +556,6 @@ Ptr ListMP_next(ListMP_Handle handle, ListMP_Elem *elem)
         /* Keep track of whether an extra Cache_inv is needed */
         elemIsCached = obj->cacheEnabled;
         elem = (ListMP_Elem *)&(obj->attrs->head);
-
     }
     else {
         elemIsCached = SharedRegion_isCacheEnabled(SharedRegion_getId(elem));
@@ -554,7 +572,7 @@ Ptr ListMP_next(ListMP_Handle handle, ListMP_Elem *elem)
     }
 
     if (elemIsCached) {
-        /* Invalidate because elem pulled into cache && elem != head. */
+        /* invalidate because elem pulled into cache */
         Cache_inv(elem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
 
@@ -590,7 +608,7 @@ Ptr ListMP_prev(ListMP_Handle handle, ListMP_Elem *elem)
     }
 
     if (elemIsCached) {
-        /* Invalidate because elem pulled into cache && elem != head. */
+        /* invalidate because elem pulled into cache */
         Cache_inv(elem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
 
@@ -603,6 +621,7 @@ Ptr ListMP_prev(ListMP_Handle handle, ListMP_Elem *elem)
 Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
 {
     ti_sdo_ipc_ListMP_Object *obj = (ti_sdo_ipc_ListMP_Object *)handle;
+    ti_sdo_ipc_ListMP_Attrs *attrs = obj->attrs;
     UInt key;
     UInt16 id;
     ListMP_Elem *localNextElem;
@@ -613,16 +632,23 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
+    }
+#endif
+
     id = SharedRegion_getId(elem);
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
         sharedElem = (SharedRegion_SRPtr)elem;
-        sharedHead = (SharedRegion_SRPtr)&(obj->attrs->head);
-        localNextElem = (ListMP_Elem *)obj->attrs->head.next;
+        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
+        localNextElem = (ListMP_Elem *)attrs->head.next;
     }
     else {
         sharedElem = SharedRegion_getSRPtr(elem, id);
-        sharedHead = SharedRegion_getSRPtr(&(obj->attrs->head), obj->regionId);
-        localNextElem = SharedRegion_getPtr(obj->attrs->head.next);
+        sharedHead = SharedRegion_getSRPtr(&(attrs->head), obj->regionId);
+        localNextElem = SharedRegion_getPtr(attrs->head.next);
     }
 
     /* Assert that pointer is not NULL */
@@ -635,19 +661,18 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
     }
 
     /* add the new elem into the list */
-    elem->next = obj->attrs->head.next;
+    elem->next = attrs->head.next;
     elem->prev = sharedHead;
     localNextElem->prev = sharedElem;
-    obj->attrs->head.next = sharedElem;
+    attrs->head.next = sharedElem;
 
     if (localNextElemIsCached) {
         /* Write-back because localNextElem->prev changed */
         Cache_wbInv(localNextElem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
     if (obj->cacheEnabled) {
-        /* Write-back because obj->attrs->head.next changed */
-        Cache_wbInv(&(obj->attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL,
-                    TRUE);
+        /* Write-back because attrs->head.next changed */
+        Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
     if (SharedRegion_isCacheEnabled(id)) {
         /* Write-back because elem->next & elem->prev changed */
@@ -665,6 +690,7 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
 Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
 {
     ti_sdo_ipc_ListMP_Object *obj = (ti_sdo_ipc_ListMP_Object *)handle;
+    ti_sdo_ipc_ListMP_Attrs *attrs = obj->attrs;
     UInt key;
     UInt16  id;
     ListMP_Elem *localPrevElem;
@@ -675,16 +701,23 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
+    }
+#endif
+
     id = SharedRegion_getId(elem);
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
         sharedElem = (SharedRegion_SRPtr)elem;
-        sharedHead = (SharedRegion_SRPtr)&(obj->attrs->head);
-        localPrevElem = (ListMP_Elem *)obj->attrs->head.prev;
+        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
+        localPrevElem = (ListMP_Elem *)attrs->head.prev;
     }
     else {
         sharedElem = SharedRegion_getSRPtr(elem, id);
-        sharedHead = SharedRegion_getSRPtr(&(obj->attrs->head), obj->regionId);
-        localPrevElem = SharedRegion_getPtr(obj->attrs->head.prev);
+        sharedHead = SharedRegion_getSRPtr(&(attrs->head), obj->regionId);
+        localPrevElem = SharedRegion_getPtr(attrs->head.prev);
     }
 
     /* Assert that pointer is not NULL */
@@ -698,18 +731,17 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
 
     /* add the new elem into the list */
     elem->next = sharedHead;
-    elem->prev = obj->attrs->head.prev;
+    elem->prev = attrs->head.prev;
     localPrevElem->next = sharedElem;
-    obj->attrs->head.prev = sharedElem;
+    attrs->head.prev = sharedElem;
 
     if (localPrevElemIsCached) {
         /* Write-back because localPrevElem->next changed */
         Cache_wbInv(localPrevElem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
     if (obj->cacheEnabled) {
-        /* Write-back because obj->attrs->head.prev changed */
-        Cache_wbInv(&(obj->attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL,
-                TRUE);
+        /* Write-back because attrs->head.prev changed */
+        Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
     if (SharedRegion_isCacheEnabled(id)) {
         /* Write-back because elem->next & elem->prev changed */
@@ -798,6 +830,13 @@ Int ti_sdo_ipc_ListMP_Instance_init(ti_sdo_ipc_ListMP_Object *obj,
         obj->cacheEnabled = SharedRegion_isCacheEnabled(obj->regionId);
         obj->cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
 
+#ifdef xdc_target__isaCompatible_v7A
+    /* ARM speculative execution might have pulled attrs into cache */
+    if (obj->cacheEnabled) {
+        Cache_inv(obj->attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL,
+                TRUE);
+    }
+#endif
         /* get the local address of the SRPtr */
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
 
