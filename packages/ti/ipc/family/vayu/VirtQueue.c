@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,9 +75,8 @@
 #include <ti/ipc/MultiProc.h>
 
 #include <ti/ipc/rpmsg/virtio_ring.h>
-#ifndef DSP
 #include <ti/pm/IpcPower.h>
-#endif
+
 #include <string.h>
 
 #include <ti/ipc/remoteproc/Resource.h>
@@ -382,7 +381,6 @@ Void VirtQueue_isr(UArg msg)
             Cache_wbAll();
             return;
 
-#ifndef DSP
         case (UInt)RP_MSG_HIBERNATION:
             if (IpcPower_canHibernate() == FALSE) {
                 InterruptProxy_intSend(hostProcId, NULL,
@@ -397,7 +395,7 @@ Void VirtQueue_isr(UArg msg)
                     (UInt)RP_MSG_HIBERNATION_ACK);
             IpcPower_suspend();
             return;
-#endif
+
         default:
             /*
              *  If the message isn't one of the above, it's either part of the
@@ -500,10 +498,10 @@ Void VirtQueue_startup()
 
 #ifdef DSP
     intInfo.intVectorId = DSPEVENTID;
-#else
+#endif
+
     /* Initilize the IpcPower module */
     IpcPower_init();
-#endif
 
     /*
      * Wait for HLOS (Virtio device) to indicate that priming of host's receive
