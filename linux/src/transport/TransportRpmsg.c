@@ -184,7 +184,8 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
 
     if (sock < 0) {
         status = Ipc_E_FAIL;
-        printf("TransportRpmsg_create: socket failed: %d (%s)\n", errno,
+        fprintf(stderr,
+                "TransportRpmsg_create: socket failed: %d (%s)\n", errno,
                 strerror(errno));
         goto done;
     }
@@ -195,7 +196,8 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
 
     if (status < 0) {
         status = Ipc_E_FAIL;
-        printf("TransportRpmsg_create: connect failed: %d (%s) procId: %d\n",
+        fprintf(stderr,
+                "TransportRpmsg_create: connect failed: %d (%s) procId: %d\n",
                 errno, strerror(errno), params->rprocId);
         goto done;
     }
@@ -309,7 +311,7 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
     /*  Create the socket to receive messages for this messageQ. */
     fd = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
     if (fd < 0) {
-        printf("TransportRpmsg_bind: socket call failed: %d (%s)\n",
+        fprintf(stderr, "TransportRpmsg_bind: socket call failed: %d (%s)\n",
                 errno, strerror(errno));
         status = MessageQ_E_OSFAILURE;
         goto done;
@@ -464,8 +466,8 @@ Bool TransportRpmsg_put(Void *handle, Ptr pmsg)
 
     err = send(sock, msg, msg->msgSize, 0);
     if (err < 0) {
-        printf("TransportRpmsg_put: send failed: %d (%s)\n",
-               errno, strerror(errno));
+        fprintf(stderr, "TransportRpmsg_put: send failed: %d (%s)\n",
+                errno, strerror(errno));
         status = FALSE;
 
         goto exit;
@@ -537,12 +539,14 @@ void *rpmsgThreadFxn(void *arg)
                 /* transport input fd was signalled: get the message */
                 tmpStatus = transportGet(fd, &retMsg);
                 if (tmpStatus < 0 && tmpStatus != MessageQ_E_SHUTDOWN) {
-                    printf("rpmsgThreadFxn: transportGet failed on fd %d,"
-                           " returned %d\n", fd, tmpStatus);
+                    fprintf(stderr,
+                            "rpmsgThreadFxn: transportGet failed on fd %d, "
+                            "returned %d\n", fd, tmpStatus);
                 }
                 else if (tmpStatus == MessageQ_E_SHUTDOWN) {
-                    printf("rpmsgThreadFxn: transportGet failed on fd %d,"
-                           " returned %d\n", fd, tmpStatus);
+                    fprintf(stderr,
+                            "rpmsgThreadFxn: transportGet failed on fd %d, "
+                            "returned %d\n", fd, tmpStatus);
 
                     pthread_mutex_lock(&TransportRpmsg_module->gate);
 
@@ -575,8 +579,9 @@ void *rpmsgThreadFxn(void *arg)
                         MessageQ_shutdown(handle);
                     }
                     else {
-                        printf("rpmsgThreadFxn: MessageQ_getLocalHandle(0x%x) "
-                               "returned NULL, can't shutdown\n", queueId);
+                        fprintf(stderr,
+                                "rpmsgThreadFxn: MessageQ_getLocalHandle(0x%x) "
+                                "returned NULL, can't shutdown\n", queueId);
                     }
                 }
                 else {
@@ -654,12 +659,12 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
     byteCount = recvfrom(sock, msg, MESSAGEQ_RPMSG_MAXSIZE, 0,
                          (struct sockaddr *)&fromAddr, &len);
     if (len != sizeof (fromAddr)) {
-        printf("recvfrom: got bad addr len (%d)\n", len);
+        fprintf(stderr, "recvfrom: got bad addr len (%d)\n", len);
         status = MessageQ_E_FAIL;
         goto freeMsg;
     }
     if (byteCount < 0) {
-        printf("recvfrom failed: %s (%d)\n", strerror(errno), errno);
+        fprintf(stderr, "recvfrom failed: %s (%d)\n", strerror(errno), errno);
         if (errno == ENOLINK) {
             status = MessageQ_E_SHUTDOWN;
         }
@@ -806,7 +811,8 @@ Int TransportRpmsg_Factory_create(Void)
     inst = calloc(clusterSize, sizeof(TransportRpmsg_Handle));
 
     if (inst == NULL) {
-        printf("Error: TransportRpmsg_Factory_create failed, no memory\n");
+        fprintf(stderr,
+                "Error: TransportRpmsg_Factory_create failed, no memory\n");
         status = Ipc_E_MEMORY;
         goto done;
     }
@@ -821,8 +827,8 @@ Int TransportRpmsg_Factory_create(Void)
     TransportRpmsg_module->unblockEvent = eventfd(0, 0);
 
     if (TransportRpmsg_module->unblockEvent == -1) {
-        printf("create: unblock event failed: %d (%s)\n",
-               errno, strerror(errno));
+        fprintf(stderr, "create: unblock event failed: %d (%s)\n",
+                errno, strerror(errno));
         status = Ipc_E_FAIL;
         goto done;
     }
@@ -834,7 +840,8 @@ Int TransportRpmsg_Factory_create(Void)
     TransportRpmsg_module->waitEvent = eventfd(0, EFD_SEMAPHORE);
 
     if (TransportRpmsg_module->waitEvent == -1) {
-        printf("create: wait event failed: %d (%s)\n", errno, strerror(errno));
+        fprintf(stderr,
+                "create: wait event failed: %d (%s)\n", errno, strerror(errno));
         status = Ipc_E_FAIL;
         goto done;
     }
@@ -865,7 +872,7 @@ Int TransportRpmsg_Factory_create(Void)
 
     if (status < 0) {
         status = Ipc_E_FAIL;
-        printf("attach: failed to spawn thread\n");
+        fprintf(stderr, "create: failed to spawn thread\n");
         goto done;
     }
     TransportRpmsg_module->threadStarted = TRUE;

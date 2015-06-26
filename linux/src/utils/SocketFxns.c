@@ -109,7 +109,8 @@ int ConnectSocket(int sock, UInt16 procId, int dst)
     /* let's see what local address we got */
     err = getsockname(sock, (struct sockaddr *)&srcAddr, &len);
     if (err < 0) {
-        printf("getpeername failed: %s (%d)\n", strerror(errno), errno);
+        fprintf(stderr, "getpeername failed: %s (%d)\n",
+                strerror(errno), errno);
         return (-1);
     }
 
@@ -148,7 +149,8 @@ int SocketBindAddr(int fd, UInt16 procId, UInt32 localAddr)
         /* let's see what local address we got */
         err = getsockname(fd, (struct sockaddr *)&srcAddr, &len);
         if (err < 0) {
-            printf("getsockname failed: %s (%d)\n", strerror(errno), errno);
+            fprintf(stderr, "getsockname failed: %s (%d)\n",
+                    strerror(errno), errno);
         }
         else {
             PRINTVERBOSE2("\tsrc vproc_id: %d, src addr: %d\n",

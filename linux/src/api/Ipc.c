@@ -186,7 +186,7 @@ Int Ipc_start(Void)
     ladStatus = LAD_connect(&ladHandle);
 
     if (ladStatus != LAD_SUCCESS) {
-        printf("Ipc_start: LAD_connect() failed: %d\n", ladStatus);
+        fprintf(stderr, "Ipc_start: LAD_connect() failed: %d\n", ladStatus);
         status = Ipc_E_FAIL;
         goto exit;
     }
@@ -202,7 +202,7 @@ Int Ipc_start(Void)
     status = NameServer_setup();
 
     if (status < 0) {
-        printf("Ipc_start: NameServer_setup() failed: %d\n", status);
+        fprintf(stderr, "Ipc_start: NameServer_setup() failed: %d\n", status);
         status = Ipc_E_FAIL;
         goto exit;
     }
@@ -254,14 +254,15 @@ Int Ipc_start(Void)
 
         status = GateHWSpinlock_start();
         if (status < 0) {
-            printf("Ipc_start: GateHWSpinlock_start failed: %d\n", status);
+            fprintf(stderr, "Ipc_start: GateHWSpinlock_start failed: %d\n",
+                    status);
             status = Ipc_E_FAIL;
             goto exit;
         }
 
         status = GateMP_start();
         if (status < 0) {
-            printf("Ipc_start: GateMP_start failed: %d\n", status);
+            fprintf(stderr, "Ipc_start: GateMP_start failed: %d\n", status);
             status = Ipc_E_FAIL;
             GateHWSpinlock_stop();
             goto exit;
@@ -334,21 +335,21 @@ Int Ipc_stop(Void)
 
     status = MessageQ_destroy();
     if (status < 0) {
-        printf("Ipc_stop: MessageQ_destroy() failed: %d\n", status);
+        fprintf(stderr, "Ipc_stop: MessageQ_destroy() failed: %d\n", status);
         status = Ipc_E_FAIL;
         goto exit;
     }
 
     status = NameServer_destroy();
     if (status < 0) {
-        printf("Ipc_stop: NameServer_destroy() failed: %d\n", status);
+        fprintf(stderr, "Ipc_stop: NameServer_destroy() failed: %d\n", status);
         status = Ipc_E_FAIL;
         goto exit;
     }
 
     ladStatus = LAD_disconnect(ladHandle);
     if (ladStatus != LAD_SUCCESS) {
-        printf("LAD_disconnect() failed: %d\n", ladStatus);
+        fprintf(stderr, "LAD_disconnect() failed: %d\n", ladStatus);
         status = Ipc_E_FAIL;
         goto exit;
     }
@@ -540,7 +541,7 @@ Int Ipc_detach(UInt16 procId)
 done:
     if (status < 0) {
         /* report error */
-        printf("Ipc_detach: Error %d, procId %d\n", status, procId);
+        fprintf(stderr, "Ipc_detach: Error %d, procId %d\n", status, procId);
     }
     pthread_mutex_unlock(&Ipc_module.gate);
 

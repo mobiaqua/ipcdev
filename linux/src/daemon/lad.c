@@ -139,7 +139,8 @@ int main(int argc, char * argv[])
     if ((chdir(LAD_ROOTDIR)) < 0) {
         /* if can't change directory assume it needs to be created, do it */
         if ((mkdir(LAD_ROOTDIR, 0666)) < 0) {
-            printf("\nERROR: Failed to create LAD's root directory!\n");
+            fprintf(stderr,
+                    "\nERROR: Failed to create LAD's root directory!\n");
             exit(EXIT_FAILURE);
         }
     }
@@ -149,12 +150,14 @@ int main(int argc, char * argv[])
 
         /* if can't change directory assume it needs to be created, do it */
         if ((mkdir(LAD_WORKINGDIR, 0666)) < 0) {
-            printf("\nERROR: Failed to create LAD's working directory!\n");
+            fprintf(stderr,
+                    "\nERROR: Failed to create LAD's working directory!\n");
             exit(EXIT_FAILURE);
         }
         /* now change to the new directory */
         if ((chdir(LAD_WORKINGDIR)) < 0) {
-            printf("\nERROR: Failed to change to LAD's working directory!\n");
+            fprintf(stderr,
+                    "\nERROR: Failed to change to LAD's working directory!\n");
             exit(EXIT_FAILURE);
         }
     }
@@ -187,7 +190,8 @@ int main(int argc, char * argv[])
             case 'l':
                 logPtr = fopen(optarg, "w");
                 if (logPtr == NULL) {
-                    printf("\nERROR: unable to open log file %s\n", optarg);
+                    fprintf(stderr, "\nERROR: unable to open log file %s\n",
+                            optarg);
                     exit(EXIT_FAILURE);
                 }
                 else {
@@ -230,8 +234,9 @@ int main(int argc, char * argv[])
                     ipcCfg.procSync = Ipc_ProcSync_NONE;
                 }
                 else {
-                    printf("Error: bad synchronization specified, must be "
-                           "ALL|PAIR|NONE\n");
+                    fprintf(stderr,
+                            "Error: bad synchronization specified, must be "
+                            "ALL|PAIR|NONE\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -250,17 +255,20 @@ int main(int argc, char * argv[])
 
     if (_MultiProc_cfg.id == 0xFFFF ||
         _MultiProc_cfg.baseIdOfCluster == 0xFFFF) {
-         printf("\nBase cluster id is set to an INVALID value\n");
-         printf("Use -b option to set value or modify the MultiProcCfg file\n");
+         fprintf(stderr, "\nBase cluster id is set to an INVALID value\n");
+         fprintf(stderr,
+                 "Use -b option to set value or modify the MultiProcCfg file\n"
+                );
          exit(EXIT_FAILURE);
     }
     if ((_MultiProc_cfg.baseIdOfCluster + _MultiProc_cfg.numProcsInCluster) >
         _MultiProc_cfg.numProcessors) {
-        printf("\nNumber of processors (%d) must be >= base cluster id + "
-               "number of processors in cluster (%d + %d)\n",
-               _MultiProc_cfg.numProcessors, _MultiProc_cfg.baseIdOfCluster,
-               _MultiProc_cfg.numProcsInCluster);
-         exit(EXIT_FAILURE);
+        fprintf(stderr,
+                "\nNumber of processors (%d) must be >= base cluster id + "
+                "number of processors in cluster (%d + %d)\n",
+                _MultiProc_cfg.numProcessors, _MultiProc_cfg.baseIdOfCluster,
+                _MultiProc_cfg.numProcsInCluster);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -270,7 +278,7 @@ int main(int argc, char * argv[])
 
     /* if fork of child failed then exit immediately; no child created */
     if (pid < 0) {
-        printf("\nERROR: Failed to fork child process!");
+        fprintf(stderr, "\nERROR: Failed to fork child process!");
         exit(EXIT_FAILURE);
     }
 
@@ -290,7 +298,7 @@ int main(int argc, char * argv[])
 
     /* exit with failure code if failed to get session ID... */
     if (sid < 0) {
-        printf("\nERROR: Failed to acquire new session ID!");
+        fprintf(stderr, "\nERROR: Failed to acquire new session ID!");
         exit(EXIT_FAILURE);
     }
 
