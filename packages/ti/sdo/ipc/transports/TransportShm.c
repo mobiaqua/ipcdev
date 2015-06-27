@@ -178,7 +178,8 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
                 ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
         /* Assert that sharedAddr is cache aligned */
-        Assert_isTrue(((UInt32)params->sharedAddr %
+        Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
+                ((UInt32)params->sharedAddr %
                 SharedRegion_getCacheLineSize(obj->regionId) == 0),
                 ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 

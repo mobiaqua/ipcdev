@@ -102,12 +102,14 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
     obj->remoteState = NameServerRemoteNotify_IDLE;
 
     /* assert that sharedAddr is cache aligned */
-    Assert_isTrue(((UInt32)params->sharedAddr %
+    Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
+            ((UInt32)params->sharedAddr %
             SharedRegion_getCacheLineSize(obj->regionId) == 0),
             Ipc_A_addrNotCacheAligned);
 
     /* asset message structure size is cache aligned */
-    Assert_isTrue((sizeof(NameServerRemoteNotify_Message) %
+    Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
+            (sizeof(NameServerRemoteNotify_Message) %
             SharedRegion_getCacheLineSize(obj->regionId)) == 0,
             NameServerRemoteNotify_A_messageSize);
 
