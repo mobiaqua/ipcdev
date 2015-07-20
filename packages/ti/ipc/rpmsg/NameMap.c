@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 #include <string.h>
 
 #include <xdc/std.h>
+#include <xdc/runtime/Diags.h>
+#include <xdc/runtime/Log.h>
 #include <xdc/runtime/System.h>
 
 #include <ti/ipc/MultiProc.h>
@@ -75,6 +77,7 @@ sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
     nsMsg.addr = port;
     nsMsg.flags = flags;
 
+    Log_print1(Diags_INFO, "NameMap_sendMessage: HOST 53, port=%d", port);
     s = RPMessage_send(MultiProc_getId("HOST"), 53, port, &nsMsg,
                                                                 sizeof(nsMsg));
     if (s < 0) {

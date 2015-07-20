@@ -1278,6 +1278,9 @@ Int NameServer_attach(UInt16 procId)
     /* procId already validated in API layer */
     clId = procId - MultiProc_getBaseIdOfCluster();
 
+    LOG2("NameServer_attach: --> procId=%d, refCount=%d\n",
+            procId, NameServer_module->comm[clId].refCount)
+
     /* must reference count because we have multiple clients */
     if (NameServer_module->comm[clId].refCount > 0) {
         NameServer_module->comm[clId].refCount++;
@@ -1351,6 +1354,9 @@ done:
         }
     }
 
+    LOG2("NameServer_attach: <-- refCount=%d, status=%d\n",
+            NameServer_module->comm[clId].refCount, status)
+
     return (status);
 }
 
@@ -1367,6 +1373,9 @@ Int NameServer_detach(UInt16 procId)
 
     /* procId already validated in API layer */
     clId = procId - MultiProc_getBaseIdOfCluster();
+
+    LOG2("NameServer_detach: --> procId=%d, refCount=%d\n",
+            procId, NameServer_module->comm[clId].refCount)
 
     /* decrement reference count regardless of outcome below */
     if (--NameServer_module->comm[clId].refCount > 0) {
@@ -1396,6 +1405,8 @@ Int NameServer_detach(UInt16 procId)
     close(recvSock);
 
 done:
+    LOG2("NameServer_detach: <-- refCount=%d, status=%d\n",
+            NameServer_module->comm[clId].refCount, status)
     return (status);
 }
 
