@@ -683,6 +683,9 @@ Int NameServer_delete(NameServer_Handle *handle)
     /* destroy the mutex */
     pthread_mutex_destroy(&obj->gate);
 
+    /* remove from objList */
+    CIRCLEQ_REMOVE(&NameServer_module->objList, obj, elem);
+
     /* finally, free the instance object */
     free(obj);
 
