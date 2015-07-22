@@ -44,5 +44,6 @@
  *  The Ipc module configuration object
  */
 Ipc_Config ti_ipc_Ipc_config = {
-    .procSync = Ipc_ProcSync_ALL
+    .procSync = Ipc_ProcSync_ALL,
+    .idHeapStd = 0
 };

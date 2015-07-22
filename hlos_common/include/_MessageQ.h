@@ -89,6 +89,8 @@ typedef struct MessageQ_Config_tag {
      *  This flag allows the configuration of the default module trace
      *  settings.
      */
+    UInt numHeaps;
+    /*!< Number of heapIds in the system */
     UInt maxRuntimeEntries;
     /*!< Maximum number of MessageQs that can be dynamically created */
     UInt maxNameLen;

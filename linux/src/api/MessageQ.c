@@ -50,6 +50,7 @@
 #define MessageQ_internal 1     /* must be defined before include file */
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
+#include <ti/ipc/interfaces/IHeap.h>
 #include <ti/ipc/interfaces/ITransport.h>
 #include <ti/ipc/interfaces/IMessageQTransport.h>
 #include <ti/ipc/interfaces/INetworkTransport.h>
@@ -122,6 +123,8 @@ typedef struct MessageQ_ModuleObject {
     IMessageQTransport_Handle transports[MultiProc_MAXPROCESSORS][2];
     ITransport_Handle         transInst[MessageQ_MAXTRANSPORTS];
     MessageQ_PutHookFxn       putHookFxn;
+    Ptr                      *heaps;
+    Int                       numHeaps;
 } MessageQ_ModuleObject;
 
 typedef struct MessageQ_CIRCLEQ_ENTRY {
@@ -159,7 +162,9 @@ static MessageQ_ModuleObject MessageQ_state =
     .gate       = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
 #endif
     .seqNumGate = PTHREAD_MUTEX_INITIALIZER,
-    .putHookFxn = NULL
+    .putHookFxn = NULL,
+    .heaps      = NULL,
+    .numHeaps   = 0
 };
 
 /*!
@@ -372,6 +377,8 @@ Int MessageQ_setup(const MessageQ_Config *cfg)
     MessageQ_module->numQueues = cfg->maxRuntimeEntries;
     MessageQ_module->queues = calloc(cfg->maxRuntimeEntries,
             sizeof(MessageQ_Handle));
+    MessageQ_module->numHeaps = cfg->numHeaps;
+    MessageQ_module->heaps = calloc(cfg->numHeaps, sizeof(Ptr));
 
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
         for (pri = 0; pri < 2; pri++) {
@@ -403,6 +410,7 @@ Int MessageQ_destroy(void)
     LAD_ClientHandle handle;
     struct LAD_CommandObj cmd;
     union LAD_ResponseObj rsp;
+    int i;
 
     /* this entire function must be serialized */
     pthread_mutex_lock(&MessageQ_module->gate);
@@ -411,6 +419,15 @@ Int MessageQ_destroy(void)
     if (--MessageQ_module->refCount > 0) {
         goto exit;
     }
+
+    /* ensure all registered heaps have been unregistered */
+    for (i = 0; i < MessageQ_module->numHeaps; i++) {
+        if (MessageQ_module->heaps[i] != NULL) {
+            PRINTVERBOSE1("MessageQ_destroy: Warning: found heapId=%d", i);
+        }
+    }
+    free(MessageQ_module->heaps);
+    MessageQ_module->heaps = NULL;
 
     handle = LAD_findHandle();
     if (handle == LAD_MAXNUMCLIENTS) {
@@ -1045,18 +1062,33 @@ Void MessageQ_staticMsgInit(MessageQ_Msg msg, UInt32 size)
  */
 MessageQ_Msg MessageQ_alloc(UInt16 heapId, UInt32 size)
 {
+    IHeap_Handle heap;
     MessageQ_Msg msg;
 
-    /*
-     * heapId not used for local alloc (as this is over a copy transport), but
-     * we need to send to other side as heapId is used in BIOS transport.
-     */
-    msg = (MessageQ_Msg)calloc(1, size);
+    if (heapId > (MessageQ_module->numHeaps - 1)) {
+        PRINTVERBOSE1("MessageQ_alloc: Error: heapId (%d) too large", heapId);
+        return (NULL);
+    }
+    else if (MessageQ_module->heaps[heapId] == NULL) {
+        PRINTVERBOSE1("MessageQ_alloc: Error: heapId (%d) not registered",
+                heapId);
+        return (NULL);
+    }
+    else {
+        heap = (IHeap_Handle)MessageQ_module->heaps[heapId];
+    }
+
+    msg = IHeap_alloc(heap, size);
+
+    if (msg == NULL) {
+        return (NULL);
+    }
+
     MessageQ_msgInit(msg);
     msg->msgSize = size;
     msg->heapId = heapId;
 
-    return msg;
+    return (msg);
 }
 
 /*
@@ -1065,36 +1097,73 @@ MessageQ_Msg MessageQ_alloc(UInt16 heapId, UInt32 size)
 Int MessageQ_free(MessageQ_Msg msg)
 {
     UInt32 status = MessageQ_S_SUCCESS;
+    IHeap_Handle heap;
 
-    /* Check to ensure this was not allocated by user: */
+    /* ensure this was not allocated by user */
     if (msg->heapId == MessageQ_STATICMSG) {
         status = MessageQ_E_CANNOTFREESTATICMSG;
     }
+    else if (msg->heapId > (MessageQ_module->numHeaps - 1)) {
+        status = MessageQ_E_INVALIDARG;
+    }
+    else if (MessageQ_module->heaps[msg->heapId] == NULL) {
+        status = MessageQ_E_NOTFOUND;
+    }
     else {
-        free(msg);
+        heap = (IHeap_Handle)MessageQ_module->heaps[msg->heapId];
     }
 
-    return status;
+    IHeap_free(heap, (void *)msg);
+
+    return (status);
 }
 
-/* Register a heap with MessageQ. */
+/*
+ *  ======== MessageQ_registerHeap ========
+ */
 Int MessageQ_registerHeap(Ptr heap, UInt16 heapId)
 {
     Int status = MessageQ_S_SUCCESS;
 
-    /* Do nothing, as this uses a copy transport */
+    pthread_mutex_lock(&MessageQ_module->gate);
 
-    return status;
+    if (heapId > (MessageQ_module->numHeaps - 1)) {
+        status = MessageQ_E_INVALIDARG;
+    }
+    else if (MessageQ_module->heaps[heapId] != NULL) {
+        status = MessageQ_E_ALREADYEXISTS;
+    }
+    else {
+        MessageQ_module->heaps[heapId] = heap;
+    }
+
+    pthread_mutex_unlock(&MessageQ_module->gate);
+
+    return (status);
 }
 
-/* Unregister a heap with MessageQ. */
+/*
+ *  ======== MessageQ_unregisterHeap ========
+ */
 Int MessageQ_unregisterHeap(UInt16 heapId)
 {
     Int status = MessageQ_S_SUCCESS;
 
-    /* Do nothing, as this uses a copy transport */
+    pthread_mutex_lock(&MessageQ_module->gate);
 
-    return status;
+    if (heapId > (MessageQ_module->numHeaps - 1)) {
+        status = MessageQ_E_INVALIDARG;
+    }
+    else if (MessageQ_module->heaps[heapId] == NULL) {
+        status = MessageQ_E_NOTFOUND;
+    }
+    else {
+        MessageQ_module->heaps[heapId] = NULL;
+    }
+
+    pthread_mutex_unlock(&MessageQ_module->gate);
+
+    return (status);
 }
 
 /* Unblocks a MessageQ */

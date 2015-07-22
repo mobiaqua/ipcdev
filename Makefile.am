@@ -38,6 +38,7 @@ SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/transport \
 # where to install common headers on the system
 ipcincludedir = $(includedir)/ti/ipc
 ipcincludeinterfacesdir = $(includedir)/ti/ipc/interfaces
+ipcincludeheapsdir = $(includedir)/ti/ipc/heaps
 
 # the list of common header files (to be installed later)
 ipcinclude_HEADERS = \
@@ -51,4 +52,8 @@ ipcinclude_HEADERS = \
 ipcincludeinterfaces_HEADERS = \
         $(top_srcdir)/linux/include/ti/ipc/interfaces/IMessageQTransport.h \
         $(top_srcdir)/linux/include/ti/ipc/interfaces/INetworkTransport.h \
-        $(top_srcdir)/linux/include/ti/ipc/interfaces/ITransport.h
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/ITransport.h \
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/IHeap.h
+
+ipcincludeheaps_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h

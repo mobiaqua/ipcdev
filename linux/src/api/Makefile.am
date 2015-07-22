@@ -75,7 +75,9 @@ libtiipc_la_SOURCES =    \
                         MessageQ.c \
                         MultiProc.c \
                         NameServer.c \
-                        Ipc.c
+                        Ipc.c \
+                        $(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h \
+                        $(top_srcdir)/linux/src/heaps/HeapStd.c
 
 if DRA7XX
 libtiipc_la_SOURCES +=  $(top_srcdir)/linux/include/IGateProvider.h \

@@ -44,8 +44,9 @@
  *  The MessageQ module configuration object
  */
 MessageQ_Config ti_ipc_MessageQ_cfg = {
-    .traceFlag   = FALSE,
+    .traceFlag = FALSE,
+    .numHeaps = 8,                      /* must match slave side config */
     .maxRuntimeEntries = 32,
-    .maxNameLen = 32,
+    .maxNameLen = 32,                   /* must match slave side config */
     .numReservedEntries = 0
 };

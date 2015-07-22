@@ -30,24 +30,88 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*============================================================================
- *  @file   MessageQCfg.c
- *
- *  @brief  Module configuration
+/*
+ *  ======== HeapStd.c ========
  */
 
-#include <ti/ipc/Std.h>
-#include <_MessageQ.h>
+#include <stdlib.h>                     /* malloc */
+
+#include <ti/ipc/heaps/HeapStd.h>
+#include <ti/ipc/interfaces/IHeap.h>
+
 
 /*
- *  ======== ti_ipc_MessageQ_cfg ========
- *  The MessageQ module configuration object
- *  See documentation for details on the various fields.
+ *  ======== HeapStd_Module ========
  */
-MessageQ_Config ti_ipc_MessageQ_cfg = {
-    .traceFlag = FALSE,
-    .numHeaps = 8,
-    .maxRuntimeEntries = 32,
-    .maxNameLen = 32,
-    .numReservedEntries = 0
+typedef struct {
+    IHeap_Object base;                  /* inheritance */
+} HeapStd_Module;
+
+/*
+ *  ======== instance function declarations ========
+ */
+void *HeapStd_alloc(void *handle, size_t size);
+void HeapStd_free(void *handle, void *block);
+
+/*
+ *  ======== HeapStd_Fxns ========
+ *  The instance function table
+ */
+IHeap_Fxns HeapStd_Fxns = {
+    HeapStd_alloc,
+    HeapStd_free
 };
+
+/*
+ *  ======== HeapStd_module ========
+ *  The module state object
+ */
+static HeapStd_Module HeapStd_module = {
+    .base.fxns = &HeapStd_Fxns
+};
+
+/*
+ *  ======== HeapStd_handle ========
+ */
+HeapStd_Handle HeapStd_handle(void)
+{
+    HeapStd_Handle handle;
+
+    handle = (HeapStd_Handle)&HeapStd_module;
+    return (handle);
+}
+
+/*
+ *  ======== HeapStd_upCast ========
+ */
+IHeap_Handle HeapStd_upCast(HeapStd_Handle inst)
+{
+    return ((IHeap_Handle)inst);
+}
+
+/*
+ *  ======== HeapStd_downCast ========
+ */
+HeapStd_Handle HeapStd_downCast(IHeap_Handle base)
+{
+    return ((HeapStd_Handle)base);
+}
+
+/*
+ *  ======== HeapStd_alloc ========
+ */
+void *HeapStd_alloc(void *handle, size_t size)
+{
+    void *block;
+
+    block = malloc(size);
+    return (block);
+}
+
+/*
+ *  ======== HeapStd_free ========
+ */
+void HeapStd_free(void *handle, void *block)
+{
+    free(block);
+}

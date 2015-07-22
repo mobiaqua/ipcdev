@@ -30,24 +30,54 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*============================================================================
- *  @file   MessageQCfg.c
- *
- *  @brief  Module configuration
+/*
+ *  ======== HeapStd.h ========
  */
+#ifndef ti_ipc_heaps_HeapStd_h
+#define ti_ipc_heaps_HeapStd_h
 
-#include <ti/ipc/Std.h>
-#include <_MessageQ.h>
+#include <ti/ipc/interfaces/IHeap.h>
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+#define HeapStd_S_SUCCESS       0
+#define HeapStd_E_FAIL          -1
 
 /*
- *  ======== ti_ipc_MessageQ_cfg ========
- *  The MessageQ module configuration object
- *  See documentation for details on the various fields.
+ *  ======== HeapStd_Handle ========
+ *  Opaque handle to heap instance object
  */
-MessageQ_Config ti_ipc_MessageQ_cfg = {
-    .traceFlag = FALSE,
-    .numHeaps = 8,
-    .maxRuntimeEntries = 32,
-    .maxNameLen = 32,
-    .numReservedEntries = 0
-};
+typedef struct HeapStd_Module *HeapStd_Handle;
+
+/*
+ *  ======== HeapStd_handle ========
+ *  Return the heap handle
+ *
+ *  This module does not support instance creation. When the module
+ *  is initialized, a single implicit instance is created. This method
+ *  returns the handle to this implicit instance.
+ */
+HeapStd_Handle HeapStd_handle(void);
+
+/*
+ *  ======== HeapStd_upCast ========
+ *  Instance converter, return a handle to the inherited interface
+ */
+IHeap_Handle HeapStd_upCast(HeapStd_Handle inst);
+
+/*
+ *  ======== HeapStd_downCast ========
+ *  Instance converter, return an opaque handle to the instance object
+ *
+ *  It is the caller's responsibility to ensure the underlying object
+ *  is of the correct type.
+ */
+HeapStd_Handle HeapStd_downCast(IHeap_Handle base);
+
+
+#if defined (__cplusplus)
+}
+#endif
+#endif

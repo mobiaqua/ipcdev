@@ -52,6 +52,7 @@ typedef enum {
 
 typedef struct {
     Ipc_ProcSync procSync;
+    UInt idHeapStd;
 } Ipc_Config;
 
 Void Ipc_getConfig(Ipc_Config *cfg);

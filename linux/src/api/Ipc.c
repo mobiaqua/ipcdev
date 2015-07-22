@@ -48,6 +48,8 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
+#include <ti/ipc/heaps/HeapStd.h>
+#include <ti/ipc/interfaces/IHeap.h>
 
 /* User side headers */
 #include <ladclient.h>
@@ -88,7 +90,8 @@ static Ipc_Module Ipc_module = {
     .gate               = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
 #endif
     .transportFactory   = NULL,
-    .config.procSync    = Ipc_ProcSync_NONE
+    .config.procSync    = Ipc_ProcSync_NONE,
+    .config.idHeapStd   = 0
 };
 
 GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
@@ -122,6 +125,8 @@ Int Ipc_start(Void)
     UInt16      baseId;
     UInt16      clusterId;
     Int         i;
+    HeapStd_Handle heap;
+    IHeap_Handle iheap;
 
     /* function must be serialized */
     pthread_mutex_lock(&Ipc_module.gate);
@@ -210,6 +215,11 @@ Int Ipc_start(Void)
     /* get global configuration from LAD */
     MessageQ_getConfig(&msgqCfg);
     MessageQ_setup(&msgqCfg);
+
+    /* register the standard heap */
+    heap = HeapStd_handle();
+    iheap = HeapStd_upCast(heap);
+    MessageQ_registerHeap((Ptr)iheap, Ipc_module.config.idHeapStd);
 
     /* invoke the transport factory create method */
     status = Ipc_module.transportFactory->createFxn();
@@ -332,6 +342,9 @@ Int Ipc_stop(Void)
     }
 
     Ipc_module.transportFactory->deleteFxn();
+
+    /* unregister the standard heap */
+    MessageQ_unregisterHeap(Ipc_module.config.idHeapStd);
 
     status = MessageQ_destroy();
     if (status < 0) {
