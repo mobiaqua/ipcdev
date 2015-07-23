@@ -37,11 +37,12 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(am__configure_deps) $(ipcinclude_HEADERS) \
-	$(ipcincludeinterfaces_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure \
-	linux/build-aux/config.guess linux/build-aux/config.sub \
-	linux/build-aux/depcomp linux/build-aux/install-sh \
-	linux/build-aux/ltmain.sh linux/build-aux/missing
+	$(ipcincludeheaps_HEADERS) $(ipcincludeinterfaces_HEADERS) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(top_srcdir)/configure linux/build-aux/config.guess \
+	linux/build-aux/config.sub linux/build-aux/depcomp \
+	linux/build-aux/install-sh linux/build-aux/ltmain.sh \
+	linux/build-aux/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -66,10 +67,13 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(ipcincludedir)" \
+	"$(DESTDIR)$(ipcincludeheapsdir)" \
 	"$(DESTDIR)$(ipcincludeinterfacesdir)"
 ipcincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+ipcincludeheapsHEADERS_INSTALL = $(INSTALL_HEADER)
 ipcincludeinterfacesHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(ipcinclude_HEADERS) $(ipcincludeinterfaces_HEADERS)
+HEADERS = $(ipcinclude_HEADERS) $(ipcincludeheaps_HEADERS) \
+	$(ipcincludeinterfaces_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = $(SUBDIRS)
@@ -222,6 +226,7 @@ SUBDIRS = linux/etc linux/src/utils linux/src/api linux/src/transport \
 # where to install common headers on the system
 ipcincludedir = $(includedir)/ti/ipc
 ipcincludeinterfacesdir = $(includedir)/ti/ipc/interfaces
+ipcincludeheapsdir = $(includedir)/ti/ipc/heaps
 
 # the list of common header files (to be installed later)
 ipcinclude_HEADERS = \
@@ -235,7 +240,11 @@ ipcinclude_HEADERS = \
 ipcincludeinterfaces_HEADERS = \
         $(top_srcdir)/linux/include/ti/ipc/interfaces/IMessageQTransport.h \
         $(top_srcdir)/linux/include/ti/ipc/interfaces/INetworkTransport.h \
-        $(top_srcdir)/linux/include/ti/ipc/interfaces/ITransport.h
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/ITransport.h \
+        $(top_srcdir)/linux/include/ti/ipc/interfaces/IHeap.h
+
+ipcincludeheaps_HEADERS = \
+        $(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h
 
 all: all-recursive
 
@@ -299,6 +308,23 @@ uninstall-ipcincludeHEADERS:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(ipcincludedir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(ipcincludedir)/$$f"; \
+	done
+install-ipcincludeheapsHEADERS: $(ipcincludeheaps_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(ipcincludeheapsdir)" || $(mkdir_p) "$(DESTDIR)$(ipcincludeheapsdir)"
+	@list='$(ipcincludeheaps_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(ipcincludeheapsHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(ipcincludeheapsdir)/$$f'"; \
+	  $(ipcincludeheapsHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(ipcincludeheapsdir)/$$f"; \
+	done
+
+uninstall-ipcincludeheapsHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(ipcincludeheaps_HEADERS)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(ipcincludeheapsdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(ipcincludeheapsdir)/$$f"; \
 	done
 install-ipcincludeinterfacesHEADERS: $(ipcincludeinterfaces_HEADERS)
 	@$(NORMAL_INSTALL)
@@ -453,7 +479,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/linux/build-aux $(distdir)/linux/include/ti/ipc $(distdir)/linux/include/ti/ipc/interfaces $(distdir)/linux/src/api $(distdir)/linux/src/mm $(distdir)/linux/src/utils $(distdir)/packages/ti/ipc
+	$(mkdir_p) $(distdir)/linux/build-aux $(distdir)/linux/include/ti/ipc $(distdir)/linux/include/ti/ipc/heaps $(distdir)/linux/include/ti/ipc/interfaces $(distdir)/linux/src/api $(distdir)/linux/src/mm $(distdir)/linux/src/utils $(distdir)/packages/ti/ipc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -597,7 +623,7 @@ check: check-recursive
 all-am: Makefile $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(ipcincludedir)" "$(DESTDIR)$(ipcincludeinterfacesdir)"; do \
+	for dir in "$(DESTDIR)$(ipcincludedir)" "$(DESTDIR)$(ipcincludeheapsdir)" "$(DESTDIR)$(ipcincludeinterfacesdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-recursive
@@ -645,6 +671,7 @@ info: info-recursive
 info-am:
 
 install-data-am: install-ipcincludeHEADERS \
+	install-ipcincludeheapsHEADERS \
 	install-ipcincludeinterfacesHEADERS
 
 install-exec-am:
@@ -674,6 +701,7 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-info-am uninstall-ipcincludeHEADERS \
+	uninstall-ipcincludeheapsHEADERS \
 	uninstall-ipcincludeinterfacesHEADERS
 
 uninstall-info: uninstall-info-recursive
@@ -687,13 +715,14 @@ uninstall-info: uninstall-info-recursive
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-exec install-exec-am \
 	install-info install-info-am install-ipcincludeHEADERS \
+	install-ipcincludeheapsHEADERS \
 	install-ipcincludeinterfacesHEADERS install-man install-strip \
 	installcheck installcheck-am installdirs installdirs-am \
 	maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-generic \
 	mostlyclean-libtool mostlyclean-recursive pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am uninstall-info-am \
-	uninstall-ipcincludeHEADERS \
+	uninstall-ipcincludeHEADERS uninstall-ipcincludeheapsHEADERS \
 	uninstall-ipcincludeinterfacesHEADERS
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

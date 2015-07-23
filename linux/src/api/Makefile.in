@@ -84,6 +84,8 @@ am__libtiipc_la_SOURCES_DIST =  \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h \
 	$(top_srcdir)/packages/ti/ipc/MessageQ.h MessageQ.c \
 	MultiProc.c NameServer.c Ipc.c \
+	$(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h \
+	$(top_srcdir)/linux/src/heaps/HeapStd.c \
 	$(top_srcdir)/linux/include/IGateProvider.h \
 	$(top_srcdir)/linux/include/GateHWSpinlock.h \
 	$(top_srcdir)/linux/include/GateMutex.h \
@@ -96,7 +98,7 @@ am__libtiipc_la_SOURCES_DIST =  \
 am__objects_1 =
 @DRA7XX_TRUE@am__objects_2 = GateMP.lo GateMutex.lo GateHWSpinlock.lo
 am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo MultiProc.lo \
-	NameServer.lo Ipc.lo $(am__objects_2)
+	NameServer.lo Ipc.lo HeapStd.lo $(am__objects_2)
 libtiipc_la_OBJECTS = $(am_libtiipc_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
@@ -279,7 +281,9 @@ libtiipc_la_SOURCES = $(libtiipc_la_HEADERS) \
 	$(top_srcdir)/packages/ti/ipc/MultiProc.h \
 	$(top_srcdir)/packages/ti/ipc/MessageQ.h \
 	$(top_srcdir)/linux/include/ti/ipc/Std.h MessageQ.c \
-	MultiProc.c NameServer.c Ipc.c $(am__append_3)
+	MultiProc.c NameServer.c Ipc.c \
+	$(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h \
+	$(top_srcdir)/linux/src/heaps/HeapStd.c $(am__append_3)
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0
@@ -359,6 +363,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HeapStd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProc.Plo@am__quote@
@@ -384,6 +389,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+HeapStd.lo: $(top_srcdir)/linux/src/heaps/HeapStd.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT HeapStd.lo -MD -MP -MF "$(DEPDIR)/HeapStd.Tpo" -c -o HeapStd.lo `test -f '$(top_srcdir)/linux/src/heaps/HeapStd.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/heaps/HeapStd.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/HeapStd.Tpo" "$(DEPDIR)/HeapStd.Plo"; else rm -f "$(DEPDIR)/HeapStd.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/linux/src/heaps/HeapStd.c' object='HeapStd.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o HeapStd.lo `test -f '$(top_srcdir)/linux/src/heaps/HeapStd.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/heaps/HeapStd.c
 
 GateMP.lo: $(top_srcdir)/linux/src/api/gates/GateMP.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMP.lo -MD -MP -MF "$(DEPDIR)/GateMP.Tpo" -c -o GateMP.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMP.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMP.c; \
