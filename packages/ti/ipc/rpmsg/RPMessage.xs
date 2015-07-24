@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,45 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
+ *  ======== RPMessage.xs ========
  */
+var HeapBuf;
+var Program;
 
-/*!
- *  ======== ti.ipc.rpmsg ========
- *  IPC over Virtio vrings (RPMSG).
+/*
+ *  ======== module$use ========
+ *  Use other modules required by this module
  */
+function module$use()
+{
+    xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule('xdc.runtime.Diags');
+    xdc.useModule('xdc.runtime.Log');
+    xdc.useModule('xdc.runtime.Memory');
+    xdc.useModule('xdc.runtime.Registry');
+    xdc.useModule('xdc.runtime.System');
 
-package ti.ipc.rpmsg [1,0,1] {
-    module RPMessage;
+    xdc.useModule('ti.sysbios.BIOS');
+    xdc.useModule('ti.sysbios.gates.GateHwi');
+    xdc.useModule('ti.sysbios.knl.Semaphore');
+    xdc.useModule('ti.sysbios.knl.Swi');
+
+    xdc.useModule('ti.sdo.utils.List');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+
+    Program = xdc.useModule('xdc.cfg.Program');
+    HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
+
+    /* create message pool */
+    var params = new HeapBuf.Params();
+
+    params.blockSize = this.messageBufferSize;
+    params.numBlocks = this.numMessageBuffers;
+    params.bufSize = this.messageBufferSize * this.numMessageBuffers;
+    params.align = 8;
+
+    var pkg = this.$package.$name.replace(/\./g, "_");
+    Program.global[pkg+"_RPMessage_heap"] = HeapBuf.create(params);
 }

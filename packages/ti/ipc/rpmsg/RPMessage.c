@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,10 +119,6 @@
 
 /* Various arbitrary limits: */
 #define MAXMESSAGEQOBJECTS     256
-#define MAXMESSAGEBUFFERS      512
-#define MSGBUFFERSIZE          512   /* Max payload + sizeof(ListElem) */
-#define MAXHEAPSIZE            (MAXMESSAGEBUFFERS * MSGBUFFERSIZE)
-#define HEAPALIGNMENT          8
 
 /* The RPMessage Object */
 typedef struct RPMessage_Object {
@@ -172,16 +168,17 @@ typedef struct RPMessage_Transport  {
     Semaphore_Handle semHandle_toHost;
 } RPMessage_Transport;
 
+/* generated in RPMessage.xs: module$use() */
+extern const HeapBuf_Handle ti_ipc_rpmsg_RPMessage_heap;
+
+/* generated in template file RPMessage.xdt */
+extern const UInt ti_ipc_rpmsg_RPMessage_messageBufferSize;
 
 /* module diags mask */
 Registry_Desc Registry_CURDESC;
 
 static RPMessage_Module      module;
 static RPMessage_Transport   transport;
-
-/* We create a fixed size heap over this memory for copying received msgs */
-#pragma DATA_ALIGN (recv_buffers, HEAPALIGNMENT)
-static UInt8 recv_buffers[MAXHEAPSIZE];
 
 /* Module ref count: */
 static Int curInit = 0;
@@ -259,7 +256,6 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
 Void RPMessage_init(UInt16 remoteProcId)
 {
     GateHwi_Params gatePrms;
-    HeapBuf_Params prms;
     Semaphore_Params semParams;
     int     i;
     Registry_Result result;
@@ -289,16 +285,8 @@ Void RPMessage_init(UInt16 remoteProcId)
        module.msgqObjects[i] = NULL;
     }
 
-    HeapBuf_Params_init(&prms);
-    prms.blockSize    = MSGBUFFERSIZE;
-    prms.numBlocks    = MAXMESSAGEBUFFERS;
-    prms.buf          = recv_buffers;
-    prms.bufSize      = MAXHEAPSIZE;
-    prms.align        = HEAPALIGNMENT;
-    module.heap       = HeapBuf_create(&prms, NULL);
-    if (module.heap == 0) {
-       System_abort("RPMessage_init: HeapBuf_create returned 0\n");
-    }
+    /* store handle to heap created at config time */
+    module.heap = ti_ipc_rpmsg_RPMessage_heap;
 
     Semaphore_Params_init(&semParams);
     semParams.mode = Semaphore_Mode_BINARY;
@@ -356,8 +344,6 @@ Void RPMessage_finalize()
     }
 
     /* Tear down Module */
-    HeapBuf_delete(&(module.heap));
-
     Swi_delete(&(transport.swiHandle));
 
     GateHwi_delete(&module.gateH);
@@ -471,7 +457,8 @@ Int RPMessage_delete(RPMessage_Handle *handlePtr)
 
            /* Free/discard all queued message buffers: */
            while ((payload = (Queue_elem *)List_get(obj->queue)) != NULL) {
-               HeapBuf_free(module.heap, (Ptr)payload, MSGBUFFERSIZE);
+               HeapBuf_free(module.heap, (Ptr)payload,
+                       ti_ipc_rpmsg_RPMessage_messageBufferSize);
            }
 
            List_delete(&(obj->queue));

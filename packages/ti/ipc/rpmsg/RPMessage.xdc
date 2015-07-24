@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,29 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.xdc ========
+ *  ======== RPMessage.xdc ========
  */
+package ti.ipc.rpmsg;
 
 /*!
- *  ======== ti.ipc.rpmsg ========
- *  IPC over Virtio vrings (RPMSG).
+ *  ======== RPMessage ========
+ *  Message manager to interface with a Linux virtio_rp_msg transport
  */
+@Template("./RPMessage.xdt")
 
-package ti.ipc.rpmsg [1,0,1] {
-    module RPMessage;
+metaonly module RPMessage
+{
+    /*!
+     *  ======== numMessageBuffers ========
+     *  The number of message buffers available in the pool
+     */
+    config UInt numMessageBuffers = 512;
+
+    /*!
+     *  ======== messageBufferSize ========
+     *  The size (in bytes) of each message buffer
+     */
+    config UInt messageBufferSize = 512;
 }
