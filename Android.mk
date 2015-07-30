@@ -47,7 +47,8 @@ LOCAL_SRC_FILES:= linux/src/api/MultiProc.c \
                   linux/src/api/MessageQ.c \
                   linux/src/api/gates/GateMP.c \
                   linux/src/api/gates/GateMutex.c \
-                  linux/src/api/gates/GateHWSpinlock.c
+                  linux/src/api/gates/GateHWSpinlock.c \
+                  linux/src/heaps/HeapStd.c
 
 LOCAL_SHARED_LIBRARIES := \
     liblog libtiipcutils
