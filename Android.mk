@@ -258,3 +258,21 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE:= ping_rpmsg
 include $(BUILD_EXECUTABLE)
+
+
+############### MessageQFaultApp ###############
+include $(CLEAR_VARS)
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
+                     $(LOCAL_PATH)/packages
+
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_MODULE_TAGS:= optional
+
+LOCAL_SRC_FILES:= linux/src/tests/fault.c
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog libtiipcutils libtiipc libtitransportrpmsg
+
+LOCAL_MODULE:= messageQFaultApp
+include $(BUILD_EXECUTABLE)
