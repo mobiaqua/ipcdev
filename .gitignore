@@ -59,6 +59,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /linux/src/tests/nano_test_*
 /linux/src/tests/ping_rpmsg
 /linux/src/tests/mmrpc_test
+/linux/src/tests/fault
 
 # QNX stuff
 /qnx/src/*/arm/a.g.le.v7/*.o
