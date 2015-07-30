@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -308,7 +308,15 @@ function module$validate()
  */
 function getCCOpts(target)
 {
-    return(Build.customCCOpts);
+    var ccOpts = "";
+
+    if (target.$name.match(/^ti\.targets\./)) {
+        if (("ti.ipc.rpmsg" in xdc.om) || ("ti.ipc.transports" in xdc.om)) {
+            ccOpts += " --gcc";
+        }
+    }
+
+    return (Build.customCCOpts + ccOpts);
 }
 
 /*
@@ -334,43 +342,45 @@ function getEnumString(enumProperty)
 /*
  * Add pre-built Instrumented and Non-Intrumented release libs
  */
-var ipcSources  =  "ipc/GateMP.c " +
-                   "ipc/ListMP.c " +
-                   "ipc/SharedRegion.c " +
-                   "ipc/MessageQ.c " +
-                   "ipc/Ipc.c " +
-                   "ipc/Notify.c ";
+var ipcSources  =  "ti/sdo/ipc/GateMP.c " +
+                   "ti/sdo/ipc/ListMP.c " +
+                   "ti/sdo/ipc/SharedRegion.c " +
+                   "ti/sdo/ipc/MessageQ.c " +
+                   "ti/sdo/ipc/Ipc.c " +
+                   "ti/sdo/ipc/Notify.c " +
+                   "ti/ipc/namesrv/NameServerRemoteRpmsg.c " +
+                   "ti/ipc/remoteproc/Resource.c ";
 
-var gatesSources = "ipc/gates/GatePeterson.c " +
-                   "ipc/gates/GatePetersonN.c " +
-                   "ipc/gates/GateMPSupportNull.c ";
+var gatesSources = "ti/sdo/ipc/gates/GatePeterson.c " +
+                   "ti/sdo/ipc/gates/GatePetersonN.c " +
+                   "ti/sdo/ipc/gates/GateMPSupportNull.c ";
 
-var heapsSources = "ipc/heaps/HeapBufMP.c " +
-                   "ipc/heaps/HeapMemMP.c " +
-                   "ipc/heaps/HeapMultiBufMP.c ";
+var heapsSources = "ti/sdo/ipc/heaps/HeapBufMP.c " +
+                   "ti/sdo/ipc/heaps/HeapMemMP.c " +
+                   "ti/sdo/ipc/heaps/HeapMultiBufMP.c ";
 
 var notifyDriverSources =
-                   "ipc/notifyDrivers/NotifyDriverCirc.c " +
-                   "ipc/notifyDrivers/NotifySetupNull.c " +
-                   "ipc/notifyDrivers/NotifyDriverShm.c ";
+                   "ti/sdo/ipc/notifyDrivers/NotifyDriverCirc.c " +
+                   "ti/sdo/ipc/notifyDrivers/NotifySetupNull.c " +
+                   "ti/sdo/ipc/notifyDrivers/NotifyDriverShm.c ";
 
 var nsremoteSources =
-                   "ipc/nsremote/NameServerRemoteNotify.c " +
-                   "ipc/nsremote/NameServerMessageQ.c ";
+                   "ti/sdo/ipc/nsremote/NameServerRemoteNotify.c " +
+                   "ti/sdo/ipc/nsremote/NameServerMessageQ.c ";
 
 var transportsSources =
-                   "ipc/transports/TransportShm.c " +
-                   "ipc/transports/TransportShmCircSetup.c " +
-                   "ipc/transports/TransportShmNotifySetup.c " +
-                   "ipc/transports/TransportShmCirc.c " +
-                   "ipc/transports/TransportShmNotify.c " +
-                   "ipc/transports/TransportShmSetup.c " +
-                   "ipc/transports/TransportNullSetup.c " ;
+                   "ti/sdo/ipc/transports/TransportShm.c " +
+                   "ti/sdo/ipc/transports/TransportShmCircSetup.c " +
+                   "ti/sdo/ipc/transports/TransportShmNotifySetup.c " +
+                   "ti/sdo/ipc/transports/TransportShmCirc.c " +
+                   "ti/sdo/ipc/transports/TransportShmNotify.c " +
+                   "ti/sdo/ipc/transports/TransportShmSetup.c " +
+                   "ti/sdo/ipc/transports/TransportNullSetup.c " ;
 
-var utilsSources = "utils/MultiProc.c " +
-                   "utils/List.c " +
-                   "utils/NameServerRemoteNull.c " +
-                   "utils/NameServer.c ";
+var utilsSources = "ti/sdo/utils/MultiProc.c " +
+                   "ti/sdo/utils/List.c " +
+                   "ti/sdo/utils/NameServerRemoteNull.c " +
+                   "ti/sdo/utils/NameServer.c ";
 
 var commonSources = ipcSources +
                     gatesSources +
@@ -378,156 +388,164 @@ var commonSources = ipcSources +
                     notifyDriverSources +
                     nsremoteSources +
                     transportsSources;
-//                  utilsSources;
 
-var C64PSources  = "ipc/gates/GateAAMonitor.c " +
-                   "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/gates/GateHWSem.c " +
-                   "ipc/family/dm6446/NotifySetup.c " +
-                   "ipc/family/dm6446/NotifyCircSetup.c " +
-                   "ipc/family/dm6446/InterruptDsp.c " +
-                   "ipc/family/omap3530/NotifySetup.c " +
-                   "ipc/family/omap3530/NotifyCircSetup.c " +
-                   "ipc/family/omap3530/InterruptDsp.c ";
+var C64PSources  = "ti/sdo/ipc/gates/GateAAMonitor.c " +
+                   "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/gates/GateHWSem.c " +
+                   "ti/sdo/ipc/family/dm6446/NotifySetup.c " +
+                   "ti/sdo/ipc/family/dm6446/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/dm6446/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifySetup.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/omap3530/InterruptDsp.c ";
 
-var C66Sources   = "ipc/gates/GateHWSem.c " +
-                   "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/tci663x/Interrupt.c " +
-                   "ipc/family/tci663x/MultiProcSetup.c " +
-                   "ipc/family/tci663x/NotifyCircSetup.c " +
-                   "ipc/family/tci663x/NotifySetup.c " +
-                   "ipc/family/vayu/InterruptDsp.c " +
-                   "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c " +
-                   "ipc/family/tda3xx/InterruptDsp.c " +
-                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
-                   "ipc/family/tda3xx/NotifySetup.c ";
+var C66Sources   = "ti/sdo/ipc/gates/GateHWSem.c " +
+                   "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/tci663x/Interrupt.c " +
+                   "ti/sdo/ipc/family/tci663x/MultiProcSetup.c " +
+                   "ti/sdo/ipc/family/tci663x/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/tci663x/NotifySetup.c " +
+                   "ti/sdo/ipc/family/vayu/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/vayu/NotifySetup.c " +
+                   "ti/sdo/ipc/family/tda3xx/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifySetup.c " +
+                   "ti/ipc/family/tci6614/Interrupt.c " +
+                   "ti/ipc/family/tci6614/VirtQueue.c " +
+                   "ti/ipc/family/tci6614/NotifySetup.c " +
+                   "ti/ipc/family/tci6638/Interrupt.c " +
+                   "ti/ipc/family/tci6638/VirtQueue.c " +
+                   "ti/ipc/family/tci6638/NotifyCircSetup.c " +
+                   "ti/ipc/family/vayu/VirtQueue.c ";
 
-var C674Sources  = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/da830/NotifySetup.c " +
-                   "ipc/family/da830/NotifyCircSetup.c " +
-                   "ipc/family/da830/InterruptDsp.c " +
-                   "ipc/family/arctic/NotifySetup.c " +
-                   "ipc/family/arctic/NotifyCircSetup.c " +
-                   "ipc/family/arctic/InterruptDsp.c " +
-                   "ipc/family/ti81xx/NotifySetup.c " +
-                   "ipc/family/ti81xx/NotifyCircSetup.c " +
-                   "ipc/family/ti81xx/InterruptDsp.c " +
-                   "ipc/family/ti81xx/NotifyMbxSetup.c " +
-                   "ipc/family/ti81xx/NotifyDriverMbx.c " +
-                   "ipc/family/c6a8149/NotifySetup.c " +
-                   "ipc/family/c6a8149/NotifyCircSetup.c " +
-                   "ipc/family/c6a8149/InterruptDsp.c " +
-                   "ipc/family/c6a8149/NotifyMbxSetup.c " +
-                   "ipc/family/c6a8149/NotifyDriverMbx.c ";
+var C674Sources  = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/da830/NotifySetup.c " +
+                   "ti/sdo/ipc/family/da830/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/da830/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/arctic/NotifySetup.c " +
+                   "ti/sdo/ipc/family/arctic/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/arctic/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifySetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifySetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/InterruptDsp.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyDriverMbx.c ";
 
-var C647xSources = "ipc/family/c647x/Interrupt.c " +
-                   "ipc/family/c647x/NotifyCircSetup.c " +
-                   "ipc/family/c647x/MultiProcSetup.c " +
-                   "ipc/family/c647x/NotifySetup.c ";
+var C647xSources = "ti/sdo/ipc/family/c647x/Interrupt.c " +
+                   "ti/sdo/ipc/family/c647x/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c647x/MultiProcSetup.c " +
+                   "ti/sdo/ipc/family/c647x/NotifySetup.c ";
 
-var C64TSources  = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/omap4430/NotifyCircSetup.c " +
-                   "ipc/family/omap4430/NotifySetup.c " +
-                   "ipc/family/omap4430/InterruptDsp.c ";
+var C64TSources  = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/omap4430/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/omap4430/NotifySetup.c " +
+                   "ti/sdo/ipc/family/omap4430/InterruptDsp.c ";
 
-var C28Sources   = "ipc/family/f28m35x/NotifyDriverCirc.c " +
-                   "ipc/family/f28m35x/IpcMgr.c " +
-                   "ipc/family/f28m35x/TransportCirc.c " +
-                   "ipc/family/f28m35x/NameServerBlock.c " +
-                   "ipc/family/f2837x/NotifyDriverCirc.c " +
-                   "ipc/family/f2837x/IpcMgr.c " +
-                   "ipc/family/f2837x/TransportCirc.c " +
-                   "ipc/family/f2837x/NameServerBlock.c ";
+var C28Sources   = "ti/sdo/ipc/family/f28m35x/NotifyDriverCirc.c " +
+                   "ti/sdo/ipc/family/f28m35x/IpcMgr.c " +
+                   "ti/sdo/ipc/family/f28m35x/TransportCirc.c " +
+                   "ti/sdo/ipc/family/f28m35x/NameServerBlock.c " +
+                   "ti/sdo/ipc/family/f2837x/NotifyDriverCirc.c " +
+                   "ti/sdo/ipc/family/f2837x/IpcMgr.c " +
+                   "ti/sdo/ipc/family/f2837x/TransportCirc.c " +
+                   "ti/sdo/ipc/family/f2837x/NameServerBlock.c ";
 
-var M3Sources    = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/omap4430/NotifySetup.c " +
-                   "ipc/family/omap4430/NotifyCircSetup.c " +
-                   "ipc/family/omap4430/InterruptDucati.c " +
-                   "ipc/family/ti81xx/NotifySetup.c " +
-                   "ipc/family/ti81xx/NotifyCircSetup.c " +
-                   "ipc/family/ti81xx/InterruptDucati.c " +
-                   "ipc/family/ti81xx/NotifyMbxSetup.c " +
-                   "ipc/family/ti81xx/NotifyDriverMbx.c " +
-                   "ipc/family/c6a8149/NotifySetup.c " +
-                   "ipc/family/c6a8149/NotifyCircSetup.c " +
-                   "ipc/family/c6a8149/InterruptDucati.c " +
-                   "ipc/family/c6a8149/NotifyMbxSetup.c " +
-                   "ipc/family/c6a8149/NotifyDriverMbx.c " +
-                   "ipc/family/f28m35x/IpcMgr.c " +
-                   "ipc/family/f28m35x/NotifyDriverCirc.c " +
-                   "ipc/family/f28m35x/TransportCirc.c " +
-                   "ipc/family/f28m35x/NameServerBlock.c " +
-                   "ipc/family/vayu/InterruptIpu.c " +
-                   "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c " +
-                   "ipc/family/tda3xx/InterruptIpu.c " +
-                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
-                   "ipc/family/tda3xx/NotifySetup.c ";
+var M3Sources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/omap4430/NotifySetup.c " +
+                   "ti/sdo/ipc/family/omap4430/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/omap4430/InterruptDucati.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifySetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/InterruptDucati.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifySetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/InterruptDucati.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/f28m35x/IpcMgr.c " +
+                   "ti/sdo/ipc/family/f28m35x/NotifyDriverCirc.c " +
+                   "ti/sdo/ipc/family/f28m35x/TransportCirc.c " +
+                   "ti/sdo/ipc/family/f28m35x/NameServerBlock.c " +
+                   "ti/sdo/ipc/family/vayu/InterruptIpu.c " +
+                   "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/vayu/NotifySetup.c " +
+                   "ti/sdo/ipc/family/tda3xx/InterruptIpu.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifySetup.c " +
+                   "ti/ipc/family/vayu/VirtQueue.c ";
 
-var M4Sources    = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/vayu/InterruptIpu.c " +
-                   "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c " +
-                   "ipc/family/tda3xx/InterruptIpu.c " +
-                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
-                   "ipc/family/tda3xx/NotifySetup.c ";
+var M4Sources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/vayu/InterruptIpu.c " +
+                   "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/vayu/NotifySetup.c " +
+                   "ti/sdo/ipc/family/tda3xx/InterruptIpu.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifySetup.c " +
+                   "ti/ipc/family/vayu/VirtQueue.c ";
 
-var Arm9Sources  = "ipc/family/dm6446/NotifySetup.c " +
-                   "ipc/family/dm6446/NotifyCircSetup.c " +
-                   "ipc/family/dm6446/InterruptArm.c " +
-                   "ipc/family/da830/NotifySetup.c " +
-                   "ipc/family/da830/NotifyCircSetup.c " +
-                   "ipc/family/da830/InterruptArm.c ";
+var Arm9Sources  = "ti/sdo/ipc/family/dm6446/NotifySetup.c " +
+                   "ti/sdo/ipc/family/dm6446/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/dm6446/InterruptArm.c " +
+                   "ti/sdo/ipc/family/da830/NotifySetup.c " +
+                   "ti/sdo/ipc/family/da830/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/da830/InterruptArm.c ";
 
-var A8FSources   = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/ti81xx/NotifySetup.c " +
-                   "ipc/family/ti81xx/NotifyCircSetup.c " +
-                   "ipc/family/ti81xx/InterruptHost.c " +
-                   "ipc/family/ti81xx/NotifyMbxSetup.c " +
-                   "ipc/family/ti81xx/NotifyDriverMbx.c " +
-                   "ipc/family/c6a8149/NotifySetup.c " +
-                   "ipc/family/c6a8149/NotifyCircSetup.c " +
-                   "ipc/family/c6a8149/InterruptHost.c " +
-                   "ipc/family/c6a8149/NotifyMbxSetup.c " +
-                   "ipc/family/c6a8149/NotifyDriverMbx.c " +
-                   "ipc/family/omap3530/NotifySetup.c " +
-                   "ipc/family/omap3530/NotifyCircSetup.c " +
-                   "ipc/family/omap3530/InterruptHost.c ";
+var A8FSources   = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifySetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/InterruptHost.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifySetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/InterruptHost.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifySetup.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/omap3530/InterruptHost.c ";
 
-var A8gSources  = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/ti81xx/NotifySetup.c " +
-                   "ipc/family/ti81xx/NotifyCircSetup.c " +
-                   "ipc/family/ti81xx/InterruptHost.c " +
-                   "ipc/family/ti81xx/NotifyMbxSetup.c " +
-                   "ipc/family/ti81xx/NotifyDriverMbx.c " +
-                   "ipc/family/c6a8149/NotifySetup.c " +
-                   "ipc/family/c6a8149/NotifyCircSetup.c " +
-                   "ipc/family/c6a8149/InterruptHost.c " +
-                   "ipc/family/c6a8149/NotifyMbxSetup.c " +
-                   "ipc/family/c6a8149/NotifyDriverMbx.c " +
-                   "ipc/family/omap3530/NotifySetup.c " +
-                   "ipc/family/omap3530/NotifyCircSetup.c " +
-                   "ipc/family/omap3530/InterruptHost.c ";
+var A8gSources  =  "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifySetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/InterruptHost.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/ti81xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifySetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/InterruptHost.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyMbxSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifySetup.c " +
+                   "ti/sdo/ipc/family/omap3530/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/omap3530/InterruptHost.c ";
 
-var A15gSources  = "ipc/family/vayu/InterruptHost.c " +
-                   "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c " +
-                   "ipc/gates/GateHWSpinlock.c ";
+var A15gSources  = "ti/sdo/ipc/family/vayu/InterruptHost.c " +
+                   "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/vayu/NotifySetup.c " +
+                   "ti/sdo/ipc/gates/GateHWSpinlock.c ";
 
-var ARP32Sources = "ipc/gates/GateHWSpinlock.c " +
-                   "ipc/family/arctic/NotifySetup.c " +
-                   "ipc/family/arctic/NotifyCircSetup.c " +
-                   "ipc/family/arctic/InterruptArp32.c " +
-                   "ipc/family/c6a8149/NotifySetup.c " +
-                   "ipc/family/c6a8149/NotifyCircSetup.c " +
-                   "ipc/family/c6a8149/InterruptEve.c " +
-                   "ipc/family/vayu/InterruptArp32.c " +
-                   "ipc/family/vayu/NotifyDriverMbx.c " +
-                   "ipc/family/vayu/NotifySetup.c " +
-                   "ipc/family/tda3xx/InterruptArp32.c " +
-                   "ipc/family/tda3xx/NotifyDriverMbx.c " +
-                   "ipc/family/tda3xx/NotifySetup.c ";
+var ARP32Sources = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/arctic/NotifySetup.c " +
+                   "ti/sdo/ipc/family/arctic/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/arctic/InterruptArp32.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifySetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/c6a8149/InterruptEve.c " +
+                   "ti/sdo/ipc/family/vayu/InterruptArp32.c " +
+                   "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/vayu/NotifySetup.c " +
+                   "ti/sdo/ipc/family/tda3xx/InterruptArp32.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/tda3xx/NotifySetup.c ";
 
 var cList = {
     "ti.targets.C28_large"              : commonSources + C28Sources,
@@ -567,7 +585,17 @@ var cList = {
     "gnu.targets.arm.M4F"               : commonSources + M4Sources,
 };
 
-var cFiles = { };
+var cFiles = {
+    "ti.ipc.ipcmgr" : {
+        cSources: [ "IpcMgr.c" ]
+    },
+    "ti.ipc.family.vayu" : {
+        cSources: [ "VirtQueue.c" ]
+    },
+    "ti.ipc.rpmsg" : {
+        cSources: [ "NameMap.c", "RPMessage.c" ]
+    }
+};
 
 var ipcPackages = [
     "ti.sdo.ipc",
@@ -590,13 +618,19 @@ var ipcPackages = [
     "ti.sdo.ipc.nsremote",
     "ti.sdo.ipc.transports",
     "ti.sdo.utils",
+    "ti.ipc.family.tci6614",
+    "ti.ipc.family.tci6638",
+    "ti.ipc.family.vayu",
+    "ti.ipc.namesrv",
+    "ti.ipc.remoteproc",
+    "ti.ipc.transports"
 ];
 
 var asmListNone = [
 ];
 
 var asmList64P = [
-    "ipc/gates/GateAAMonitor_asm.s64P",
+    "ti/sdo/ipc/gates/GateAAMonitor_asm.s64P",
 ];
 
 var asmList = {
@@ -703,6 +737,14 @@ function getDefs()
     defs += " -Dti_sdo_ipc_MessageQ_traceFlag__D=" +
             (MessageQ.traceFlag ? "TRUE" : "FALSE");
 
+    if ("ti.ipc.ipcmgr.IpcMgr" in xdc.om) {
+        defs += xdc.module("ti.ipc.ipcmgr.IpcMgr").getDefs();
+    }
+
+    if ("ti.ipc.rpmsg" in xdc.om) {
+        defs += xdc.module('ti.ipc.rpmsg.Build').getDefs();
+    }
+
     var InterruptDucati =
             xdc.module("ti.sdo.ipc.family.ti81xx.InterruptDucati");
 
@@ -738,12 +780,13 @@ function getCFiles(target)
 
     if (BIOS.buildingAppLib == true) {
         var targetModules = Program.targetModules();
+
         for (var m = 0; m < targetModules.length; m++) {
             var mod = targetModules[m];
             var mn = mod.$name;
-            var pn = mn.substring(0, mn.lastIndexOf("."));
+            var pn = mod.$package.$name;
 
-            /* sanity check package path */
+            /* determine if this is an ipc package */
             var packageMatch = false;
 
             for (var i = 0; i < ipcPackages.length; i++) {
@@ -754,20 +797,16 @@ function getCFiles(target)
             }
 
             if (packageMatch && !mn.match(/Proxy/)) {
-                if (cFiles[mn] === undefined) {
-                    var prefix = mn.substr(mn.indexOf("sdo")+4);
-                    var mod = mn.substr(mn.lastIndexOf(".")+1);
-                    prefix = prefix.substring(0, prefix.lastIndexOf('.')+1);
-                    prefix = prefix.replace(/\./g, "/");
-                    localSources += prefix + mod + ".c ";
-                }
-                else {
-                    for (i in cFiles[mn].cSources) {
-                        var prefix = mn.substr(mn.indexOf("sdo")+8);
-                        prefix = prefix.substring(0, prefix.lastIndexOf('.')+1);
-                        prefix = prefix.replace(/\./g, "/");
-                        localSources += prefix + cFiles[mn].cSources[i] + " ";
-                    }
+                localSources += mn.replace(/\./g, "/") + ".c" + " ";
+            }
+        }
+
+        /* special handling for non-target modules */
+        for (var p in cFiles) {
+            if (p in xdc.om) {
+                for (var f in cFiles[p].cSources) {
+                    localSources += p.replace(/\./g, "/")
+                            + "/" + cFiles[p].cSources[f] + " ";
                 }
             }
         }

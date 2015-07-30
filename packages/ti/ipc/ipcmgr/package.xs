@@ -58,15 +58,45 @@ function close()
      *  Then the IpcMgr would bring in RPMessage if needed.
      */
      xdc.useModule('ti.ipc.rpmsg.RPMessage');
+
+    /*  To maintain compatibility, "use" the IpcMgr module whenever this
+     *  package has been loaded. Issue a warning to inform the user that
+     *  the application config script should be loading the module, not
+     *  the package.
+     */
+    if (!xdc.module('ti.ipc.ipcmgr.IpcMgr').$used) {
+        var IpcMgr = xdc.useModule('ti.ipc.ipcmgr.IpcMgr');
+
+        IpcMgr.$logWarning("Package ti.ipc.ipcmgr loaded but module IpcMgr "
+            + "was not used. To eliminate this warning, replace \""
+            + "xdc.loadPackage('ti.ipc.ipcmgr')\" with \"xdc.useModule("
+            + "'ti.ipc.ipcmgr.IpcMgr')\" in your application config script",
+            IpcMgr);
+    }
 }
 
 /*
- *  ======== getLibs ========
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
  */
 function getLibs(prog)
 {
+
+    /* if custom build flow, do not contribute package library */
+    if ("ti.sdo.ipc.Build" in xdc.om) {
+        var Build = xdc.om["ti.sdo.ipc.Build"];
+
+        if ((Build.libType == Build.LibType_Custom)
+                || (Build.libType == Build.LibType_Debug)) {
+            return ("");
+        }
+    }
+
     var lib;
     var suffix = prog.build.target.findSuffix(this);
+
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
         $trace("Unable to locate a compatible library, returning none.",
@@ -74,10 +104,8 @@ function getLibs(prog)
         return ("");
     }
 
-    var deh = xdc.module("ti.deh.Deh");
-
     /* the location of the libraries are in lib/<profile>/* */
-    if (deh.$used) {
+    if (xdc.module("ti.deh.Deh").$used) {
         /* Deh is used */
         lib = "lib/" + this.profile + "/ti.ipc.ipcmgr_deh.a" + suffix;
     }

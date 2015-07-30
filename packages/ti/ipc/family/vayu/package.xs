@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,81 +32,49 @@
 
 /*
  *  ======== package.xs ========
- *
  */
+var Build = null;
 
 /*
  *  ======== close ========
  */
 function close()
 {
-    if (xdc.om.$name != "cfg") {
+    if (xdc.om.$name != 'cfg') {
         return;
     }
 
-    /* bring in modules we use in this package */
-    xdc.useModule('ti.ipc.remoteproc.Resource');
-    xdc.loadPackage('ti.pm');
-    xdc.useModule('ti.sysbios.gates.GateAll');
-    xdc.useModule('ti.sysbios.hal.Cache');
-    xdc.useModule('ti.sysbios.knl.Semaphore');
-    xdc.useModule('ti.sysbios.knl.Swi');
-
-    /* bring in target specific modules */
-    var targIsaChain = "/" + prog.build.target.getISAChain().join("/") + "/";
-    if (targIsaChain.match("/64P/")) {
-        xdc.useModule('ti.sdo.ipc.family.vayu.InterruptDsp');
-    }
-    else if (targIsaChain.match("/v7M/")) {
-        xdc.useModule('ti.sdo.ipc.family.vayu.InterruptIpu');
-    }
+    Build = xdc.useModule('ti.sdo.ipc.Build');
 }
 
 /*
- *  ======== getLibs ========
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
  */
 function getLibs(prog)
 {
-    var file;
-    var libAry = [];
-    var profile = this.profile;
-    var smp = "";
-
-    var suffix = prog.build.target.findSuffix(this);
-    if (suffix == null) {
-        /* no matching lib found in this package, return "" */
-        $trace("Unable to locate a compatible library, returning none.",
-                1, ['getLibs']);
-        return ("");
-    }
-
     var BIOS = xdc.module('ti.sysbios.BIOS');
-    if (BIOS.smpEnabled) {
-        smp = "_smp";
-    }
+    var libPath;
+    var suffix;
 
-    /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.ipc.family.vayu" + smp + ".a" + suffix;
-    if (java.io.File(this.packageBase + file).exists()) {
-        libAry.push(file);
-    }
-    else {
-        file = "lib/release/ti.ipc.family.vayu" + smp + ".a" + suffix;
-        if (java.io.File(this.packageBase + file).exists()) {
-            libAry.push(file);
+    if (Build.libType == Build.LibType_PkgLib) {
+        /* lib path defined in Build.buildLibs() */
+        libPath = (BIOS.smpEnabled ? "lib/smpipc/debug" : "lib/ipc/debug");
+
+        /* find a compatible suffix */
+        if ("findSuffix" in prog.build.target) {
+            suffix = prog.build.target.findSuffix(this);
         }
         else {
-            /* fallback to a compatible library built by this package */
-            for (var p in this.build.libDesc) {
-                if (suffix == this.build.libDesc[p].suffix) {
-                    libAry.push(p);
-                    break;
-                }
-            }
+            suffix = prog.build.target.suffix;
         }
+        return (libPath + "/" + this.$name + ".a" + suffix);
     }
-
-    return libAry.join(";");
+    else {
+        return (Build.getLibs(this));
+    }
 }
 
 /*

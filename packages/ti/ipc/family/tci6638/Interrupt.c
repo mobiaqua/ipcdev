@@ -52,7 +52,6 @@
 
 extern volatile cregister UInt DNUM;
 
-Fxn userFxn = NULL;
 Void Interrupt_isr(UArg arg);
 
 /* Shift to source bit id for CORES 0-3 */
@@ -84,7 +83,6 @@ Int Interrupt_Module_startup(Int phase)
     volatile UInt32 *kick0 = (volatile UInt32 *)Interrupt_KICK0;
     volatile UInt32 *kick1 = (volatile UInt32 *)Interrupt_KICK1;
     UInt16 procId = MultiProc_self();
-    UInt16 hostClusterId;
 
     /* wait for Startup and procId to be set, because user fxn should set it */
     if (!Startup_Module_startupDone()) {
@@ -99,13 +97,14 @@ Int Interrupt_Module_startup(Int phase)
         return (Startup_NOTDONE);
     }
 
+    Interrupt_module->clusterId = MultiProc_getBaseIdOfCluster();
+
     /*  If this assert fails, the MultiProc config has changed to break
      *  an assumption in Linux rpmsg driver, that HOST is listed first in
      *  MultiProc name list configuration.
      */
-    Interrupt_module->clusterId = MultiProc_getBaseIdOfCluster();
-    hostClusterId = MultiProc_getId("HOST") - Interrupt_module->clusterId;
-    Assert_isTrue(0 == hostClusterId, NULL);
+    Assert_isTrue((MultiProc_getId("HOST") - Interrupt_module->clusterId) == 0,
+            NULL);
 
     if (!Interrupt_enableKick) {
         /* Do not unlock the kick registers */

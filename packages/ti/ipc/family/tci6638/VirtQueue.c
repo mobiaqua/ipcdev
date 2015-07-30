@@ -142,7 +142,10 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
                              const VirtQueue_Params *params, Error_Block *eb)
 {
     void *vringAddr = NULL;
+#if !defined(xdc_runtime_Assert_DISABLE_ALL) \
+        || !defined(xdc_runtime_Log_DISABLE_ALL)
     UInt32 marValue;
+#endif
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
 
@@ -175,7 +178,10 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
                                          (DNUM * VirtQueue_VRING_OFFSET));
 
             /* Also, assert that the vring address is non-cached: */
+#if !defined(xdc_runtime_Assert_DISABLE_ALL) \
+        || !defined(xdc_runtime_Log_DISABLE_ALL)
             marValue = Cache_getMar((Ptr)vringAddr);
+#endif
             Log_print1(Diags_USER1, "Vring cache is %s",
                  (IArg)(marValue & 0x1 ? "enabled" : "disabled"));
             Assert_isTrue(!(marValue & 0x1), NULL);
@@ -350,7 +356,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
  * ======== VirtQueue_isr ========
  * Note 'msg' is ignored: it is only used where there is a mailbox payload.
  */
-Void VirtQueue_isr(UArg msg)
+static Void VirtQueue_isr(UArg msg)
 {
     VirtQueue_Object *vq;
 

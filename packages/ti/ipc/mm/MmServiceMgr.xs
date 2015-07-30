@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ function module$use()
     xdc.useModule('ti.grcm.RcmServer');
     xdc.useModule('ti.sdo.utils.MultiProc');
     xdc.loadPackage('ti.srvmgr');
-    xdc.loadPackage('ti.srvmgr.omaprpc');
+    xdc.useModule('ti.srvmgr.omaprpc.OmapRpc');
     xdc.useModule('xdc.runtime.Memory');
     xdc.useModule('xdc.runtime.System');
 }

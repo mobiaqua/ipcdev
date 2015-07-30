@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,11 @@ var Build = xdc.module('ti.sdo.ipc.Build');
 Build.libType = Build.LibType_Custom;
 Build.assertsEnabled = true;
 Build.logsEnabled = true;
+
+/* enable internal asserts */
+var Diags = xdc.useModule('xdc.runtime.Diags');
+var Defaults = xdc.useModule('xdc.runtime.Defaults');
+Defaults.common$.diags_INTERNAL = Diags.ALWAYS_ON;
 
 var SourceDir = xdc.module('xdc.cfg.SourceDir');
 SourceDir.verbose = 1;

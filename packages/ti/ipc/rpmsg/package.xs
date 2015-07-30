@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,67 +42,29 @@ function close()
 {
     Program.exportModule('ti.sysbios.hal.Cache');
     Program.exportModule('ti.sysbios.knl.Idle');
-
-    var device = Program.cpu.deviceName;
-
-    switch (device) {
-        case "OMAP5430": /* OMAP5 */
-            xdc.loadPackage('ti.ipc.family.omap54xx');
-            break;
-
-        case "OMAPL138":
-            xdc.useModule('ti.ipc.family.omapl138.VirtQueue');
-            break;
-
-        case "TMS320TCI6614":
-            xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
-            break;
-
-        case "Kepler":
-        case "TMS320C66AK2E05":
-        case "TMS320C66AK2H12":
-        case "TMS320TCI6630K2L":
-        case "TMS320TCI6636":
-        case "TMS320TCI6638":
-            xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
-            break;
-
-        case "Vayu": /* Vayu */
-        case "DRA7XX": /* Vayu */
-            xdc.loadPackage('ti.ipc.family.vayu');
-            break;
-
-        default:
-            throw new Error("Unspported device: " + device);
-            break;
-    }
-
-    xdc.useModule('xdc.runtime.Assert');
-    xdc.useModule('xdc.runtime.Diags');
-    xdc.useModule('xdc.runtime.Log');
-    xdc.useModule('xdc.runtime.Memory');
-    xdc.useModule('xdc.runtime.Registry');
-    xdc.useModule('xdc.runtime.System');
-
-    xdc.useModule('ti.sysbios.BIOS');
-    xdc.useModule('ti.sysbios.gates.GateSwi');
-    xdc.useModule('ti.sysbios.heaps.HeapBuf');
-    xdc.useModule('ti.sysbios.knl.Semaphore');
-    xdc.useModule('ti.sysbios.knl.Swi');
-
-    xdc.useModule('ti.sdo.utils.List');
 }
 
 /*
- *  ======== getLibs ========
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
  */
 function getLibs(prog)
 {
-    var device = prog.cpu.deviceName;
-    var platform = "";
-    var smp = "";
+
+    /* if custom build flow, do not contribute package library */
+    if ("ti.sdo.ipc.Build" in xdc.om) {
+        var Build = xdc.om["ti.sdo.ipc.Build"];
+
+        if ((Build.libType == Build.LibType_Custom)
+                || (Build.libType == Build.LibType_Debug)) {
+            return ("");
+        }
+    }
 
     var suffix = prog.build.target.findSuffix(this);
+
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
         $trace("Unable to locate a compatible library, returning none.",
@@ -110,11 +72,13 @@ function getLibs(prog)
         return ("");
     }
 
-    var BIOS = xdc.module('ti.sysbios.BIOS');
-    if (BIOS.smpEnabled == true) {
+    var device = prog.cpu.deviceName;
+    var platform = "";
+    var smp = "";
+
+    if (xdc.module('ti.sysbios.BIOS').smpEnabled) {
         smp = "_smp";
     }
-
 
     switch (device) {
         case "OMAP4430":
@@ -149,7 +113,6 @@ function getLibs(prog)
     /* the location of the libraries are in lib/<profile>/* */
     var name = this.$name + "_" + platform + smp + ".a" + suffix;
     var lib = "lib/" + this.profile + "/" + name;
-
 
     /*
      * If the requested profile doesn't exist, we return the 'release' library.

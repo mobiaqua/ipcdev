@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,10 +92,10 @@ import  ti.sysbios.gates.GateAll;
 
 /*!
  *  ======== VirtQueue ========
- *
  */
-
 @InstanceInitError
+@Template("./VirtQueue.xdt")
+
 module VirtQueue
 {
     // -------- Module Constants --------
@@ -167,6 +167,19 @@ module VirtQueue
     * startup sequence events to slave.
     */
     Void startup(UInt16 remoteProcId, Bool isHost);
+
+    /*!
+     *  ======== cacheWb ========
+     *  Flush the SysMin trace buffer
+     *
+     *  This function should be configured as an idle function.
+     *
+     *  @p(code)
+     *  var Idle = xdc.useModule('ti.sysbios.knl.Idle');
+     *  Idle.addFunc('&VirtQueue_cacheWb');
+     *  @p
+     */
+    Void cacheWb();
 
 instance:
 

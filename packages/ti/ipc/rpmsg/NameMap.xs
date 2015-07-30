@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  */
 
 /*
- *  ======== IpcMgr.xs ========
+ *  ======== NameMap.xs ========
  */
 
 /*
@@ -40,50 +40,9 @@
  */
 function module$use()
 {
-    var IpcMgr = this;
-
-/*  still under development
- *
- *  switch (IpcMgr.transportCombo) {
- *
- *      case IpcMgr.TransCombo_RPMSG:
- *          xdc.loadPackage('ti.ipc.rpmsg');
- *          break;
- *
- *      case IpcMgr.TransCombo_RMSG_MESSAGEQ:
- *          xdc.useModule('ti.ipc.namesrv.NameServerRemoteRpmsg');
- *          xdc.loadPackage('ti.ipc.rpmsg');
- *          xdc.useModule('ti.ipc.transports.TransportRpmsgSetup');
- *          xdc.loadPackage('xdc.runtime');
- *          break;
- *
- *      case IpcMgr.TransCombo_IPC:
- *          break;
- *  }
- */
-}
-
-/*
- *  ======== getDefs ========
- */
-function getDefs()
-{
-    var defs = "";
-
-    if (xdc.module('ti.deh.Deh').$used) {
-        defs += " -DIpcMgr_USEDEH";
-
-        var isa = xdc.module('xdc.cfg.Program').build.target.isa;
-        if (isa.match(/66|64T/)) {
-            defs += " -DIpcMgr_DSP";
-        }
-        else if (isa.match(/^v7M(|4)$/)) {
-            defs += " -DIpcMgr_IPU";
-        }
-        else {
-            throw new Error("ti.deh.Deh not supported on given target");
-        }
-    }
-
-    return (defs);
+    xdc.useModule('ti.ipc.rpmsg.RPMessage');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+    xdc.useModule('xdc.runtime.Diags');
+    xdc.useModule('xdc.runtime.Log');
+    xdc.useModule('xdc.runtime.System');
 }

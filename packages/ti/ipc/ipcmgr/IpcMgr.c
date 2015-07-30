@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== IpcMgr.c ========
  *  Various IPC stack backplane startup fxns.
@@ -45,9 +46,9 @@
 
 #ifdef IpcMgr_USEDEH
 #include <ti/deh/Watchdog.h>
-#ifdef DSP
+#ifdef IpcMgr_DSP
 #include <ti/sysbios/family/c64p/Exception.h>
-#elif IPU
+#elif IpcMgr_IPU
 #include <ti/sysbios/family/arm/m3/Hwi.h>
 #endif
 #endif
@@ -71,9 +72,9 @@ Void IpcMgr_rpmsgStartup(Void)
      * When using DEH, initialize the Watchdog timers if not already done
      * (i.e. late-attach)
      */
-#ifdef DSP
+#ifdef IpcMgr_DSP
     Watchdog_init((Void (*)(Void))ti_sysbios_family_c64p_Exception_handler);
-#elif IPU
+#elif IpcMgr_IPU
     Watchdog_init(ti_sysbios_family_arm_m3_Hwi_excHandlerAsm__I);
 #endif
 #endif
@@ -104,9 +105,9 @@ Void IpcMgr_ipcStartup(Void)
      * When using DEH, initialize the Watchdog timers if not already done
      * (i.e. late-attach)
      */
-#ifdef DSP
+#ifdef IpcMgr_DSP
     Watchdog_init((Void (*)(Void))ti_sysbios_family_c64p_Exception_handler);
-#elif IPU
+#elif IpcMgr_IPU
     Watchdog_init(ti_sysbios_family_arm_m3_Hwi_excHandlerAsm__I);
 #endif
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -349,7 +349,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
  * ======== VirtQueue_isr ========
  * Note 'msg' is ignored: it is only used where there is a mailbox payload.
  */
-Void VirtQueue_isr(UArg msg)
+static Void VirtQueue_isr(UArg msg)
 {
     VirtQueue_Object *vq;
 

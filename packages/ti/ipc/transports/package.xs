@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,41 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
  */
 
 /*
- *  ======== getLibs ========
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
  */
 function getLibs(prog)
 {
-    var device = prog.cpu.deviceName;
-    var special = "";   /* used if there is a 'special' lib for a platform */
+
+    /* if custom build flow, do not contribute package library */
+    if ("ti.sdo.ipc.Build" in xdc.om) {
+        var Build = xdc.om["ti.sdo.ipc.Build"];
+
+        if ((Build.libType == Build.LibType_Custom)
+                || (Build.libType == Build.LibType_Debug)) {
+            return ("");
+        }
+    }
+
     var suffix = prog.build.target.findSuffix(this);
+
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
         $trace("Unable to locate a compatible library, returning none.",
                 1, ['getLibs']);
         return ("");
     }
+
+    var device = prog.cpu.deviceName;
+    var special = "";   /* used if there is a 'special' lib for a platform */
 
     switch (device) {
         case "OMAP4430":

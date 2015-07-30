@@ -33,8 +33,6 @@
 /*
  *  ======== RPMessage.xs ========
  */
-var HeapBuf;
-var Program;
 
 /*
  *  ======== module$use ========
@@ -57,10 +55,43 @@ function module$use()
     xdc.useModule('ti.sdo.utils.List');
     xdc.useModule('ti.sdo.utils.MultiProc');
 
-    Program = xdc.useModule('xdc.cfg.Program');
-    HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
+    var Program = xdc.useModule('xdc.cfg.Program');
+    var device = Program.cpu.deviceName;
+
+    switch (device) {
+        case "OMAP5430": /* OMAP5 */
+            xdc.loadPackage('ti.ipc.family.omap54xx');
+            break;
+
+        case "OMAPL138":
+            xdc.useModule('ti.ipc.family.omapl138.VirtQueue');
+            break;
+
+        case "TMS320TCI6614":
+            xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
+            break;
+
+        case "Kepler":
+        case "TMS320C66AK2E05":
+        case "TMS320C66AK2H12":
+        case "TMS320TCI6630K2L":
+        case "TMS320TCI6636":
+        case "TMS320TCI6638":
+            xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
+            break;
+
+        case "Vayu": /* Vayu */
+        case "DRA7XX": /* Vayu */
+            xdc.useModule('ti.ipc.family.vayu.VirtQueue');
+            break;
+
+        default:
+            throw new Error("Unspported device: " + device);
+            break;
+    }
 
     /* create message pool */
+    var HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
     var params = new HeapBuf.Params();
 
     params.blockSize = this.messageBufferSize;

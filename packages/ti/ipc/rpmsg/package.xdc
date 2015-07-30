@@ -29,6 +29,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xdc ========
  */
@@ -37,7 +38,8 @@
  *  ======== ti.ipc.rpmsg ========
  *  IPC over Virtio vrings (RPMSG).
  */
-
 package ti.ipc.rpmsg [1,0,1] {
+    module Build;
+    module NameMap;
     module RPMessage;
 }

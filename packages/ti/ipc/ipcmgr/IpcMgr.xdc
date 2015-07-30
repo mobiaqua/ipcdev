@@ -59,4 +59,10 @@ metaonly module IpcMgr
      *  It has no default value.
      */
     config TransCombo transportCombo;
+
+    /*!
+     *  ======== getDefs ========
+     *  Get the compiler -D options necessary to build
+     */
+    String getDefs();
 }

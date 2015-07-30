@@ -194,7 +194,7 @@ metaonly module Build
      *  ======== getCCOpts ========
      *  Get the compiler options necessary to build
      */
-    metaonly String getCCOpts(String target);
+    metaonly String getCCOpts(xdc.bld.ITarget.Module target);
 
     /*!
      *  ======== getDefaultCustomCCOpts ========

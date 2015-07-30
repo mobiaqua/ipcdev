@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,20 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /** ============================================================================
  *  @file       VirtQueue.c
  *
  *  @brief      Virtio Queue implementation for BIOS
  *
  *  Differences between BIOS version and Linux kernel (include/linux/virtio.h):
- *  - Renamed module from virtio.h to VirtQueue_Object.h to match the API prefixes;
+ *  - Renamed module from virtio.h to VirtQueue_Object.h to match the API
+ *    prefixes;
  *  - BIOS (XDC) types and CamelCasing used;
  *  - virtio_device concept removed (i.e, assumes no containing device);
  *  - simplified scatterlist from Linux version;
- *  - VirtQueue_Objects are created statically here, so just added a VirtQueue_Object_init()
+ *  - VirtQueue_Objects are created statically here, so just added a
+ *    VirtQueue_Object_init()
  *    fxn to take the place of the Virtio vring_new_virtqueue() API;
  *  - The notify function is implicit in the implementation, and not provided
  *    by the client, as it is in Linux virtio.
@@ -57,6 +60,8 @@
 #define Registry_CURDESC ti_ipc_family_vayu__Desc
 #define MODULE_NAME "ti.ipc.family.vayu.VirtQueue"
 
+#include <string.h>
+
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Assert.h>
@@ -71,22 +76,16 @@
 #include <ti/sysbios/gates/GateHwi.h>
 #include <ti/sysbios/hal/Cache.h>
 
-#include <ti/ipc/remoteproc/Resource.h>
 #include <ti/ipc/MultiProc.h>
-
-#include <ti/ipc/rpmsg/virtio_ring.h>
-#include <ti/pm/IpcPower.h>
-
-#include <string.h>
-
 #include <ti/ipc/remoteproc/Resource.h>
 #include <ti/ipc/remoteproc/rsc_types.h>
+#include <ti/ipc/rpmsg/virtio_ring.h>
 #include <ti/ipc/rpmsg/_VirtQueue.h>
-
+#include <ti/pm/IpcPower.h>
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
+
 #include "InterruptProxy.h"
 #include "VirtQueue.h"
-
 
 /*
  *  The following three VIRTIO_* defines must match those in
@@ -455,7 +454,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
         case ID_SELF_TO_HOST:
         case ID_HOST_TO_SELF:
             vq->basePa = (UInt32)Resource_getVringDA(vq->id);
-            Assert_isTrue(vq->basePa != NULL, NULL);
+            Assert_isTrue(vq->basePa != 0, NULL);
 
             result = Resource_physToVirt(vq->basePa, &(vq->baseVa));
             Assert_isTrue(result == Resource_S_SUCCESS, (Assert_Id)NULL);
@@ -494,9 +493,12 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
  */
 Void VirtQueue_startup()
 {
-    hostProcId      = MultiProc_getId("HOST");
+    hostProcId = MultiProc_getId("HOST");
 
-#ifdef DSP
+/*  Note that "64P" matches 64P, 674, 66 and others.  We prefer 66 on vayu,
+ *  but technically vayu DSPs support any of these.
+ */
+#if defined(xdc_target__isaCompatible_64P)
     intInfo.intVectorId = DSPEVENTID;
 #endif
 
@@ -517,7 +519,8 @@ Void VirtQueue_startup()
     Log_print1(Diags_USER1, "VirtQueue_startup: VDEV status: 0x%x\n",
               Resource_getVdevStatus(VIRTIO_ID_RPMSG));
 
-    InterruptProxy_intRegister(hostProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
+    InterruptProxy_intRegister(hostProcId, &intInfo, (Fxn)VirtQueue_isr,
+            (UArg)NULL);
     Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
 }
 
@@ -532,11 +535,11 @@ Void VirtQueue_postCrashToMailbox(Void)
 #define CACHE_WB_TICK_PERIOD    5
 
 /*!
- * ======== VirtQueue_cacheWb ========
+ * ======== ti_ipc_family_vayu_VirtQueue_cacheWb ========
  *
  * Used for flushing SysMin trace buffer.
  */
-Void VirtQueue_cacheWb()
+Void ti_ipc_family_vayu_VirtQueue_cacheWb()
 {
     static UInt32 oldticks = 0;
     UInt32 newticks;
