@@ -131,6 +131,8 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
         if (faultId != 0) {
             printf("About to send fault command, hit ENTER to continue...\n");
             getchar();
+            /* Reset fault id for next round */
+            faultId = 0;
         }
 
         status = MessageQ_put(queueId, msg);
