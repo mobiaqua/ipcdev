@@ -73,7 +73,7 @@ for (var i = 0; i < Build.targets.length; i++) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_tci6638", targ, {
                 profile: profile,
                 copts: myCopts,
-                defs: "-DTCI6638"
+                defs: "-DTCI6638 -DRPMSG_NS_2_0"
             }).addObjects(objList);
 
             Pkg.addLibrary("lib/" + profile + "/" + name + "_vayu", targ, {

@@ -65,7 +65,7 @@ function getDefs()
             case "TMS320TCI6630K2L":
             case "TMS320TCI6636":
             case "TMS320TCI6638":
-                defs += " -DTCI6638";
+                defs += " -DTCI6638 -DRPMSG_NS_2_0";
                 break;
             case "Vayu":
             case "DRA7XX":
