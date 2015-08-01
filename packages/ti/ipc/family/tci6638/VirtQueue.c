@@ -172,10 +172,11 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
         case ID_HOST_TO_SELF:
             vringAddr = (struct vring *)Resource_getVringDA(vq->id);
             Assert_isTrue(vringAddr != NULL, NULL);
+#ifdef PER_CORE_VRING_PATCH
             /* Add per core offset: must match on host side: */
             vringAddr = (struct vring *)((UInt32)vringAddr +
                                          (DNUM * VirtQueue_VRING_OFFSET));
-
+#endif
             /* Also, assert that the vring address is non-cached: */
 #if !defined(xdc_runtime_Assert_DISABLE_ALL) \
         || !defined(xdc_runtime_Log_DISABLE_ALL)
