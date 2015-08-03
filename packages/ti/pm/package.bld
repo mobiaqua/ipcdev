@@ -94,6 +94,7 @@ libArray.push(
         name: "ti.pm_dra7xx_dsp",
         sources: [
             "IpcPowerDsp_dra7xx",
+            "IpcPowerDsp_idle_dra7xx",
         ],
         isas: [ "66" ],
         devices: [
@@ -105,6 +106,16 @@ libArray.push(
     }
 );
 
+/* library for when PM is not needed */
+libArray.push(
+    {
+        name: "ti.pm_null",
+        sources: [
+            "IpcPower_null",
+        ],
+        isas: [ "66", "v7M", "v7M4", "64T" ],
+    }
+);
 
 /* ==== loop over array of libraries ==== */
 for (var i = 0; i < libArray.length; i++) {

@@ -35,6 +35,8 @@
  *
  */
 
+var powerEnabled = false;
+
 /*
  *  ======== init ========
  */
@@ -42,22 +44,6 @@ function init()
 {
     if (xdc.om.$name != 'cfg') {
         return;
-    }
-
-    if (Program.build.target.name.match(/C64T/)) {
-        var Power = xdc.useModule('ti.sysbios.family.c64p.tesla.Power');
-    }
-
-    /* plug-in the power event hooks for SMP/BIOS */
-    if (Program.build.target.isa.match(/v7M4/) &&
-        (Program.platformName.match(/IPU/) ||
-         Program.platformName.match(/ipu/))) {
-        var BIOS = xdc.module('ti.sysbios.BIOS');
-        if (BIOS.smpEnabled) {
-            var Power = xdc.useModule('ti.sysbios.family.arm.ducati.smp.Power');
-            Power.preSuspendHooks.$add("&IpcPower_preSuspend");
-            Power.postSuspendHooks.$add("&IpcPower_postResume");
-        }
     }
 
     if (Program.build.target.name.match(/M3/) &&
@@ -80,6 +66,31 @@ function close()
     Program.exportModule('ti.sysbios.knl.Idle');
 
     xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
+
+    /* Find out if PM is wanted */
+    if ((("ti.sysbios.family.c66.vayu.Power" in xdc.om) &&
+         (xdc.module('ti.sysbios.family.c66.vayu.Power').$used)) ||
+        (("ti.sysbios.family.c64p.tesla.Power" in xdc.om) &&
+         (xdc.module('ti.sysbios.family.c64p.tesla.Power').$used)) ||
+        (("ti.sysbios.family.arm.ducati.smp.Power" in xdc.om) &&
+         (xdc.module('ti.sysbios.family.arm.ducati.smp.Power').$used))) {
+        powerEnabled = true;
+    }
+
+    /* plug-in the power event hooks for SMP/BIOS */
+    if (Program.build.target.isa.match(/v7M4/) &&
+        (Program.platformName.match(/IPU/) ||
+         Program.platformName.match(/ipu/))) {
+        var BIOS = xdc.module('ti.sysbios.BIOS');
+        if ((BIOS.smpEnabled) &&
+            ("ti.sysbios.family.arm.ducati.smp.Power" in xdc.om)) {
+            var Power = xdc.module('ti.sysbios.family.arm.ducati.smp.Power');
+            if (Power.$used) {
+                Power.preSuspendHooks.$add("&IpcPower_preSuspend");
+                Power.postSuspendHooks.$add("&IpcPower_postResume");
+            }
+        }
+    }
 }
 
 /*
@@ -119,22 +130,28 @@ function getLibs(prog)
             return "";  /* nothing to contribute */
     }
 
-    /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.pm" + smp + platform + ".a" + suffix;
-    if (java.io.File(this.packageBase + file).exists()) {
-        libAry.push(file);
+    /* Use the 'null' implementation if PM is not needed */
+    if (powerEnabled == false) {
+        libAry.push("lib/" + profile + "/ti.pm_null.a" + suffix);
     }
     else {
-        file = "lib/release/ti.pm" + smp + platform + ".a" + suffix;
+        /* make sure the library exists, else fallback to a built library */
+        file = "lib/" + profile + "/ti.pm" + smp + platform + ".a" + suffix;
         if (java.io.File(this.packageBase + file).exists()) {
             libAry.push(file);
         }
         else {
-            /* fallback to a compatible library built by this package */
-            for (var p in this.build.libDesc) {
-                if (suffix == this.build.libDesc[p].suffix) {
-                    libAry.push(p);
-                    break;
+            file = "lib/release/ti.pm" + smp + platform + ".a" + suffix;
+            if (java.io.File(this.packageBase + file).exists()) {
+                libAry.push(file);
+            }
+            else {
+                /* fallback to a compatible library built by this package */
+                for (var p in this.build.libDesc) {
+                    if (suffix == this.build.libDesc[p].suffix) {
+                        libAry.push(p);
+                        break;
+                    }
                 }
             }
         }

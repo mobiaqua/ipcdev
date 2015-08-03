@@ -38,7 +38,6 @@
  */
 
 #include <xdc/std.h>
-#include <xdc/runtime/System.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Memory.h>
 #include <xdc/runtime/Log.h>
@@ -48,7 +47,6 @@
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/hal/Hwi.h>
-#include <ti/sysbios/knl/Swi.h>
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/timers/dmtimer/Timer.h>
 #include <ti/sysbios/family/c66/vayu/Power.h>
@@ -62,10 +60,10 @@
 #define IDLE_STBY_MASK    0x0000003C
 
 #define PDCCMD_REG        0x01810000
-#define SLEEP_MODE        0x10000
+#define SLEEP_MASK        0x10000
+#define AWAKE_MASK        0xFFFEFFFF
 
 static UInt32 IpcPower_hibLock;
-static Swi_Handle suspendResumeSwi;
 static Semaphore_Handle IpcPower_semSuspend = NULL;
 static Semaphore_Handle IpcPower_semExit = NULL;
 static Task_Handle IpcPower_tskSuspend = NULL;
@@ -83,9 +81,6 @@ typedef enum IpcPower_SleepMode {
     IpcPower_SLEEP_MODE_WAKEUNLOCK
 } IpcPower_SleepMode;
 
-/* Deep sleep state variable for IpcPower module */
-static Bool IpcPower_deepSleep = TRUE;
-
 static IpcPower_WugenEvtMask wugenEvtMask;
 
 /* PM transition debug counters */
@@ -95,6 +90,12 @@ UInt32 IpcPower_resumeCount = 0;
 
 /* Handle to store BIOS Tick Timer */
 static Timer_Handle tickTimerHandle = NULL;
+
+/*
+ * Assembly function that calls idle using a workaround for a silicon bug that
+ * would hang the CPU when prefetch is enabled.
+ */
+extern Void IpcPower_callIdle();
 
 /*
  *  ======== IpcPower_callUserFxns ========
@@ -126,12 +127,14 @@ static inline Void IpcPower_sleepMode(IpcPower_SleepMode opt)
             /* Fall through: */
         case IpcPower_SLEEP_MODE_DEEPSLEEP:
             if (!refWakeLockCnt) {
-                IpcPower_deepSleep = TRUE;
+                REG32(PDCCMD_REG) |= SLEEP_MASK;
+                REG32(PDCCMD_REG);
             }
             break;
         case IpcPower_SLEEP_MODE_WAKELOCK:
             refWakeLockCnt++;
-            IpcPower_deepSleep = FALSE;
+            REG32(PDCCMD_REG) &= AWAKE_MASK;
+            REG32(PDCCMD_REG);
             break;
     }
     Hwi_restore(hwiKey);
@@ -173,24 +176,6 @@ static inline Void IpcPower_setWugen(IpcPower_WugenEvtMask *mask)
     REG32(DSP_SYS_IRQWAKEEN1) |= mask->mevt1;
 }
 
-
-/*
- *  ======== IpcPower_suspendSwi ========
- */
-#define FXNN "IpcPower_suspendSwi"
-static Void IpcPower_suspendSwi(UArg arg0, UArg arg1)
-{
-    if (refWakeLockCnt) {
-        Log_print0(Diags_INFO, FXNN":Warning: Wake locks in use\n");
-    }
-
-    /* Invoke the BIOS suspend routine */
-    Power_suspend(Power_Suspend_HIBERNATE);
-
-    Log_print0(Diags_INFO, FXNN":Resume\n");
-}
-#undef FXNN
-
 /*
  *  ======== IpcPower_suspendTaskFxn ========
  */
@@ -204,7 +189,7 @@ Void IpcPower_suspendTaskFxn(UArg arg0, UArg arg1)
             /* Call pre-suspend preparation function */
             IpcPower_preSuspend();
 
-            Swi_post(suspendResumeSwi);
+            Power_suspend(Power_Suspend_HIBERNATE);
 
             /* Call post-resume preparation function */
             IpcPower_postResume();
@@ -218,9 +203,10 @@ Void IpcPower_suspendTaskFxn(UArg arg0, UArg arg1)
 /*
  *  ======== IpcPower_init ========
  */
+#define FXNN "IpcPower_init"
 Void IpcPower_init()
 {
-    Swi_Params swiParams;
+    extern cregister volatile UInt DNUM;
     Task_Params taskParams;
     Int i;
     UArg arg;
@@ -244,8 +230,9 @@ Void IpcPower_init()
         }
     }
     if (tickTimerHandle == NULL) {
-        System_abort("IpcPower_init: Cannot find tickTimer Handle. Custom"
-                        " clock timer functions currently not supported.\n");
+        Log_print0(Diags_INFO, FXNN": Cannot find tickTimer Handle. "
+                        "Custom clock timer functions currently not "
+                        "supported.\n");
     }
 
     IpcPower_semSuspend = Semaphore_create(0, NULL, NULL);
@@ -257,10 +244,6 @@ Void IpcPower_init()
     IpcPower_tskSuspend = Task_create(IpcPower_suspendTaskFxn, &taskParams,
         NULL);
 
-    Swi_Params_init(&swiParams);
-    swiParams.priority = Swi_numPriorities - 1; /* Max Priority Swi */
-    suspendResumeSwi = Swi_create(IpcPower_suspendSwi, &swiParams, NULL);
-
     IpcPower_sleepMode(IpcPower_SLEEP_MODE_DEEPSLEEP);
 
     /* Setup IDLEMODE and STANDBYMODE in DSP_SYS_SYSCONFIG */
@@ -268,11 +251,17 @@ Void IpcPower_init()
 
     /* Setup DSP_SYS_IRQWAKEEN0/1 */
     IpcPower_getWugen(&wugenEvtMask);
-    /* TODO: Add DSP2 support */
-    wugenEvtMask.mevt0 |= VAYU_DSP1_WUGEN_INT_MASK0;
-    wugenEvtMask.mevt1 |= VAYU_DSP1_WUGEN_INT_MASK1;
+    if (DNUM == 0) { /* DSP1 */
+        wugenEvtMask.mevt0 |= VAYU_DSP1_WUGEN_INT_MASK0;
+        wugenEvtMask.mevt1 |= VAYU_DSP1_WUGEN_INT_MASK1;
+    }
+    else {
+        wugenEvtMask.mevt0 |= VAYU_DSP2_WUGEN_INT_MASK0;
+        wugenEvtMask.mevt1 |= VAYU_DSP2_WUGEN_INT_MASK1;
+    }
     IpcPower_setWugen(&wugenEvtMask);
 }
+#undef FXNN
 
 /*
  *  ======== IpcPower_exit ========
@@ -311,30 +300,10 @@ Void IpcPower_suspend()
  */
 Void IpcPower_idle()
 {
+    Hwi_disable();
     IpcPower_idleCount++;
 
-    if (IpcPower_deepSleep) {
-        /* Set deepsleep mode */
-        REG32(PDCCMD_REG) = SLEEP_MODE;
-        REG32(PDCCMD_REG);
-    }
-
-    asm(" mfence");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" idle");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
+    IpcPower_callIdle();
 }
 
 /*
@@ -505,11 +474,12 @@ Void IpcPower_preSuspend(Void)
 Void IpcPower_postResume(Void)
 {
     /* Restore timer registers */
-    Timer_restoreRegisters(tickTimerHandle, NULL);
-    Timer_start(tickTimerHandle);
+    if (tickTimerHandle != NULL) {
+        Timer_restoreRegisters(tickTimerHandle, NULL);
+        Timer_start(tickTimerHandle);
+    }
 
     /* Call all user registered resume callback functions */
     IpcPower_callUserFxns(IpcPower_Event_RESUME);
-
     IpcPower_resumeCount++;
 }
