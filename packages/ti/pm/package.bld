@@ -44,10 +44,12 @@ Pkg.generatedFiles.$add("lib/");
 Pkg.libDir = "package/";
 
 /* add custom files to all releases */
-Pkg.attrs.exportSrc = false;
+Pkg.attrs.exportSrc = true;
 Pkg.attrs.exportCfg = true;
 Pkg.otherFiles = [
-    "IpcPower.h"
+    "IpcPower.h",
+    "_IpcPower.h",
+    "package.bld"
 ];
 
 /* list of libraries to build */
