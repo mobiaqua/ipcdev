@@ -1075,9 +1075,12 @@ static struct pg_table_attrs * init_mmu_page_attribs (UInt32 l1_size,
     if (p_pt_attrs->l2_base_va)
         memset((UInt8*)p_pt_attrs->l2_base_va, 0x00, p_pt_attrs->l2_size);
 
-    p_pt_attrs->pg_info = Memory_alloc(NULL, sizeof(struct page_info), 0, NULL);
-    if (p_pt_attrs->pg_info)
-        Memory_set (p_pt_attrs->pg_info, 0, sizeof(struct page_info));
+    p_pt_attrs->pg_info = Memory_alloc(NULL, sizeof(struct page_info) *
+	    ls_num_of_pages, 0, NULL);
+    if (p_pt_attrs->pg_info) {
+        Memory_set (p_pt_attrs->pg_info, 0, sizeof(struct page_info) *
+		    ls_num_of_pages);
+    }
     else {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
@@ -1091,8 +1094,10 @@ static struct pg_table_attrs * init_mmu_page_attribs (UInt32 l1_size,
 
 error_exit:
     if (p_pt_attrs) {
-        if (p_pt_attrs->pg_info)
-            Memory_free (NULL, p_pt_attrs->pg_info, sizeof(struct page_info));
+        if (p_pt_attrs->pg_info) {
+            Memory_free (NULL, p_pt_attrs->pg_info, sizeof(struct page_info) *
+                ls_num_of_pages);
+        }
         if (p_pt_attrs->l1_tbl_alloc_va) {
             munmap ((void *)p_pt_attrs->l1_tbl_alloc_va,
                     p_pt_attrs->l1_tbl_alloc_sz);
@@ -1112,8 +1117,10 @@ error_exit:
 static Void deinit_mmu_page_attribs (struct pg_table_attrs * p_pt_attrs)
 {
     if (p_pt_attrs) {
-        if (p_pt_attrs->pg_info)
-            Memory_free (NULL, p_pt_attrs->pg_info, sizeof(struct page_info));
+        if (p_pt_attrs->pg_info) {
+            Memory_free (NULL, p_pt_attrs->pg_info, sizeof(struct page_info) *
+                p_pt_attrs->l2_num_pages);
+        }
         if (p_pt_attrs->l1_tbl_alloc_va) {
             munmap ((void *)p_pt_attrs->l1_tbl_alloc_va,
                     p_pt_attrs->l1_tbl_alloc_sz);
