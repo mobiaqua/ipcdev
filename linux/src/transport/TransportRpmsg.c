@@ -682,13 +682,8 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
           */
          msg->msgSize = byteCount;
 
-         /*
-          * If the message received was statically allocated, reset the
-          * heapId, so the app can free it.
-          */
-         if (msg->heapId == MessageQ_STATICMSG)  {
-             msg->heapId = 0;  /* for a copy transport, heap id is 0. */
-         }
+         /* set the heapId in the message header to match allocation above */
+         msg->heapId = 0;
     }
 
     PRINTVERBOSE1("transportGet: recvfrom socket: fd: %d\n", sock)
