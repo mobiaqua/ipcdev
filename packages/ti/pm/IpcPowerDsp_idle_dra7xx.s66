@@ -57,7 +57,8 @@ _IpcPower_callIdle:
         .nocmp
 
         ; must enter this function with interrupts disabled
-        ; workaround: invalidate prefetch buffer in the xmc
+
+        ; Workaround: invalidate prefetch buffer in the xmc
         mfence
         mvk        0x0300,b5
         mvkh       0x8000000,b5

@@ -80,9 +80,9 @@ libArray.push(
 /* pm library for Tesla DSP target */
 libArray.push(
     {
-        name: "ti.pm",
+        name: "ti.pm_omap5",
         sources: [
-            "IpcPowerDsp",
+            "IpcPowerDsp_omap54xx",
         ],
         isas: [ "64T" ],
     }
@@ -91,7 +91,7 @@ libArray.push(
 /* pm library for DRA7XX DSP target */
 libArray.push(
     {
-        name: "ti.pm_dra7xx_dsp",
+        name: "ti.pm",
         sources: [
             "IpcPowerDsp_dra7xx",
             "IpcPowerDsp_idle_dra7xx",

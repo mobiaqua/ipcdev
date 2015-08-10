@@ -138,17 +138,3 @@ Int IpcPower_unregisterCallback(Int event, IpcPower_CallbackFuncPtr cbck)
 {
     return (IpcPower_E_FAIL);
 }
-
-/*
- *  ======== IpcPower_preSuspend ========
- */
-Void IpcPower_preSuspend(Void)
-{
-}
-
-/*
- *  ======== IpcPower_postResume ========
- */
-Void IpcPower_postResume(Void)
-{
-}
