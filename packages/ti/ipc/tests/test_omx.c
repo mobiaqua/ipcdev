@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,11 @@
 #include <ti/srvmgr/ServiceMgr.h>
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/omx_packet.h>
+
+/* Custom resource table with L2 RAM entry for silicon bug workaround */
+#if (defined(DSP) && defined(VAYU))
+#include "power_rsc_table_vayu_dsp.h"
+#endif
 
 /* Turn on/off printf's */
 #define CHATTER 0
