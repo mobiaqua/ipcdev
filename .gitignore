@@ -78,6 +78,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /qnx/src/tests/*/arm/o.g.le.v7/MessageQMulti_g
 /qnx/src/tests/*/arm/o.g.le.v7/NameServerApp_g
 /qnx/src/tests/*/arm/o.g.le.v7/mmrpc_test_g
+/qnx/src/tests/*/arm/o.g.le.v7/Fault_g
 
 /qnx/src/tests/*/arm/o.le.v7/*.o
 /qnx/src/tests/*/arm/o.le.v7/*.map
@@ -88,6 +89,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /qnx/src/tests/*/arm/o.le.v7/MessageQMulti
 /qnx/src/tests/*/arm/o.le.v7/NameServerApp
 /qnx/src/tests/*/arm/o.le.v7/mmrpc_test
+/qnx/src/tests/*/arm/o.le.v7/Fault
 
 /qnx/src/ipc3x_dev/sharedmemallocator/resmgr/arm/le.v7/shmemallocator
 /qnx/src/ipc3x_dev/sharedmemallocator/samples/sharedMemAllocator/usr/arm/le.v7/SharedMemoryAllocatorTestApp

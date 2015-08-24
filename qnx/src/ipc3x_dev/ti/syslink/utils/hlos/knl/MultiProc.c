@@ -98,8 +98,8 @@ typedef struct MultiProc_ModuleObject_tag {
 static
 #endif /* if !defined(IPC_BUILD_DEBUG) */
 MultiProc_ModuleObject MultiProc_state = {
-    .defCfg.numProcessors     = 1u,
-    .defCfg.id                = 0u,
+    .defCfg.numProcessors     = 0u,
+    .defCfg.id                = MultiProc_INVALIDID,
     .id                       = MultiProc_INVALIDID
 };
 

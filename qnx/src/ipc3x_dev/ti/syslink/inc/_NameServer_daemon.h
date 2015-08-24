@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,14 @@ extern "C" {
 #endif
 
 /*!
- * Setup the NameServer module.
+ * Function to prepare the NameServer module for recovery.
  */
-Int NameServer_setup(Void);
+Void NameServer_preRecovery(Void);
 
 /*!
- * Function to destroy the NameServer module.
+ * Function to notify the NameServer module of end of recovery.
  */
-Void NameServer_destroy(Void);
+Int NameServer_postRecovery(Void);
 
 #if defined (__cplusplus)
 }

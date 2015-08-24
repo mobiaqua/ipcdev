@@ -5,7 +5,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2015, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -99,7 +99,7 @@ typedef struct WaitingReaders {
 /*!
  *  @brief  Setup function for the ti-ipc module
  */
-int ti_ipc_setup (Void);
+int ti_ipc_setup (bool recover);
 
 /*!
  *  @brief  Destroy function for the ti-ipc module

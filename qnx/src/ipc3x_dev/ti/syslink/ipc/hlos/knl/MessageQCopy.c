@@ -359,12 +359,13 @@ MessageQCopy_destroy (Void)
                 MessageQCopy_module->mq[MessageQCopy_NS_PORT] = NULL;
             }
 
-            /* Check if any MessageQ instances have not been deleted so far.
-             * If not, assert.
-             */
+            /* Check if any MessageQ instances have not been deleted so far. */
             for (i = 0 ; i < MessageQCopy_MAXMQS; i++) {
-                GT_assert (curTrace,
-                           (MessageQCopy_module->mq [i] == NULL));
+                /*
+                 * This is possible if recovery is performed and the app does
+                 * not yet know about it, hence has not yet had a chance to
+                 * clean up.
+                 */
                 if (MessageQCopy_module->mq [i] != NULL) {
                     MessageQCopy_delete(&MessageQCopy_module->mq [i]);
                     MessageQCopy_module->mq [i] = NULL;

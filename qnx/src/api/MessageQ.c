@@ -217,6 +217,8 @@ typedef struct MessageQ_Object_tag {
     /* Unique id */
     int                     ipcFd;
     /* File Descriptors to receive from a message queue. */
+    int                     unblocked;
+    /* Is the queue unblocked and how */
     int                     unblockFdW;
     /* Write this fd to unblock the select() call in MessageQ _get() */
     int                     unblockFdR;
@@ -648,8 +650,10 @@ Int MessageQ_get (MessageQ_Handle handle, MessageQ_Msg * msg ,UInt timeout)
     /* Add one to last fd created: */
     nfds = ((maxfd > obj->unblockFdR) ? maxfd : obj->unblockFdR) + 1;
 
+    *msg = NULL;
+
     retval = select(nfds, &rfds, NULL, NULL, timevalPtr);
-    if (retval)  {
+    if (retval > 0)  {
         if (FD_ISSET(obj->unblockFdR, &rfds))  {
             /*
              * Our event was signalled by MessageQ_unblock().
@@ -659,8 +663,7 @@ Int MessageQ_get (MessageQ_Handle handle, MessageQ_Msg * msg ,UInt timeout)
              * any pending messages in the transport's queue.
              * Thus, we shall not check for nor return any messages.
              */
-            *msg = NULL;
-            status = MessageQ_E_UNBLOCKED;
+            return (obj->unblocked);
         }
         else {
             if (FD_ISSET(obj->ipcFd, &rfds)) {
@@ -668,14 +671,22 @@ Int MessageQ_get (MessageQ_Handle handle, MessageQ_Msg * msg ,UInt timeout)
                 tmpStatus = transportGet(obj->ipcFd, msg);
                 if (tmpStatus < 0) {
                     printf ("MessageQ_get: transportGet failed.\n");
-                    status = MessageQ_E_FAIL;
+                    if (tmpStatus == MessageQ_E_SHUTDOWN) {
+                        status = tmpStatus;
+                        MessageQ_shutdown(handle);
+                    }
+                    else {
+                        status = MessageQ_E_FAIL;
+                    }
                 }
             }
         }
     }
     else if (retval == 0) {
-        *msg = NULL;
         status = MessageQ_E_TIMEOUT;
+    }
+    else {
+        status = MessageQ_E_FAIL;
     }
 
     return (status);
@@ -763,6 +774,20 @@ Void MessageQ_unblock (MessageQ_Handle handle)
 {
     MessageQ_Object * obj   = (MessageQ_Object *) handle;
     char         buf = 'n';
+
+    obj->unblocked = MessageQ_E_UNBLOCKED;
+
+    /* Write to pipe to awaken any threads blocked on this messageQ: */
+    write(obj->unblockFdW, &buf, 1);
+}
+
+/* Unblocks a MessageQ that's been shutdown due to transport failure */
+Void MessageQ_shutdown(MessageQ_Handle handle)
+{
+    MessageQ_Object *obj = (MessageQ_Object *)handle;
+    char         buf = 'n';
+
+    obj->unblocked = MessageQ_E_SHUTDOWN;
 
     /* Write to pipe to awaken any threads blocked on this messageQ: */
     write(obj->unblockFdW, &buf, 1);
@@ -1003,8 +1028,8 @@ static Int transportGet(int fd, MessageQ_Msg * retMsg)
     /* Get message */
     byteCount = read(fd, msg, MESSAGEQ_RPMSG_MAXSIZE);
     if (byteCount < 0) {
+        status = (errno == ESHUTDOWN ? MessageQ_E_SHUTDOWN : MessageQ_E_FAIL);
         printf("read failed: %s (%d)\n", strerror(errno), errno);
-        status = MessageQ_E_FAIL;
         goto exit;
     }
     else {
@@ -1064,9 +1089,9 @@ static Int transportPut(MessageQ_Msg msg, UInt16 dstId, UInt16 dstProcId)
     /* send response message to remote processor */
     err = write(ipcFd, msg, msg->msgSize);
     if (err < 0) {
+        status = (errno == ESHUTDOWN ? MessageQ_E_SHUTDOWN : MessageQ_E_FAIL);
         printf ("transportPut: write failed: %d, %s\n",
                   errno, strerror(errno));
-        status = MessageQ_E_FAIL;
         goto exit;
     }
 

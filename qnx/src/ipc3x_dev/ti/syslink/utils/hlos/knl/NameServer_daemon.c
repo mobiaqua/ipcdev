@@ -66,6 +66,7 @@
 /* Internal stuff: */
 #include <_MessageQCopy.h>
 #include <_NameServer.h>
+#include <_NameServer_daemon.h>
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 #include <_IpcLog.h>
 
@@ -278,13 +279,28 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 p
         msg->request = NAMESERVER_RESPONSE;
         msg->reserved = NAMESERVER_MSG_TOKEN;
 
-        /* send response message to remote processor */
-        status = MessageQCopy_send(procId, MultiProc_self(),
-            MESSAGEQ_RPMSG_PORT, RPMSG_RESERVED_ADDRESSES, msg,
-            sizeof(NameServerRemote_Msg), TRUE);
-        if (status < 0) {
-            LOG0("NameServer: MessageQCopy_send failed\n")
+        pthread_mutex_lock(&NameServer_module->modGate);
+
+        /*
+         * Check if MessageQCopy object is valid. If not, we received a request
+         * but we are not able to respond to it due to recovery.
+         * We will simply drop the request.
+         */
+        if (NameServer_module->mq == NULL) {
+            LOG0("NameServerRemote_processMessage: MessageQCopy not ready. Request "
+                "dropped.\n")
         }
+        else {
+            /* send response message to remote processor */
+            status = MessageQCopy_send(procId, MultiProc_self(),
+                MESSAGEQ_RPMSG_PORT, RPMSG_RESERVED_ADDRESSES, msg,
+                sizeof(NameServerRemote_Msg), TRUE);
+            if (status < 0) {
+                LOG0("NameServer: MessageQCopy_send failed\n")
+            }
+        }
+
+        pthread_mutex_unlock(&NameServer_module->modGate);
     }
     else {
         LOG2("NameServer Reply: instanceName: %s, name: %s",
@@ -838,10 +854,20 @@ Int NameServer_getRemote(NameServer_Handle handle,
            procId, (String)nsMsg.instanceName)
     LOG1("%s...\n", (String)nsMsg.name)
 
+    /*
+     * Check if MessageQCopy object is valid. Technically we don't need it
+     * to send, but it is an indication of whether recovery is in process
+     */
+    if (NameServer_module->mq == NULL) {
+        LOG0("NameServer_getRemote: MessageQCopy not ready\n")
+        status = NameServer_E_NOTFOUND;
+        goto exit;
+    }
+
     /* send message */
     mqcStatus = MessageQCopy_send(procId, MultiProc_self(), MESSAGEQ_RPMSG_PORT,
             RPMSG_RESERVED_ADDRESSES, &nsMsg, sizeof(NameServerRemote_Msg),
-        TRUE);
+            TRUE);
     if (mqcStatus < 0) {
         LOG0("NameServer_getRemote: Can't send to remote endpoint\n")
         status = NameServer_E_NOTFOUND;
@@ -1111,6 +1137,42 @@ Int NameServer_getLocalUInt32(NameServer_Handle handle, String name, Ptr value)
     return (status);
 }
 
+Void NameServer_preRecovery(Void)
+{
+    Int status;
+
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    if (NameServer_module->mq != NULL) {
+        status = MessageQCopy_delete(&NameServer_module->mq);
+        if (status < 0) {
+            LOG0("NameServer_preRecovery: Cannot delete MessageQCopy\n");
+        }
+        NameServer_module->mq = NULL;
+    }
+
+    pthread_mutex_unlock(&NameServer_module->modGate);
+}
+
+Int NameServer_postRecovery(Void)
+{
+    Int status = NameServer_S_SUCCESS;
+
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Create the MessageQCopy for receiving messages from all remote proc */
+    NameServer_module->mq = MessageQCopy_create(NAME_SERVER_RPMSG_ADDR,
+        NULL, _listener_cb, NULL, &NameServer_module->recvAddr);
+
+    if (NameServer_module->mq == NULL) {
+        status = NameServer_E_FAIL;
+        LOG0("NameServer_postRecovery: failed to create MessageQCopy instance.\n")
+    }
+
+    pthread_mutex_unlock(&NameServer_module->modGate);
+
+    return (status);
+}
 
 #if defined (__cplusplus)
 }

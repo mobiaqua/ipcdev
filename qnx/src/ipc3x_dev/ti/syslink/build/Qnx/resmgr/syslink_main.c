@@ -67,6 +67,7 @@
 #include <ti/ipc/NameServer.h>
 #include <_MultiProc.h>
 #include <_NameServer.h>
+#include <_NameServer_daemon.h>
 #include <_GateMP_daemon.h>
 #include <OsalSemaphore.h>
 #include <ti/syslink/utils/OsalPrint.h>
@@ -1369,7 +1370,7 @@ int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware, bool recover)
             goto tiipcsetup_fail;
 
         /* Set up rpmsg_mq */
-        status = ti_ipc_setup();
+        status = ti_ipc_setup(recover);
         if (status < 0)
             goto tiipcsetup_fail;
 
@@ -1378,15 +1379,26 @@ int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware, bool recover)
         if (status < 0)
             goto rpcsetup_fail;
 
-#if defined(IPC_PLATFORM_VAYU)
-        if (gatempEnabled) {
-            Int32 sr0ProcId;
-
+        if (recover) {
+            /* Notify NameServer that recovery is done */
+            status = NameServer_postRecovery();
+            if (status < 0) {
+                fprintf(stderr, "NameServer could not recover\n");
+                NameServer_destroy();
+                goto nameserversetup_fail;
+            }
+        }
+        else {
             /* Set up NameServer for resource manager process */
             status = NameServer_setup();
             if (status < 0) {
                 goto nameserversetup_fail;
             }
+        }
+
+#if defined(IPC_PLATFORM_VAYU)
+        if (gatempEnabled) {
+            Int32 sr0ProcId;
 
             /* Set up GateMP */
             status = GateMP_setup(&sr0ProcId);
@@ -1412,9 +1424,9 @@ int init_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware, bool recover)
 #if defined(IPC_PLATFORM_VAYU)
 gatempsetup_fail:
     NameServer_destroy();
+#endif
 nameserversetup_fail:
     rpmsg_rpc_destroy();
-#endif
 rpcsetup_fail:
     ti_ipc_destroy(recover);
 tiipcsetup_fail:
@@ -1469,10 +1481,22 @@ int deinit_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
 #if defined(IPC_PLATFORM_VAYU)
     if (gatempEnabled) {
         GateMP_destroy(TRUE);
-
-        NameServer_destroy();
     }
 #endif
+
+    if (recover) {
+        /*
+         * We do not destroy NameServer during recovery, so that all
+         * clients can continue to call its API.
+         *
+         * We will simply notify the module so that it does not
+         * attempt any remote lookups.
+         */
+        NameServer_preRecovery();
+    }
+    else {
+        NameServer_destroy();
+    }
 
     rpmsg_rpc_destroy();
 

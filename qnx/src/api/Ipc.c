@@ -62,11 +62,15 @@
 #include <_GateMP.h>
 #include <_GateMP_usr.h>
 #include <_TiIpcFxns.h>
+#include <_IpcLog.h>
 #include <ti/syslink/inc/_GateHWSpinlock.h>
 #include <ti/syslink/inc/_MultiProc.h>
 
 MultiProc_Config _MultiProc_cfg;
 
+/* traces in this file are controlled via _Ipc_verbose */
+Bool _Ipc_verbose = FALSE;
+#define verbose _Ipc_verbose
 
 static void cleanup(int arg);
 
@@ -89,6 +93,7 @@ Int Ipc_start (Void)
         /* turn on tracing */
         if (getenv("IPC_DEBUG")[0] == '1') {
             /* level 1 enables typical user API tracing */
+            _Ipc_verbose = TRUE;
             _MessageQ_verbose = TRUE;
             _MultiProc_verbose = TRUE;
             _NameServer_verbose = TRUE;
@@ -101,6 +106,7 @@ Int Ipc_start (Void)
         else if ((getenv("IPC_DEBUG")[0] == '2') ||
                 (getenv("IPC_DEBUG")[0] == '3')) {
             /* levels 2 and 3 add TiIpcFxns tracing */
+            _Ipc_verbose = TRUE;
             _MessageQ_verbose = TRUE;
             _MultiProc_verbose = TRUE;
             _NameServer_verbose = TRUE;
@@ -146,6 +152,17 @@ Int Ipc_start (Void)
               status = Ipc_E_FAIL;
               goto messageqattach_fail;
            }
+        }
+
+        /*
+         * Check if MultiProc config is valid and that
+         * MultiProc_getNumProcessors() is non-zero to make sure we are not
+         * in the middle of a recovery.
+         */
+        if (rprocId == 0) {
+            PRINTVERBOSE0("Ipc_start: MultiProc not yet configured\n")
+            status = Ipc_E_FAIL;
+            goto messageqattach_fail;
         }
     }
     else {

@@ -81,6 +81,9 @@
 
 #define PRIORITY_REALTIME_LOW 29
 
+/* Rate (in us) at which to check if setup is completed during recovery */
+#define RECOVERY_POLL_RATE    100000
+
 #define TIIPC_DEVICE_NAME "/dev/tiipc"
 
 
@@ -837,6 +840,13 @@ _ti_ipc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
     ti_ipc_object * obj = NULL;
 
+    if (ti_ipc_state.isSetup == FALSE) {
+        /* If module is not setup (e.g. in recovery), drop the received msg */
+        GT_0trace(curTrace, GT_3CLASS,
+            "_ti_ipc_cb: Module not setup. Dropping incoming msg.");
+        return;
+    }
+
     obj = (ti_ipc_object *) priv;
 
 #if !defined(IPC_BUILD_OPTIMIZE)
@@ -877,6 +887,11 @@ ti_ipc_ocb_calloc (resmgr_context_t * ctp, IOFUNC_ATTR_T * device)
     ti_ipc_ocb_t * ocb = NULL;
     ti_ipc_object * obj = NULL;
 
+    /* Wait for module to be setup during recovery */
+    while (ti_ipc_state.isSetup == FALSE) {
+        usleep(RECOVERY_POLL_RATE);
+    }
+
     /* Allocate the OCB */
     ocb = (ti_ipc_ocb_t *) calloc (1, sizeof (ti_ipc_ocb_t));
     if (ocb == NULL){
@@ -895,6 +910,7 @@ ti_ipc_ocb_calloc (resmgr_context_t * ctp, IOFUNC_ATTR_T * device)
     }
     else if (_ti_ipc_attach(obj) < 0) {
         errno = ENOMEM;
+        Memory_free(NULL, obj, sizeof(ti_ipc_object));
         free(ocb);
         return (NULL);
     }
@@ -1064,14 +1080,29 @@ ti_ipc_ocb_free (IOFUNC_OCB_T * i_ocb)
 
     if (ocb) {
         if (ocb->ipc) {
+            pthread_mutex_lock(&ti_ipc_state.lock);
             obj = ocb->ipc;
             /* TBD: Notification to remote core of endpoint closure? */
             if (obj->mq) {
+                /* Only delete mq if recovery did not do so */
                 MessageQCopy_delete (&obj->mq);
                 obj->mq = NULL;
             }
-            _ti_ipc_detach(ocb->ipc, FALSE);
-            free (obj);
+
+            /*
+             * If recovery happened and connection is no longer valid,
+             * ti_ipc_destroy would have already performed detach. So only
+             * need to detach if it is still valid
+             */
+            if (obj->isValid) {
+                pthread_mutex_unlock(&ti_ipc_state.lock);
+                _ti_ipc_detach(ocb->ipc, FALSE);
+            }
+            else {
+                pthread_mutex_unlock(&ti_ipc_state.lock);
+            }
+
+            Memory_free (NULL, obj, sizeof(ti_ipc_object));
         }
         free (ocb);
     }
@@ -1133,11 +1164,16 @@ ti_ipc_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *i_ocb)
     if ((status = iofunc_read_verify(ctp, msg, i_ocb, &nonblock)) != EOK)
         return (status);
 
+    pthread_mutex_lock(&ti_ipc_state.lock);
+
     if (!obj->isValid) {
-        return EIO;
+        pthread_mutex_unlock(&ti_ipc_state.lock);
+        /* this connection was shutdown due to recovery */
+        return ESHUTDOWN;
     }
 
     if (obj->addr == MessageQCopy_ADDRANY) {
+        pthread_mutex_unlock(&ti_ipc_state.lock);
         return ENOTCONN;
     }
 
@@ -1154,7 +1190,6 @@ ti_ipc_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *i_ocb)
         * race conditions.
         */
         if (ti_ipc_state.eventState [i].bufList != NULL) {
-            pthread_mutex_lock(&ti_ipc_state.lock);
             item = find_nl(i);
             if (dequeue_notify_list_item(item) < 0) {
                 if (nonblock) {
@@ -1169,7 +1204,6 @@ ti_ipc_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *i_ocb)
                         return(_RESMGR_NOREPLY);
                     }
                     retVal = ENOMEM;
-                    pthread_mutex_unlock(&ti_ipc_state.lock);
                 }
             }
             else {
@@ -1179,6 +1213,8 @@ ti_ipc_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *i_ocb)
             }
         }
     }
+
+    pthread_mutex_unlock(&ti_ipc_state.lock);
 
     /*! @retval Number-of-bytes-read Number of bytes read. */
     return retVal;
@@ -1217,28 +1253,37 @@ ti_ipc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
         return (status);
     }
 
+    pthread_mutex_lock(&ti_ipc_state.lock);
+
     if (!obj->isValid) {
-        return EIO;
+        pthread_mutex_unlock(&ti_ipc_state.lock);
+        /* this connection was shutdown due to recovery */
+        return ESHUTDOWN;
     }
 
     if (obj->remoteAddr == MessageQCopy_ADDRANY) {
+        pthread_mutex_unlock(&ti_ipc_state.lock);
         return ENOTCONN;
     }
 
     bytes = ((int64_t) msg->i.nbytes) > MessageQCopy_BUFSIZE ?
             MessageQCopy_BUFSIZE : msg->i.nbytes;
     if (bytes < 0) {
+        pthread_mutex_unlock(&ti_ipc_state.lock);
         return EINVAL;
     }
     _IO_SET_WRITE_NBYTES (ctp, bytes);
 
     status = resmgr_msgread(ctp, buf, bytes, sizeof(msg->i));
     if (status != bytes) {
+        pthread_mutex_unlock(&ti_ipc_state.lock);
         return (errno);
     }
 
     status = MessageQCopy_send(obj->procId, MultiProc_self(), obj->remoteAddr,
                                    obj->addr, buf, bytes, TRUE);
+
+    pthread_mutex_unlock(&ti_ipc_state.lock);
 
     if (status < 0) {
         return (EIO);
@@ -1456,7 +1501,7 @@ ti_ipc_devctl(resmgr_context_t *ctp, io_devctl_t *msg, IOFUNC_OCB_T *i_ocb)
     status = 0;
 
     if (!ocb->ipc->isValid) {
-        return EIO;
+        return ESHUTDOWN;
     }
 
     switch (msg->i.dcmd)
@@ -1520,16 +1565,16 @@ ti_ipc_read_unblock(resmgr_context_t *ctp, io_pulse_t *msg, iofunc_ocb_t *i_ocb)
         /* Let the check remain at run-time for handling any run-time
          * race conditions.
          */
+        pthread_mutex_lock(&ti_ipc_state.lock);
         if (ti_ipc_state.eventState [i].bufList != NULL) {
-            pthread_mutex_lock(&ti_ipc_state.lock);
             wr = find_waiting_reader(i, ctp->rcvid);
             if (wr) {
                 put_wr(wr);
                 pthread_mutex_unlock(&ti_ipc_state.lock);
                 return (EINTR);
             }
-            pthread_mutex_unlock(&ti_ipc_state.lock);
         }
+        pthread_mutex_unlock(&ti_ipc_state.lock);
     }
 
     return _RESMGR_NOREPLY;
@@ -1613,8 +1658,15 @@ ti_ipc_notify( resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb)
     }
 
     pthread_mutex_lock(&ti_ipc_state.lock);
+    if (!obj->isValid) {
+         /*
+          * connection is no longer valid after recovery.
+          * unblock all select calls
+          */
+         trig |= _NOTIFY_COND_INPUT;
+    }
     /* Let the check remain at run-time. */
-    if (flag == TRUE) {
+    else if (flag == TRUE) {
         /* Let the check remain at run-time for handling any run-time
         * race conditions.
         */
@@ -1714,7 +1766,7 @@ _deinit_device (ti_ipc_dev_t * dev)
  *  @sa     ti_ipc_destroy
  */
 Int
-ti_ipc_setup (Void)
+ti_ipc_setup (bool recover)
 {
     UInt16 i;
     List_Params  listparams;
@@ -1728,56 +1780,57 @@ ti_ipc_setup (Void)
     Error_init(&eb);
 
     List_Params_init (&listparams);
-    ti_ipc_state.gateHandle = (IGateProvider_Handle)
+    if (!recover) {
+        ti_ipc_state.gateHandle = (IGateProvider_Handle)
                      GateSpinlock_create ((GateSpinlock_Handle) NULL, &eb);
 #if !defined(IPC_BUILD_OPTIMIZE)
-    if (ti_ipc_state.gateHandle == NULL) {
-        status = -ENOMEM;
-        GT_setFailureReason (curTrace,
+        if (ti_ipc_state.gateHandle == NULL) {
+            status = -ENOMEM;
+            GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "_ti_ipc_setup",
                              status,
                              "Failed to create spinlock gate!");
-    }
-    else {
+            goto exit;
+        }
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
-        for (i = 0 ; i < MAX_PROCESSES ; i++) {
-            ti_ipc_state.eventState [i].bufList = NULL;
-            ti_ipc_state.eventState [i].ipc = NULL;
-            ti_ipc_state.eventState [i].refCount = 0;
-            ti_ipc_state.eventState [i].head = NULL;
-            ti_ipc_state.eventState [i].tail = NULL;
-        }
+    }
 
-        pthread_attr_init(&thread_attr );
-        sched_param.sched_priority = PRIORITY_REALTIME_LOW;
-        pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);
-        pthread_attr_setschedpolicy(&thread_attr, SCHED_RR);
-        pthread_attr_setschedparam(&thread_attr, &sched_param);
+    for (i = 0 ; i < MAX_PROCESSES ; i++) {
+        ti_ipc_state.eventState [i].bufList = NULL;
+        ti_ipc_state.eventState [i].ipc = NULL;
+        ti_ipc_state.eventState [i].refCount = 0;
+        ti_ipc_state.eventState [i].head = NULL;
+        ti_ipc_state.eventState [i].tail = NULL;
+    }
 
-        ti_ipc_state.run = TRUE;
-        if (pthread_create(&ti_ipc_state.nt,
-                           &thread_attr, notifier_thread, NULL) == EOK) {
-            pthread_setname_np(ti_ipc_state.nt, "tiipc-notifier");
-            /* create a /dev/tiipc instance for users to open */
-            if (!ti_ipc_state.dev)
-                ti_ipc_state.dev = _init_device();
-            if (ti_ipc_state.dev == NULL) {
-                Osal_printf("Failed to create tiipc");
-                ti_ipc_state.run = FALSE;
-            }
-            else {
-                ti_ipc_state.isSetup = TRUE;
-            }
-        }
-        else {
+    pthread_attr_init(&thread_attr );
+    sched_param.sched_priority = PRIORITY_REALTIME_LOW;
+    pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&thread_attr, SCHED_RR);
+    pthread_attr_setschedparam(&thread_attr, &sched_param);
+
+    ti_ipc_state.run = TRUE;
+    if (pthread_create(&ti_ipc_state.nt,
+                       &thread_attr, notifier_thread, NULL) == EOK) {
+        pthread_setname_np(ti_ipc_state.nt, "tiipc-notifier");
+        /* create a /dev/tiipc instance for users to open */
+        if (!ti_ipc_state.dev)
+            ti_ipc_state.dev = _init_device();
+        if (ti_ipc_state.dev == NULL) {
+            Osal_printf("Failed to create tiipc");
             ti_ipc_state.run = FALSE;
         }
-        pthread_attr_destroy(&thread_attr);
-#if !defined(IPC_BUILD_OPTIMIZE)
+        else {
+            ti_ipc_state.isSetup = TRUE;
+        }
     }
-#endif /* if !defined(IPC_BUILD_OPTIMIZE) */
+    else {
+        ti_ipc_state.run = FALSE;
+    }
+    pthread_attr_destroy(&thread_attr);
 
+exit:
     GT_0trace (curTrace, GT_LEAVE, "ti_ipc_setup");
     return status;
 }
@@ -1800,17 +1853,23 @@ ti_ipc_destroy (bool recover)
 
     GT_0trace (curTrace, GT_ENTER, "_ti_ipc_destroy");
 
-    if (!recover)
+    if (!recover) {
         _deinit_device(ti_ipc_state.dev);
+        ti_ipc_state.dev = NULL;
+    }
+
+    ti_ipc_state.isSetup = FALSE;
 
     for (i = 0 ; i < MAX_PROCESSES ; i++) {
-        obj = NULL;
-        if (ti_ipc_state.eventState [i].ipc != NULL) {
+        pthread_mutex_lock(&ti_ipc_state.lock);
+        obj = ti_ipc_state.eventState[i].ipc;
+        if (obj != NULL) {
             /* This is recovery.  Need to mark mq structures as invalid */
-            obj = ti_ipc_state.eventState[i].ipc;
-            MessageQCopy_delete(&obj->mq);
-            obj->mq = NULL;
             obj->isValid = FALSE;
+            if (obj->mq) {
+                MessageQCopy_delete(&obj->mq);
+                obj->mq = NULL;
+            }
         }
         bufList = ti_ipc_state.eventState [i].bufList;
 
@@ -1819,7 +1878,6 @@ ti_ipc_destroy (bool recover)
         ti_ipc_state.eventState [i].refCount = 0;
         if (bufList != NULL) {
             /* Dequeue waiting readers and reply to them */
-            pthread_mutex_lock(&ti_ipc_state.lock);
             while ((wr = dequeue_waiting_reader(i)) != NULL) {
                 /* Check if rcvid is still valid */
                 if (MsgInfo(wr->rcvid, &info) != -1) {
@@ -1847,6 +1905,9 @@ ti_ipc_destroy (bool recover)
             }
             List_delete (&(bufList));
         }
+        else {
+            pthread_mutex_unlock(&ti_ipc_state.lock);
+        }
     }
 
     /* Free the cached list */
@@ -1854,12 +1915,11 @@ ti_ipc_destroy (bool recover)
     flush_uBuf();
     pthread_mutex_unlock(&ti_ipc_state.lock);
 
-    if (ti_ipc_state.gateHandle != NULL) {
+    if ((!recover) && (ti_ipc_state.gateHandle != NULL)) {
         GateSpinlock_delete ((GateSpinlock_Handle *)
                                        &(ti_ipc_state.gateHandle));
     }
 
-    ti_ipc_state.isSetup = FALSE ;
     ti_ipc_state.run = FALSE;
     // run through and destroy the thread, and all outstanding
     // notify structures
