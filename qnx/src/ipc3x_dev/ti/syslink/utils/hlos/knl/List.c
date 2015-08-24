@@ -758,7 +758,7 @@ List_dequeue (List_Handle handle)
     List_Object * obj  = (List_Object *) handle;
     IArg          key;
 
-    GT_1trace (curTrace, GT_ENTER, "List_dequeue", handle);
+/*    GT_1trace (curTrace, GT_ENTER, "List_dequeue", handle); */
 
     GT_assert (curTrace, (handle != NULL));
 
@@ -794,7 +794,7 @@ List_dequeue (List_Handle handle)
     }
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-    GT_1trace (curTrace, GT_LEAVE, "List_dequeue", elem);
+/*    GT_1trace (curTrace, GT_LEAVE, "List_dequeue", elem); */
 
     /*! @retval Valid-pointer Pointer to first element */
     return elem ;
@@ -808,7 +808,7 @@ List_enqueue (List_Handle handle, List_Elem * elem)
     List_Object * obj    = (List_Object *) handle;
     IArg          key    = 0;
 
-    GT_2trace (curTrace, GT_ENTER, "List_enqueue", handle, elem);
+/*    GT_2trace (curTrace, GT_ENTER, "List_enqueue", handle, elem); */
 
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
@@ -844,7 +844,7 @@ List_enqueue (List_Handle handle, List_Elem * elem)
     }
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-    GT_0trace (curTrace, GT_LEAVE, "List_enqueue");
+/*    GT_0trace (curTrace, GT_LEAVE, "List_enqueue"); */
 }
 
 
@@ -855,7 +855,7 @@ List_enqueueHead (List_Handle handle, List_Elem * elem)
     List_Object * obj    = (List_Object *) handle;
     IArg          key;
 
-    GT_2trace (curTrace, GT_ENTER, "List_enqueueHead", handle, elem);
+/*    GT_2trace (curTrace, GT_ENTER, "List_enqueueHead", handle, elem); */
 
     GT_assert (curTrace, (handle != NULL));
     GT_assert (curTrace, (elem != NULL));
@@ -891,7 +891,7 @@ List_enqueueHead (List_Handle handle, List_Elem * elem)
     }
 #endif /* if !defined(IPC_BUILD_OPTIMIZE) */
 
-    GT_0trace (curTrace, GT_LEAVE, "List_enqueueHead");
+/*    GT_0trace (curTrace, GT_LEAVE, "List_enqueueHead"); */
 }
 
 
