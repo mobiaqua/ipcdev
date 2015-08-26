@@ -273,10 +273,14 @@ function viewInitQueues(view, obj)
     var Program         = xdc.useModule('xdc.rov.Program');
     var NameServer      = xdc.useModule('ti.sdo.utils.NameServer');
     var SharedRegion    = xdc.useModule('ti.sdo.ipc.SharedRegion');
+    var modCfg          = Program.getModuleConfig('ti.sdo.ipc.MessageQ');
 
     /* view.name */
     try {
         view.name = NameServer.getName$view("MessageQ", obj.queue);
+        if (view.name == null) {
+            view.name = "<null>";
+        }
     }
     catch(e) {
         Program.displayError(view, "name",
@@ -286,6 +290,13 @@ function viewInitQueues(view, obj)
     /* view.queueId */
     view.queueId = obj.queue & 0xffff;
 
+    /* view.reserved */
+    if ((view.queueId - 128) < modCfg.numReservedEntries) {
+        view.reserved = true;
+    }
+    else {
+        view.reserved = false;
+    }
 }
 
 /*
@@ -297,11 +308,12 @@ function viewInitMessages(view, obj)
     var MessageQ = xdc.useModule('ti.sdo.ipc.MessageQ');
     var NameServer = xdc.useModule('ti.sdo.utils.NameServer');
 
-    print("viewInitMessages called");
-
     /* view.label */
     try {
         view.label = NameServer.getName$view("MessageQ", obj.queue);
+        if (view.label == null) {
+            view.label = "<null>";
+        }
     }
     catch(e) {
         Program.displayError(view, "label",
@@ -324,8 +336,6 @@ function addMsgsFromList(view, list)
 {
     var Program = xdc.useModule('xdc.rov.Program');
 
-    print("Calling addMsgsFromList");
-
     /* Scan the list to retrieve the addresses of the messages. */
     try {
         var listView = Program.scanObjectView("ti.sdo.utils.List", list,
@@ -346,9 +356,7 @@ function addMsgsFromList(view, list)
     try {
         /* Fetch each of the message headers on the list. */
         for each (var addr in listView.elems) {
-            print("Trying to call getMsgView for 0x" + Number(addr).toString(16));
             var msgView = getMsgView(Number(addr));
-
             view.elements.$add(msgView);
         }
     }
@@ -371,8 +379,6 @@ function getMsgView(addr)
 {
     var Program = xdc.useModule('xdc.rov.Program');
     var MessageQ = xdc.useModule('ti.sdo.ipc.MessageQ');
-
-    print("getting message view: 0x" + Number(addr).toString(16));
 
     /* Create a new message view to populate. */
     var msgView = Program.newViewStruct('ti.sdo.ipc.MessageQ', 'Messages');

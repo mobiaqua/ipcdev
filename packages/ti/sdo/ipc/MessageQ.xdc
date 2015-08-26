@@ -181,6 +181,7 @@ module MessageQ
     metaonly struct QueuesView {
         String  name;
         UInt    queueId;
+        Bool    reserved;
     }
 
     /*!
