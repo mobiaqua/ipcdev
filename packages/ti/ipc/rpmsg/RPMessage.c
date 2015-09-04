@@ -169,10 +169,10 @@ typedef struct RPMessage_Transport  {
 } RPMessage_Transport;
 
 /* generated in RPMessage.xs: module$use() */
-extern const HeapBuf_Handle ti_ipc_rpmsg_RPMessage_heap;
+extern __FAR__ const HeapBuf_Handle ti_ipc_rpmsg_RPMessage_heap;
 
 /* generated in template file RPMessage.xdt */
-extern const UInt ti_ipc_rpmsg_RPMessage_messageBufferSize;
+extern __FAR__ const UInt ti_ipc_rpmsg_RPMessage_messageBufferSize;
 
 /* module diags mask */
 Registry_Desc Registry_CURDESC;
