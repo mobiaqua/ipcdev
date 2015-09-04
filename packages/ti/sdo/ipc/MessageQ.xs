@@ -70,7 +70,6 @@ function module$use()
     xdc.useModule('ti.sdo.ipc.interfaces.ITransport');
     xdc.useModule('ti.sdo.ipc.interfaces.IMessageQTransport');
     xdc.useModule('ti.sdo.ipc.interfaces.INetworkTransport');
-    xdc.useModule('ti.sdo.ipc.transports.TransportNetworkDummy');
 
     /* Plug the SetupTransportProxy for the MessageQ transport */
     if (MessageQ.SetupTransportProxy == null) {

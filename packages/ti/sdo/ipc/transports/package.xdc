@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,5 +46,4 @@ package ti.sdo.ipc.transports [1,0,0,0] {
     module    TransportShmNotify;
     module    TransportShmNotifySetup;
     module    TransportNullSetup;
-    module    TransportNetworkDummy;
 }
