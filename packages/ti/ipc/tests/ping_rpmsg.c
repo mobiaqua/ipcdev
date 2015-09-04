@@ -67,7 +67,7 @@ static Void pingCallbackFxn(RPMessage_Handle h, UArg arg, Ptr data,
                   counter++, data, src, len);
 
     /* Send data back to remote endpoint: */
-    RPMessage_send(dstProc, src, myEndpoint, (Ptr)reply, replyLen);
+    RPMessage_send(dstProc, arg, myEndpoint, (Ptr)reply, replyLen);
 }
 
 Void pingTaskFxn(UArg arg0, UArg arg1)
@@ -75,7 +75,7 @@ Void pingTaskFxn(UArg arg0, UArg arg1)
     System_printf("ping_task at port %d: Entered...\n", arg0);
 
     /* Create the messageQ for receiving, and register callback: */
-    handle = RPMessage_create(arg0, pingCallbackFxn, NULL, &myEndpoint);
+    handle = RPMessage_create(arg0, pingCallbackFxn, arg0, &myEndpoint);
     if (!handle) {
         System_abort("RPMessage_createEx failed\n");
     }

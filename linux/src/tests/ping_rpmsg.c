@@ -71,7 +71,7 @@ int main (int argc, char ** argv)
 {
     unsigned int numLoops = NUM_LOOPS_DFLT;
     short coreId = CORE_ID_DFLT;
-    int sock, err;
+    int send_sock, err, recv_sock;
     struct sockaddr_rpmsg src_addr, dst_addr;
     socklen_t len;
     const char *msg = "Ping!";
@@ -79,6 +79,7 @@ int main (int argc, char ** argv)
     struct timespec   start,end;
     long              elapsed=0,delta;
     int i;
+    fd_set rfds;
 
     /* Parse Args: */
     switch (argc) {
@@ -100,9 +101,9 @@ int main (int argc, char ** argv)
     }
 
     /* create an RPMSG socket */
-    sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
-    if (sock < 0) {
-        printf("socket failed: %s (%d)\n", strerror(errno), errno);
+    send_sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
+    if (send_sock < 0) {
+        printf("socket failed for send_sock: %s (%d)\n", strerror(errno), errno);
         return -1;
     }
 
@@ -117,38 +118,83 @@ int main (int argc, char ** argv)
             dst_addr.addr, dst_addr.vproc_id);
 
     len = sizeof(struct sockaddr_rpmsg);
-    err = connect(sock, (struct sockaddr *)&dst_addr, len);
+    err = connect(send_sock, (struct sockaddr *)&dst_addr, len);
     if (err < 0) {
         printf("connect failed: %s (%d)\n", strerror(errno), errno);
         return -1;
     }
 
     /* let's see what local address we got */
-    err = getsockname(sock, (struct sockaddr *)&src_addr, &len);
+    err = getsockname(send_sock, (struct sockaddr *)&src_addr, &len);
     if (err < 0) {
-        printf("getpeername failed: %s (%d)\n", strerror(errno), errno);
+        printf("getsockname failed for send_sock: %s (%d)\n", strerror(errno), errno);
         return -1;
     }
 
-    printf("Our address: socket family: %d, proc id = %d, addr = %d\n",
+    printf("Our address: send_sock: socket family: %d, proc id = %d, addr = %d\n",
                  src_addr.family, src_addr.vproc_id, src_addr.addr);
+
+    /* bind a local endpoint for receiving responses */
+    /* create an RPMSG socket */
+    recv_sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
+    if (recv_sock < 0) {
+        printf("socket failed for recv_sock: %s (%d)\n", strerror(errno), errno);
+        return -1;
+    }
+
+    /* bind to the source address */
+    memset(&src_addr, 0, sizeof(src_addr));
+    src_addr.family = AF_RPMSG;
+    src_addr.vproc_id = coreId;
+    src_addr.addr  = 51; // use 51 for ping_tasks;
+
+    printf("Binding to address 0x%x on vprodId %d\n",
+            src_addr.addr, src_addr.vproc_id);
+
+    len = sizeof(struct sockaddr_rpmsg);
+    err = bind(recv_sock, (struct sockaddr *)&src_addr, len);
+    if (err < 0) {
+        printf("bind failed: %s (%d)\n", strerror(errno), errno);
+        return -1;
+    }
+
+    /* let's see what local address we got */
+    err = getsockname(recv_sock, (struct sockaddr *)&src_addr, &len);
+    if (err < 0) {
+        printf("getsockname failed for recv_sock: %s (%d)\n", strerror(errno), errno);
+        return -1;
+    }
+
+    printf("Our address: recv_sock: socket family: %d, proc id = %d, addr = %d\n",
+                 src_addr.family, src_addr.vproc_id, src_addr.addr);
+
+    FD_ZERO(&rfds);
+    FD_SET(recv_sock, &rfds);
 
     printf("Sending \"%s\" in a loop.\n", msg);
 
     for (i = 0; i < numLoops; i++) {
         clock_gettime(CLOCK_REALTIME, &start);
 
-        err = send(sock, msg, strlen(msg) + 1, 0);
+        err = send(send_sock, msg, strlen(msg) + 1, 0);
         if (err < 0) {
             printf("sendto failed: %s (%d)\n", strerror(errno), errno);
             return -1;
+        }
+
+        err = select(recv_sock + 1, &rfds, NULL, NULL, NULL);
+
+        /* if error, try again */
+        if (err < 0) {
+            printf("Warning: select failed, trying again\n");
+            continue;
         }
 
         memset(&src_addr, 0, sizeof(src_addr));
 
         len = sizeof(src_addr);
 
-        err = recvfrom(sock, buf, sizeof(buf), 0,
+        err = recvfrom(recv_sock, buf, sizeof(buf), 0,
                        (struct sockaddr *)&src_addr, &len);
 
         if (err < 0) {
@@ -175,7 +221,8 @@ int main (int argc, char ** argv)
     }
     printf ("Avg time: %ld usecs over %d iterations\n", elapsed / i, i);
 
-    close(sock);
+    close(send_sock);
+    close(recv_sock);
 
     return 0;
 }
