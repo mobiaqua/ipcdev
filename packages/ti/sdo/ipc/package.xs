@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 /*
  *  ======== package.xs ========
  */
+var Build = null;
 
 /*
  *  ======== package.close ========
@@ -48,8 +49,52 @@ function close()
      */
     for (var mod in this.$modules) {
         if (this.$modules[mod].$used == true) {
-            xdc.useModule('ti.sdo.ipc.Build');
+            Build = xdc.useModule('ti.sdo.ipc.Build');
             break;
+        }
+    }
+
+    /* if custom build, add package dependencies to participating modules */
+    if ((Build != null) && ((Build.libType == Build.LibType_Custom)
+            || (Build.libType == Build.LibType_Debug))) {
+
+        for (var m = 0; m < xdc.om.$modules.length; m++) {
+            var mod = xdc.om.$modules[m];
+
+            /* exclude modules which have not been used */
+            if (!mod.$used) {
+                continue;
+            }
+
+            /* exclude modules from this package */
+            if (this == mod.$package) {
+                continue;
+            }
+
+            /* determine if module belongs to an ipc package */
+            var ipcPkg = false;
+            var pn = mod.$package.$name;
+
+            for (var i = 0; i < Build.$private.ipcPkgs.length; i++) {
+                if (pn == Build.$private.ipcPkgs[i]) {
+                    ipcPkg = true;
+                    break;
+                }
+            }
+
+            /* if not a proxy module, add dependency from this package */
+            if (ipcPkg && !mod.$name.match(/Proxy/)) {
+                xdc.useModule(mod.$name);
+                continue;
+            }
+
+            /* special handling for non-target modules */
+            for (var p in Build.$private.cFiles) {
+                if (pn == p) {
+                    xdc.useModule(mod.$name);
+                    continue;
+                }
+            }
         }
     }
 }

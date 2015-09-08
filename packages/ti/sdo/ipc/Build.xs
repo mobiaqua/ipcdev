@@ -75,6 +75,47 @@ var ccOptsList = {
     "gnu.targets.arm.A15F"                      : customGnuArmA15Opts,
 };
 
+var ipcPackages = [
+    "ti.sdo.ipc",
+    "ti.sdo.ipc.family.omap4430",
+    "ti.sdo.ipc.family.omap3530",
+    "ti.sdo.ipc.family.da830",
+    "ti.sdo.ipc.family.dm6446",
+    "ti.sdo.ipc.family.ti81xx",
+    "ti.sdo.ipc.family.arctic",
+    "ti.sdo.ipc.family.f28m35x",
+    "ti.sdo.ipc.family.f2837x",
+    "ti.sdo.ipc.family.c647x",
+    "ti.sdo.ipc.family.c6a8149",
+    "ti.sdo.ipc.family.tci663x",
+    "ti.sdo.ipc.family.tda3xx",
+    "ti.sdo.ipc.family.vayu",
+    "ti.sdo.ipc.gates",
+    "ti.sdo.ipc.heaps",
+    "ti.sdo.ipc.notifyDrivers",
+    "ti.sdo.ipc.nsremote",
+    "ti.sdo.ipc.transports",
+    "ti.sdo.utils",
+    "ti.ipc.family.tci6614",
+    "ti.ipc.family.tci6638",
+    "ti.ipc.family.vayu",
+    "ti.ipc.namesrv",
+    "ti.ipc.remoteproc",
+    "ti.ipc.transports"
+];
+
+var cFiles = {
+    "ti.ipc.ipcmgr" : {
+        cSources: [ "IpcMgr.c" ]
+    },
+    "ti.ipc.family.vayu" : {
+        cSources: [ "VirtQueue.c" ]
+    },
+    "ti.ipc.rpmsg" : {
+        cSources: [ "NameMap.c", "RPMessage.c" ]
+    }
+};
+
 /*
  *  ======== module$meta$init ========
  */
@@ -102,6 +143,10 @@ function module$meta$init()
      * User can override this in their cfg file.
      */
     Build.customCCOpts = Build.getDefaultCustomCCOpts();
+
+    /* needed by IPackage.close() method */
+    Build.$private.ipcPkgs = ipcPackages;
+    Build.$private.cFiles = cFiles;
 }
 
 /*
@@ -569,47 +614,6 @@ var cList = {
     "gnu.targets.arm.M4"                : commonSources + M4Sources,
     "gnu.targets.arm.M4F"               : commonSources + M4Sources,
 };
-
-var cFiles = {
-    "ti.ipc.ipcmgr" : {
-        cSources: [ "IpcMgr.c" ]
-    },
-    "ti.ipc.family.vayu" : {
-        cSources: [ "VirtQueue.c" ]
-    },
-    "ti.ipc.rpmsg" : {
-        cSources: [ "NameMap.c", "RPMessage.c" ]
-    }
-};
-
-var ipcPackages = [
-    "ti.sdo.ipc",
-    "ti.sdo.ipc.family.omap4430",
-    "ti.sdo.ipc.family.omap3530",
-    "ti.sdo.ipc.family.da830",
-    "ti.sdo.ipc.family.dm6446",
-    "ti.sdo.ipc.family.ti81xx",
-    "ti.sdo.ipc.family.arctic",
-    "ti.sdo.ipc.family.f28m35x",
-    "ti.sdo.ipc.family.f2837x",
-    "ti.sdo.ipc.family.c647x",
-    "ti.sdo.ipc.family.c6a8149",
-    "ti.sdo.ipc.family.tci663x",
-    "ti.sdo.ipc.family.tda3xx",
-    "ti.sdo.ipc.family.vayu",
-    "ti.sdo.ipc.gates",
-    "ti.sdo.ipc.heaps",
-    "ti.sdo.ipc.notifyDrivers",
-    "ti.sdo.ipc.nsremote",
-    "ti.sdo.ipc.transports",
-    "ti.sdo.utils",
-    "ti.ipc.family.tci6614",
-    "ti.ipc.family.tci6638",
-    "ti.ipc.family.vayu",
-    "ti.ipc.namesrv",
-    "ti.ipc.remoteproc",
-    "ti.ipc.transports"
-];
 
 var asmListNone = [
 ];
