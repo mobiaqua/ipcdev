@@ -199,8 +199,6 @@ var procNames = {
     'OMAP5430'          : ["DSP", "IPU", "HOST"],
 
     'Arctic'            : ["DSP", "ARP32"],
-    'F28M3.*'           : ["M3", "C28"],
-    'F2837.*'           : ["CORE0", "CORE1"],
     'LM3.*'             : [ "" ],  /* single core, any name can be used */
     'Vayu'              : ["DSP1", "DSP2", "EVE1", "EVE2", "EVE3", "EVE4",
                            "IPU1", "IPU2", "IPU1-0", "IPU1-1", "IPU2-0",
@@ -251,8 +249,6 @@ var hostProcNames = {
     'TMS320C6670'       : ["CORE0"],
     'TMS320C6472'       : ["CORE0"],
     'TMS320C6474'       : ["CORE0"],
-    'F28M3.*'           : ["M3"],
-    'F2837.*'           : ["CORE0"],
     'TMS320TCI6630K2L'  : ["HOST"],
     'TMS320C66AK2H12'   : ["HOST"],
     'TMS320TCI6634'     : ["CORE0"],
@@ -276,8 +272,6 @@ var nameServerRemoteDelegates = {
     'TMS320C6474'       : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
     'OMAP4430'          : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
     'Arctic'            : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
-    'F28M3.*'           : { del: 'ti.sdo.ipc.family.f28m35x.NameServerBlock', },
-    'F2837.*'           : { del: 'ti.sdo.ipc.family.f2837x.NameServerBlock', },
     'Vayu'              : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
     'TDA3X'             : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify' },
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
@@ -300,8 +294,6 @@ var notifySetupDelegates = {
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.family.tci663x.NotifyCircSetup', },
     'OMAP4430'          : { del: 'ti.sdo.ipc.family.omap4430.NotifySetup', },
     'Arctic'            : { del: 'ti.sdo.ipc.family.arctic.NotifyCircSetup', },
-    'F28M3.*'           : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
-    'F2837.*'           : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Vayu'              : { del: 'ti.sdo.ipc.family.vayu.NotifySetup', },
     'TDA3X'             : { del: 'ti.sdo.ipc.family.tda3xx.NotifySetup'  },
@@ -326,8 +318,6 @@ var messageQSetupDelegates = {
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.transports.TransportShmNotifySetup', },
     'OMAP4430'          : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
     'Arctic'            : { del: 'ti.sdo.ipc.transports.TransportShmNotifySetup', },
-    'F28M3.*'           : { del: 'ti.sdo.ipc.transports.TransportNullSetup', },
-    'F2837.*'           : { del: 'ti.sdo.ipc.transports.TransportNullSetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.transports.TransportNullSetup', },
     'Vayu'              : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
     'TDA3X'             : { del: 'ti.sdo.ipc.transports.TransportShmSetup' }
@@ -347,7 +337,6 @@ var interruptDelegates = {
         'TMS320TI816X'  : { del: 'ti.sdo.ipc.family.ti81xx.InterruptDucati', },
         'TMS320C6A8149' : { del: 'ti.sdo.ipc.family.c6a8149.InterruptDucati', },
         'OMAP4430'      : { del: 'ti.sdo.ipc.family.omap4430.InterruptDucati', },
-        'F28M3.*'       : { del: 'ti.sdo.ipc.family.f28m35x.InterruptM3', },
     },
     'ti.catalog.arm.cortexm4' : {
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptIpu', },
@@ -384,9 +373,6 @@ var interruptDelegates = {
         'Arctic'        : { del: 'ti.sdo.ipc.family.arctic.InterruptArp32', },
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptArp32', },
         'TDA3X'         : { del: 'ti.sdo.ipc.family.tda3xx.InterruptArp32' },
-    },
-    'ti.catalog.c2800' : {
-        'F28M3.*'       : { del: 'ti.sdo.ipc.family.f28m35x.InterruptC28', },
     },
 };
 for (var family in interruptDelegates) {

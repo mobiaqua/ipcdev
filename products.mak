@@ -106,9 +106,6 @@ BIOS_SMPENABLED=1
 
 # Path to various cgtools
 #
-ti.targets.C28_large =
-ti.targets.C28_float =
-
 ti.targets.elf.C64P =
 ti.targets.elf.C64P_big_endian =
 ti.targets.elf.C64T =

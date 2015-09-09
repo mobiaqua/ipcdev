@@ -38,7 +38,6 @@ var BIOS = null;
 var Build = null;
 var Ipc = null;
 
-var custom28xOpts = " -q -mo ";
 var custom6xOpts = " -q -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 ";
 var customARP32xOpts = " -q --gen_func_subsections ";
 var customArmOpts = " -q -ms --opt_for_speed=2 ";
@@ -50,8 +49,6 @@ var customGnuArmA8Opts = " ";
 var customGnuArmA15Opts = " ";
 
 var ccOptsList = {
-    "ti.targets.C28_large"                      : custom28xOpts,
-    "ti.targets.C28_float"                      : custom28xOpts,
     "ti.targets.C64P"                           : custom6xOpts,
     "ti.targets.elf.C64P"                       : custom6xOpts,
     "ti.targets.C64P_big_endian"                : custom6xOpts,
@@ -447,15 +444,6 @@ var C64TSources  = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/omap4430/NotifySetup.c " +
                    "ti/sdo/ipc/family/omap4430/InterruptDsp.c ";
 
-var C28Sources   = "ti/sdo/ipc/family/f28m35x/NotifyDriverCirc.c " +
-                   "ti/sdo/ipc/family/f28m35x/IpcMgr.c " +
-                   "ti/sdo/ipc/family/f28m35x/TransportCirc.c " +
-                   "ti/sdo/ipc/family/f28m35x/NameServerBlock.c " +
-                   "ti/sdo/ipc/family/f2837x/NotifyDriverCirc.c " +
-                   "ti/sdo/ipc/family/f2837x/IpcMgr.c " +
-                   "ti/sdo/ipc/family/f2837x/TransportCirc.c " +
-                   "ti/sdo/ipc/family/f2837x/NameServerBlock.c ";
-
 var M3Sources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/omap4430/NotifySetup.c " +
                    "ti/sdo/ipc/family/omap4430/NotifyCircSetup.c " +
@@ -548,9 +536,6 @@ var ARP32Sources = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/tda3xx/NotifySetup.c ";
 
 var cList = {
-    "ti.targets.C28_large"              : commonSources + C28Sources,
-    "ti.targets.C28_float"              : commonSources + C28Sources,
-
     "ti.targets.C64P"                   : commonSources + C647xSources +
                                                 C64PSources,
     "ti.targets.C64P_big_endian"        : commonSources + C647xSources +
@@ -634,9 +619,6 @@ var asmList64P = [
 ];
 
 var asmList = {
-    "ti.targets.C28_large"              : asmListNone,
-    "ti.targets.C28_float"              : asmListNone,
-
     "ti.targets.C64P"                   : asmList64P,
     "ti.targets.C64P_big_endian"        : asmList64P,
     "ti.targets.C674"                   : asmList64P,

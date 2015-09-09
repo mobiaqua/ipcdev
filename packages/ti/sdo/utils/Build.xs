@@ -37,7 +37,6 @@
 var BIOS = null;
 var Build = null;
 
-var custom28xOpts = " -q -mo ";
 var custom6xOpts = " -q -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 ";
 var customARP32xOpts = " -q --gen_func_subsections ";
 var customArmOpts = " -q -ms --opt_for_speed=2 ";
@@ -49,8 +48,6 @@ var customGnuArmA8Opts = " ";
 var customGnuArmA15Opts = " ";
 
 var ccOptsList = {
-    "ti.targets.C28_large"                      : custom28xOpts,
-    "ti.targets.C28_float"                      : custom28xOpts,
     "ti.targets.C64P"                           : custom6xOpts,
     "ti.targets.elf.C64P"                       : custom6xOpts,
     "ti.targets.C64P_big_endian"                : custom6xOpts,

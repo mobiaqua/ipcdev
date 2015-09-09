@@ -74,8 +74,6 @@ include ./products.mak
 XDCARGS= \
     PLATFORM=\"$(PLATFORM)\" \
     BIOS_SMPENABLED=\"$(BIOS_SMPENABLED)\" \
-    ti.targets.C28_large=\"$(ti.targets.C28_large)\" \
-    ti.targets.C28_float=\"$(ti.targets.C28_float)\" \
     ti.targets.C64P=\"$(ti.targets.C64P)\" \
     ti.targets.C64P_big_endian=\"$(ti.targets.C64P_big_endian)\" \
     ti.targets.C674=\"$(ti.targets.C674)\" \
