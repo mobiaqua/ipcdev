@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -436,6 +436,10 @@ Ptr NameServer_addUInt32(NameServer_Handle handle, String name, UInt32 value);
  *  UInt16 queryList[4] = {3, 2, 4, MultiProc_INVALIDID};
  *  count = NameServer_get(handle, "foo", &value, &len, queryList);
  *  @endcode
+ *
+ *  This API should be called only from task context. It cannot be called
+ *  from Hwi or Swi context because it blocks waiting for a response from
+ *  the remote processor.
  *
  *  The NameServer_getLocal() call can be used for searching
  *  the local table only.
