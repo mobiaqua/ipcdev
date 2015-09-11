@@ -83,8 +83,6 @@ var ipcPackages = [
     "ti.sdo.ipc.family.dm6446",
     "ti.sdo.ipc.family.ti81xx",
     "ti.sdo.ipc.family.arctic",
-    "ti.sdo.ipc.family.f28m35x",
-    "ti.sdo.ipc.family.f2837x",
     "ti.sdo.ipc.family.c647x",
     "ti.sdo.ipc.family.c6a8149",
     "ti.sdo.ipc.family.tci663x",
@@ -503,10 +501,6 @@ var M3Sources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/c6a8149/InterruptDucati.c " +
                    "ti/sdo/ipc/family/c6a8149/NotifyMbxSetup.c " +
                    "ti/sdo/ipc/family/c6a8149/NotifyDriverMbx.c " +
-                   "ti/sdo/ipc/family/f28m35x/IpcMgr.c " +
-                   "ti/sdo/ipc/family/f28m35x/NotifyDriverCirc.c " +
-                   "ti/sdo/ipc/family/f28m35x/TransportCirc.c " +
-                   "ti/sdo/ipc/family/f28m35x/NameServerBlock.c " +
                    "ti/sdo/ipc/family/vayu/InterruptIpu.c " +
                    "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
                    "ti/sdo/ipc/family/vayu/NotifySetup.c " +
