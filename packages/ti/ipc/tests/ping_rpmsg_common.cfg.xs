@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -205,7 +205,7 @@ else {
 
 Hwi.enableException = true;
 
-xdc.loadPackage('ti.ipc.ipcmgr');
+xdc.useModule('ti.ipc.ipcmgr.IpcMgr');
 BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
 
 xdc.loadPackage('ti.ipc.rpmsg');
