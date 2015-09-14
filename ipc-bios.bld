@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,6 +187,10 @@ for (arg = 0; arg < arguments.length; arg++) {
 
     if (targetName.match(/elf\.C66$/)) {
         switch (platform) {
+            case '66AK2G':
+                target.platforms.$add("ti.platforms.evmTCI66AK2G02:core0");
+                break;
+
             case '66AK2E':
                 target.platforms.$add("ti.platforms.evmC66AK2E:core0");
                 break;

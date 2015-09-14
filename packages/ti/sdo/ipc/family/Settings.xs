@@ -146,6 +146,7 @@ var deviceAliases = {
                            'TMS320TCI6636',
                            'TMS320TCI6638',
                            'Kepler'],
+    'TMS320C66AK2H12'   : ['TCI66AK2G02'],
     'LM3.*'             : ['LM4.*'],
     'Vayu'              : ['DRA7XX']
 }
@@ -182,7 +183,7 @@ var procNames = {
     'TMS320C66AK2E05'   : ["HOST", "CORE0"],
     'TMS320C66AK2H12'   : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
-
+    'TCI66AK2G02'       : ["HOST", "CORE0"],
     'TMS320C6674'       : ["CORE0", "CORE1", "CORE2", "CORE3"],
     'TMS320C6678'       : ["CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
