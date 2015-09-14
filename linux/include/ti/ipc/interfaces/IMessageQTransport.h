@@ -30,6 +30,23 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ *  @file linux/include/ti/ipc/interfaces/IMessageQTransport.h
+ *
+ *  @brief Primary interface for all MessageQ transports
+ *
+ *  A typical memory based transport used as the primary transport for
+ *  MessageQ would implement this interface. The transport implementation
+ *  has to be registered with MessageQ using the MessageQ_registerTransport
+ *  method. This is typically done by the factor code.
+ *
+ *  The IMessageQTransport interface includes the following instance methods:
+ *
+ *  bind - create transport resources on behalf of the given queue
+ *  unbind - delete transport resources used by the given queue
+ *  put - send the message
+ */
+
 /*
  *  ======== IMessageQTransport.h ========
  */
@@ -39,25 +56,129 @@
 
 #include <ti/ipc/interfaces/ITransport.h>
 
-/* opaque instance handle */
-typedef struct IMessageQTransport_Object *IMessageQTransport_Handle;
+#if defined (__cplusplus)
+extern "C" {
+#endif
 
+/*!
+ *  @brief  Interface type ID
+ *
+ *  This ID uniquely identifies this interface type.
+ */
 #define IMessageQTransport_TypeId 0x02
 
-/* virtual functions */
+/*!
+ *  @brief IMessageQTransport_Handle type
+ *
+ *  An opaque instance handle.
+ */
+typedef struct IMessageQTransport_Object *IMessageQTransport_Handle;
+
+/*!
+ *  @brief The interface function table
+ *
+ *  All transports must provide a concrete implementation for each of
+ *  these virtual functions. The transport user (e.g. MessageQ) will
+ *  invoke the implementation functions through the interface function
+ *  stubs defined below.
+ */
 typedef struct IMessageQTransport_Fxns {
+
     Int (*bind)(void *handle, UInt32 queueId);
+    /*!< function pointer for bind method
+     *
+     *  This method allows the transport to bind/create resources
+     *  needed for message delivery. The method is invoked when a
+     *  new message queue is created and for all existing queues
+     *  when attaching to a processor.
+     *
+     *  @param[in]  inst        Transport instance handle
+     *  @param[in]  queueId     Message queue identifier
+     *
+     *  @return A MessageQ defined status code (e.g. MessageQ_S_SUCCESS)
+     */
+
     Int (*unbind)(void *handle, UInt32 queueId);
+    /*!< function pointer for unbind method
+     *
+     *  This method allows the transport to unbind/delete resources
+     *  which where allocated on behalf of the given message queue.
+     *  This method is invoked when deleting a message queue and for
+     *  all existing queues when detaching from a processor.
+     *
+     *  @param[in]  inst        Transport instance handle
+     *  @param[in]  queueId     Message queue identifier
+     *
+     *  @return A MessageQ defined status code (e.g. MessageQ_S_SUCCESS)
+     */
+
     Bool (*put)(void *handle, Ptr msg);
+    /*!< function pointer for put method
+     *
+     *  Invoked to deliver the given message. Once MessageQ calls into this
+     *  method, the message ownership has been transferred to the transport.
+     *  Regardless of the outcome of message delivery, the message ownership
+     *  is *never* returned back to MessageQ. If delivery fails, the message
+     *  is lost but all resources must be reclaimed.
+     *
+     *  @param[in]  inst        Transport instance handle
+     *  @param[in]  msg         Pointer to the message (MessageQ_Msg)
+     *
+     *  @return Status result:
+     *          - TRUE: message was delivered
+     *          - FALSE: delivery failure, message lost
+     */
 } IMessageQTransport_Fxns;
 
-/* abstract instance object */
+/*!
+ *  @brief The instance object definition for IMessageQTransport
+ *
+ *  All instances of this interface type must define this object
+ *  within the implementation object. It must be the first element
+ *  of the instance object and it must be named 'base'. Otherwise,
+ *  the converter functions below will fail.
+ *
+ *  typedef TransportAcme_Object {
+ *      IMessageQTransport_Object base;
+ *      ...
+ *  } TransportAcme_Object;
+ */
 typedef struct IMessageQTransport_Object {
-    ITransport_Object base;             /* inheritance */
-    IMessageQTransport_Fxns *fxns;      /* virtual functions */
+
+    ITransport_Object base;
+    /*!< Base class inheritance
+     *
+     *  The instance constructor must initialize this base object.
+     */
+
+    IMessageQTransport_Fxns *fxns;
+    /*!< Address of interface function table
+     *
+     *  The instance constructor must initialize this field to contain
+     *  the address of the instance function table.
+     *
+     *  IMessageQTransport_Fxns TransportAcme_fxns = {
+     *      .bind   = TransportAcme_bind,
+     *      .unbind = TransportAcme_unbind,
+     *      .put    = TransportAcme_put
+     *  };
+     *
+     *  obj->base.fxns = &TransportAcme_fxns;
+     */
 } IMessageQTransport_Object;
 
-/* function stubs */
+/*!
+ *  @brief Bind transport resources on behalf of the given message queue
+ *
+ *  Interface function to invoke transport implementation.
+ *
+ *  @sa IMessageQTransport_Fxns.bind()
+ *
+ *  @param[in]  inst        Transport instance handle
+ *  @param[in]  queueId     Message queue identifier
+ *
+ *  @return A MessageQ defined status code (e.g. MessageQ_S_SUCCESS)
+ */
 static inline
 Int IMessageQTransport_bind(IMessageQTransport_Handle inst, UInt32 queueId)
 {
@@ -65,6 +186,18 @@ Int IMessageQTransport_bind(IMessageQTransport_Handle inst, UInt32 queueId)
     return obj->fxns->bind((void *)inst, queueId);
 }
 
+/*!
+ *  @brief Unbind transport resources allocated for the given message queue
+ *
+ *  Interface function to invoke transport implementation.
+ *
+ *  @sa IMessageQTransport_Fxns.unbind()
+ *
+ *  @param[in]  inst        Transport instance handle
+ *  @param[in]  queueId     Message queue identifier
+ *
+ *  @return A MessageQ defined status code (e.g. MessageQ_S_SUCCESS)
+ */
 static inline
 Int IMessageQTransport_unbind(IMessageQTransport_Handle inst, UInt32 queueId)
 {
@@ -72,6 +205,18 @@ Int IMessageQTransport_unbind(IMessageQTransport_Handle inst, UInt32 queueId)
     return obj->fxns->unbind((void *)inst, queueId);
 }
 
+/*!
+ *  @brief Deliver the given message
+ *
+ *  Interface function to invoke transport implementation.
+ *
+ *  @sa IMessageQTransport_Fxns.put()
+ *
+ *  @param[in]  inst        Transport instance handle
+ *  @param[in]  msg         Pointer to the message (MessageQ_Msg)
+ *
+ *  @return A MessageQ defined status code (e.g. MessageQ_S_SUCCESS)
+ */
 static inline
 Bool IMessageQTransport_put(IMessageQTransport_Handle inst, Ptr msg)
 {
@@ -79,7 +224,17 @@ Bool IMessageQTransport_put(IMessageQTransport_Handle inst, Ptr msg)
     return obj->fxns->put((void *)inst, msg);
 }
 
-/* instance convertors */
+/*!
+ *  @brief Convert the instance handle to a base class handle
+ *
+ *  Use this method to safely get a handle to the base interface.
+ *  The returned handle can be used to invoke methods on the base
+ *  interface.
+ *
+ *  @param[in]  inst        Transport instance handle
+ *
+ *  @return An ITransport_Handle for the given instance object
+ */
 static inline
 ITransport_Handle IMessageQTransport_upCast(IMessageQTransport_Handle inst)
 {
@@ -87,10 +242,24 @@ ITransport_Handle IMessageQTransport_upCast(IMessageQTransport_Handle inst)
     return (ITransport_Handle)&obj->base;
 }
 
+/*!
+ *  @brief Convert the base class handle into and instance handle
+ *
+ *  Use this method to safely get a handle to the interface instance.
+ *  The returned handle can be used to invoke methods on the instance
+ *  object.
+ *
+ *  @param[in]  inst        ITransport_handle of the instance object
+ *
+ *  @return An ITransport_Handle for the given instance
+ */
 static inline
 IMessageQTransport_Handle IMessageQTransport_downCast(ITransport_Handle base)
 {
     return (IMessageQTransport_Handle)base;
 }
 
+#if defined (__cplusplus)
+}
+#endif
 #endif /* IMESSAGEQTRANSPORT_H */
