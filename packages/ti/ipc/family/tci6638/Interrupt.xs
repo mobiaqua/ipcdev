@@ -123,15 +123,29 @@ function module$meta$init()
     this.INTERDSPINT    = settings.INTERDSPINT;
     this.DSPINT         = settings.DSPINT;
 }
+
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    Interrupt     = this;
+    Interrupt = this;
 
-    Hwi         = xdc.useModule("ti.sysbios.family.c64p.Hwi");
-    MultiProc   = xdc.useModule("ti.sdo.utils.MultiProc");
+    Hwi = xdc.useModule("ti.sysbios.family.c64p.Hwi");
+    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+
+}
+
+/*
+ *  ======== module$validate ========
+ */
+function module$validate()
+{
+    /* verify the host is first in the multiproc name list */
+    if (MultiProc.getIdMeta("HOST") != 0) {
+        this.$logError("Processor HOST is missing from MultiProc name list",
+                MultiProc, null);
+    }
 }
 
 /*
