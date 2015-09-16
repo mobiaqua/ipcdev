@@ -35,6 +35,17 @@
  */
 
 /*
+ *  ======== rpmsg2Device ========
+ */
+
+var rpmsg2Device = {
+    'OMAP4430'      : { special: "_rpmsg2" },
+    'OMAP5430'      : { special: "_rpmsg2" },
+    'Vayu'          : { special: "_rpmsg2" },
+    'TMS320TCI6634' : { special: "_rpmsg2" }
+};
+
+/*
  *  ======== Package.getLibs ========
  *  This function is called when a program's configuration files are
  *  being generated and it returns the name of a library appropriate
@@ -65,20 +76,16 @@ function getLibs(prog)
     var device = prog.cpu.deviceName;
     var special = "";   /* used if there is a 'special' lib for a platform */
 
-    switch (device) {
-        case "OMAP4430":
-        case "OMAP5430":
-        case "Vayu":
-        case "DRA7XX":
-            special = "_rpmsg2";
-            break;
+    var Settings = xdc.loadCapsule('ti/sdo/ipc/family/Settings.xs');
+    Settings.setDeviceAliases(rpmsg2Device, Settings.deviceAliases);
 
-        default:
-            special = "";
-            break;
+    var rpmsg2 = rpmsg2Device[device];
+
+    if (rpmsg2 != null) {
+        special = rpmsg2.special;
     }
 
-    /* the location of the libraries are in lib/<profile>/* */
+    /* the location of the libraries are in lib/<profile> */
     var name = this.$name + special + ".a" + suffix;
     var lib = "lib/" + this.profile + "/" + name;
 
