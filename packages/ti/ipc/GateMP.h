@@ -219,7 +219,7 @@ typedef enum GateMP_RemoteProtect {
 /*!
  *  @brief  GateMP_Handle type
  */
-typedef struct GateMP_Object *GateMP_Handle;
+typedef struct GateMP_Object_tag *GateMP_Handle;
 
 /*!
  *  @brief  Structure defining parameters for the GateMP module.

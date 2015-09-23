@@ -62,7 +62,7 @@ typedef unsigned long     ULong;
 typedef float             Float;
 typedef double            Double;
 typedef long double       LDouble;
-typedef void              Void;
+#define Void              void
 
 
 typedef bool              Bool;

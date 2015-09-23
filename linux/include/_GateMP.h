@@ -57,7 +57,7 @@ extern "C" {
 /*!
  *  @brief  Structure for the Handle for the GateMP.
  */
-typedef struct {
+typedef struct GateMP_Object_tag {
     GateMP_Params           params;
     /*!< Instance specific creation parameters */
     GateMP_RemoteProtect    remoteProtect;
