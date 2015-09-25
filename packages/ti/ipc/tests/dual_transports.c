@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,13 @@
 
 extern volatile cregister UInt DNUM;
 
+typedef struct SyncMsg {
+    MessageQ_MsgHeader header;
+    UInt32 numLoops;  /* also used for msgId */
+    UInt32 print;
+} SyncMsg;
+
+
 /*
  *  ======== hostMsgqFxn ========
  *  Receive and return messages to HOST.
@@ -95,7 +102,7 @@ Void hostMsgqFxn(UArg arg0, UArg arg1)
     UInt32 end;
     UInt32 numLoops;
     UInt32 print;
-    UInt32 *params;
+    UInt32 msgNum;
 
     /* Construct a MessageQ name adorned with core name: */
     System_sprintf(localQueueName, "%s_%s", SLAVE_MESSAGEQNAME,
@@ -114,9 +121,8 @@ Void hostMsgqFxn(UArg arg0, UArg arg1)
         System_printf("Awaiting sync message from host...\n");
         MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
 
-        params = MessageQ_payload(msg);
-        numLoops = params[0];
-        print = params[1];
+        numLoops = ((SyncMsg *)msg)->numLoops;
+        print = ((SyncMsg *)msg)->print;
 
         remoteQueueId = MessageQ_getReplyQueue(msg);
         procId = MessageQ_getProcId(remoteQueueId);
@@ -135,16 +141,18 @@ Void hostMsgqFxn(UArg arg0, UArg arg1)
         }
 
         start = Clock_getTicks();
-        for (msgId = 0; msgId < numLoops; msgId++) {
+        for (msgId = 1; msgId <= numLoops; msgId++) {
             status = MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
             Assert_isTrue(status == MessageQ_S_SUCCESS, NULL);
 
+            msgNum = ((SyncMsg *)msg)->numLoops;
+
             if (print) {
                 System_printf("Got msg #%d (%d bytes) from procId %d\n",
-                    MessageQ_getMsgId(msg), MessageQ_getMsgSize(msg), procId);
+                    msgNum, MessageQ_getMsgSize(msg), procId);
             }
 
-            Assert_isTrue(MessageQ_getMsgId(msg) == msgId, NULL);
+            Assert_isTrue(msgNum == msgId, NULL);
 
             if (print) {
                 System_printf("Sending msg Id #%d to procId %d\n", msgId,
