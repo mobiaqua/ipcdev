@@ -28,19 +28,19 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+
 /*
  *  ======== Interrupt.xdc ========
  */
+package ti.ipc.family.tci6638;
+
+import xdc.runtime.Assert;
 
 /*!
  *  ======== Interrupt ========
  *  TCI66xx IPC interrupt manager
  */
-
-@ModuleStartup
-
 module Interrupt inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
 
@@ -57,6 +57,12 @@ module Interrupt inherits ti.sdo.ipc.notifyDrivers.IInterrupt
      *  - SharedRegion #0 is not valid and the local core is CORE0
      */
     config Bool enableKick = true;
+
+    /*! Function not implemented
+     */
+    config Assert.Id A_notImplemented  = {
+        msg: "A_notImplemented: this function is not implemented"
+    };
 
     /*!
      *  ======== Interrupt_intClearAll ========
@@ -79,45 +85,27 @@ internal:
     const UInt SRCS_BITPOS_HOST = 31;
 
     /*! Ptr to the IPC Generation Registers */
-    config Ptr IPCGR0;
+    config Ptr IPCGR0 = null;
 
     /*! Ptr to the IPC Acknowledgment Registers */
-    config Ptr IPCAR0;
+    config Ptr IPCAR0 = null;
 
     /*! Ptr to the IPC Host Generation Host Register */
-    config Ptr IPCGRH;
+    config Ptr IPCGRH = null;
 
     /*! Ptr to the IPC Acknowledgement Host Register */
-    config Ptr IPCARH;
+    config Ptr IPCARH = null;
 
     /*! Ptr to the KICK0 Bootcfg Registers */
-    config Ptr KICK0;
+    config Ptr KICK0 = null;
 
     /*! Ptr to the KICK1 Bootcfg Registers */
-    config Ptr KICK1;
+    config Ptr KICK1 = null;
 
     /*! Inter-processor interrupt id (varies per device) */
-    config UInt INTERDSPINT;
+    config UInt INTERDSPINT = -1;
 
     /*! Vector interrupt id for Hwi_create */
-    config UInt DSPINT;
+    config UInt DSPINT = -1;
 
-    /*! Function table */
-    struct FxnTable {
-        Fxn    func;
-        UArg   arg;
-    }
-
-
-    /*!
-     *  ======== isr ========
-     *  Stub function plugged as interrupt handler
-     */
-    Void isr(UArg arg);
-
-    struct Module_State {
-        UInt        numPlugged; /* # of times the interrupt was registered */
-        UInt16      clusterId;  /* cluster base procId */
-        FxnTable    fxnTable[]; /* indexed by Source ID bit pos */
-    };
 }

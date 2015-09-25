@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,27 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== NotifyCircSetup.c ========
  */
-
 #include <xdc/std.h>
-#include <ti/sdo/ipc/notifyDrivers/NotifyDriverCirc.h>
-#include <ti/sdo/ipc/_Notify.h>
-
 #include <xdc/runtime/Error.h>
 
+#include <ti/ipc/MultiProc.h>
+#include <ti/sdo/ipc/_Notify.h>
+#include <ti/sdo/ipc/notifyDrivers/NotifyDriverCirc.h>
+
 #include "package/internal/NotifyCircSetup.xdc.h"
+
 
 /*!
  *  ======== NotifyCircSetup_attach ========
  */
 Int NotifyCircSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 {
-    NotifyDriverCirc_Params notifyShmParams;
-    NotifyDriverCirc_Handle shmDrvHandle;
+    NotifyDriverCirc_Params notifyCircParams;
+    NotifyDriverCirc_Handle circDrvHandle;
     ti_sdo_ipc_Notify_Handle notifyHandle;
     Error_Block eb;
 
@@ -55,22 +57,22 @@ Int NotifyCircSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
     Error_init(&eb);
 
     /* init params and set default values */
-    NotifyDriverCirc_Params_init(&notifyShmParams);
-    notifyShmParams.intVectorId     = NotifyCircSetup_dspIntVectId;
-    notifyShmParams.sharedAddr      = sharedAddr;
-    notifyShmParams.remoteProcId  = remoteProcId;
+    NotifyDriverCirc_Params_init(&notifyCircParams);
+    notifyCircParams.sharedAddr = sharedAddr;
+    notifyCircParams.remoteProcId = remoteProcId;
 
-    shmDrvHandle = NotifyDriverCirc_create(&notifyShmParams, &eb);
-    if (shmDrvHandle == NULL) {
+    circDrvHandle = NotifyDriverCirc_create(&notifyCircParams, &eb);
+
+    if (circDrvHandle == NULL) {
         return (Notify_E_FAIL);
     }
 
     notifyHandle = ti_sdo_ipc_Notify_create(
-            NotifyDriverCirc_Handle_upCast(shmDrvHandle), remoteProcId, 0, NULL,
-            &eb);
-    if (notifyHandle == NULL) {
-        NotifyDriverCirc_delete(&shmDrvHandle);
+            NotifyDriverCirc_Handle_upCast(circDrvHandle), remoteProcId,
+            0, NULL, &eb);
 
+    if (notifyHandle == NULL) {
+        NotifyDriverCirc_delete(&circDrvHandle);
         return (Notify_E_FAIL);
     }
 
@@ -82,17 +84,16 @@ Int NotifyCircSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
  */
 SizeT NotifyCircSetup_sharedMemReq(UInt16 remoteProcId, Ptr sharedAddr)
 {
-    SizeT memReq;
     NotifyDriverCirc_Params params;
+    SizeT memReq;
 
     NotifyDriverCirc_Params_init(&params);
-    params.sharedAddr      = sharedAddr;
-    params.intVectorId     = NotifyCircSetup_dspIntVectId;
-    params.remoteProcId    = remoteProcId;
+    params.sharedAddr = sharedAddr;
+    params.remoteProcId = remoteProcId;
 
     memReq = NotifyDriverCirc_sharedMemReq(&params);
 
-    return(memReq);
+    return (memReq);
 }
 
 /*!
@@ -100,5 +101,14 @@ SizeT NotifyCircSetup_sharedMemReq(UInt16 remoteProcId, Ptr sharedAddr)
  */
 UInt16 NotifyCircSetup_numIntLines(UInt16 remoteProcId)
 {
-    return (1);
+    UInt16 rval;
+
+    if (remoteProcId == MultiProc_getId("HOST")) {
+        rval = NotifyCircSetup_includeHost ? 1 : 0;
+    }
+    else {
+        rval = 1;
+    }
+
+    return (rval);
 }

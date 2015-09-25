@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,24 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== NotifyCircSetup.xs ========
- *
  */
 
-var NotifyCircSetup  = null;
-var MultiProc    = null;
-var MultiProcSetup = null;
-var Notify       = null;
-var NotifyDriverShm = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    NotifyCircSetup = this;
-    NotifyDriverCirc = xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverCirc');
-    Notify = xdc.useModule('ti.sdo.ipc.Notify');
-    MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
-    MultiProcSetup = xdc.useModule('ti.sdo.ipc.family.tci663x.MultiProcSetup');
+    xdc.useModule('ti.sdo.ipc.family.tci663x.MultiProcSetup');
+    xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverCirc');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+
+    if (this.$written("dspIntVectId")) {
+        this.$logWarning("The configuration parameter 'dspIntVectId' has "
+            + "been deprecated. To specify the CPU interrupt number for "
+            + "IPC, please refer to the interrupt delegate.", this);
+    }
 }

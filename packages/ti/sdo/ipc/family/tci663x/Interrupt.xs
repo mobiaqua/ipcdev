@@ -1,62 +1,63 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
- * All rights reserved.
+ * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *   Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
  *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ *   Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
  *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+ *   Neither the name of Texas Instruments Incorporated nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== Interrupt.xs ========
  */
 
 var deviceSettings = {
-    /* all TCI663x devices inherit from TCI6634 according to Settings.xs */
+    /* all Keystone II devices inherit from TCI6634 */
     'TMS320TCI6634' : {
         IPCGR0:         0x02620240,
         IPCAR0:         0x02620280,
-        INTERDSPINT:    105,
-    },
-}
+        IPCGRH:         0x02620260,
+        IPCARH:         0x026202A0,
+        KICK0:          0x02620038,
+        KICK1:          0x0262003C,
+        INTERDSPINT:    105
+    }
+};
+
 var Settings = xdc.loadCapsule('ti/sdo/ipc/family/Settings.xs');
 Settings.setDeviceAliases(deviceSettings, Settings.deviceAliases);
 
-var Hwi;
-var Interrupt;
-var Ipc;
 var MultiProc;
-var SharedRegion;
-var MultiProcSetup;
 
 /*
  *  ======== module$meta$init ========
  */
 function module$meta$init()
 {
-    /* Only process during "cfg" phase */
+    /* only process during "cfg" phase */
     if (xdc.om.$name != "cfg") {
         return;
     }
@@ -65,21 +66,38 @@ function module$meta$init()
 
     this.IPCGR0         = settings.IPCGR0;
     this.IPCAR0         = settings.IPCAR0;
+    this.IPCGRH         = settings.IPCGRH;
+    this.IPCARH         = settings.IPCARH;
+    this.KICK0          = settings.KICK0;
+    this.KICK1          = settings.KICK1;
     this.INTERDSPINT    = settings.INTERDSPINT;
 }
-
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    Interrupt       = this;
-    Hwi             = xdc.useModule("ti.sysbios.family.c64p.Hwi");
-    Ipc             = xdc.useModule("ti.sdo.ipc.Ipc");
-    MultiProc       = xdc.useModule("ti.sdo.utils.MultiProc");
-    SharedRegion    = xdc.useModule("ti.sdo.ipc.SharedRegion");
-    MultiProcSetup  = xdc.useModule("ti.sdo.ipc.family.tci663x.MultiProcSetup");
+    xdc.useModule("ti.sysbios.hal.Hwi");
+    xdc.useModule("ti.sdo.ipc.family.tci663x.MultiProcSetup");
+
+    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+
+    /*  Hack: fix conflict between NotifyDriverCirc and VirtQueue.
+     *
+     *  If both of these modules are in the configuration, then instruct
+     *  the NotifyCircSetup module to exclude the host during the IPC
+     *  attach phase.
+     */
+    var ncsName = this.$package.$name + ".NotifyCircSetup";
+    var vqName = "ti.ipc.family.tci6638.VirtQueue";
+
+    var notifySetup = ((ncsName in xdc.om) && xdc.module(ncsName).$used);
+    var virtQue = ((vqName in xdc.om) && xdc.module(vqName).$used);
+
+    if (notifySetup && virtQue) {
+        xdc.module(ncsName).includeHost = false;
+    }
 }
 
 /*
@@ -87,17 +105,36 @@ function module$use()
  */
 function module$static$init(state, mod)
 {
-    var args = Interrupt.$object.args;
-    var MultiProc = xdc.module('ti.sdo.utils.MultiProc');
+    state.numPlugged = 0;
+    state.baseId = MultiProc.baseIdOfCluster;
+    state.hwi = null;
 
-    /* The function table length should be the number of processors */
-    args.length = MultiProc.numProcessors;
-    for (var i = 0; i < args.length; i++) {
-        args[i] = 0;
+    /* initialize client function table */
+    state.clientTab.length = MultiProc.numProcsInCluster;
+
+    for (var i = 0; i < state.clientTab.length; i++) {
+        state.clientTab[i].func = null;
+        state.clientTab[i].arg = -1;
     }
 
-    state.func = null;
-    state.numPlugged = 0;
+    /* initialize ipcar source bit mapping */
+    state.hwTab.length = MultiProc.numProcsInCluster;
+
+    for (var i = 0; i < state.hwTab.length; i++) {
+        var name = MultiProc.nameList[i];
+
+        if (name == "HOST") {
+            state.hwTab[i].dnum = MultiProc.INVALIDID;
+            /* by convention, host is bit 31 in ipcgr and ipcar registers */
+            state.hwTab[i].srcsx = 31;
+        }
+        else {
+            /* the numeric part of the name string determines the coreId */
+            var coreId = Number(name.substring("CORE".length));
+            state.hwTab[i].dnum = coreId;
+            state.hwTab[i].srcsx = coreId + mod.SRCSx_SHIFT;
+        }
+    }
 }
 
 /*
@@ -123,8 +160,8 @@ function viewInterruptsData(view)
     var modCfg = Program.getModuleConfig('ti.sdo.ipc.family.tci663x.Interrupt');
     var MultiProcCfg = Program.getModuleConfig('ti.sdo.utils.MultiProc');
 
-    var args = Program.fetchArray(Interrupt.args$fetchDesc, mod.args,
-            MultiProcCfg.numProcessors);
+    var clientTab = Program.fetchArray(Interrupt.clientTab$fetchDesc,
+            mod.clientTab, MultiProcCfg.numProcessors);
 
     var localId = MultiProc.self$view();
 
@@ -133,15 +170,17 @@ function viewInterruptsData(view)
             $addr(modCfg.IPCAR0), MultiProcCfg.numProcessors, false);
     }
 
-    for (var i = 0; i < MultiProcCfg.numProcessors; i++) {
+    for (var i = 0; i < MultiProcCfg.numProcsInCluster; i++) {
         var entryView =
                 Program.newViewStruct('ti.sdo.ipc.family.tci663x.Interrupt',
                 'Registered Interrupts');
-        entryView.remoteCoreId = i;
-        if (Number(mod.func) != 0) {
-            entryView.isrFxn =
-                    Program.lookupFuncName(Number(mod.func))[0];
-            entryView.isrArg = "0x" + Number(args[i]).toString(16);
+
+        entryView.remoteCoreId = MultiProc.baseIdOfCluster + i;
+
+        var fxn = Number(clientTab[i].func);
+        if (fxn != 0) {
+            entryView.isrFxn = Program.lookupFuncName(fxn)[0];
+            entryView.isrArg = "0x" + Number(clientTab[i].arg).toString(16);
         }
         else {
             entryView.isrFxn = "(unplugged)";
@@ -158,7 +197,6 @@ function viewInterruptsData(view)
                 entryView.isFlagged = false;
             }
         }
-
 
         view.elements.$add(entryView);
     }

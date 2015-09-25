@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== NotifyCircSetup.xdc ========
- *
  */
 
 /*!
@@ -44,6 +44,15 @@ module NotifyCircSetup inherits ti.sdo.ipc.interfaces.INotifySetup
 {
     /* The interrupt vector id */
     config UInt dspIntVectId = 5;
+
+    /*  Setup notify driver with host.
+     *
+     *  When this config parameter is true, the host processor will
+     *  be included in the IPC attach phase which will ultimately
+     *  create an instance of the notify circ driver. When set to
+     *  false, the host is excluded.
+     */
+    config Bool includeHost = true;
 
 internal:
 

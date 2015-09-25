@@ -39,27 +39,31 @@
  */
 function module$use()
 {
-    VirtQueue = this;
-    var MultiProc   = xdc.useModule("ti.sdo.utils.MultiProc");
+    var VirtQueue = this;
+    var MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
 
-    xdc.useModule("ti.sysbios.knl.Swi");
-    Interrupt = xdc.useModule("ti.ipc.family.tci6638.Interrupt");
-    //xdc.useModule("ti.ipc.remoteproc.Resource");
     xdc.useModule("ti.sysbios.gates.GateAll");
+    xdc.useModule("ti.sysbios.knl.Swi");
+
     if (MultiProc.id == MultiProc.INVALIDID) {
         var Startup = xdc.useModule('xdc.runtime.Startup');
         Startup.firstFxns.$add(VirtQueue.init);
+    }
+
+    if (VirtQueue.InterruptProxy == null) {
+        var Settings = xdc.module("ti.sdo.ipc.family.Settings");
+        var interruptDelegate = Settings.getDefaultInterruptDelegate();
+        VirtQueue.InterruptProxy = xdc.useModule(interruptDelegate);
     }
 }
 
 /*
  *  ======== module$static$init ========
  */
-function module$static$init(mod, params)
+function module$static$init(state, mod)
 {
-  /* Init VirtQueue params */
-  mod.hostSlaveSynced = 0;
-  mod.virtQueueInitialized = 0;
-  mod.queueRegistry = null;
-  mod.traceBufPtr = null;
+    state.hostSlaveSynced = 0;
+    state.virtQueueInitialized = 0;
+    state.queueRegistry = null;
+    state.traceBufPtr = null;
 }

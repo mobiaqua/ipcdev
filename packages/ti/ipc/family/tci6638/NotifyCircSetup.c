@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,89 +30,40 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
 /*
  *  ======== NotifyCircSetup.c ========
  */
 
 #include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
-#include <ti/sdo/ipc/notifyDrivers/NotifyDriverCirc.h>
-#include <ti/sdo/ipc/_Notify.h>
-#include <ti/ipc/MultiProc.h>
-
-#include <xdc/runtime/Error.h>
 
 #include "package/internal/NotifyCircSetup.xdc.h"
 
-/*!
+
+/*
  *  ======== NotifyCircSetup_attach ========
  */
 Int NotifyCircSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 {
-    NotifyDriverCirc_Params notifyShmParams;
-    NotifyDriverCirc_Handle shmDrvHandle;
-    ti_sdo_ipc_Notify_Handle notifyHandle;
-    Error_Block eb;
-
-    Assert_isTrue(remoteProcId != MultiProc_getId("HOST"), NULL);
-
-    /* Initialize the error block */
-    Error_init(&eb);
-
-    /* init params and set default values */
-    NotifyDriverCirc_Params_init(&notifyShmParams);
-    notifyShmParams.intVectorId     = NotifyCircSetup_dspIntVectId;
-    notifyShmParams.localIntId      = NotifyCircSetup_SRCS_BITPOS_CORE0;
-    notifyShmParams.sharedAddr      = sharedAddr;
-    notifyShmParams.remoteProcId    = remoteProcId;
-
-    shmDrvHandle = NotifyDriverCirc_create(&notifyShmParams, &eb);
-    if (shmDrvHandle == NULL) {
-        return (Notify_E_FAIL);
-    }
-
-    notifyHandle = ti_sdo_ipc_Notify_create(
-           NotifyDriverCirc_Handle_upCast(shmDrvHandle), remoteProcId, 0, NULL,
-           &eb);
-    if (notifyHandle == NULL) {
-        NotifyDriverCirc_delete(&shmDrvHandle);
-
-        return (Notify_E_FAIL);
-    }
-
-    return (Notify_S_SUCCESS);
+    Assert_isTrue(FALSE, NotifyCircSetup_A_notImplemented);
+    return (-1);
 }
 
-/*!
+/*
  * ======== NotifyCircSetup_sharedMemReq ========
  */
 SizeT NotifyCircSetup_sharedMemReq(UInt16 remoteProcId, Ptr sharedAddr)
 {
-    SizeT memReq;
-    NotifyDriverCirc_Params params;
-
-    Assert_isTrue(remoteProcId != MultiProc_getId("HOST"), NULL);
-
-    NotifyDriverCirc_Params_init(&params);
-    params.sharedAddr      = sharedAddr;
-    params.intVectorId     = NotifyCircSetup_dspIntVectId;
-    params.remoteProcId    = remoteProcId;
-
-    memReq = NotifyDriverCirc_sharedMemReq(&params);
-
-    return(memReq);
+    Assert_isTrue(FALSE, NotifyCircSetup_A_notImplemented);
+    return (0);
 }
 
-/*!
+/*
  * ======== NotifyCircSetup_numIntLines ========
  */
 UInt16 NotifyCircSetup_numIntLines(UInt16 remoteProcId)
 {
-    UInt16 retval = 1;
-
-    if (remoteProcId == MultiProc_getId("HOST")) {
-        retval = 0;
-    }
-
-    return (retval);
+    Assert_isTrue(FALSE, NotifyCircSetup_A_notImplemented);
+    return (0);
 }

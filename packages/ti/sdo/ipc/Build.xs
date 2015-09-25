@@ -454,9 +454,7 @@ var C66Sources   = "ti/sdo/ipc/gates/GateHWSem.c " +
                    "ti/ipc/family/tci6614/Interrupt.c " +
                    "ti/ipc/family/tci6614/VirtQueue.c " +
                    "ti/ipc/family/tci6614/NotifySetup.c " +
-                   "ti/ipc/family/tci6638/Interrupt.c " +
                    "ti/ipc/family/tci6638/VirtQueue.c " +
-                   "ti/ipc/family/tci6638/NotifyCircSetup.c " +
                    "ti/ipc/family/vayu/VirtQueue.c ";
 
 var C674Sources  = "ti/sdo/ipc/gates/GateHWSpinlock.c " +

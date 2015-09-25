@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,40 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
 /*
  *  ======== NotifyCircSetup.xs ========
  */
-
-var NotifyCircSetup  = null;
-var MultiProc    = null;
-var Notify       = null;
-var NotifyDriverShm = null;
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    NotifyCircSetup = this;
-    NotifyDriverCirc =
-        xdc.useModule('ti.sdo.ipc.notifyDrivers.NotifyDriverCirc');
-    Notify = xdc.useModule('ti.sdo.ipc.Notify');
-    MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    xdc.useModule('xdc.runtime.Assert');
+
+    this.$logWarning("This module has been deprecated. To eliminate "
+        + "this warning, remove \"xdc.useModule('" + this.$name + "')\" "
+        + "from your application configuration script. The correct "
+        + "setup module for notify will be included automatically.", this);
+
+    /*  If the Notify module was used, assume that this module was assigned
+     *  as the delegate for the setup proxy. Override that assignment with
+     *  the correct delegate.
+     */
+    var modName = "ti.sdo.ipc.Notify";
+
+    if (modName in xdc.om) {
+        var Notify = xdc.module(modName);
+        if (Notify.$used) {
+            Notify.SetupProxy =
+                    xdc.useModule('ti.sdo.ipc.family.tci663x.NotifyCircSetup');
+        }
+    }
+
+    if (this.$written("dspIntVectId")) {
+        this.$logWarning("The configuration parameter 'dspIntVectId' has "
+            + "been deprecated. To specify the CPU interrupt number for "
+            + "IPC, please refer to the interrupt delegate.", this);
+    }
 }

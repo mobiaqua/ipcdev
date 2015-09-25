@@ -56,7 +56,7 @@ module MultiProcSetup
     };
 
 internal:
-    /*  Map the clusterId to the coreId (only for DSP processos)
+    /*  Map the clusterId to the coreId (only for DSP processors)
      *
      *  The procMap array is indexed by clusterId. The element value
      *  is the coreId (equivalent to DNUM).

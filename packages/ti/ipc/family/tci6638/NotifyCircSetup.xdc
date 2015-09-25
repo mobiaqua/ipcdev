@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,28 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
 /*
  *  ======== NotifyCircSetup.xdc ========
  */
+package ti.ipc.family.tci6638;
+
+import xdc.runtime.Assert;
 
 /*!
  *  ======== NotifyCircSetup ========
  *  Manages setup of the default Notify driver handles
- *
- *  Creates the default notify drivers for each pair of processors.
  */
 module NotifyCircSetup inherits ti.sdo.ipc.interfaces.INotifySetup
 {
     /* The interrupt vector id */
     config UInt dspIntVectId = 5;
+
+    /*! Function not implemented
+     */
+    config Assert.Id A_notImplemented  = {
+        msg: "A_notImplemented: this function is not implemented"
+    };
 
 internal:
 

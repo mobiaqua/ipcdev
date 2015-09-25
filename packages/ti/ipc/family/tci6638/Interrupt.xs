@@ -30,138 +30,41 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
 /*
  *  ======== Interrupt.xs ========
  */
-
-var deviceSettings = {
-    'Kepler' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5,
-    },
-    'TMS320TCI6638' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5,
-    },
-    'TMS320TCI6636' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5
-    },
-    'TMS320TCI6630K2L' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5
-    },
-    'TMS320C66AK2H12' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5,
-    },
-    'TMS320C66AK2E05' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        IPCGRH:         0x02620260,
-        IPCARH:         0x026202A0,
-        KICK0:          0x02620038,
-        KICK1:          0x0262003C,
-        INTERDSPINT:    105,
-        DSPINT:         5
-    }
-}
-var Settings = xdc.loadCapsule('ti/sdo/ipc/family/Settings.xs');
-Settings.setDeviceAliases(deviceSettings, Settings.deviceAliases);
-var Hwi         = null;
-var Interrupt = null;
-var MultiProc   = null;
-
-/*
- *  ======== module$meta$init ========
- */
-function module$meta$init()
-{
-    /* Only process during "cfg" phase */
-    if (xdc.om.$name != "cfg") {
-        return;
-    }
-
-    var settings = deviceSettings[Program.cpu.deviceName];
-
-    this.IPCGR0         = settings.IPCGR0;
-    this.IPCAR0         = settings.IPCAR0;
-    this.IPCGRH         = settings.IPCGRH;
-    this.IPCARH         = settings.IPCARH;
-    this.KICK0          = settings.KICK0;
-    this.KICK1          = settings.KICK1;
-    this.INTERDSPINT    = settings.INTERDSPINT;
-    this.DSPINT         = settings.DSPINT;
-}
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
-    Interrupt = this;
+    xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule('ti.sdo.ipc.notifyDrivers.IInterrupt');
 
-    Hwi = xdc.useModule("ti.sysbios.family.c64p.Hwi");
-    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+    this.$logWarning("This module has been deprecated. To eliminate "
+        + "this warning, remove \"xdc.useModule('" + this.$name + "')\" "
+        + "from your application configuration script. The correct "
+        + "interrupt delegate will be included automatically.", this);
 
-}
+    /*  If the NotifyDriverCirc module was used, assume that this module
+     *  was assigned as the delegate for the interrupt proxy. Override that
+     *  assignment with the correct delegate.
+     */
+    var driver = "ti.sdo.ipc.notifyDrivers.NotifyDriverCirc";
 
-/*
- *  ======== module$validate ========
- */
-function module$validate()
-{
-    /* verify the host is first in the multiproc name list */
-    if (MultiProc.getIdMeta("HOST") != 0) {
-        this.$logError("Processor HOST is missing from MultiProc name list",
-                MultiProc, null);
+    if (driver in xdc.om) {
+        var NotifyDriverCirc = xdc.module(driver);
+        if (NotifyDriverCirc.$used) {
+            NotifyDriverCirc.InterruptProxy =
+                    xdc.useModule('ti.sdo.ipc.family.tci663x.Interrupt');
+        }
     }
-}
 
-/*
- *  ======== module$static$init ========
- */
-function module$static$init(state, mod)
-{
-
-    state.numPlugged = 0;
-    state.clusterId = MultiProc.baseIdOfCluster;
-
-    /* The function table length should be the number of IPCAR bits */
-    state.fxnTable.length = 32;
-
-    for (var i = 0; i < state.fxnTable.length; i++) {
-        state.fxnTable[i].func = null;
-        state.fxnTable[i].arg = 0;
+    if (this.$written("enableKick")) {
+        this.$logWarning("The configuration parameter 'enableKick' has "
+            + "been deprecated. Please refer to the interrupt delegate "
+            + "for more information.", this);
     }
 }

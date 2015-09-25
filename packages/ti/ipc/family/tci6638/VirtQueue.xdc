@@ -85,10 +85,12 @@
  *
  *  ============================================================================
  */
+package ti.ipc.family.tci6638;
 
-import  ti.sysbios.knl.Swi;
-import  ti.sdo.utils.MultiProc;
-import  ti.sysbios.gates.GateAll;
+import ti.sdo.ipc.notifyDrivers.IInterrupt;
+import ti.sdo.utils.MultiProc;
+import ti.sysbios.gates.GateAll;
+import ti.sysbios.knl.Swi;
 
 /*!
  *  ======== VirtQueue ========
@@ -133,6 +135,11 @@ module VirtQueue
          });
 */
     // -------- Module Proxies --------
+
+    /*! @_nodoc
+     *  IInterrupt proxy that handles interrupts between multiple CPU cores
+     */
+    proxy InterruptProxy inherits IInterrupt;
 
     // -------- Module Parameters --------
 

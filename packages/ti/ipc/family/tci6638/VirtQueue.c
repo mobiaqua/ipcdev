@@ -62,7 +62,6 @@
 #include <ti/sysbios/family/c66/Cache.h>
 #include <ti/sysbios/knl/Swi.h>
 
-#include <ti/ipc/family/tci6638/Interrupt.h>
 #include <ti/ipc/remoteproc/Resource.h>
 
 #include <ti/ipc/MultiProc.h>
@@ -211,7 +210,6 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 Void VirtQueue_kick(VirtQueue_Handle vq)
 {
     struct vring *vring = vq->vringPtr;
-    Interrupt_IntInfo intInfo;
 
     /* For now, simply interrupt remote processor */
     if (vring->avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
@@ -223,8 +221,7 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
     Log_print2(Diags_USER1, "VirtQueue_kick: Sending interrupt to proc %d "
             "with payload 0x%x", (IArg)vq->procId, (IArg)vq->id);
 
-    intInfo.localIntId  = Interrupt_SRCS_BITPOS_CORE0;
-    Interrupt_intSend(vq->procId, &intInfo, vq->id);
+    VirtQueue_InterruptProxy_intSend(vq->procId, NULL, 0);
 }
 
 /*
@@ -375,25 +372,18 @@ static Void VirtQueue_isr(UArg msg)
 /*
  * ======== VirtQueue_startup ========
  */
-Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
+Void VirtQueue_startup(UInt16 procId, Bool isHost)
 {
-    Interrupt_IntInfo intInfo;
 
-    intInfo.intVectorId = Interrupt_DSPINT;
-    intInfo.localIntId  = Interrupt_SRCS_BITPOS_HOST;
-
-
-    /*
-     * Wait for first kick from host, which happens to coincide with the
+    /* Wait for first kick from host, which happens to coincide with the
      * priming of host's receive buffers, indicating host is ready to send.
      * Since interrupt is cleared, we throw away this first kick, which is
      * OK since we don't process this in the ISR anyway.
      */
     Log_print0(Diags_USER1, "VirtQueue_startup: Polling for host int...");
-    while (!Interrupt_checkAndClear(remoteProcId, &intInfo));
+    while (!VirtQueue_InterruptProxy_intClear(procId, NULL));
 
-    Interrupt_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, 0);
-
+    VirtQueue_InterruptProxy_intRegister(procId, NULL, (Fxn)VirtQueue_isr, 0);
     Log_print0(Diags_USER1, "Passed VirtQueue_startup");
 }
 
