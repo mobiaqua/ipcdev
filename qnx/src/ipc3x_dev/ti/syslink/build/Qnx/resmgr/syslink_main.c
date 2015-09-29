@@ -1495,8 +1495,8 @@ int deinit_ipc(ipc_dev_t * dev, ipc_firmware_info * firmware,
                         if (proc_traces[id].va) {
                             /* print traces */
                             fprintf(log, "*************************************\n");
-                            fprintf(log, "***       CORE%d TRACE DUMP        ***\n",
-                                firmware[i].proc_id);
+                            fprintf(log, "***        %s TRACE DUMP        ***\n",
+                                firmware[id].proc);
                             fprintf(log, "*************************************\n");
                             for (i = (*proc_traces[id].widx + 1);
                                 i < (proc_traces[id].len - 8);
