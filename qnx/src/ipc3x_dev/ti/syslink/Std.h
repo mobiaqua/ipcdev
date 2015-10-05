@@ -65,7 +65,6 @@ typedef unsigned int      uint;
 typedef unsigned int      UINT32;
 typedef unsigned long     ULONG;
 typedef unsigned long     DWORD;
-typedef void             * HANDLE;
 typedef unsigned int     atomic_t;
 
 typedef unsigned short    BOOL;

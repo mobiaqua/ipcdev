@@ -146,7 +146,11 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
      * We need to expose available array entries before sending an
      * interrupt.
      */
+#if _NTO_VERSION >= 660
     asm("   DSB ST");
+#else
+    asm("   DSB  ");
+#endif
 
     GT_2trace(curTrace, GT_2CLASS,
             "VirtQueue_kick: Sending interrupt to proc %d with payload 0x%x",
@@ -226,7 +230,11 @@ Int VirtQueue_addAvailBuf(VirtQueue_Handle vq, Void *buf, UInt32 len, Int16 head
          * Descriptors and available array need to be set before we expose the
          * new available array entries.
          */
+#if _NTO_VERSION >= 660
         asm("   DMB ST");
+#else
+        asm("   DMB  ");
+#endif
 
         vq->vring.avail->idx++;
     }
