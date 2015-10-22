@@ -206,17 +206,21 @@ Int GateMP_setup(Int32 * sr0ProcId)
             GateMP_module->numRemoteCustom2 = nsValue[5];
 
             /* Map InUse arrays to daemon's address space */
-            GateMP_module->remoteSystemInUse = mmap(NULL,
-                GateMP_module->numRemoteSystem * sizeof (UInt8),
-                (PROT_READ|PROT_WRITE|PROT_NOCACHE),
-                (MAP_PHYS|MAP_SHARED), NOFD, (off_t)nsValue[0]);
-            if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
-                 GateMP_module->remoteSystemInUse = NULL;
-                 status = GateMP_E_MEMORY;
-                 LOG0("Failed to map remoteSystemInUse to host address space!");
+            if (GateMP_module->numRemoteSystem != 0) {
+                GateMP_module->remoteSystemInUse = mmap(NULL,
+                    GateMP_module->numRemoteSystem * sizeof (UInt8),
+                    (PROT_READ|PROT_WRITE|PROT_NOCACHE),
+                    (MAP_PHYS|MAP_SHARED), NOFD, (off_t)nsValue[0]);
+                if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
+                    GateMP_module->remoteSystemInUse = NULL;
+                    status = GateMP_E_MEMORY;
+                    LOG0("Failed to map remoteSystemInUse to host address" \
+                         " space!");
+                }
             }
 
-            if (status == GateMP_S_SUCCESS) {
+            if ((status == GateMP_S_SUCCESS) &&
+                (GateMP_module->numRemoteCustom1 != 0)) {
                 GateMP_module->remoteCustom1InUse = mmap(NULL,
                     GateMP_module->numRemoteCustom1 * sizeof (UInt8),
                     (PROT_READ|PROT_WRITE|PROT_NOCACHE),
@@ -224,12 +228,13 @@ Int GateMP_setup(Int32 * sr0ProcId)
                 if (GateMP_module->remoteCustom1InUse == MAP_FAILED) {
                     GateMP_module->remoteCustom1InUse = NULL;
                     status = GateMP_E_MEMORY;
-                    LOG0("Failed to map remoteSystemInUse to host address" \
+                    LOG0("Failed to map remoteCustom1InUse to host address" \
                         " space!");
                 }
             }
 
-            if (status == GateMP_S_SUCCESS) {
+            if ((status == GateMP_S_SUCCESS) &&
+                (GateMP_module->numRemoteCustom2 != 0)) {
                 GateMP_module->remoteCustom2InUse = mmap(NULL,
                     GateMP_module->numRemoteCustom2 * sizeof (UInt8),
                     (PROT_READ|PROT_WRITE|PROT_NOCACHE),
@@ -237,7 +242,7 @@ Int GateMP_setup(Int32 * sr0ProcId)
                 if (GateMP_module->remoteCustom2InUse == MAP_FAILED) {
                     GateMP_module->remoteCustom2InUse = NULL;
                     status = GateMP_E_MEMORY;
-                    LOG0("Failed to map remoteSystemInUse to host address" \
+                    LOG0("Failed to map remoteCustom2InUse to host address" \
                         " space!");
                 }
             }
