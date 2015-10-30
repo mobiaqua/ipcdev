@@ -62,15 +62,12 @@ struct resource_table {
         UInt32 version;
         UInt32 num;
         UInt32 reserved[2];
-        UInt32 offset[13];
+        UInt32 offset[2];
 
         /* rpmsg vdev entry */
         struct fw_rsc_vdev rpmsg_vdev;
         struct fw_rsc_vdev_vring rpmsg_vring0;
         struct fw_rsc_vdev_vring rpmsg_vring1;
-
-        /* data carveout entry */
-        struct fw_rsc_carveout data_cout;
 
         /* trace entry */
         struct fw_rsc_trace trace;
@@ -88,12 +85,11 @@ struct resource_table {
 
 struct resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
-    3, /* number of entries in the table */
+    2, /* number of entries in the table */
     0, 0, /* reserved, must be zero */
     /* offsets to entries */
     {
         offsetof(struct resource_table, rpmsg_vdev),
-        offsetof(struct resource_table, data_cout),
         offsetof(struct resource_table, trace),
     },
 
@@ -106,10 +102,6 @@ struct resource_table ti_ipc_remoteproc_ResourceTable = {
     /* the two vrings */
     { RPMSG_VRING0_DA, 4096, RPMSG_VQ0_SIZE, 1, 0 },
     { RPMSG_VRING1_DA, 4096, RPMSG_VQ1_SIZE, 2, 0 },
-
-    {
-        TYPE_CARVEOUT, CARVEOUTADDR, CARVEOUTADDR, CARVEOUTSIZE, 0, 0, "carveout:dsp",
-    },
 
     {
         TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:dsp",

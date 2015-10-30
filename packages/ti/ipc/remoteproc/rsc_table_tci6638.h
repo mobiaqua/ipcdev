@@ -61,7 +61,11 @@
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[13];
+#ifndef TRACE_RESOURCE_ONLY
+    UInt32 offset[2];
+#else
+    UInt32 offset[1];
+#endif
 
 #ifndef TRACE_RESOURCE_ONLY
     /* rpmsg vdev entry */
@@ -69,8 +73,6 @@ struct my_resource_table {
     struct fw_rsc_vdev_vring rpmsg_vring0;
     struct fw_rsc_vdev_vring rpmsg_vring1;
 #endif
-    /* data carveout entry */
-    struct fw_rsc_carveout data_cout;
 
     /* trace entry */
     struct fw_rsc_trace trace;
@@ -89,9 +91,9 @@ struct my_resource_table {
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
 #ifndef TRACE_RESOURCE_ONLY
-    3, /* number of entries in the table */
+    2, /* number of entries in the table */
 #else
-    2,
+    1,
 #endif
     0, 0, /* reserved, must be zero */
     /* offsets to entries */
@@ -99,7 +101,6 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 #ifndef TRACE_RESOURCE_ONLY
         offsetof(struct my_resource_table, rpmsg_vdev),
 #endif
-        offsetof(struct my_resource_table, data_cout),
         offsetof(struct my_resource_table, trace),
     },
 
@@ -116,11 +117,7 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 #endif
 
     {
-        TYPE_CARVEOUT, CARVEOUTADDR, CARVEOUTADDR, CARVEOUTSIZE, 0, 0, "carveout:dsp",
-    },
-
-    {
-    TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:dsp",
+        TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:dsp",
     },
 };
 
