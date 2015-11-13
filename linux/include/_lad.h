@@ -163,7 +163,6 @@ extern struct timeval start_tv;
 typedef enum {
     LAD_CONNECT = 0,
     LAD_DISCONNECT,
-    LAD_RPROC_SETID,
     LAD_IPC_GETCONFIG,
     LAD_NAMESERVER_SETUP,
     LAD_NAMESERVER_DESTROY,

@@ -272,20 +272,6 @@ Int MultiProc_setLocalId(UInt16 id);
  */
 Int MultiProc_setBaseIdOfCluster(UInt16 id);
 
-/*
- *  ======== MultiProc_rprocSetId ========
- *  Update processor ID mapping at run-time
- *
- *  Internal use only. This function is temporary and will be
- *  removed in a future build.
- *
- *  When using remoteproc to load a DSP processor, the VirtIO channel
- *  ID is non-deterministic. This function is part of a larger hack to
- *  update the mapping from ProcID to VirtIO Channel ID each time a DSP
- *  is loaded.
- */
-Int MultiProc_rprocSetId(UInt16 procId, UInt rprocId);
-
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */

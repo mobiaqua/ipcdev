@@ -420,11 +420,6 @@ opencommandFIFO:
 
             break;
 
-          case LAD_RPROC_SETID:
-            rsp.status = MultiProc_rprocSetId(cmd.args.rprocSetId.procId,
-                    cmd.args.rprocSetId.rprocId);
-            break;
-
           case LAD_IPC_GETCONFIG:
             Ipc_getConfig(&rsp.ipcConfig);
             break;
@@ -803,7 +798,6 @@ opencommandFIFO:
           case LAD_DISCONNECT:
             break;
 
-          case LAD_RPROC_SETID:
           case LAD_IPC_GETCONFIG:
           case LAD_NAMESERVER_SETUP:
           case LAD_NAMESERVER_DESTROY:
