@@ -160,7 +160,6 @@ else if (Program.platformName.match(/simKepler/) ||
         Program.cpu.deviceName.match(/^TCI66AK2G02$/) ||
         Program.cpu.deviceName.match(/^TMS320TCI663(0K2L|6|8)$/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
-    var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
 
     /* Note: MultiProc_self is set during VirtQueue_init based on DNUM. */
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
@@ -216,9 +215,7 @@ else if (Program.platformName.match(/simKepler/) ||
 
     /*  COMMENT OUT TO SHUT OFF LOG FOR BENCHMARKS: */
     /*
-    Diags.setMaskMeta("ti.ipc.family.tci6638.Interrupt", Diags.USER1,
-        Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.family.tci6638.VirtQueue", Diags.USER1,
+     Diags.setMaskMeta("ti.ipc.family.tci6638.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
