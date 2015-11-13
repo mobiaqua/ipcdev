@@ -470,6 +470,10 @@ Build.platformTable["ti.platforms.evmTCI6638K2K:core0"] = {
     externalMemoryMap: [ ]
 };
 
+Build.platformTable["ti.platforms.evmTCI66AK2G02:core0"] = {
+    externalMemoryMap: [ ]
+};
+
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
 
@@ -489,6 +493,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
               (platform.match(/^ti.platforms.evmC66AK2E/)) ||
+              (platform.match(/^ti.platforms.evmTCI66AK2G02/)) ||
               (platform.match(/^ti.platforms.evmTCI6630K2L/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti.platforms.evmTCI6636K2H/)) ||

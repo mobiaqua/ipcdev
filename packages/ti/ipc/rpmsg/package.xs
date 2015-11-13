@@ -97,6 +97,7 @@ function getLibs(prog)
         case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":
+        case "TCI66AK2G02":
             platform = "tci6638";
             break;
 

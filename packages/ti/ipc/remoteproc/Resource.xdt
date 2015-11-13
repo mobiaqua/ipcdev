@@ -50,6 +50,7 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %  }
 %  else if (prog.platformName.match(/Kepler/) ||
 %         prog.cpu.deviceName.match(/^TMS320C66AK2E05$/) ||
+%         prog.cpu.deviceName.match(/^TCI66AK2G02$/) ||
 %         prog.cpu.deviceName.match(/^TMS320C66AK2H12$/) ||
 %         prog.cpu.deviceName.match(/^TMS320TCI663(0K2L|6|8)$/)) {
 %    if (this.traceOnly) {

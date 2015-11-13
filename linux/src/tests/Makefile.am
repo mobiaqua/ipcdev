@@ -114,6 +114,10 @@ if TCI6638
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 else
+if C66AK2G
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+else
 # Add platform independent apps here or above in bin_PROGRAMS
 if CMEM
   bin_PROGRAMS += nano_test
@@ -121,6 +125,7 @@ endif
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

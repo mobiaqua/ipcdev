@@ -80,7 +80,11 @@ else
 if TCI6638
   bin_PROGRAMS += lad_tci6638
 else
-  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638
+if C66AK2G
+  bin_PROGRAMS += lad_66ak2g
+else
+  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638 lad_66ak2g
+endif
 endif
 endif
 endif
@@ -140,6 +144,7 @@ lad_tci6614_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6614.c
 lad_tci6630_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6630.c
 lad_tci6636_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
 lad_tci6638_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
+lad_66ak2g_SOURCES = $(common_sources) cfg/MultiProcCfg_66ak2g.c
 
 common_libraries = -lpthread \
                 $(top_builddir)/linux/src/utils/libtiipcutils_lad.la
@@ -160,6 +165,8 @@ lad_tci6630_LDADD = $(common_libraries) \
 lad_tci6636_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 lad_tci6638_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+lad_66ak2g_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 ###############################################################################

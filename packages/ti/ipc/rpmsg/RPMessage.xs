@@ -77,6 +77,7 @@ function module$use()
         case "TMS320TCI6630K2L":
         case "TMS320TCI6636":
         case "TMS320TCI6638":
+        case "TCI66AK2G02":
             xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
             break;
 
