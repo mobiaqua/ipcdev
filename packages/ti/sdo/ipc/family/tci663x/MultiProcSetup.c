@@ -40,12 +40,15 @@
 
 #include "package/internal/MultiProcSetup.xdc.h"
 
+
+#ifdef _TMS320C6X
 /*!
  *  ======== MultiProcSetup_init ========
  */
 Void MultiProcSetup_init()
 {
     extern cregister volatile UInt DNUM;
+
     UInt16 procId;
 
     /* Skip if the procId has already been set */
@@ -85,3 +88,9 @@ UInt16 MultiProcSetup_getProcId(UInt coreId)
 
     return (MultiProc_INVALIDID);
 }
+
+#else
+    /* TODO: MultiProcSetup does not support ARM
+     * This file may be deprecated.
+     */
+#endif
