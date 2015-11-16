@@ -46,8 +46,14 @@
 
 #include "package/internal/Interrupt.xdc.h"
 
-extern volatile cregister UInt DNUM;
+#define ARM_SOURCE_OFFSET 31
+#define ARM_HWI_OFFSET 32
 
+#ifdef _TMS320C6X
+    extern cregister volatile UInt DNUM;
+#else
+    /* ARM does not support DNUM */
+#endif
 
 /*
  *************************************************************************
@@ -92,6 +98,7 @@ Int Interrupt_Module_startup(Int phase)
                 Interrupt_A_hostConfig);
     }
 
+#ifdef _TMS320C6X
     /*  Validate the running executable has been loaded onto the correct
      *  processor. In other words, make sure CORE0 was loaded onto DSP0
      *  (i.e. DNUM == 0), CORE1 loaded onto DSP1, etc.
@@ -102,12 +109,17 @@ Int Interrupt_Module_startup(Int phase)
     if (nameId != DNUM) {
         System_abort("incorrect executable loaded onto processor");
     }
+#else
+    /*  Host doesn't necessarily follow the same naming conventions
+    */
+#endif
 
     if (!Interrupt_enableKick) {
         /* do not unlock the kick registers */
         return (Startup_DONE);
     }
 
+#ifdef _TMS320C6X
     /* only write KICK registers from CORE0 */
     if (DNUM == 0) {
         /* TODO: What if CORE0 is not started, but the others are? */
@@ -120,6 +132,10 @@ Int Interrupt_Module_startup(Int phase)
             *kick1 = 0x95a4f1e0;        /* must be written with this value */
         }
     }
+#else
+    /*  reserved for RTOS HOST
+    */
+#endif
     return (Startup_DONE);
 }
 
@@ -153,7 +169,11 @@ Void Interrupt_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *unused,
     UInt key;
     Hwi_Params hwiAttrs;
     UInt16 clusterId;
+#ifdef _TMS320C6X
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
+#else
+    volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
+#endif
     UInt32 val;
 
     /* disable global interrupts */
@@ -167,16 +187,28 @@ Void Interrupt_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *unused,
     /* make sure the interrupt gets plugged only once */
     if (Interrupt_module->numPlugged++ == 0) {
 
+#ifdef _TMS320C6X
         /* clear all pending ipc interrupts */
         val = ipcar[DNUM];
         ipcar[DNUM] = val;
+#else
+        /* Verify that this works for ARM */
+        val = *ipcarh;
+        *ipcarh = val;
+#endif
 
         /* register ipc interrupt */
         Hwi_Params_init(&hwiAttrs);
         hwiAttrs.maskSetting = Hwi_MaskingOption_SELF;
-        hwiAttrs.eventId = Interrupt_INTERDSPINT;
+#ifdef _TMS320C6X
+        hwiAttrs.eventId = Interrupt_INTERDSPINT,
         Interrupt_module->hwi = Hwi_create(Interrupt_ipcIntr, Interrupt_isr,
                 &hwiAttrs, NULL);
+#else
+        Interrupt_module->hwi =
+            Hwi_create(Interrupt_INTERDSPINT + ARM_HWI_OFFSET,
+            Interrupt_isr, &hwiAttrs, NULL);
+#endif
     }
 
     /* restore global interrupts */
@@ -219,12 +251,18 @@ Void Interrupt_intSend(UInt16 procId, IInterrupt_IntInfo *unused, UArg arg)
     int clusterId;
     UInt dnum;
 
+#ifdef _TMS320C6X
     /*  bit 0 is set to generate interrupt.
      *  bits 4-7 is set to specify the interrupt generation source.
      *  The convention is that bit 4 (SRCS0) is used for core 0,
      *  bit 5 (SRCS1) for core 1, etc... .
      */
     val = (1 << (DNUM + Interrupt_SRCSx_SHIFT)) | 1;
+#else
+    /*  Host sets the first bit instead of using DNUM
+    */
+    val = (1 << ARM_SOURCE_OFFSET) | 1;
+#endif
 
     if (procId == MultiProc_getId("HOST")) {
         /* interrupt the host processor,  use IPCGRH register */
@@ -247,15 +285,23 @@ Void Interrupt_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo, UArg arg)
     int clusterId;
     int bit;
     UInt32 val;
+#ifdef _TMS320C6X
     volatile UInt32 *ipcgr = (volatile UInt32 *)Interrupt_IPCGR0;
+#else
+    volatile UInt32 *ipcgrh = (volatile UInt32 *)Interrupt_IPCGRH;
+#endif
 
     /* compute srcsx bit of source processor */
     clusterId = srcProcId - Interrupt_module->baseId;
     bit = Interrupt_module->hwTab[clusterId].srcsx;
     val = (1 << bit) | 1;
 
+#ifdef _TMS320C6X
     /* raise the interrupt to myself */
     ipcgr[DNUM] = val;
+#else
+    *ipcgrh = val;
+#endif
 }
 
 /*
@@ -268,7 +314,11 @@ UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *unused)
 {
     int clusterId;
     int pos;
+#ifdef _TMS320C6X
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
+#else
+    volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
+#endif
     UInt val;
     UInt stat = 0;
 
@@ -276,12 +326,20 @@ UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *unused)
     clusterId = remoteProcId - Interrupt_module->baseId;
     pos = Interrupt_module->hwTab[clusterId].srcsx;
 
+#ifdef _TMS320C6X
     /* read ipcar register to get source bits */
     val = ipcar[DNUM];
+#else
+    val = *ipcarh;
+#endif
 
     if (val & (1 << pos)) {
+#ifdef _TMS320C6X
         /* write ipc acknowledgement register to clear source bit */
         ipcar[DNUM] = (1 << pos);
+#else
+        *ipcarh = (1 << pos);
+#endif
         stat = 1;
     }
 
@@ -301,20 +359,32 @@ Void Interrupt_isr(UArg unused)
 {
     int clId;
     Interrupt_ClientEntry *entry;
+#ifdef _TMS320C6X
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
+#else
+    volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
+#endif
     UInt32 val;
     int bit;
 
+#ifdef _TMS320C6X
     /* ipc acknowledgement register value */
     val = ipcar[DNUM];
+#else
+    val = *ipcarh;
+#endif
 
     for (clId = 0; clId < ti_sdo_utils_MultiProc_numProcsInCluster; clId++) {
         bit = Interrupt_module->hwTab[clId].srcsx;
 
         if (val & (1 << bit)) {
 
+#ifdef _TMS320C6X
             /* clear the interrupt source */
             ipcar[DNUM] = (1 << bit);
+#else
+            *ipcarh = (1 << bit);
+#endif
 
             /* invoke the client isr */
             entry = &(Interrupt_module->clientTab[clId]);

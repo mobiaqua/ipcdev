@@ -34,6 +34,7 @@
  *  ======== Interrupt.xs ========
  */
 
+var isaChain = "";
 var deviceSettings = {
     /* all Keystone II devices inherit from TCI6634 */
     'TMS320TCI6634' : {
@@ -43,7 +44,8 @@ var deviceSettings = {
         IPCARH:         0x026202A0,
         KICK0:          0x02620038,
         KICK1:          0x0262003C,
-        INTERDSPINT:    105
+        INTERDSPINT:    105,
+        IPCHOSTINT:     4
     }
 };
 
@@ -62,6 +64,9 @@ function module$meta$init()
         return;
     }
 
+    /* concatinate isa chain into single string for easier matching */
+    isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";
+
     var settings = deviceSettings[Program.cpu.deviceName];
 
     this.IPCGR0         = settings.IPCGR0;
@@ -70,7 +75,12 @@ function module$meta$init()
     this.IPCARH         = settings.IPCARH;
     this.KICK0          = settings.KICK0;
     this.KICK1          = settings.KICK1;
-    this.INTERDSPINT    = settings.INTERDSPINT;
+    if (isaChain.match(/#64P#/)) {
+        this.INTERDSPINT    = settings.INTERDSPINT;
+    }
+    else if (isaChain.match(/#v7A#/)) {
+        this.INTERDSPINT    = settings.IPCHOSTINT;
+    }
 }
 
 /*

@@ -146,7 +146,8 @@ var deviceAliases = {
                            'TMS320TCI6636',
                            'TMS320TCI6638',
                            'Kepler'],
-    'TMS320C66AK2H12'   : ['TCI66AK2G02'],
+    'TMS320C66AK2H12'   : ['TCI66AK2G02',
+                           'TCI6636K2H'],
     'LM3.*'             : ['LM4.*'],
     'Vayu'              : ['DRA7XX']
 }
@@ -293,6 +294,7 @@ var notifySetupDelegates = {
     'TMS320C6472'       : { del: 'ti.sdo.ipc.family.c647x.NotifySetup', },
     'TMS320C6474'       : { del: 'ti.sdo.ipc.family.c647x.NotifySetup', },
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.family.tci663x.NotifyCircSetup', },
+    'TCI6636K2H'        : { del: 'ti.sdo.ipc.family.tci663x.NotifyCircSetup', },
     'OMAP4430'          : { del: 'ti.sdo.ipc.family.omap4430.NotifySetup', },
     'Arctic'            : { del: 'ti.sdo.ipc.family.arctic.NotifyCircSetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
@@ -350,6 +352,8 @@ var interruptDelegates = {
     },
     'ti.catalog.arm.cortexa15' : {
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptHost', },
+        'TCI66AK2G02'   : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
+        'TCI6636K2H'    : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
     },
     'ti.catalog.c6000' : {
         'OMAP3530'      : { del: 'ti.sdo.ipc.family.omap3530.InterruptDsp', },
@@ -363,6 +367,7 @@ var interruptDelegates = {
         'TMS320C6678'   : { del: 'ti.sdo.ipc.family.c647x.Interrupt', },
         'TMS320C6670'   : { del: 'ti.sdo.ipc.family.c647x.Interrupt', },
         'TMS320TCI6634' : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
+        'TCI6636K2H'    : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
 
         'OMAP4430'      : { del: 'ti.sdo.ipc.family.omap4430.InterruptDsp', },
         'Arctic'        : { del: 'ti.sdo.ipc.family.arctic.InterruptDsp', },
@@ -488,8 +493,15 @@ var hwSemDelegates = {
             baseAddr:   0x02640100,
             queryAddr:  0x02640200,
             numSems:    32,
-        },
+        }
     },
+    'ti.catalog.arm.cortexa15' : {
+        'TMS320C66AK2H12' : {
+            baseAddr:   0x02640100,
+            queryAddr:  0x02640200,
+            numSems:    32,
+        }
+    }
 }
 for (var family in hwSemDelegates) {
     setDeviceAliases(hwSemDelegates[family], deviceAliases);
