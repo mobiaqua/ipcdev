@@ -251,6 +251,7 @@ var hostProcNames = {
     'TMS320C6670'       : ["CORE0"],
     'TMS320C6472'       : ["CORE0"],
     'TMS320C6474'       : ["CORE0"],
+    'TMS320C66AK2E05'   : ["HOST"],
     'TMS320TCI6630K2L'  : ["HOST"],
     'TMS320C66AK2H12'   : ["HOST"],
     'TMS320TCI6634'     : ["CORE0"],
@@ -354,6 +355,8 @@ var interruptDelegates = {
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptHost', },
         'TCI66AK2G02'   : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
         'TCI6636K2H'    : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
+        'TMS320C66AK2E05'      : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
+        'TMS320TCI6630K2L'     : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
     },
     'ti.catalog.c6000' : {
         'OMAP3530'      : { del: 'ti.sdo.ipc.family.omap3530.InterruptDsp', },
@@ -497,6 +500,16 @@ var hwSemDelegates = {
     },
     'ti.catalog.arm.cortexa15' : {
         'TMS320C66AK2H12' : {
+            baseAddr:   0x02640100,
+            queryAddr:  0x02640200,
+            numSems:    32,
+        },
+        'TMS320C66AK2E05' : {
+            baseAddr:   0x02640100,
+            queryAddr:  0x02640200,
+            numSems:    32,
+        },
+        'TMS320TCI6630K2L' : {
             baseAddr:   0x02640100,
             queryAddr:  0x02640200,
             numSems:    32,
