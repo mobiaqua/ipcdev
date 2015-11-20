@@ -39,6 +39,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
                      $(LOCAL_PATH)/hlos_common/include
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT -fPIC
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= linux/src/api/MultiProc.c \
@@ -65,6 +66,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
                      $(LOCAL_PATH)/hlos_common/include
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= linux/src/utils/LAD_client.c \
@@ -87,6 +89,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
                      $(LOCAL_PATH)/hlos_common/include
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= linux/src/utils/LAD_client.c \
@@ -110,6 +113,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
                      $(LOCAL_PATH)/hlos_common/include
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= linux/src/transport/TransportRpmsg.c
@@ -128,6 +132,7 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH) \
                     $(LOCAL_PATH)/packages
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= packages/ti/ipc/mm/MmRpc.c
@@ -147,6 +152,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
                      $(LOCAL_PATH)/hlos_common/include
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID -DGATEMP_SUPPORT
+LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
 
 LOCAL_SRC_FILES:= linux/src/daemon/lad.c \

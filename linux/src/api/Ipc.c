@@ -83,7 +83,7 @@ Void MessageQ_unbind(UInt16 procId);
  */
 static Ipc_Module Ipc_module = {
     .refCount           = 0,
-#if defined(IPC_BUILDOS_ANDROID)
+#if defined(IPC_BUILDOS_ANDROID) && (PLATFORM_SDK_VERSION < 23)
     .gate               = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
 #else
 // only _NP (non-portable) type available in CG tools which we're using

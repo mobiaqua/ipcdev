@@ -156,7 +156,7 @@ static MessageQ_ModuleObject MessageQ_state =
 {
     .refCount   = 0,
     .nameServer = NULL,
-#if defined(IPC_BUILDOS_ANDROID)
+#if defined(IPC_BUILDOS_ANDROID) && (PLATFORM_SDK_VERSION < 23)
     .gate       = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
 #else
     .gate       = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
