@@ -49,9 +49,9 @@
 #define ARM_SOURCE_OFFSET 31
 #define ARM_HWI_OFFSET 32
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     extern cregister volatile UInt DNUM;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     /* ARM does not support DNUM */
 #endif
 
@@ -98,7 +98,7 @@ Int Interrupt_Module_startup(Int phase)
                 Interrupt_A_hostConfig);
     }
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /*  Validate the running executable has been loaded onto the correct
      *  processor. In other words, make sure CORE0 was loaded onto DSP0
      *  (i.e. DNUM == 0), CORE1 loaded onto DSP1, etc.
@@ -109,7 +109,7 @@ Int Interrupt_Module_startup(Int phase)
     if (nameId != DNUM) {
         System_abort("incorrect executable loaded onto processor");
     }
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     /*  Host doesn't necessarily follow the same naming conventions
     */
 #endif
@@ -119,7 +119,7 @@ Int Interrupt_Module_startup(Int phase)
         return (Startup_DONE);
     }
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /* only write KICK registers from CORE0 */
     if (DNUM == 0) {
         /* TODO: What if CORE0 is not started, but the others are? */
@@ -132,7 +132,7 @@ Int Interrupt_Module_startup(Int phase)
             *kick1 = 0x95a4f1e0;        /* must be written with this value */
         }
     }
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     /*  reserved for RTOS HOST
     */
 #endif
@@ -169,9 +169,9 @@ Void Interrupt_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *unused,
     UInt key;
     Hwi_Params hwiAttrs;
     UInt16 clusterId;
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
 #endif
     UInt32 val;
@@ -187,11 +187,11 @@ Void Interrupt_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *unused,
     /* make sure the interrupt gets plugged only once */
     if (Interrupt_module->numPlugged++ == 0) {
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
         /* clear all pending ipc interrupts */
         val = ipcar[DNUM];
         ipcar[DNUM] = val;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
         /* Verify that this works for ARM */
         val = *ipcarh;
         *ipcarh = val;
@@ -200,11 +200,11 @@ Void Interrupt_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *unused,
         /* register ipc interrupt */
         Hwi_Params_init(&hwiAttrs);
         hwiAttrs.maskSetting = Hwi_MaskingOption_SELF;
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
         hwiAttrs.eventId = Interrupt_INTERDSPINT,
         Interrupt_module->hwi = Hwi_create(Interrupt_ipcIntr, Interrupt_isr,
                 &hwiAttrs, NULL);
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
         Interrupt_module->hwi =
             Hwi_create(Interrupt_INTERDSPINT + ARM_HWI_OFFSET,
             Interrupt_isr, &hwiAttrs, NULL);
@@ -251,14 +251,14 @@ Void Interrupt_intSend(UInt16 procId, IInterrupt_IntInfo *unused, UArg arg)
     int clusterId;
     UInt dnum;
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /*  bit 0 is set to generate interrupt.
      *  bits 4-7 is set to specify the interrupt generation source.
      *  The convention is that bit 4 (SRCS0) is used for core 0,
      *  bit 5 (SRCS1) for core 1, etc... .
      */
     val = (1 << (DNUM + Interrupt_SRCSx_SHIFT)) | 1;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     /*  Host sets the first bit instead of using DNUM
     */
     val = (1 << ARM_SOURCE_OFFSET) | 1;
@@ -285,9 +285,9 @@ Void Interrupt_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo, UArg arg)
     int clusterId;
     int bit;
     UInt32 val;
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     volatile UInt32 *ipcgr = (volatile UInt32 *)Interrupt_IPCGR0;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     volatile UInt32 *ipcgrh = (volatile UInt32 *)Interrupt_IPCGRH;
 #endif
 
@@ -296,10 +296,10 @@ Void Interrupt_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo, UArg arg)
     bit = Interrupt_module->hwTab[clusterId].srcsx;
     val = (1 << bit) | 1;
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /* raise the interrupt to myself */
     ipcgr[DNUM] = val;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     *ipcgrh = val;
 #endif
 }
@@ -314,9 +314,9 @@ UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *unused)
 {
     int clusterId;
     int pos;
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
 #endif
     UInt val;
@@ -326,18 +326,18 @@ UInt Interrupt_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *unused)
     clusterId = remoteProcId - Interrupt_module->baseId;
     pos = Interrupt_module->hwTab[clusterId].srcsx;
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /* read ipcar register to get source bits */
     val = ipcar[DNUM];
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     val = *ipcarh;
 #endif
 
     if (val & (1 << pos)) {
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
         /* write ipc acknowledgement register to clear source bit */
         ipcar[DNUM] = (1 << pos);
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
         *ipcarh = (1 << pos);
 #endif
         stat = 1;
@@ -359,18 +359,18 @@ Void Interrupt_isr(UArg unused)
 {
     int clId;
     Interrupt_ClientEntry *entry;
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     volatile UInt32 *ipcar = (volatile UInt32 *)Interrupt_IPCAR0;
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     volatile UInt32 *ipcarh = (volatile UInt32 *)Interrupt_IPCARH;
 #endif
     UInt32 val;
     int bit;
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
     /* ipc acknowledgement register value */
     val = ipcar[DNUM];
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
     val = *ipcarh;
 #endif
 
@@ -379,10 +379,10 @@ Void Interrupt_isr(UArg unused)
 
         if (val & (1 << bit)) {
 
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
             /* clear the interrupt source */
             ipcar[DNUM] = (1 << bit);
-#else
+#elif defined(xdc_target__isaCompatible_v7A)
             *ipcarh = (1 << bit);
 #endif
 

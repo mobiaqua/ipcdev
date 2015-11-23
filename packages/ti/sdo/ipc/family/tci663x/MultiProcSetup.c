@@ -40,8 +40,7 @@
 
 #include "package/internal/MultiProcSetup.xdc.h"
 
-
-#ifdef _TMS320C6X
+#if defined(xdc_target__isaCompatible_64P)
 /*!
  *  ======== MultiProcSetup_init ========
  */
@@ -88,7 +87,6 @@ UInt16 MultiProcSetup_getProcId(UInt coreId)
 
     return (MultiProc_INVALIDID);
 }
-
 #else
     /* TODO: MultiProcSetup does not support ARM
      * This file may be deprecated.
