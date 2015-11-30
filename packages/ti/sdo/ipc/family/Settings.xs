@@ -148,6 +148,8 @@ var deviceAliases = {
                            'Kepler'],
     'TMS320C66AK2H12'   : ['TCI66AK2G02',
                            'TCI6636K2H'],
+    'TMS320C66AK2E05'   : ['C66AK2E05'],
+    'TMS320TCI6630K2L'  : ['TCI6630K2L'],
     'LM3.*'             : ['LM4.*'],
     'Vayu'              : ['DRA7XX']
 }
