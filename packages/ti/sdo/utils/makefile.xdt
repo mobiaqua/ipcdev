@@ -64,8 +64,6 @@ IPC_ROOT = `File.getDOSPath(this.$package.packageRepository) + "ti/sdo/"`
 
 BUILD_DEFS = `Build.getDefs()`
 
-BIOS_INC  = -I"`xdc.getPackageRepository("ti.bios")`"
-
 SYSBIOS_INC  = -I"`xdc.getPackageRepository("ti.sysbios")`"
 
 IPC_INC    = -I"`xdc.getPackageRepository("ti.sdo.ipc")`"
@@ -145,7 +143,7 @@ UTILS.obj: `CFILES` makefile
 	@-$(call RM, $@)
 %}
 	@echo cl`TARGET.suffix` $< ...
-	@$(CC) $(BUILD_DEFS) $(XOPTS) $(SYSBIOS_INC) $(BIOS_INC) \
+	@$(CC) $(BUILD_DEFS) $(XOPTS) $(SYSBIOS_INC) \
 	$(IPC_INC) $(UTILS_INC) \
 %var sources = CFILES.split(' ');
 %for each (var s in sources) {
