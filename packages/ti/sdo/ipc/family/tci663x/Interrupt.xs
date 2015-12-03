@@ -47,7 +47,7 @@ var deviceSettings = {
         INTERDSPINT:    105,
         IPCHOSTINT:     4
     },
-    'TMS320C66AK2H12' : {
+    'TCI66AK2G02' : {
         IPCGR0:         0x02620240,
         IPCAR0:         0x02620280,
         IPCGRH:         0x02620260,
