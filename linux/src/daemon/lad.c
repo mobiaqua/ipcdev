@@ -35,6 +35,7 @@
 
 #include <ti/ipc/Std.h>
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,6 +63,8 @@
 
 #define DAEMON        1           /* 1 = run as a daemon; 0 = run as app */
 
+#define READ_BUF_SIZE 50
+
 Bool logFile = FALSE;
 FILE *logPtr = NULL;
 struct timeval start_tv;
@@ -80,6 +83,7 @@ static Char clientFIFOName[LAD_MAXNUMCLIENTS][LAD_MAXLENGTHFIFONAME];
 static FILE * responseFIFOFilePtr[LAD_MAXNUMCLIENTS];
 
 /* local internal routines */
+static Bool isDaemonRunning(Char *pidName);
 static LAD_ClientHandle assignClientId(Void);
 static Void cleanupFifos(Void);
 static Void cleanupDepartedClients(Void);
@@ -145,6 +149,11 @@ int main(int argc, char * argv[])
                     "\nERROR: Failed to create LAD's root directory!\n");
             exit(EXIT_FAILURE);
         }
+    }
+
+    if (isDaemonRunning(argv[0])) {
+        printf("Multiple instances of LAD are not supported!\n");
+        exit(EXIT_FAILURE);
     }
 
     /* change to LAD's working directory */
@@ -865,6 +874,74 @@ exitNow:
 
 }
 
+
+/*
+ *  ======== isDaemonRunning ========
+ */
+static Bool isDaemonRunning(Char *pidName)
+{
+    DIR *dir;
+    pid_t pid;
+    Int dirNum;
+    FILE *fp;
+    struct dirent * next;
+    Bool isRunning = FALSE;
+    Char filename [READ_BUF_SIZE];
+    Char buffer [READ_BUF_SIZE];
+    Char *bptr = buffer;
+    Char *name;
+
+    pid = getpid();
+    dir = opendir("/proc");
+    if (!dir) {
+        printf("Warning: Cannot open /proc filesystem\n");
+        return isRunning;
+    }
+
+    name = strrchr(pidName, '/');
+    if (name) {
+        pidName = (name + 1);
+    }
+
+    while ((next = readdir(dir)) != NULL) {
+        /* If it isn't a number, we don't want it */
+        if (!isdigit(*next->d_name)) {
+            continue;
+        }
+
+        dirNum = strtol(next->d_name, NULL, 10);
+        if (dirNum == pid) {
+            continue;
+        }
+
+        snprintf(filename, READ_BUF_SIZE, "/proc/%s/cmdline", next->d_name);
+        if (!(fp = fopen(filename, "r"))) {
+            continue;
+        }
+        if (fgets(buffer, READ_BUF_SIZE, fp) == NULL) {
+            fclose(fp);
+            continue;
+        }
+        fclose (fp);
+
+        name = strrchr(buffer, '/');
+        if (name && (name + 1)) {
+            bptr = name + 1;
+        }
+        else {
+            bptr = buffer;
+        }
+
+        /* Buffer should contain the entire command line */
+        if (strcmp(bptr, pidName) == 0) {
+            isRunning = TRUE;
+            break;
+        }
+    }
+    closedir (dir);
+
+    return isRunning;
+}
 
 /*
  *  ======== assignClientId ========
