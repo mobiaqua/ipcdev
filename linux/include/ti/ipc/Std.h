@@ -53,15 +53,11 @@ extern "C" {
 
 typedef char              Char;
 typedef unsigned char     UChar;
-typedef short             Short;
 typedef unsigned short    UShort;
 typedef int               Int;
 typedef unsigned int      UInt;
 typedef long              Long;
 typedef unsigned long     ULong;
-typedef float             Float;
-typedef double            Double;
-typedef long double       LDouble;
 #define Void              void
 
 
@@ -73,7 +69,6 @@ typedef char            * String;    /* null terminated string */
 
 typedef int            *  IArg;
 typedef unsigned int   *  UArg;
-typedef char              Int8;
 typedef short             Int16;
 typedef int               Int32;
 
@@ -81,13 +76,8 @@ typedef unsigned char     UInt8;
 typedef unsigned short    UInt16;
 typedef unsigned int      UInt32;
 typedef unsigned int      SizeT;
-typedef unsigned char     Bits8;
 typedef unsigned short    Bits16;
 typedef UInt32            Bits32;
-
-/* taken from bridge */
-typedef void           *PVOID;          /* p    */
-typedef PVOID           HANDLE;         /* h    */
 
 #define TRUE              1
 #define FALSE             0
