@@ -143,7 +143,7 @@ static MessageQ_ModuleObject MessageQ_state =
     .queues                 = NULL,
     .numQueues              = 2u,
     .canFreeQueues          = FALSE,
-#if defined(IPC_BUILDOS_ANDROID)
+#if defined(IPC_BUILDOS_ANDROID) && (PLATFORM_SDK_VERSION < 23)
     .gate                   = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
 #else
     .gate                   = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
