@@ -110,7 +110,7 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
 
     NameMap_register("rpmsg-rpc", obj->channelName, obj->port);
 
-    System_printf("OMAPRPC: started channel on port: %d\n", obj->port);
+    System_printf("OMAPRPC: started channel %s on port: %d\n", obj->channelName, obj->port);
 
     while (!obj->shutdown) {
 
@@ -360,6 +360,9 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
         if (obj->msgq == NULL) {
             goto unload;
         }
+
+        /* set port to the created local endpoint */
+        obj->port = obj->localEndPt;
 
         Task_Params_init(&taskParams);
         taskParams.instance->name = channelName;

@@ -48,8 +48,6 @@
 
 #include "MmServiceMgr.h"
 
-#define MmServiceMgr_PORT (59)
-
 typedef struct {
     RcmServer_Params    rcmParams;
     Int                 aryLen;
@@ -98,7 +96,7 @@ Int MmServiceMgr_register(const String name, RcmServer_Params *rcmParams,
     OmapRpc_Handle handle;
 
     handle = OmapRpc_createChannel(name, MultiProc_getId("HOST"),
-            MmServiceMgr_PORT, rcmParams, fxnSigTab, delFxn);
+            RPMessage_ASSIGN_ANY, rcmParams, fxnSigTab, delFxn);
 
     if (handle == NULL) {
         status = MmServiceMgr_E_FAIL;
