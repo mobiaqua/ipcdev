@@ -47,6 +47,9 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <dirent.h>
+#include <errno.h>
+#include <string.h>
 
 /* Module level headers */
 #include <ti/ipc/GateMP.h>
@@ -74,6 +77,9 @@ extern "C" {
 /* Name of GateMP's nameserver */
 #define GateMP_NAMESERVER  "GateMP"
 
+/* sysfs path for the UIO user-space drivers */
+#define UIO_SYSFS          "/sys/class/uio"
+
 #define PAGE_ALIGN(size, psz)  (((size) + psz - 1) & ~(psz -1))
 
 /* =============================================================================
@@ -97,6 +103,7 @@ typedef struct {
 } GateMP_ModuleObject;
 
 /* Internal functions */
+static Int GateMP_get_sr0(Char *name, UInt32 name_len, UInt32 *baseaddr);
 static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr, UInt16 procId[]);
 static Int GateMP_closeDefaultGate(GateMP_Handle *handlePtr);
 
@@ -168,9 +175,11 @@ Int GateMP_attach(UInt16 procId)
     UInt32            size;
     UInt32            alignDiff;
     UInt32            offset;
+    UInt32            baseaddr;
     Int32             fdMem;
     UInt16            procList[2];
     UInt16            clId;
+    Char              filename[PATH_MAX];
 
     /* procId already validated in API layer */
     clId = procId - MultiProc_getBaseIdOfCluster();
@@ -221,10 +230,15 @@ Int GateMP_attach(UInt16 procId)
             status = GateMP_E_NOTFOUND;
         }
         else {
-            fdMem = open ("/dev/mem", O_RDWR | O_SYNC);
+            status = GateMP_get_sr0(filename, PATH_MAX, &baseaddr);
+            if (status < 0) {
+                LOG1("GateMP_attach: failed to find sr0: %s\n", strerror(status));
+                status = GateMP_E_NOTFOUND;
+            }
 
+            fdMem = open (filename, O_RDWR | O_SYNC);
             if (fdMem < 0){
-                LOG0("GateMP_attach: failed to open the /dev/mem!\n");
+                LOG1("GateMP_attach: failed to open the %s!\n", filename);
                 status = GateMP_E_OSFAILURE;
                 goto done;
             }
@@ -238,6 +252,8 @@ Int GateMP_attach(UInt16 procId)
                 (nsValue[0] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
             offset = nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1);
+            offset -= baseaddr;
+
 #if defined(IPC_BUILDOS_ANDROID)
             GateMP_module->remoteSystemInUse = mmap64(NULL, size,
                 (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
@@ -254,7 +270,7 @@ Int GateMP_attach(UInt16 procId)
                  status = GateMP_E_MEMORY;
             }
             else {
-                alignDiff = nsValue[0] - offset;
+                alignDiff = nsValue[0] - baseaddr - offset;
                 GateMP_module->remoteSystemInUse =
                     GateMP_module->remoteSystemInUse + alignDiff;
             }
@@ -263,6 +279,8 @@ Int GateMP_attach(UInt16 procId)
                 (nsValue[1] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
             offset = nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1);
+            offset -= baseaddr;
+
             if (status == GateMP_S_SUCCESS) {
 #if defined(IPC_BUILDOS_ANDROID)
                 GateMP_module->remoteCustom1InUse = mmap64(NULL, size,
@@ -280,7 +298,7 @@ Int GateMP_attach(UInt16 procId)
                     status = GateMP_E_MEMORY;
                 }
                 else {
-                    alignDiff = nsValue[1] - offset;
+                    alignDiff = nsValue[1] - baseaddr - offset;
                     GateMP_module->remoteCustom1InUse =
                         GateMP_module->remoteCustom1InUse + alignDiff;
                 }
@@ -290,6 +308,8 @@ Int GateMP_attach(UInt16 procId)
                 (nsValue[2] & (sysconf(_SC_PAGE_SIZE) - 1));
             size = PAGE_ALIGN(size, sysconf(_SC_PAGE_SIZE));
             offset = nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1);
+            offset -= baseaddr;
+
             if (status == GateMP_S_SUCCESS) {
 #if defined(IPC_BUILDOS_ANDROID)
                 GateMP_module->remoteCustom2InUse = mmap64(NULL, size,
@@ -307,7 +327,7 @@ Int GateMP_attach(UInt16 procId)
                     status = GateMP_E_MEMORY;
                 }
                 else {
-                    alignDiff = nsValue[2] - offset;
+                    alignDiff = nsValue[2] - baseaddr - offset;
                     GateMP_module->remoteCustom2InUse =
                         GateMP_module->remoteCustom2InUse + alignDiff;
                 }
@@ -382,6 +402,87 @@ Void GateMP_destroy(Void)
     GateMP_module->isSetup = FALSE;
 
     return;
+}
+
+static Int GateMP_get_sr0(Char *name, UInt32 name_len, UInt32 *baseaddr)
+{
+    Char filename[PATH_MAX];
+    Char format[80];
+    Char uio_name[80];
+    DIR *dir;
+    struct dirent *de;
+    struct stat st;
+    FILE *fd;
+    Bool found = false;
+    Int ret = 0;
+
+    if (stat(UIO_SYSFS, &st) < 0) {
+        if ((errno == ENOENT) || (errno == ENOTDIR)) {
+            LOG0("GateMP_get_sr0: UIO support not found\n");
+            ret = errno;
+            goto out;
+        }
+    }
+
+    dir = opendir(UIO_SYSFS);
+    if (!dir) {
+        LOG1("GateMP_get_sr0: failed to open UIO sysfs %s\n", UIO_SYSFS);
+        ret = errno;
+        goto out;
+    }
+
+    while (!found) {
+        de = readdir(dir);
+        if (!de) {
+            break;
+        }
+
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) {
+            continue;
+        }
+
+        /* Skip if this is not an UIO entry */
+        snprintf(filename, sizeof(filename), "%s/%s/name", UIO_SYSFS, de->d_name);
+        fd = fopen(filename, "r");
+        if (fd == NULL) {
+            continue;
+        }
+
+        snprintf(format, sizeof(format), "%%%ds", sizeof(uio_name)-1);
+        fscanf(fd, format, uio_name);
+        fclose(fd);
+
+        /* Skip if this UIO entry is not SR0 */
+        if (strncmp(uio_name, "sr0", sizeof(uio_name)-1)) {
+            continue;
+        }
+
+        /* Find the base address of the SR0 UIO */
+        snprintf(filename, sizeof(filename), "%s/%s/maps/map0/addr", UIO_SYSFS, de->d_name);
+        fd = fopen(filename, "r");
+        if (fd == NULL) {
+            LOG0("Gate_sr0_filename: failed to open uio map sysfs\n");
+            ret = errno;
+            break;
+        }
+
+        fscanf(fd, "0x%x", baseaddr);
+        fclose(fd);
+
+        snprintf(name, name_len, "/dev/%s", de->d_name);
+        found = true;
+    }
+
+    closedir(dir);
+
+out:
+    /* Fall back to /dev/mem if UIO is not supported */
+    if (!found) {
+        strncpy(name, "/dev/mem", name_len);
+        baseaddr = 0x0;
+    }
+
+    return ret;
 }
 
 /* Open default gate during GateMP_attach. Should only be called once */
