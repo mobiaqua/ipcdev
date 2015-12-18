@@ -63,6 +63,9 @@ typedef UInt32            Error_Block;
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#include <linux/ioctl.h>
+#include <linux/hwspinlock_user.h>
+
 /* =============================================================================
  * Structures & Enums
  * =============================================================================
@@ -72,6 +75,7 @@ typedef struct {
     Int32                           fd;         /* spinlock device handle */
     UInt32 *                        baseAddr;   /* base addr lock registers */
     GateMutex_Handle                gmHandle;   /* handle to gate mutex */
+    Bool                            useHwlockDrv; /* use the hwspinlock driver */
 } GateHWSpinlock_Module_State;
 
 /* GateHWSpinlock instance object */
@@ -94,7 +98,8 @@ static GateHWSpinlock_Module_State GateHWSpinlock_state =
 {
     .fd = -1,
     .baseAddr = NULL,
-    .gmHandle = NULL
+    .gmHandle = NULL,
+    .useHwlockDrv = false,
 };
 
 static GateHWSpinlock_Module_State *Mod = &GateHWSpinlock_state;
@@ -119,14 +124,22 @@ Int32 GateHWSpinlock_start(Void)
     Int32               status = GateHWSpinlock_S_SUCCESS;
     UInt32              dst;
 
-    Mod->fd = open ("/dev/mem", O_RDWR | O_SYNC);
+    /* Fall back to /dev/mem if hwspinlock_user driver is not supported */
+    Mod->fd = open("/dev/hwspinlock", O_RDWR);
+    if (Mod->fd < 0) {
+        Mod->fd = open ("/dev/mem", O_RDWR | O_SYNC);
+    }
+    else {
+        Mod->useHwlockDrv = true;
+    }
+
     if (Mod->fd < 0){
-        LOG0("GateHWSpinlock_start: failed to open the /dev/mem");
+        LOG0("GateHWSpinlock_start: failed to open the spinlock device");
         status = GateHWSpinlock_E_OSFAILURE;
     }
 
     /* map the hardware lock registers into the local address space */
-    if (status == GateHWSpinlock_S_SUCCESS) {
+    if (!Mod->useHwlockDrv && status == GateHWSpinlock_S_SUCCESS) {
         dst = (UInt32)mmap(NULL, _GateHWSpinlock_cfgParams.size,
                             (PROT_READ | PROT_WRITE),
                             (MAP_SHARED), Mod->fd,
@@ -171,7 +184,7 @@ Int GateHWSpinlock_stop(Void)
     }
 
     /* release lock register mapping */
-    if (Mod->baseAddr != NULL) {
+    if (!Mod->useHwlockDrv && (Mod->baseAddr != NULL)) {
         munmap((void *)_GateHWSpinlock_cfgParams.baseAddr,
            _GateHWSpinlock_cfgParams.size);
     }
@@ -249,7 +262,12 @@ Int GateHWSpinlock_delete (GateHWSpinlock_Handle * handle)
 IArg GateHWSpinlock_enter(GateHWSpinlock_Object *obj)
 {
     volatile UInt32 *baseAddr = Mod->baseAddr;
+    struct hwspinlock_user_lock data = {
+        .id = obj->lockNum,
+        .timeout = 10,
+    };
     IArg key;
+    Bool locked;
 
     key = IGateProvider_enter(obj->localGate);
 
@@ -261,10 +279,18 @@ IArg GateHWSpinlock_enter(GateHWSpinlock_Object *obj)
 
     /* enter the spinlock */
     while (1) {
-        /* read the spinlock, returns non-zero when we get it */
-        if (baseAddr[obj->lockNum] == 0) {
+        if (Mod->useHwlockDrv) {
+            locked = !ioctl(Mod->fd, HWSPINLOCK_USER_LOCK, &data);
+        }
+        else {
+            /* read the spinlock, returns non-zero when we get it */
+            locked = (baseAddr[obj->lockNum] == 0);
+        }
+
+        if (locked) {
             break;
         }
+
         obj->nested--;
         IGateProvider_leave(obj->localGate, key);
         key = IGateProvider_enter(obj->localGate);
@@ -280,12 +306,20 @@ IArg GateHWSpinlock_enter(GateHWSpinlock_Object *obj)
 Int GateHWSpinlock_leave(GateHWSpinlock_Object *obj, IArg key)
 {
     volatile UInt32 *baseAddr = Mod->baseAddr;
+    struct hwspinlock_user_unlock data = {
+        .id = obj->lockNum,
+    };
 
     obj->nested--;
 
     /* release the spinlock if not nested */
     if (obj->nested == 0) {
-        baseAddr[obj->lockNum] = 0;
+        if (Mod->useHwlockDrv) {
+            ioctl(Mod->fd, HWSPINLOCK_USER_UNLOCK, &data);
+        }
+        else {
+            baseAddr[obj->lockNum] = 0;
+        }
     }
 
     IGateProvider_leave(obj->localGate, key);
