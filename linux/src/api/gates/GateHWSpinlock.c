@@ -70,6 +70,7 @@ typedef UInt32            Error_Block;
  */
 /* GateHWSpinlock Module Local State */
 typedef struct {
+    Int32                           fd;         /* spinlock device handle */
     UInt32 *                        baseAddr;   /* base addr lock registers */
     GateMutex_Handle                gmHandle;   /* handle to gate mutex */
 } GateHWSpinlock_Module_State;
@@ -92,6 +93,7 @@ GateHWSpinlock_Config _GateHWSpinlock_cfgParams;
 
 static GateHWSpinlock_Module_State GateHWSpinlock_state =
 {
+    .fd = -1,
     .baseAddr = NULL,
     .gmHandle = NULL
 };
@@ -170,32 +172,32 @@ Int32 GateHWSpinlock_start(Void)
 {
     Int32               status = GateHWSpinlock_S_SUCCESS;
     UInt32              dst;
-    Int32               fdMem;
     int                 flags;
 
-    fdMem = open ("/dev/mem", O_RDWR | O_SYNC);
-
-    if (fdMem < 0){
+    Mod->fd = open ("/dev/mem", O_RDWR | O_SYNC);
+    if (Mod->fd < 0){
         PRINTVERBOSE0("GateHWSpinlock_start: failed to open the /dev/mem");
         status = GateHWSpinlock_E_OSFAILURE;
     }
 
     /* make sure /dev/mem fd doesn't exist for 'fork() -> exec*()'ed child */
-    flags = fcntl(fdMem, F_GETFD);
+    flags = fcntl(Mod->fd, F_GETFD);
     if (flags != -1) {
-        fcntl(fdMem, F_SETFD, flags | FD_CLOEXEC);
+        fcntl(Mod->fd, F_SETFD, flags | FD_CLOEXEC);
     }
 
     /* map the hardware lock registers into the local address space */
     if (status == GateHWSpinlock_S_SUCCESS) {
         dst = (UInt32)mmap(NULL, _GateHWSpinlock_cfgParams.size,
                             (PROT_READ | PROT_WRITE),
-                            (MAP_SHARED), fdMem,
+                            (MAP_SHARED), Mod->fd,
                             (off_t)_GateHWSpinlock_cfgParams.baseAddr);
 
         if (dst == (UInt32)MAP_FAILED) {
             PRINTVERBOSE0("GateHWSpinlock_start: Memory map failed")
             status = GateHWSpinlock_E_OSFAILURE;
+            close(Mod->fd);
+            Mod->fd = -1;
         }
         else {
             Mod->baseAddr = (UInt32 *)(dst + _GateHWSpinlock_cfgParams.offset);
@@ -233,6 +235,12 @@ Int GateHWSpinlock_stop(Void)
     if (Mod->baseAddr != NULL) {
         munmap((void *)_GateHWSpinlock_cfgParams.baseAddr,
            _GateHWSpinlock_cfgParams.size);
+    }
+
+    /* close the spinlock device file */
+    if (Mod->fd >= 0) {
+        close(Mod->fd);
+        Mod->fd = -1;
     }
 
     return(status);
