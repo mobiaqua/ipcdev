@@ -45,6 +45,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
@@ -80,6 +81,7 @@ static FILE * responseFIFOFilePtr[LAD_MAXNUMCLIENTS];
 
 /* local internal routines */
 static LAD_ClientHandle assignClientId(Void);
+static Void cleanupFifos(Void);
 static Void cleanupDepartedClients(Void);
 static Int connectToLAD(String clientName, Int pid, String clientProto, Int *clientIdPtr);
 static Void disconnectFromLAD(Int clientId);
@@ -160,6 +162,8 @@ int main(int argc, char * argv[])
                     "\nERROR: Failed to change to LAD's working directory!\n");
             exit(EXIT_FAILURE);
         }
+    } else {
+        cleanupFifos();
     }
 
     /* process command line args */
@@ -882,6 +886,38 @@ static LAD_ClientHandle assignClientId(Void)
     return(clientId);
 }
 
+/*
+ *  ======== cleanupFifos ========
+ */
+static void cleanupFifos(Void)
+{
+    DIR *dir;
+    struct dirent entry;
+    struct dirent *result;
+    size_t dirnamelen;
+    size_t maxcopy;
+    Char pathname[PATH_MAX];
+    Char *namep;
+
+    if ((dir = opendir(LAD_WORKINGDIR)) == NULL)
+        return;
+
+    dirnamelen = snprintf(pathname, sizeof(pathname), "%s/", LAD_WORKINGDIR);
+    if (dirnamelen >= sizeof(pathname)) {
+        closedir(dir);
+        return;
+    }
+    namep = pathname + dirnamelen;
+    maxcopy = PATH_MAX - dirnamelen;
+    while (readdir_r(dir, &entry, &result) == 0 && result != NULL) {
+        /* Delete old FIFOs left over */
+        if ((entry.d_type == DT_FIFO) && (strlen(entry.d_name) < maxcopy)) {
+            strncpy(namep, entry.d_name, maxcopy);
+            unlink(pathname);
+        }
+    }
+    closedir(dir);
+}
 
 /*
  *  ======== cleanupDepartedClients ========
@@ -982,9 +1018,6 @@ static Int connectToLAD(String clientName, Int pid, String clientProto, Int *cli
     }
 
 openResponseFIFO:
-
-    /* if response FIFO exists from previous LAD session delete it now */
-    unlink(clientName);
 
     /* create the dedicated response FIFO to the client */
     statusIO = mkfifo(clientName, 0777);
