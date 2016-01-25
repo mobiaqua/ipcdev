@@ -64,17 +64,6 @@
 /*  ----------------------------------- To get globals from .cfg Header */
 #include <xdc/cfg/global.h>
 
-/* Define this to eliminate VIRTIO DEV and VRINGS from rsc_table: */
-#define  TRACE_RESOURCE_ONLY 1
-extern char * xdc_runtime_SysMin_Module_State_0_outbuf__A;
-#if defined(TCI6614)
-#include <ti/ipc/remoteproc/rsc_table_tci6614.h>
-#elif defined(TCI6614_v33)
-#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h>
-#elif defined(TCI6638)
-#include <ti/ipc/remoteproc/rsc_table_tci6638.h>
-#endif
-
 #define HEAP_NAME   "myHeapBuf"
 #define HEAPID      0
 #define NUMLOOPS    10
