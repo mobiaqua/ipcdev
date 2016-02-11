@@ -653,23 +653,25 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
     GateMP_module->remoteSystemInUse =
         (Ptr)((UInt32)sharedAddr + offset);
 
-    memset(GateMP_module->remoteSystemInUse, 0,
-        GateMP_module->numRemoteSystem * sizeof(UInt8));
-    delegateReservedMask =
-            ti_sdo_ipc_GateMP_RemoteSystemProxy_getReservedMask();
-    if (delegateReservedMask != NULL) {
-        for (i = 0; i < GateMP_module->numRemoteSystem; i++) {
-            if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
-                GateMP_module->remoteSystemInUse[i] = RESERVED;
+    if (GateMP_module->numRemoteSystem != 0) {
+        memset(GateMP_module->remoteSystemInUse, 0,
+            GateMP_module->numRemoteSystem * sizeof(UInt8));
+        delegateReservedMask =
+                ti_sdo_ipc_GateMP_RemoteSystemProxy_getReservedMask();
+        if (delegateReservedMask != NULL) {
+            for (i = 0; i < GateMP_module->numRemoteSystem; i++) {
+                if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
+                    GateMP_module->remoteSystemInUse[i] = RESERVED;
+                }
             }
         }
-    }
 
-    if (SharedRegion_isCacheEnabled(0)) {
-        Cache_wbInv(GateMP_module->remoteSystemInUse,
-            GateMP_module->numRemoteSystem * sizeof(UInt8),
-            Cache_Type_ALL,
-            TRUE);
+        if (SharedRegion_isCacheEnabled(0)) {
+            Cache_wbInv(GateMP_module->remoteSystemInUse,
+                GateMP_module->numRemoteSystem * sizeof(UInt8),
+                Cache_Type_ALL,
+                TRUE);
+        }
     }
 
     /*
@@ -682,24 +684,24 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
         if (GateMP_module->numRemoteCustom1 != 0) {
             GateMP_module->remoteCustom1InUse =
                 GateMP_module->remoteSystemInUse + offset;
-        }
 
-        memset(GateMP_module->remoteCustom1InUse, 0,
-            GateMP_module->numRemoteCustom1 * sizeof(UInt8));
-        delegateReservedMask =
-                ti_sdo_ipc_GateMP_RemoteCustom1Proxy_getReservedMask();
-        if (delegateReservedMask != NULL) {
-            for (i = 0; i < GateMP_module->numRemoteCustom1; i++) {
-                if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
-                    GateMP_module->remoteCustom1InUse[i] = RESERVED;
+            memset(GateMP_module->remoteCustom1InUse, 0,
+                GateMP_module->numRemoteCustom1 * sizeof(UInt8));
+            delegateReservedMask =
+                    ti_sdo_ipc_GateMP_RemoteCustom1Proxy_getReservedMask();
+            if (delegateReservedMask != NULL) {
+                for (i = 0; i < GateMP_module->numRemoteCustom1; i++) {
+                    if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
+                        GateMP_module->remoteCustom1InUse[i] = RESERVED;
+                    }
                 }
             }
-        }
-        if (SharedRegion_isCacheEnabled(0)) {
-            Cache_wbInv(GateMP_module->remoteCustom1InUse,
-                 GateMP_module->numRemoteCustom1 * sizeof(UInt8),
-                 Cache_Type_ALL,
-                 TRUE);
+            if (SharedRegion_isCacheEnabled(0)) {
+                Cache_wbInv(GateMP_module->remoteCustom1InUse,
+                     GateMP_module->numRemoteCustom1 * sizeof(UInt8),
+                     Cache_Type_ALL,
+                     TRUE);
+            }
         }
     }
     else {
@@ -717,25 +719,25 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
         if (GateMP_module->numRemoteCustom2 != 0) {
                 GateMP_module->remoteCustom2InUse =
                     GateMP_module->remoteCustom1InUse + offset;
-        }
 
-        memset(GateMP_module->remoteCustom2InUse, 0,
-            GateMP_module->numRemoteCustom2 * sizeof(UInt8));
-        delegateReservedMask =
-                ti_sdo_ipc_GateMP_RemoteCustom2Proxy_getReservedMask();
-        if (delegateReservedMask != NULL) {
-            for (i = 0; i < GateMP_module->numRemoteCustom2; i++) {
-                if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
-                    GateMP_module->remoteCustom2InUse[i] = RESERVED;
+            memset(GateMP_module->remoteCustom2InUse, 0,
+                GateMP_module->numRemoteCustom2 * sizeof(UInt8));
+            delegateReservedMask =
+                    ti_sdo_ipc_GateMP_RemoteCustom2Proxy_getReservedMask();
+            if (delegateReservedMask != NULL) {
+                for (i = 0; i < GateMP_module->numRemoteCustom2; i++) {
+                    if (delegateReservedMask[i >> 5] & (1 << (i % 32))) {
+                        GateMP_module->remoteCustom2InUse[i] = RESERVED;
+                    }
                 }
             }
-        }
 
-        if (SharedRegion_isCacheEnabled(0)) {
-            Cache_wbInv(GateMP_module->remoteCustom2InUse,
-                 GateMP_module->numRemoteCustom2 * sizeof(UInt8),
-                 Cache_Type_ALL,
-                 TRUE);
+            if (SharedRegion_isCacheEnabled(0)) {
+                Cache_wbInv(GateMP_module->remoteCustom2InUse,
+                     GateMP_module->numRemoteCustom2 * sizeof(UInt8),
+                     Cache_Type_ALL,
+                     TRUE);
+            }
         }
     }
     else if (GateMP_module->proxyMap[ti_sdo_ipc_GateMP_ProxyOrder_CUSTOM2] ==
