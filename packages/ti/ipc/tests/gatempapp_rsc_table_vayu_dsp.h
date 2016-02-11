@@ -82,10 +82,11 @@
 #define DSP_MEM_IOBUFS          0x80000000
 #define DSP_MEM_DATA            0x95100000
 #define DSP_MEM_HEAP            0x95200000
+#define DSP_MEM_CMEM            0x95500000
 
 //0x85900000
-#define DSP_SR0_VIRT            0xBFC00000
-#define DSP_SR0                 0xBFC00000
+#define DSP_SR0_VIRT            0xBFD00000
+#define DSP_SR0                 0xBFD00000
 
 #define DSP_MEM_IPC_DATA        0x9F000000
 #define DSP_MEM_IPC_VRING       0xA0000000
@@ -101,6 +102,7 @@
 #define DSP_MEM_HEAP_SIZE       (SZ_1M * 3)
 #define DSP_MEM_IOBUFS_SIZE     (SZ_1M * 89)
 #define DSP_SR0_SIZE            (SZ_1M * 1)
+#define DSP_MEM_CMEM_SIZE       (SZ_1M * 4)
 
 /*
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
@@ -110,6 +112,7 @@
 
 /* Need to be identical to that of IPU */
 #define PHYS_MEM_IOBUFS         0xBA300000
+#define PHYS_MEM_CMEM           0x95400000
 
 /*
  * Sizes of the virtqueues (expressed in number of buffers supported,
@@ -124,7 +127,7 @@
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[19];  /* Should match 'num' in actual definition */
+    UInt32 offset[20];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
@@ -184,6 +187,9 @@ struct my_resource_table {
 
     /* devmem entry */
     struct fw_rsc_devmem devmem12;
+
+    /* devmem entry */
+    struct fw_rsc_devmem devmem13;
 };
 
 extern char ti_trace_SysMin_Module_State_0_outbuf__A;
@@ -194,7 +200,7 @@ extern char ti_trace_SysMin_Module_State_0_outbuf__A;
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    19,     /* number of entries in the table */
+    20,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
@@ -217,6 +223,7 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         offsetof(struct my_resource_table, devmem10),
         offsetof(struct my_resource_table, devmem11),
         offsetof(struct my_resource_table, devmem12),
+        offsetof(struct my_resource_table, devmem13),
     },
 
     /* rpmsg vdev entry */
@@ -267,6 +274,12 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         TYPE_DEVMEM,
         DSP_MEM_IOBUFS, PHYS_MEM_IOBUFS,
         DSP_MEM_IOBUFS_SIZE, 0, 0, "DSP_MEM_IOBUFS",
+    },
+
+    {
+        TYPE_DEVMEM,
+        DSP_MEM_CMEM, PHYS_MEM_CMEM,
+        DSP_MEM_CMEM_SIZE, 0, 0, "DSP_MEM_CMEM",
     },
 
     {

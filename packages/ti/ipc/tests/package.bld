@@ -214,7 +214,7 @@ Build.platformTable["ti.platforms.sdp5430:DSP"] = {
 /* Shared region definition used in GateMP app */
 var evmDRA7XX_SR_0 = {
         name: "SR_0", space: "data", access: "RWX",
-        base: 0xBFC00000, len: 0x100000,
+        base: 0xBFD00000, len: 0x100000,
         comment: "SR#0 Memory (1 MB)"
 };
 

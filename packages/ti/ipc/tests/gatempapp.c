@@ -55,6 +55,7 @@
 #include <ti/ipc/MessageQ.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/ipc/GateMP.h>
+#include <ti/ipc/remoteproc/Resource.h>
 
 /* sytem header files */
 #include <stdlib.h>
@@ -62,9 +63,6 @@
 /* local header files */
 #include "gatempapp_rsc_table_vayu_dsp.h"
 #include "GateMPAppCommon.h"
-
-#define PHYSICAL_OFFSET  0xBA300000  /* base physical address of shared mem */
-#define VIRTUAL_OFFSET   0x80000000  /* base virtual address of shared mem */
 
 /* module structure */
 typedef struct {
@@ -183,7 +181,10 @@ Int Server_exec()
     physAddr = msg->payload;
 
     /* translate the physical address to slave virtual addr */
-    intPtr = (volatile UInt32 *)(physAddr - PHYSICAL_OFFSET + VIRTUAL_OFFSET);
+    if (Resource_physToVirt(physAddr, (UInt32 *)&intPtr)) {
+        Log_error1("Server_exec: Failed to translate phys addr %p to virt addr", physAddr);
+        goto leave;
+    }
 
     /* send message back */
     queId = MessageQ_getReplyQueue(msg); /* type-cast not needed */
