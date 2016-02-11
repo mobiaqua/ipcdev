@@ -207,6 +207,10 @@ for (arg = 0; arg < arguments.length; arg++) {
                 target.platforms.$add("ti.platforms.evmTCI6638K2K:core0");
                 break;
 
+            case 'C6678':
+                target.platforms.$add("ti.platforms.evm6678");
+                break;
+
             case 'DRA7XX':
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp1");
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp2");
@@ -221,7 +225,7 @@ for (arg = 0; arg < arguments.length; arg++) {
                 break;
 
             default:
-                print("Unknown platform, skipping " + platform);
+                print("Unknown C66x platform, skipping " + platform);
                 break;
         }
     }
@@ -252,7 +256,7 @@ for (arg = 0; arg < arguments.length; arg++) {
                 break;
 
             default:
-                print("Unknown platform, skipping " + platform);
+                print("Unknown M4 platform, skipping " + platform);
                 break;
         }
     }
