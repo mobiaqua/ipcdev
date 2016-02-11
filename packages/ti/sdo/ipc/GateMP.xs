@@ -395,7 +395,7 @@ function viewInitModule(view, mod)
                 mod.numRemoteCustom2);
         }
         catch (e) {
-            throw("Problem fetching remoteCustom1InUse" + e); //TODO
+            throw("Problem fetching remoteCustom2InUse" + e); //TODO
         }
 
 
