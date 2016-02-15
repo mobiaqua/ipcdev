@@ -272,10 +272,16 @@ Int Ipc_start(Void)
 
         status = GateMP_start();
         if (status < 0) {
-            fprintf(stderr, "Ipc_start: GateMP_start failed: %d\n", status);
-            status = Ipc_E_FAIL;
-            GateHWSpinlock_stop();
-            goto exit;
+            if (status == GateMP_E_NOTFOUND) {
+                fprintf(stderr, "Ipc_start: GateMP_start failed: not found %d\n",
+                    status);
+                status = 0;
+            } else {
+                fprintf(stderr, "Ipc_start: GateMP_start failed: %d\n", status);
+                status = Ipc_E_FAIL;
+                GateHWSpinlock_stop();
+                goto exit;
+            }
         }
     }
 #endif
