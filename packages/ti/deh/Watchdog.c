@@ -126,7 +126,7 @@ static Void adjustGptClkCtrlAddr()
 /*
  *  ======== initTimer ========
  */
-static Void initTimer(Watchdog_TimerRegs *timer, Bool boot)
+static Void initTimer(volatile Watchdog_TimerRegs *timer, Bool boot)
 {
     Timer_Handle    tHandle;
     Types_FreqHz    tFreq;
@@ -156,13 +156,13 @@ static Void initTimer(Watchdog_TimerRegs *timer, Bool boot)
  */
 Void Watchdog_init( Void (*timerFxn)(Void) )
 {
-    Hwi_Params          hwiParams;
-    UInt                key;
-    Timer_Handle        tHandle;
-    Types_FreqHz        tFreq;
-    Watchdog_TimerRegs  *timer;
-    Int                 i;
-    static Bool         first = TRUE;
+    Hwi_Params                   hwiParams;
+    UInt                         key;
+    Timer_Handle                 tHandle;
+    Types_FreqHz                 tFreq;
+    volatile Watchdog_TimerRegs  *timer;
+    Int                          i;
+    static Bool                  first = TRUE;
 
     tHandle = Timer_Object_get(NULL, 0);
     Timer_getFreq(tHandle, &tFreq);  /* get timer frequency */
@@ -173,7 +173,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
     }
 #endif
     for (i = 0; i < Watchdog_module->wdtCores; i++) {  /* loop for SMP cores */
-        timer = (Watchdog_TimerRegs *) Watchdog_module->device[i].baseAddr;
+        timer = (volatile Watchdog_TimerRegs *) Watchdog_module->device[i].baseAddr;
 
         /* Check if timer is enabled by host-side */
         if ((REG32(Watchdog_module->device[i].clkCtrl) &
@@ -336,7 +336,7 @@ Bool Watchdog_isException(UInt excNum)
  */
 Void Watchdog_stop(Int core)
 {
-    Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
+    volatile Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
 
     if ((Watchdog_module->status[core] == Watchdog_Mode_ENABLED) && timer) {
         while (timer->twps & WATCHDOG_TIMER_TWPS_W_PEND_TCLR);
@@ -349,7 +349,7 @@ Void Watchdog_stop(Int core)
  */
 Void Watchdog_start(Int core)
 {
-    Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
+    volatile Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
 
     if ((Watchdog_module->status[core] == Watchdog_Mode_ENABLED) && timer) {
         while (timer->twps & WATCHDOG_TIMER_TWPS_W_PEND_TCLR);
@@ -366,7 +366,7 @@ Void Watchdog_start(Int core)
  */
 Void Watchdog_kick(Int core)
 {
-    Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
+    volatile Watchdog_TimerRegs *timer = Watchdog_module->device[core].baseAddr;
 
     if ((Watchdog_module->status[core] == Watchdog_Mode_ENABLED) && timer) {
         while (timer->twps & WATCHDOG_TIMER_TWPS_W_PEND_TGRR);
@@ -380,11 +380,11 @@ Void Watchdog_kick(Int core)
  */
 Void Watchdog_restore(Int event, Ptr data)
 {
-    Int                 i;
-    Watchdog_TimerRegs  *timer;
+    Int                          i;
+    volatile Watchdog_TimerRegs  *timer;
 
     for (i = 0; i < Watchdog_module->wdtCores; i++) {  /* loop for SMP cores */
-        timer = (Watchdog_TimerRegs *) Watchdog_module->device[i].baseAddr;
+        timer = (volatile Watchdog_TimerRegs *) Watchdog_module->device[i].baseAddr;
 
         if (Watchdog_module->status[i] == Watchdog_Mode_ENABLED) {
             /* Configure the timer */
