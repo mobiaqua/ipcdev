@@ -63,11 +63,11 @@
 #define MBX_INTR_TO_ARP32 0
 #define MBX_INTR_TO_DSP 1
 
-#define MAILBOX_IRQSTATUS_CLR(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x104 + (INTR_NUM * 0x10))
+#define MAILBOX_IRQSTATUS_CLR(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x104 + ((INTR_NUM) * 0x10))
 
-#define MAILBOX_IRQENABLE_SET(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x108 + (INTR_NUM * 0x10))
+#define MAILBOX_IRQENABLE_SET(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x108 + ((INTR_NUM) * 0x10))
 
-#define MAILBOX_IRQENABLE_CLR(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x10C + (INTR_NUM * 0x10))
+#define MAILBOX_IRQENABLE_CLR(INTR_NUM)  (InterruptArp32_mailboxBaseAddr + 0x10C + ((INTR_NUM) * 0x10))
 
 #define ARP32INT           29
 

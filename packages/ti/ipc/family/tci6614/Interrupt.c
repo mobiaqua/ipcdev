@@ -56,17 +56,17 @@ Void Interrupt_isr(UArg arg);
 
 /* Shift to source bit id for CORES 0-3 */
 #define MAP_TO_BITPOS(intId) \
-     (intId == Interrupt_SRCS_BITPOS_CORE0 ? (intId + DNUM) : intId)
+     ((intId) == (Interrupt_SRCS_BITPOS_CORE0) ? ((intId) + (DNUM)) : (intId))
 
 /*
  * Map remoteProcId to CORE ID [0-3]
  * NOTE: This assumes that HOST is at MultiProcId == 0, and CORE0 at 1i
  */
-#define MAP_RPROCID_TO_COREID(rProcId)     (rProcId-1)
+#define MAP_RPROCID_TO_COREID(rProcId)     ((rProcId)-1)
 
 #define MAP_RPROCID_TO_SRCC(rProcId, intId) \
-         (intId == Interrupt_SRCS_BITPOS_CORE0 ?  \
-         (intId + (rProcId-1)) : intId)
+         ((intId) == (Interrupt_SRCS_BITPOS_CORE0) ?  \
+         ((intId) + ((rProcId)-1)) : (intId))
 /*
  *************************************************************************
  *                      Module functions

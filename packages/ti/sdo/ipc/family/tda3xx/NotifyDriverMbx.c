@@ -69,10 +69,10 @@
 #define REG32(A)        (*(volatile UInt32 *)(A))
 
 #define MAILBOX_FIFOLENGTH 4
-#define PROCID(idx) (NotifyDriverMbx_procIdTable[idx])
+#define PROCID(idx) (NotifyDriverMbx_procIdTable[(idx)])
 
 #define MBX_BASEADDR_IDX(idx) \
-        ((NotifyDriverMbx_mailboxTable[idx] >> 16) & 0xFFFF)
+        ((NotifyDriverMbx_mailboxTable[(idx)] >> 16) & 0xFFFF)
 
 #define MAILBOX_ADDR(idx) \
         (NotifyDriverMbx_mailboxBaseAddr[MBX_BASEADDR_IDX(idx)])
@@ -80,9 +80,9 @@
 #define MBX_TABLE_IDX(src, dst) \
         ((PROCID(src) * NotifyDriverMbx_NUM_CORES) + PROCID(dst))
 
-#define SUBMBX_IDX(idx) (NotifyDriverMbx_mailboxTable[idx] & 0xFF)
+#define SUBMBX_IDX(idx) (NotifyDriverMbx_mailboxTable[(idx)] & 0xFF)
 
-#define MBX_USER_IDX(idx) ((NotifyDriverMbx_mailboxTable[idx] >> 8) & 0xFF)
+#define MBX_USER_IDX(idx) ((NotifyDriverMbx_mailboxTable[(idx)] >> 8) & 0xFF)
 
 #define MAILBOX_REG_VAL(m) (0x1 << (2 * m))
 

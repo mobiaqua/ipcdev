@@ -52,12 +52,12 @@
 #define REG16(A)   (*(volatile UInt16 *) (A))
 #define REG32(A)   (*(volatile UInt32 *) (A))
 
-#define PROCID(IDX)               (InterruptDsp_procIdTable[IDX])
+#define PROCID(IDX)               (InterruptDsp_procIdTable[(IDX)])
 #define MBX_TABLE_IDX(SRC, DST)   ((PROCID(SRC) * InterruptDsp_NUM_CORES) + \
                                     PROCID(DST))
-#define SUBMBX_IDX(IDX)           (InterruptDsp_mailboxTable[IDX] & 0xFF)
-#define MBX_USER_IDX(IDX)         ((InterruptDsp_mailboxTable[IDX] >> 8) & 0xFF)
-#define MBX_BASEADDR_IDX(IDX)     ((InterruptDsp_mailboxTable[IDX] >> 16) & 0xFFFF)
+#define SUBMBX_IDX(IDX)           (InterruptDsp_mailboxTable[(IDX)] & 0xFF)
+#define MBX_USER_IDX(IDX)         ((InterruptDsp_mailboxTable[(IDX)] >> 8) & 0xFF)
+#define MBX_BASEADDR_IDX(IDX)     ((InterruptDsp_mailboxTable[(IDX)] >> 16) & 0xFFFF)
 
 #define MAILBOX_REG_VAL(M)        (0x1 << (2 * M))
 
