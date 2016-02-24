@@ -479,7 +479,7 @@ out:
     /* Fall back to /dev/mem if UIO is not supported */
     if (!found) {
         strncpy(name, "/dev/mem", name_len);
-        baseaddr = 0x0;
+        *baseaddr = 0x0;
     }
 
     return ret;
