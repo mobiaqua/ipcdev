@@ -199,6 +199,8 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
         fprintf(stderr,
                 "TransportRpmsg_create: connect failed: %d (%s) procId: %d\n",
                 errno, strerror(errno), params->rprocId);
+        close(sock);
+        TransportRpmsg_module->sock[clusterId] = INVALIDSOCKET;
         goto done;
     }
 
@@ -213,6 +215,8 @@ TransportRpmsg_Handle TransportRpmsg_create(TransportRpmsg_Params *params)
 
     if (obj == NULL) {
         status = Ipc_E_MEMORY;
+        close(sock);
+        TransportRpmsg_module->sock[clusterId] = INVALIDSOCKET;
         goto done;
     }
 
@@ -251,6 +255,9 @@ Void TransportRpmsg_delete(TransportRpmsg_Handle *pHandle)
     UInt16 clusterId;
     int sock;
 
+    if (obj == NULL) {
+        goto done;
+    }
 
     clusterId = obj->rprocId - MultiProc_getBaseIdOfCluster();
 
@@ -272,6 +279,7 @@ Void TransportRpmsg_delete(TransportRpmsg_Handle *pHandle)
         obj = NULL;
     }
 
+done:
     *pHandle = NULL;
 }
 
