@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2016 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -459,6 +459,7 @@ Int Ipc_attach(UInt16 procId)
     status = Ipc_module.transportFactory->attachFxn(procId);
 
     if (status < 0) {
+        NameServer_detach(procId);
         status = Ipc_E_FAIL;
         goto done;
     }
