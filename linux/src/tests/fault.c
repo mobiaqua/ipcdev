@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2016 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,8 @@ typedef struct SyncMsg {
     Int32 faultId;
 } SyncMsg ;
 
+Void MessageQ_unbind(UInt16 procId);
+
 Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
 {
     Int32                    status = 0;
@@ -73,6 +75,7 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     MessageQ_Handle          msgqHandle;
     char                     remoteQueueName[64];
     UInt32                   msgId;
+    UInt16                   id = 0;
 
     printf("Entered MessageQApp_execute\n");
 
@@ -85,6 +88,14 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     }
     else {
         printf("Local MessageQId: 0x%x\n", MessageQ_getQueueId(msgqHandle));
+    }
+
+    /* detach from all processors we don't care about */
+    for (id = 1; id < (MultiProc_getBaseIdOfCluster() + MultiProc_getNumProcessors()); id++) {
+        if (id != procId) {
+            printf("Unbinding from ProcId (%d)\n", id);
+            MessageQ_unbind(id);
+        }
     }
 
     sprintf(remoteQueueName, "%s_%s", SLAVE_MESSAGEQNAME,
