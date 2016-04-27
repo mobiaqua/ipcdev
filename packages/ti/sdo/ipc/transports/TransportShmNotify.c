@@ -70,8 +70,24 @@ Void TransportShmNotify_notifyFxn(UInt16 procId,
 {
     UInt32 queueId;
     MessageQ_Msg msg;
+    UInt16 regionId;
 
     msg = SharedRegion_getPtr((SharedRegion_SRPtr)payload);
+
+    /* Read new data into memory instead of old data from cache */
+    regionId = SharedRegion_getId(msg);
+    if (SharedRegion_isCacheEnabled(regionId)) {
+        /* invalidate header before reading header */
+        Cache_inv(msg,
+                  sizeof(MessageQ_MsgHeader),
+                  Cache_Type_ALL,
+                  TRUE);
+        /* invalidate the rest of the message */
+        Cache_inv(((char *)msg) + sizeof(MessageQ_MsgHeader),
+                  msg->msgSize - sizeof(MessageQ_MsgHeader),
+                  Cache_Type_ALL,
+                  TRUE);
+    }
 
     queueId = MessageQ_getDstQueue(msg);
 

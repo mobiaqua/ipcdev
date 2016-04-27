@@ -530,6 +530,11 @@ Void NotifyDriverCirc_isr(UArg arg)
                   obj->opCacheSize,
                   Cache_Type_ALL,
                   FALSE);
+        /* Reading new data instead of pulling old data from cache */
+        Cache_inv(obj->getWriteIndex,
+                  sizeof(obj->getWriteIndex),
+                  Cache_Type_ALL,
+                  FALSE);
     }
 
     /* Clear the remote interrupt */
