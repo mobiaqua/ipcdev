@@ -513,6 +513,12 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr, UInt16 procId[])
             *handlePtr = NULL;
             status = GateMP_E_NOTFOUND;
         }
+        else if (len != sizeof(nsValue)) {
+            *handlePtr = NULL;
+            status = GateMP_E_NOTFOUND;
+            LOG0("GateMP configuration not valid for hostSupport. "
+                 "Try adding hostSupport to your config if it is needed.\n");
+        }
         else {
             arg = nsValue[2];
             mask = nsValue[3];

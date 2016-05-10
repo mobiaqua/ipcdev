@@ -390,6 +390,12 @@ Int GateMP_open(String name, GateMP_Handle *handle)
             *handle = NULL;
             status = GateMP_E_NOTFOUND;
         }
+        else if (len != sizeof(nsValue)) {
+            *handle = NULL;
+            status = GateMP_E_NOTFOUND;
+            PRINTVERBOSE0("GateMP configuration not valid for hostSupport. "
+                "Try adding hostSupport to your config if it is needed.\n");
+        }
         else {
             arg = nsValue[2];
             mask = nsValue[3];
