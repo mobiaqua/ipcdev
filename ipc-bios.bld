@@ -271,6 +271,8 @@ if (smpEnabled) {
                 xdc.module("ti.targets.arm.elf.M3").profiles["debug"];
         xdc.module("ti.targets.arm.elf.M4").profiles["smp"] =
                 xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
+        xdc.module("gnu.targets.arm.A15F").profiles["smp"] =
+                xdc.module("gnu.targets.arm.A15F").profiles["debug"];
     }
 }
 
