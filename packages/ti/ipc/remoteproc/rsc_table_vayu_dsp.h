@@ -120,7 +120,7 @@
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[18];  /* Should match 'num' in actual definition */
+    UInt32 offset[17];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;

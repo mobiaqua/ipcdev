@@ -59,11 +59,6 @@
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/omx_packet.h>
 
-/* Custom resource table with L2 RAM entry for silicon bug workaround */
-#if (defined(DSP) && defined(VAYU))
-#include "power_rsc_table_vayu_dsp.h"
-#endif
-
 /* Turn on/off printf's */
 #define CHATTER 0
 
