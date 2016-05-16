@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2016, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,6 @@
 #define TYPE_DEVMEM      1
 #define TYPE_TRACE       2
 #define TYPE_VDEV        3
-#define TYPE_INTMEM      4
 
 /* Common Resource Structure Types */
 struct fw_rsc_carveout {
@@ -81,16 +80,6 @@ struct fw_rsc_carveout {
     UInt32  pa;
     UInt32  len;
     UInt32  flags;
-    UInt32  reserved;
-    Char    name[32];
-};
-
-struct fw_rsc_intmem {
-    UInt32  type;
-    UInt32  version;
-    UInt32  da;
-    UInt32  pa;
-    UInt32  len;
     UInt32  reserved;
     Char    name[32];
 };

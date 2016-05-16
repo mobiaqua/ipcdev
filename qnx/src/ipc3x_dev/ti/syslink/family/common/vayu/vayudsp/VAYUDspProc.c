@@ -11,7 +11,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2013-2015, Texas Instruments Incorporated
+ *  Copyright (c) 2013-2016, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -87,6 +87,10 @@ extern "C" {
  * =============================================================================
  */
 
+/*!
+ *  @brief  Number of static entries in address translation table.
+ */
+#define AddrTable_STATIC_COUNT 3
 
 /*!
  *  @brief  Max entries in address translation table.
@@ -123,17 +127,106 @@ typedef struct VAYUDSPPROC_ModuleObject_tag {
     /*!< MultiProc id of DSP1 (to avoid multiple lookups) */
 } VAYUDSPPROC_ModuleObject;
 
-/* Memory region counters */
+/* Default memory regions */
 static UInt32 AddrTable_count[NUM_DSPS] = {
-    0,
-    0
+    AddrTable_STATIC_COUNT,
+    AddrTable_STATIC_COUNT
 };
 
 /*
  * Address translation table
+ * static memory regions
+ * CAUTION: AddrTable_STATIC_COUNT must match number of entries below.
  */
-static ProcMgr_AddrInfo AddrTable_DSP1[AddrTable_SIZE];
-static ProcMgr_AddrInfo AddrTable_DSP2[AddrTable_SIZE];
+static ProcMgr_AddrInfo AddrTable_DSP1[AddrTable_SIZE] =
+    {
+        /* L2 RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x40800000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0x800000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x40000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+
+        /* L1P RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x40E00000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0xE00000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x8000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+
+        /* L1D RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x40F00000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0xF00000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x8000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+    };
+
+static ProcMgr_AddrInfo AddrTable_DSP2[AddrTable_SIZE] =
+    {
+        /* L2 RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x41000000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0x800000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x40000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+
+        /* L1P RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x41600000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0xE00000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x8000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+
+        /* L1D RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x41700000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0xF00000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x8000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
+    };
 
 static ProcMgr_AddrInfo * AddrTable[NUM_DSPS] =
 {
@@ -159,7 +252,7 @@ VAYUDSPPROC_ModuleObject VAYUDSPPROC_state =
     .isSetup = FALSE,
     .configSize = sizeof(VAYUDSPPROC_Config),
     .gateHandle = NULL,
-    .defInstParams.numMemEntries = 0
+    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT
 };
 
 
@@ -1112,7 +1205,7 @@ VAYUDSPPROC_detach (Processor_Handle handle)
         }
 
         /* delete all dynamically added entries */
-        for (i = 0; i <
+        for (i = AddrTable_STATIC_COUNT; i <
             AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; i++) {
             ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][i];
             ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
@@ -1126,8 +1219,8 @@ VAYUDSPPROC_detach (Processor_Handle handle)
             ai->isMapped = FALSE;
             ai->refCount = 0u;
         }
-        object->params.numMemEntries = 0;
-        AddrTable_count[PROCID_TO_DSP(procHandle->procId)] = 0;
+        object->params.numMemEntries = AddrTable_STATIC_COUNT;
+        AddrTable_count[PROCID_TO_DSP(procHandle->procId)] = AddrTable_STATIC_COUNT;
 
         //No need to reset.. that will be done in STOP
         /*tmpStatus = VAYUDSP_halResetCtrl(object->halObject,
@@ -1763,19 +1856,38 @@ VAYUDSPPROC_map(
              * is required. Add the entry only if the range does not exist
              * in the translation table.
              */
+            /* check in static entries first */
             for (j = 0;
-                j < AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; j++) {
+                j < AddrTable_STATIC_COUNT; j++) {
                 ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][j];
+                startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
+                endAddr = startAddr + ai->size;
 
-                if (ai->isMapped == TRUE) {
-                    startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
-                    endAddr = startAddr + ai->size;
+                if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)) {
+                    found = TRUE;
 
-                    if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)
-                        && ((*dstAddr + sglist[i].size) <= endAddr)) {
-                        found = TRUE;
-                        ai->refCount++;
-                        break;
+                    /* refCount does not need to be incremented for static entries */
+
+                    break;
+                 }
+            }
+
+            /* if not found in static entries, check in dynamic entries */
+            if (!found) {
+                for (j = AddrTable_STATIC_COUNT;
+                    j < AddrTable_count[PROCID_TO_DSP(procHandle->procId)]; j++) {
+                    ai = &AddrTable[PROCID_TO_DSP(procHandle->procId)][j];
+
+                    if (ai->isMapped == TRUE) {
+                        startAddr = ai->addr[ProcMgr_AddrType_SlaveVirt];
+                        endAddr = startAddr + ai->size;
+
+                        if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)
+                            && ((*dstAddr + sglist[i].size) <= endAddr)) {
+                            found = TRUE;
+                            ai->refCount++;
+                            break;
+                        }
                     }
                 }
             }
