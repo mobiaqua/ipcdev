@@ -273,7 +273,9 @@ Int Ipc_start(Void)
         status = GateMP_start();
         if (status < 0) {
             if (status == GateMP_E_NOTFOUND) {
-                fprintf(stderr, "Ipc_start: GateMP_start failed: not found %d\n",
+                /* Ignore if Gate not found */
+                PRINTVERBOSE1(
+                    "Ipc_start: GateMP_start: gate not found, ignored %d\n",
                     status);
                 status = 0;
             } else {
