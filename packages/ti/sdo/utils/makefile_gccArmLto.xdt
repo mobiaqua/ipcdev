@@ -1,6 +1,6 @@
 %%{
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2016, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,10 +82,12 @@ AR = `CGEN`/`TARGET.arBin.cmd` `TARGET.ar.opts`
 %}
 DEL = cmd.exe /q /c del /f
 CP = cmd.exe /q /c copy /Y
+MKDIR = mkdir
 %}
 %else {
 DEL = rm -f
 CP = cp -f
+MKDIR = mkdir -p
 %}
 
 define RM
@@ -155,4 +157,13 @@ clean:
 %}
 %for (var i = 0; i < OBJS.length; i++) {
 	@-$(call RM, `OBJS[i]`)
+%}
+%if (Build.$private.libDir != null) {
+
+# create output directories
+ifneq ($(MAKECMDGOALS),clean)
+ifeq ($(wildcard `Build.$private.libDir`),)
+    $(shell $(MKDIR) `Build.$private.libDir`)
+endif
+endif
 %}
