@@ -85,8 +85,8 @@
 #define DSP_MEM_CMEM            0x95500000
 
 //0x85900000
-#define DSP_SR0_VIRT            0xBFD00000
-#define DSP_SR0                 0xBFD00000
+#define DSP_SR0_VIRT            0xBFB00000
+#define DSP_SR0                 0xBFB00000
 
 #define DSP_MEM_IPC_DATA        0x9F000000
 #define DSP_MEM_IPC_VRING       0xA0000000
