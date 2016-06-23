@@ -254,25 +254,31 @@ Int GateMP_attach(UInt16 procId)
             offset = nsValue[0] & ~(sysconf(_SC_PAGE_SIZE) - 1);
             offset -= baseaddr;
 
+            if (size > 0) {
 #if defined(IPC_BUILDOS_ANDROID)
-            GateMP_module->remoteSystemInUse = mmap64(NULL, size,
-                (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
-                (off64_t)offset);
+                GateMP_module->remoteSystemInUse = mmap64(NULL, size,
+                    (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
+                    (off64_t)offset);
 #else
-            GateMP_module->remoteSystemInUse = mmap(NULL, size,
-                (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
-                (off_t)offset);
+                GateMP_module->remoteSystemInUse = mmap(NULL, size,
+                    (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
+                    (off_t)offset);
 #endif
-            if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
-                 LOG1("Failed to map remoteSystemInUse=0x%p to host address" \
-                      "  space!", GateMP_module->remoteSystemInUse);
-                 GateMP_module->remoteSystemInUse = NULL;
-                 status = GateMP_E_MEMORY;
+                if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
+                     LOG1("Failed to map remoteSystemInUse=0x%p to host address" \
+                          "  space!", GateMP_module->remoteSystemInUse);
+                     GateMP_module->remoteSystemInUse = NULL;
+                     status = GateMP_E_MEMORY;
+                }
+                else {
+                    alignDiff = nsValue[0] - baseaddr - offset;
+                    GateMP_module->remoteSystemInUse =
+                        GateMP_module->remoteSystemInUse + alignDiff;
+                }
             }
             else {
-                alignDiff = nsValue[0] - baseaddr - offset;
-                GateMP_module->remoteSystemInUse =
-                    GateMP_module->remoteSystemInUse + alignDiff;
+                LOG0("Invalid configuration for remoteSystem gate");
+                status = GateMP_E_FAIL;
             }
 
             size = GateMP_module->numRemoteCustom1 * sizeof (UInt8) +
@@ -281,7 +287,7 @@ Int GateMP_attach(UInt16 procId)
             offset = nsValue[1] & ~(sysconf(_SC_PAGE_SIZE) - 1);
             offset -= baseaddr;
 
-            if (status == GateMP_S_SUCCESS) {
+            if ((status == GateMP_S_SUCCESS) && (size > 0)) {
 #if defined(IPC_BUILDOS_ANDROID)
                 GateMP_module->remoteCustom1InUse = mmap64(NULL, size,
                     (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
@@ -310,7 +316,7 @@ Int GateMP_attach(UInt16 procId)
             offset = nsValue[2] & ~(sysconf(_SC_PAGE_SIZE) - 1);
             offset -= baseaddr;
 
-            if (status == GateMP_S_SUCCESS) {
+            if ((status == GateMP_S_SUCCESS) && (size > 0)) {
 #if defined(IPC_BUILDOS_ANDROID)
                 GateMP_module->remoteCustom2InUse = mmap64(NULL, size,
                     (PROT_READ|PROT_WRITE), (MAP_SHARED), fdMem,
