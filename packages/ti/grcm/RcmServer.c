@@ -2179,17 +2179,19 @@ Void RcmServer_serverThrFxn_P(IArg arg)
                           "from: %d\n",
                          len, obj->replyAddr);
 
-            System_printf("hdr - t:%d f:%d l:%d\n", packet->hdr.type,
-                          packet->hdr.flags, packet->hdr.len);
+            System_printf("hdr - t:%d l:%d\n", packet->hdr.type,
+                          packet->hdr.len);
 
             System_printf("pkt - d:%d m:%d\n", packet->desc, packet->msgId);
 #endif
             if (packet->hdr.type == OMX_DISC_REQ) {
                 System_printf("RcmServer_serverThrFxn_P: Got OMX_DISCONNECT\n");
             }
-            Assert_isTrue((len <= MSGBUFFERSIZE), NULL);
-            Assert_isTrue((packet->hdr.type == OMX_RAW_MSG) ||
-                          (packet->hdr.type == OMX_DISC_REQ) , NULL);
+            if (!obj->shutdown) {
+                Assert_isTrue((len <= MSGBUFFERSIZE), NULL);
+                Assert_isTrue((packet->hdr.type == OMX_RAW_MSG) ||
+                              (packet->hdr.type == OMX_DISC_REQ) , NULL);
+            }
 
             if ((rval < 0) && (rval != RPMessage_E_UNBLOCKED)) {
 #else
