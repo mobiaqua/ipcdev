@@ -104,16 +104,12 @@ endif
 XDCPKG := $(XDC_INSTALL_DIR)/bin/xdcpkg
 
 # Check for Windows specific env vars to determine if we are on Windows
-ifeq (,$(findstring :,$(WINDIR)$(windir)$(COMSPEC)$(comspec)))
-   FILTER = grep -v
-else
-   # Find is the rough equivalent of grep on Windows
-   FILTER = find /v
+ifneq (,$(findstring :,$(WINDIR)$(windir)$(COMSPEC)$(comspec)))
    # Replace '/' with '\' because cmd.exe requires '\'s in command names
    XDCPKG := $(subst /,\,$(XDCPKG))
 endif
 
-LIST = $(shell $(XDCPKG) ./packages | $(FILTER) "examples")
+LIST = $(shell $(XDCPKG) ./packages)
 
 #
 # Set XDCPATH to contain necessary repositories.
