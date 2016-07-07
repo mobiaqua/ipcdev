@@ -168,7 +168,7 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
                 },
                 "GPTimer13": {
                     name: "WdTimer13Dsp",   /* GpTimer 13 */
-                    baseAddr: 0x48822000,   /* Virtual address */
+                    baseAddr: 0x48828000,   /* Virtual address */
                     clkCtrl: 0x4A0097C8,    /* Virtual address */
                     intNum:  -1,
                     eventId: 76,
