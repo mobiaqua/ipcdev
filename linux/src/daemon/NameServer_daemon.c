@@ -1206,9 +1206,7 @@ Int NameServer_get(NameServer_Handle handle,
                 status = NameServer_getRemote(handle, name, value, len,
                         baseId + clusterId);
 
-                if ((status >= 0) ||
-                    ((status < 0) && (status != NameServer_E_NOTFOUND) &&
-                                     (status != NameServer_E_RESOURCE))) {
+                if (status >= 0) {
                     break;
                 }
             }
@@ -1229,9 +1227,7 @@ Int NameServer_get(NameServer_Handle handle,
                         procId[i]);
             }
 
-            if ((status >= 0) ||
-                ((status < 0) && (status != NameServer_E_NOTFOUND) &&
-                                 (status != NameServer_E_RESOURCE))) {
+            if (status >= 0) {
                 break;
             }
 
