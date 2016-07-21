@@ -1441,7 +1441,7 @@ Int RcmServer_dispatch_P(RcmServer_Object *obj, RcmClient_Packet *packet)
         goto leave;
     }
 
-    System_printf("Rcm dispatch: p:%d j:%d f:%d l:%d\n",
+    Log_print4(Diags_INFO, FXNN": Rcm dispatch: p:%d j:%d f:%d l:%d",
                   packet->message.poolId, packet->message.jobId,
                   packet->message.fxnIdx, packet->message.dataSize);
 
