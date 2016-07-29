@@ -166,7 +166,11 @@ Int GateMP_setup(Int32 * sr0ProcId)
 
     if (GateMP_module->nameServer == NULL) {
         status = GateMP_E_FAIL;
-        LOG0("GateMP_setup: NameServer_create failed\n");
+        GT_setFailureReason(curTrace,
+                            GT_4CLASS,
+                            "GateMP_setup",
+                            status,
+                            "NameServer_create failed");
     }
 
     if (status == GateMP_S_SUCCESS) {
@@ -178,8 +182,12 @@ Int GateMP_setup(Int32 * sr0ProcId)
         }
 
         if ((status < 0) && (status != GateMP_E_NOTFOUND)) {
-            LOG0("GateMP_setup: failed to open default gate\n");
             status = GateMP_E_FAIL;
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_setup",
+                                status,
+                                "failed to open default gate");
         }
         else if (status == GateMP_S_SUCCESS) {
             *sr0ProcId = procId;
@@ -197,8 +205,12 @@ Int GateMP_setup(Int32 * sr0ProcId)
             &nsValue, &len, NULL);
 
         if (status < 0) {
-            LOG0("GateMP_setup: failed to find info entry\n");
             status = GateMP_E_NOTFOUND;
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_setup",
+                                status,
+                                "failed to find info entry");
         }
         else {
             GateMP_module->numRemoteSystem = nsValue[3];
@@ -214,8 +226,12 @@ Int GateMP_setup(Int32 * sr0ProcId)
                 if (GateMP_module->remoteSystemInUse == MAP_FAILED) {
                     GateMP_module->remoteSystemInUse = NULL;
                     status = GateMP_E_MEMORY;
-                    LOG0("Failed to map remoteSystemInUse to host address" \
-                         " space!");
+                    GT_setFailureReason(curTrace,
+                                        GT_4CLASS,
+                                        "GateMP_setup",
+                                        status,
+                                        "Failed to map remoteSystemInUse to " \
+                                        "host address space!");
                 }
             }
 
@@ -228,8 +244,12 @@ Int GateMP_setup(Int32 * sr0ProcId)
                 if (GateMP_module->remoteCustom1InUse == MAP_FAILED) {
                     GateMP_module->remoteCustom1InUse = NULL;
                     status = GateMP_E_MEMORY;
-                    LOG0("Failed to map remoteCustom1InUse to host address" \
-                        " space!");
+                    GT_setFailureReason(curTrace,
+                                        GT_4CLASS,
+                                        "GateMP_setup",
+                                        status,
+                                        "Failed to map remoteCustom1InUse to " \
+                                        "host address space!");
                 }
             }
 
@@ -242,8 +262,12 @@ Int GateMP_setup(Int32 * sr0ProcId)
                 if (GateMP_module->remoteCustom2InUse == MAP_FAILED) {
                     GateMP_module->remoteCustom2InUse = NULL;
                     status = GateMP_E_MEMORY;
-                    LOG0("Failed to map remoteCustom2InUse to host address" \
-                        " space!");
+                    GT_setFailureReason(curTrace,
+                                        GT_4CLASS,
+                                        "GateMP_setup",
+                                        status,
+                                        "Failed to map remoteCustom2InUse to " \
+                                        "host address space!");
                 }
             }
         }
@@ -323,8 +347,12 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr,
 
     /* assert that a valid pointer has been supplied */
     if (handlePtr == NULL) {
-        LOG0("GateMP_open: argument cannot be null\n");
         status = GateMP_E_INVALIDARG;
+        GT_setFailureReason(curTrace,
+                            GT_4CLASS,
+                            "GateMP_openDefaultGate",
+                            status,
+                            "argument cannot be null");
     }
 
     if (status == GateMP_S_SUCCESS) {
@@ -372,13 +400,21 @@ static Int GateMP_openDefaultGate(GateMP_Handle *handlePtr,
                     &systemParams);
 
             if (obj->gateHandle == NULL) {
-                LOG0("GateMP_openDefaultGate: failed to create proxy\n");
+                GT_setFailureReason(curTrace,
+                                    GT_4CLASS,
+                                    "GateMP_openDefaultGate",
+                                    GateMP_E_FAIL,
+                                    "failed to create proxy");
                 free(obj);
                 obj = NULL;
             }
         }
         else {
-            LOG0("GateMP_openDefaultGate: Memory allocation failed")
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_openDefaultGate",
+                                GateMP_E_FAIL,
+                                "Memory allocation failed");
         }
 
         if (obj == NULL) {
@@ -428,7 +464,11 @@ Int GateMP_getFreeResource(GateMP_RemoteProtect type)
             break;
 
         default:
-            LOG0("GateMP_getFreeResource: Invalid remote protection type\n");
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_getFreeResource",
+                                GateMP_E_FAIL,
+                                "Invalid remote protection type");
             break;
     }
 
@@ -482,8 +522,12 @@ Int GateMP_releaseResource(UInt id, GateMP_RemoteProtect type)
             break;
 
         default:
-            LOG0("GateMP_releaseResource: Invalid remote protection type\n");
             status = GateMP_E_FAIL;
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_releaseResource",
+                                status,
+                                "Invalid remote protection type");
             break;
     }
 
@@ -515,7 +559,11 @@ Int GateMP_getNumResources(GateMP_RemoteProtect type)
             break;
 
         default:
-            LOG0("GateMP_getNumResources: Invalid remote protection type\n");
+            GT_setFailureReason(curTrace,
+                                GT_4CLASS,
+                                "GateMP_getNumResources",
+                                GateMP_E_FAIL,
+                                "Invalid remote protection type");
             break;
     }
 

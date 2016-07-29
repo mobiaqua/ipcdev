@@ -68,7 +68,7 @@
 #include <_NameServer.h>
 #include <_NameServer_daemon.h>
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
-#include <_IpcLog.h>
+#include <ti/syslink/utils/Trace.h>
 
 #define MESSAGEQ_RPMSG_PORT       61
 #define NAME_SERVER_RPMSG_ADDR    0
@@ -238,8 +238,9 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 p
     int               waitFd = NameServer_module->waitFdW;
 
     if (msg->request == NAMESERVER_REQUEST) {
-        LOG2("NameServer Request: instanceName: %s, name: %s\n",
-             (String)msg->instanceName, (String)msg->name)
+        GT_2trace(curTrace, GT_1CLASS, "NameServer Request: "
+                  "instanceName: %s, name: %s",
+                  (String)msg->instanceName, (String)msg->name);
 
         assert(msg->valueLen <= MAXVALUELEN);
 
@@ -252,27 +253,29 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 p
         if (handle != NULL) {
             /* Search for the NameServer entry */
             if (msg->valueLen <= sizeof (Bits32)) {
-                LOG0("Calling NameServer_getLocalUInt32...\n")
+                GT_0trace(curTrace, GT_1CLASS, "Calling NameServer_getLocalUInt32...");
                 status = NameServer_getLocalUInt32(handle,
                      (String)msg->name, &msg->value);
             }
             else {
-                LOG0("Calling NameServer_getLocal...\n")
+                GT_0trace(curTrace, GT_1CLASS, "Calling NameServer_getLocal...");
                 status = NameServer_getLocal(handle,
                      (String)msg->name, (Ptr)msg->valueBuf, &msg->valueLen);
             }
         }
 
-        LOG2("NameServer Response: instanceName: %s, name: %s,",
-             (String)msg->instanceName, (String)msg->name)
+        GT_2trace(curTrace, GT_1CLASS,
+             "NameServer Response: instanceName: %s, name: %s,",
+             (String)msg->instanceName, (String)msg->name);
         /* set the request status */
         if (status < 0) {
-            LOG1(" Value not found, status: %d\n", status)
+            GT_1trace(curTrace, GT_1CLASS, " Value not found, status: %d",
+                      status);
             msg->requestStatus = 0;
         }
         else {
             msg->requestStatus = 1;
-            LOG1(" Value: 0x%x\n", msg->value)
+            GT_1trace(curTrace, GT_1CLASS, " Value: 0x%x", msg->value);
         }
 
         /* specify message as a response */
@@ -287,8 +290,9 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 p
          * We will simply drop the request.
          */
         if (NameServer_module->mq == NULL) {
-            LOG0("NameServerRemote_processMessage: MessageQCopy not ready. Request "
-                "dropped.\n")
+            GT_0trace(curTrace, GT_3CLASS,
+                      "NameServerRemote_processMessage: MessageQCopy not ready."
+                      " Request dropped.");
         }
         else {
             /* send response message to remote processor */
@@ -296,16 +300,18 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg * msg, UInt16 p
                 MESSAGEQ_RPMSG_PORT, RPMSG_RESERVED_ADDRESSES, msg,
                 sizeof(NameServerRemote_Msg), TRUE);
             if (status < 0) {
-                LOG0("NameServer: MessageQCopy_send failed\n")
+                GT_setFailureReason(curTrace, GT_4CLASS,
+                                    "NameServerRemote_processMessage",
+                                    status, "MessageQCopy_send failed");
             }
         }
 
         pthread_mutex_unlock(&NameServer_module->modGate);
     }
     else {
-        LOG2("NameServer Reply: instanceName: %s, name: %s",
-             (String)msg->instanceName, (String)msg->name)
-        LOG1(", value: 0x%x\n", msg->value)
+        GT_3trace(curTrace, GT_1CLASS, "NameServer Reply: instanceName: %s, "
+             "name: %s, value: 0x%x", (String)msg->instanceName,
+             (String)msg->name, msg->value);
 
         /* Save the response message.  */
         memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerRemote_Msg));
@@ -320,22 +326,23 @@ static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
 {
     NameServerRemote_Msg msg;
 
-    LOG0("listener_cb: Entered Listener thread.\n")
+    GT_6trace(curTrace, GT_ENTER, "_listener_cb", handle, data, len, priv, src, srcProc);
 
-    LOG1("NameServer: Listener got NameServer message "
+    GT_1trace(curTrace, GT_1CLASS, "NameServer: Listener got NameServer message "
          "from MessageQCopy: 0x%p!\n", handle);
     /* Get NameServer message and process: */
     memcpy(&msg, data, len);
 
     if (len != sizeof(NameServerRemote_Msg)) {
-        LOG1("NameServer: got bad NameServerRemote_Msg len (%d)\n",
-            len)
+        GT_1trace(curTrace, GT_4CLASS, "NameServer: got bad "
+                  "NameServerRemote_Msg len (%d)\n", len);
     }
     else {
-        LOG1("listener_cb: read from MessageQCopy 0x%p\n", handle)
-        LOG2("\tReceived ns msg: byte count: %d, from addr: %d, ",
-             len, src)
-        LOG1("from vproc: %d\n", srcProc)
+        GT_1trace(curTrace, GT_1CLASS, "listener_cb: "
+                  "read from MessageQCopy 0x%p", handle);
+        GT_3trace(curTrace, GT_1CLASS, "\tReceived ns msg: "
+                  "byte count: %d, from addr: %d, from vproc: %d",
+                  len, src, srcProc);
         NameServerRemote_processMessage(&msg, srcProc);
     }
 }
@@ -353,19 +360,21 @@ Int NameServer_setup(Void)
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    LOG1("NameServer_setup: entered, refCount=%d\n", NameServer_module->refCount)
+    GT_1trace(curTrace, GT_ENTER, "NameServer_setup: refCount",
+              NameServer_module->refCount);
 
     NameServer_module->refCount++;
 
     if (NameServer_module->refCount > 1) {
-        LOG0("NameServer_setup: already setup\n")
+        GT_0trace(curTrace, GT_1CLASS, "NameServer_setup: already setup");
         status = NameServer_S_ALREADYSETUP;
         goto exit;
     }
 
     if (pipe(fd) == -1) {
         status = NameServer_E_FAIL;
-        LOG0("NameServer_setup: failed to create waitFd.\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_setup", status,
+                            "failed to create waitFd.");
         goto exit;
     }
     NameServer_module->waitFdW = fd[1];
@@ -377,7 +386,8 @@ Int NameServer_setup(Void)
 
     if (NameServer_module->mq == NULL) {
         status = NameServer_E_FAIL;
-        LOG0("NameServer_setup: failed to create MessageQCopy instance.\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_setup", status,
+                            "failed to create MessageQCopy instance.");
         goto exit;
     }
 
@@ -385,8 +395,8 @@ Int NameServer_setup(Void)
     CIRCLEQ_INIT(&NameServer_module->objList);
 
 exit:
-    LOG1("NameServer_setup: exiting, refCount=%d\n", \
-        NameServer_module->refCount)
+    GT_1trace(curTrace, GT_LEAVE, "NameServer_setup: refCount",
+              NameServer_module->refCount);
 
     pthread_mutex_unlock(&NameServer_module->modGate);
 
@@ -400,12 +410,15 @@ Int NameServer_destroy(void)
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    LOG1("NameServer_destroy: entered, refCount=%d\n", NameServer_module->refCount)
+    GT_1trace(curTrace, GT_ENTER, "NameServer_destroy: refCount",
+              NameServer_module->refCount);
 
     NameServer_module->refCount--;
 
     if (NameServer_module->refCount > 0) {
-        LOG1("NameServer_destroy(): refCount(%d) > 0, exiting\n", NameServer_module->refCount)
+        GT_1trace(curTrace, GT_1CLASS,
+                  "NameServer_destroy(): refCount(%d) > 0, exiting",
+                  NameServer_module->refCount);
         status = NameServer_S_SUCCESS;
 
         goto exit;
@@ -422,7 +435,8 @@ Int NameServer_destroy(void)
     close(NameServer_module->waitFdR);
 
 exit:
-    LOG1("NameServer_destroy: exiting, refCount=%d\n", NameServer_module->refCount)
+    GT_1trace(curTrace, GT_LEAVE, "NameServer_destroy: refCount",
+              NameServer_module->refCount);
 
     pthread_mutex_unlock(&NameServer_module->modGate);
 
@@ -471,7 +485,7 @@ NameServer_Handle NameServer_create(String name,
     assert(name != NULL);
     assert(NameServer_module->refCount != 0);
 
-    LOG1("NameServer_create(): '%s'\n", name)
+    GT_1trace(curTrace, GT_1CLASS, "NameServer_create(): '%s'\n", name);
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
@@ -483,7 +497,8 @@ NameServer_Handle NameServer_create(String name,
             handle->refCount++;
         }
         else {
-            LOG0("NameServer_create: NameServer params mismatch\n")
+            GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_create",
+                                NameServer_E_FAIL, "NameServer params mismatch");
             handle = NULL;
         }
         goto leave;
@@ -493,14 +508,16 @@ NameServer_Handle NameServer_create(String name,
     }
 
     if (!handle) {
-        LOG0("NameServer_create: NameServer_Handle alloc failed\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_create",
+                            NameServer_E_FAIL, "NameServer_Handle alloc failed");
         goto leave;
     }
 
     handle->refCount = 1;
     handle->name = (String)malloc(strlen(name) + 1u);
     if (!handle->name) {
-        LOG0("NameServer_create: instance name alloc failed\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_create",
+                            NameServer_E_FAIL, "instance name alloc failed");
         goto cleanup;
     }
     strncpy(handle->name, name, strlen (name) + 1u);
@@ -603,14 +620,16 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     if (strlen(name) > handle->params.maxNameLen - 1) {
         status = NameServer_E_INVALIDARG;
-        LOG0("NameServer_add: name length exceeded maximum!\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_add", status,
+                            "name length exceeded maximum!");
         new_node = NULL;
         goto exit;
     }
 
     if (len > handle->params.maxValueLen) {
         status = NameServer_E_INVALIDARG;
-        LOG0("NameServer_add: value length exceeded maximum!\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_add", status,
+                            "value length exceeded maximum!");
         new_node = NULL;
         goto exit;
     }
@@ -623,7 +642,8 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
             if (strcmp(node->name, name) == 0) {
                 if (handle->params.checkExisting == TRUE) {
                     status = NameServer_E_INVALIDARG;
-                    LOG1("NameServer_add: '%s' - duplicate entry found!\n", name)
+                    GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_add", status, "duplicate entry found!");
+                    GT_1trace(curTrace, GT_3CLASS, "\t'%s' - duplicate entry found!", name);
                     break;
                 }
             }
@@ -643,7 +663,8 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
     new_node = (NameServer_TableEntry *)malloc(sizeof(NameServer_TableEntry));
     if (new_node == NULL) {
         status = NameServer_E_MEMORY;
-        LOG1("NameServer_add: %d - malloc new_node failed!\n", status)
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_add", status,
+                            "malloc new_node failed!");
 
         goto exit;
     }
@@ -671,8 +692,9 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     handle->count++;
 
-    LOG2("NameServer_add: Entered key: '%s', data: 0x%x\n",
-         name, *(UInt32 *)buf)
+    GT_2trace(curTrace, GT_1CLASS,
+              "NameServer_add: Entered key: '%s', data: 0x%x",
+              name, *(UInt32 *)buf);
 
 exit:
     pthread_mutex_unlock(&handle->gate);
@@ -759,7 +781,8 @@ Int NameServer_remove(NameServer_Handle handle, String name)
 
     if (done == FALSE) {
         status = NameServer_E_INVALIDARG;
-        LOG1("NameServer_remove %d Entry not found!\n", status)
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_remove", status,
+                            " Entry not found!");
     }
 
     pthread_mutex_unlock(&handle->gate);
@@ -825,12 +848,16 @@ Int NameServer_getRemote(NameServer_Handle handle,
     Bool done = FALSE;
 
     if (strlen(name) >= MAXNAMEINCHAR) {
-        LOG0("Name is too long in remote query\n");
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                            NameServer_E_NAMETOOLONG,
+                            "Name is too long in remote query");
         return NameServer_E_NAMETOOLONG;
     }
 
     if (strlen(obj->name) >= MAXNAMEINCHAR) {
-        LOG0("Instance name is too long for remote query\n");
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                            NameServer_E_NAMETOOLONG,
+                            "Instance name is too long for remote query");
         return NameServer_E_NAMETOOLONG;
     }
 
@@ -850,17 +877,18 @@ Int NameServer_getRemote(NameServer_Handle handle,
     strncpy((char *)nsMsg.instanceName, obj->name, strlen(obj->name) + 1);
     strncpy((char *)nsMsg.name, name, strlen(name) + 1);
 
-    LOG2("NameServer_getRemote: Requesting from procId %d, %s:",
-           procId, (String)nsMsg.instanceName)
-    LOG1("%s...\n", (String)nsMsg.name)
+    GT_3trace(curTrace, GT_1CLASS,
+              "NameServer_getRemote: Requesting from procId %d, %s:%s...",
+              procId, (String)nsMsg.instanceName, (String)nsMsg.name);
 
     /*
      * Check if MessageQCopy object is valid. Technically we don't need it
      * to send, but it is an indication of whether recovery is in process
      */
     if (NameServer_module->mq == NULL) {
-        LOG0("NameServer_getRemote: MessageQCopy not ready\n")
         status = NameServer_E_NOTFOUND;
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                            status, "MessageQCopy not ready");
         goto exit;
     }
 
@@ -869,8 +897,9 @@ Int NameServer_getRemote(NameServer_Handle handle,
             RPMSG_RESERVED_ADDRESSES, &nsMsg, sizeof(NameServerRemote_Msg),
             TRUE);
     if (mqcStatus < 0) {
-        LOG0("NameServer_getRemote: Can't send to remote endpoint\n")
         status = NameServer_E_NOTFOUND;
+        GT_1trace(curTrace, GT_3CLASS, "NameServer_getRemote: "
+	          "Can't send to remote endpoint on procId %d", procId);
         goto exit;
     }
 
@@ -880,16 +909,18 @@ Int NameServer_getRemote(NameServer_Handle handle,
         FD_ZERO(&rfds);
         FD_SET(waitFd, &rfds);
         maxfd = waitFd + 1;
-        LOG1("NameServer_getRemote: pending on waitFd: %d\n", waitFd)
+        GT_1trace(curTrace, GT_1CLASS, "NameServer_getRemote: pending on waitFd: %d\n", waitFd);
         ret = select(maxfd, &rfds, NULL, NULL, &tv);
         if (ret == -1) {
-            LOG0("NameServer_getRemote: select failed.")
             status = NameServer_E_FAIL;
+            GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                                status, "select failed.");
             goto exit;
         }
         else if (!ret) {
-            LOG0("NameServer_getRemote: select timed out.\n")
             status = NameServer_E_TIMEOUT;
+            GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                                status, "select timed out.");
             goto exit;
         }
 
@@ -897,8 +928,9 @@ Int NameServer_getRemote(NameServer_Handle handle,
             /* Read, just to balance the write: */
             numBytes = read(waitFd, &buf, sizeof(buf));
             if (numBytes == -1) {
-                LOG0("NameServer_getRemote: read failure\n")
                 status = NameServer_E_FAIL;
+                GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                                    status, "read failure");
                 goto exit;
             }
 
@@ -919,25 +951,28 @@ Int NameServer_getRemote(NameServer_Handle handle,
                 /* set the contents of value */
                 if (*len <= sizeof (Bits32)) {
                     *(UInt32 *)value = (UInt32)replyMsg->value;
-                    LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                        procId, (String)replyMsg->instanceName)
-                    LOG2("%s, value: 0x%x...\n",
-                        (String)replyMsg->name, *(UInt32 *)value)
+                    GT_4trace(curTrace, GT_1CLASS, "NameServer_getRemote: "
+                              "Reply from: %d, %s:%s, value: 0x%x...", procId,
+                              (String)replyMsg->instanceName,
+                              (String)replyMsg->name, *(UInt32 *)value);
                 }
                 else {
                     memcpy(value, replyMsg->valueBuf, *len);
-                    LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                        procId, (String)replyMsg->instanceName)
-                    LOG2("%s, value buffer at address: 0x%p...\n",
-                        (String)replyMsg->name, value)
+                    GT_4trace(curTrace, GT_1CLASS, "NameServer_getRemote: "
+                              "Reply from: %d, %s:%s, value buffer at address:"
+                              " 0x%p...", procId,
+                              (String)replyMsg->instanceName,
+                              (String)replyMsg->name, value);
                 }
 
                 goto exit;
             }
             else {
                 /* name is not found */
-                LOG2("NameServer_getRemote: value for %s:%s not found.\n",
-                     (String)replyMsg->instanceName, (String)replyMsg->name)
+                GT_2trace(curTrace, GT_3CLASS, "NameServer_getRemote: "
+                          "value for %s:%s not found.",
+                          (String)replyMsg->instanceName,
+                          (String)replyMsg->name);
 
                 /* set status to not found */
                 status = NameServer_E_NOTFOUND;
@@ -1097,11 +1132,12 @@ Int NameServer_getLocal(NameServer_Handle handle,
     pthread_mutex_unlock(&handle->gate);
 
     if (done == FALSE) {
-        LOG1("NameServer_getLocal: entry key: '%s' not found!\n", name)
+        GT_1trace(curTrace, GT_1CLASS,
+                  "NameServer_getLocal: entry key: '%s' not found!", name);
     }
     else {
-        LOG2("NameServer_getLocal: Found entry key: '%s', data: 0x%x\n",
-             node->name, (UInt32)node->value)
+        GT_2trace(curTrace, GT_1CLASS, "NameServer_getLocal: Found entry key: "
+                  "'%s', data: 0x%x", node->name, (UInt32)node->value);
         status = NameServer_S_SUCCESS;
     }
 
@@ -1131,7 +1167,8 @@ Int NameServer_getLocalUInt32(NameServer_Handle handle, String name, Ptr value)
     assert(value  != NULL);
     assert(NameServer_module->refCount != 0);
 
-    LOG0("NameServer_getLocalUInt32: calling NameServer_getLocal()...\n")
+    GT_0trace(curTrace, GT_1CLASS,
+              "NameServer_getLocalUInt32: calling NameServer_getLocal()...");
     status = NameServer_getLocal(handle, name, value, &len);
 
     return (status);
@@ -1146,7 +1183,8 @@ Void NameServer_preRecovery(Void)
     if (NameServer_module->mq != NULL) {
         status = MessageQCopy_delete(&NameServer_module->mq);
         if (status < 0) {
-            LOG0("NameServer_preRecovery: Cannot delete MessageQCopy\n");
+            GT_setFailureReason(curTrace, GT_3CLASS, "NameServer_preRecovery", status,
+                                "Cannot delete MessageQCopy");
         }
         NameServer_module->mq = NULL;
     }
@@ -1166,7 +1204,8 @@ Int NameServer_postRecovery(Void)
 
     if (NameServer_module->mq == NULL) {
         status = NameServer_E_FAIL;
-        LOG0("NameServer_postRecovery: failed to create MessageQCopy instance.\n")
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_postRecovery", status,
+                            "failed to create MessageQCopy instance.");
     }
 
     pthread_mutex_unlock(&NameServer_module->modGate);

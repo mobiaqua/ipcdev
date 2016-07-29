@@ -143,7 +143,7 @@
 #include <_MultiProc.h>
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
-#include <_IpcLog.h>
+#include <ti/syslink/utils/Trace.h>
 
 /* =============================================================================
  * Macros/Constants
@@ -266,13 +266,14 @@ Int MessageQ_setup(const MessageQ_Config * cfg)
 
     pthread_mutex_lock(&(MessageQ_module->gate));
 
-    LOG1("MessageQ_setup: entered, refCount=%d\n", MessageQ_module->refCount)
+    GT_1trace(curTrace, GT_ENTER, "MessageQ_setup",
+              MessageQ_module->refCount);
 
     MessageQ_module->refCount++;
     if (MessageQ_module->refCount > 1) {
         status = MessageQ_S_ALREADYSETUP;
-        LOG1("MessageQ module has been already setup, refCount=%d\n",
-            MessageQ_module->refCount)
+        GT_1trace(curTrace, GT_1CLASS, "MessageQ module has been already setup,"
+                  " refCount=%d", MessageQ_module->refCount);
 
         goto exitSetup;
     }
@@ -292,7 +293,7 @@ Int MessageQ_setup(const MessageQ_Config * cfg)
         calloc(1, sizeof(MessageQ_Handle) * MessageQ_module->numQueues);
 
 exitSetup:
-    LOG1("MessageQ_setup: exiting, refCount=%d\n", MessageQ_module->refCount)
+    GT_1trace(curTrace, GT_LEAVE, "MessageQ_setup", MessageQ_module->refCount);
 
     pthread_mutex_unlock(&(MessageQ_module->gate));
 
@@ -309,7 +310,8 @@ Int MessageQ_destroy(void)
 
     pthread_mutex_lock(&(MessageQ_module->gate));
 
-    LOG1("MessageQ_destroy: entered, refCount=%d\n", MessageQ_module->refCount)
+    GT_1trace(curTrace, GT_ENTER, "MessageQ_destroy",
+              MessageQ_module->refCount);
 
     /* Decrease the refCount */
     MessageQ_module->refCount--;
@@ -340,7 +342,8 @@ Int MessageQ_destroy(void)
     MessageQ_module->canFreeQueues = TRUE;
 
 exitDestroy:
-    LOG1("MessageQ_destroy: exiting, refCount=%d\n", MessageQ_module->refCount)
+    GT_1trace(curTrace, GT_LEAVE, "MessageQ_destroy",
+              MessageQ_module->refCount);
 
     pthread_mutex_unlock(&(MessageQ_module->gate));
 
@@ -362,13 +365,17 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
     int                 i;
     UInt                numReserved;
 
-    LOG1("MessageQ_create: creating '%s'\n", name)
+    GT_1trace(curTrace, GT_1CLASS, "MessageQ_create: creating '%s'", name);
 
     /* Create the generic obj */
     obj = (MessageQ_Object *)calloc(1, sizeof(MessageQ_Object));
 
     if (obj == NULL) {
-        LOG0("MessageQ_create: Error: no memory\n")
+        GT_setFailureReason(curTrace,
+                            GT_4CLASS,
+                            "MessageQ_create",
+                            MessageQ_E_FAIL,
+                            "Error: no memory");
         return (NULL);
     }
 
@@ -381,14 +388,16 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
         queueIndex = params->queueIndex;
 
         if (queueIndex > numReserved) {
-            LOG2("MessageQ_create: Error: requested queue index %d is greater "
-                    "than reserved maximum %d\n", queueIndex, numReserved - 1)
+            GT_2trace(curTrace, GT_4CLASS, "MessageQ_create: Error: requested "
+                      "queue index %d is greater than reserved maximum %d",
+                      queueIndex, numReserved - 1);
             free(obj);
             obj = NULL;
         }
         else if (MessageQ_module->queues[queueIndex] != NULL) {
-            LOG1("MessageQ_create: Error: requested queue index %d is already "
-                    "in use.\n", queueIndex);
+            GT_1trace(curTrace, GT_4CLASS, "MessageQ_create: Error: "
+                      "requested queue index %d is already in use.",
+                      queueIndex);
             free(obj);
             obj = NULL;
         }
@@ -443,7 +452,8 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
         MessageQ_delete((MessageQ_Handle *)&obj);
     }
 
-    LOG2("MessageQ_create: returning obj=%p, qid=0x%x\n", obj, obj->queue)
+    GT_2trace(curTrace, GT_1CLASS, "MessageQ_create: returning obj=%p, qid=0x%x",
+              obj, obj->queue);
 
     return ((MessageQ_Handle)obj);
 }
@@ -461,12 +471,13 @@ Int MessageQ_delete(MessageQ_Handle * handlePtr)
 
     obj = (MessageQ_Object *)(*handlePtr);
 
-    LOG1("MessageQ_delete: deleting %p\n", obj)
+    GT_1trace(curTrace, GT_ENTER, "MessageQ_delete", obj);
 
     queueIndex = MessageQ_getQueueIndex(obj->queue);
     queue = MessageQ_module->queues[queueIndex];
     if (queue != obj) {
-        LOG1("    ERROR: obj != MessageQ_module->queues[%d]\n", queueIndex)
+        GT_1trace(curTrace, GT_4CLASS,
+                  "    ERROR: obj != MessageQ_module->queues[%d]", queueIndex);
     }
 
     if (obj->nsKey != NULL) {
@@ -494,7 +505,7 @@ Int MessageQ_delete(MessageQ_Handle * handlePtr)
     free(obj);
     *handlePtr = NULL;
 
-    LOG1("MessageQ_delete: returning %d\n", status)
+    GT_1trace(curTrace, GT_LEAVE, "MessageQ_delete", status);
 
     return (status);
 }
@@ -550,7 +561,8 @@ static UInt16 _MessageQ_grow(MessageQ_Object * obj)
         MessageQ_module->canFreeQueues = TRUE;
     }
 
-    LOG1("_MessageQ_grow: queueIndex: 0x%x\n", queueIndex)
+    GT_1trace(curTrace, GT_1CLASS, "_MessageQ_grow: queueIndex: 0x%x",
+              queueIndex);
 
     return (queueIndex);
 }
