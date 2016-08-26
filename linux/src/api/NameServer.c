@@ -308,9 +308,7 @@ Int NameServer_get(NameServer_Handle nsHandle, String name, Ptr buf,
     }
 
     *len = rsp.get.len;
-    if (rsp.get.buf != NULL) {
-        memcpy(buf, rsp.get.buf, *len);
-    }
+    memcpy(buf, rsp.get.buf, *len);
 
     status = rsp.get.status;
 
@@ -450,9 +448,7 @@ Int NameServer_getLocal(NameServer_Handle ns, String name, Ptr buf, UInt32 *len)
     }
 
     *len = rsp.get.len;
-    if (rsp.get.buf != NULL) {
-        memcpy(buf, rsp.get.buf, *len);
-    }
+    memcpy(buf, rsp.get.buf, *len);
 
     status = rsp.get.status;
 
