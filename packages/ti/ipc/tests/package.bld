@@ -520,6 +520,15 @@ for (var i = 0; i < Build.targets.length; i++) {
             extraDefs = " -DRPMSG_NS_2_0";
         }
 
+        /* All Keystone platforms with 4.1/4.4 kernels also require RPMSG_NS_2_0 */
+        if (platform.match(/^ti.platforms.evmC66AK2E/) ||
+            platform.match(/^ti.platforms.evmTCI66AK2G02/) ||
+            platform.match(/^ti.platforms.evmTCI6630K2L/) ||
+            platform.match(/^ti.platforms.evmTCI6638K2K/) ||
+            platform.match(/^ti.platforms.evmTCI6636K2H/)) {
+            extraDefs = " -DRPMSG_NS_2_0";
+        }
+
         /* fault */
         Pkg.addExecutable(name + "/fault", targ, platform, {
             cfgScript: "rpmsg_transport",
