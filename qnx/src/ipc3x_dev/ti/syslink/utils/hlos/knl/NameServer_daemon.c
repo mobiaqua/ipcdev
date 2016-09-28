@@ -692,10 +692,10 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     handle->count++;
 
+    /* Only print a single byte of buf. Address may not be 32-bit aligned */
     GT_2trace(curTrace, GT_1CLASS,
               "NameServer_add: Entered key: '%s', data: 0x%x",
-              name, *(UInt32 *)buf);
-
+              name, *(UInt8 *)buf);
 exit:
     pthread_mutex_unlock(&handle->gate);
 
