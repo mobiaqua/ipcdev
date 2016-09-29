@@ -651,6 +651,44 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
 
     pthread_mutex_unlock(&MessageQ_module->gate);
 
+    /* send announce message to LAD, indicating we are ready to receive msgs */
+    cmd.cmd = LAD_MESSAGEQ_ANNOUNCE;
+    cmd.clientId = handle;
+
+    if (name == NULL) {
+        cmd.args.messageQAnnounce.name[0] = '\0';
+    }
+    else {
+        strncpy(cmd.args.messageQAnnounce.name, name,
+                LAD_MESSAGEQCREATEMAXNAMELEN - 1);
+        cmd.args.messageQAnnounce.name[LAD_MESSAGEQCREATEMAXNAMELEN - 1] = '\0';
+    }
+
+    cmd.args.messageQAnnounce.serverHandle = obj->serverHandle;
+
+    if ((status = LAD_putCommand(&cmd)) != LAD_SUCCESS) {
+        PRINTVERBOSE1(
+          "MessageQ_create: sending LAD command failed, status=%d\n", status)
+        goto exit;
+    }
+
+    if ((status = LAD_getResponse(handle, &rsp)) != LAD_SUCCESS) {
+        PRINTVERBOSE1("MessageQ_create: no LAD response, status=%d\n", status)
+        goto exit;
+    }
+    status = rsp.messageQAnnounce.status;
+
+    PRINTVERBOSE2(
+      "MessageQ_create: got LAD response for client %d, status=%d\n",
+      handle, status)
+
+    if (status == -1) {
+       PRINTVERBOSE1(
+          "MessageQ_create: MessageQ server operation failed, status=%d\n",
+          status)
+    }
+
+exit:
     return (MessageQ_Handle)obj;
 }
 
@@ -871,6 +909,9 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
                 goto done;
             }
         }
+        /* If we get here, then we have failed to deliver a local message. */
+        status = MessageQ_E_FAIL;
+        goto done;
     }
 
     /*  Getting here implies the message is outbound. Must give it to
@@ -930,7 +971,12 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
         }
 
         msgTrans = MessageQ_module->transports[clusterId][priority];
-        delivered = IMessageQTransport_put(msgTrans, (Ptr)msg);
+        if (msgTrans) {
+            delivered = IMessageQTransport_put(msgTrans, (Ptr)msg);
+        }
+        else {
+            delivered = MessageQ_E_FAIL;
+        }
         status = (delivered ? MessageQ_S_SUCCESS :
                   (errno == ESHUTDOWN ? MessageQ_E_SHUTDOWN : MessageQ_E_FAIL));
     }

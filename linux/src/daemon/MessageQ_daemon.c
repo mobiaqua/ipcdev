@@ -354,11 +354,6 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
     obj->queue = (MessageQ_QueueId)(((UInt32)procId << 16) | queuePort);
     obj->ownerPid = 0;
 
-    if (name != NULL) {
-        obj->nsKey = NameServer_addUInt32(MessageQ_module->nameServer, name,
-                obj->queue);
-    }
-
     /* Cleanup if fail */
     if (status < 0) {
         MessageQ_delete((MessageQ_Handle *)&obj);
@@ -367,6 +362,24 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params * params)
     LOG2("MessageQ_create: returning obj=%p, qid=0x%x\n", obj, obj->queue)
 
     return ((MessageQ_Handle)obj);
+}
+
+Int MessageQ_announce(String name, MessageQ_Handle * handlePtr)
+{
+    Int                 status = MessageQ_S_SUCCESS;
+    MessageQ_Object   * obj    = (MessageQ_Object *)(*handlePtr);
+
+    LOG1("MessageQ_announce: announcing %p\n", obj);
+
+    if (name != NULL && obj->nsKey == NULL) {
+        obj->nsKey = NameServer_addUInt32(MessageQ_module->nameServer, name,
+                obj->queue);
+    }
+    else {
+        status = MessageQ_E_FAIL;
+    }
+
+    return status;
 }
 
 /*

@@ -183,6 +183,7 @@ typedef enum {
     LAD_MESSAGEQ_SETUP,
     LAD_MESSAGEQ_DESTROY,
     LAD_MESSAGEQ_CREATE,
+    LAD_MESSAGEQ_ANNOUNCE,
     LAD_MESSAGEQ_DELETE,
     LAD_MESSAGEQ_MSGINIT,
     LAD_MULTIPROC_GETCONFIG,
@@ -270,6 +271,10 @@ struct LAD_CommandObj {
             MessageQ_Params params;
         } messageQCreate;
         struct {
+            Char name[LAD_MESSAGEQCREATEMAXNAMELEN];
+            Void *serverHandle;
+        } messageQAnnounce;
+        struct {
             Void *serverHandle;
         } messageQDelete;
         struct {
@@ -315,6 +320,9 @@ union LAD_ResponseObj {
        Int queueId;
        Void *serverHandle;
     } messageQCreate;
+    struct {
+       Int status;
+    } messageQAnnounce;
     struct {
        Int status;
     } messageQDelete;

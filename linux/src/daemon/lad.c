@@ -669,6 +669,21 @@ opencommandFIFO:
 
             break;
 
+          case LAD_MESSAGEQ_ANNOUNCE:
+            LOG2("LAD_MESSAGEQ_ANNOUNCE: calling MessageQ_announce(%p, %p)...\n",
+                    cmd.args.messageQAnnounce.name,
+                    cmd.args.messageQAnnounce.serverHandle);
+
+            tmpString = (cmd.args.messageQAnnounce.name[0] == '\0') ? NULL :
+                cmd.args.messageQAnnounce.name;
+
+            rsp.messageQAnnounce.status =
+                MessageQ_announce(tmpString, (MessageQ_Handle *)&cmd.args.messageQAnnounce.serverHandle);
+
+            LOG1("    status = %d\n", rsp.messageQAnnounce.status)
+            LOG0("DONE\n")
+
+            break;
           case LAD_MESSAGEQ_DELETE:
             LOG1("LAD_MESSAGEQ_DELETE: calling MessageQ_delete(%p)...\n", cmd.args.messageQDelete.serverHandle)
 
@@ -831,6 +846,7 @@ opencommandFIFO:
           case LAD_MESSAGEQ_SETUP:
           case LAD_MESSAGEQ_DESTROY:
           case LAD_MESSAGEQ_CREATE:
+          case LAD_MESSAGEQ_ANNOUNCE:
           case LAD_MESSAGEQ_DELETE:
           case LAD_MESSAGEQ_MSGINIT:
           case LAD_MULTIPROC_GETCONFIG:
