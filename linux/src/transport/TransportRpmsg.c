@@ -466,7 +466,7 @@ Bool TransportRpmsg_put(Void *handle, Ptr pmsg)
      */
     clusterId = msg->dstProc - MultiProc_getBaseIdOfCluster();
     sock = TransportRpmsg_module->sock[clusterId];
-    if (!sock) {
+    if (sock == INVALIDSOCKET) {
         return FALSE;
     }
 
