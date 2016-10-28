@@ -556,7 +556,12 @@ var A8gSources  =  "ti/sdo/ipc/gates/GateHWSpinlock.c " +
 var A15gSources  = "ti/sdo/ipc/family/vayu/InterruptHost.c " +
                    "ti/sdo/ipc/family/vayu/NotifyDriverMbx.c " +
                    "ti/sdo/ipc/family/vayu/NotifySetup.c " +
-                   "ti/sdo/ipc/gates/GateHWSpinlock.c ";
+                   "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/gates/GateHWSem.c " +
+                   "ti/sdo/ipc/family/tci663x/Interrupt.c " +
+                   "ti/sdo/ipc/family/tci663x/MultiProcSetup.c " +
+                   "ti/sdo/ipc/family/tci663x/NotifyCircSetup.c " +
+                   "ti/sdo/ipc/family/tci663x/NotifySetup.c ";
 
 var ARP32Sources = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/arctic/NotifySetup.c " +
