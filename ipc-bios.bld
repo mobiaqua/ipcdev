@@ -67,7 +67,7 @@ var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 /* Common ccopts suffix used for all C6x targets */
-var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
+var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g --mem_model:const=data --mem_model:data=far ";
 
 /*
  * -mi10 => maximum cycles that interrupts may be disabled is 10
@@ -76,6 +76,9 @@ var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
  * -pden => show remark ids
  * -pds=238 => ignore "controlling expression is constant"
  * -pds=880 => ignore "unused parameter"
+ * --mem_model:const=data => Const objects are placed according to the
+ * --mem_model:data option
+ * --mem_model:data=far => Data accesses default to far
  */
 
 var ccOpts = {
