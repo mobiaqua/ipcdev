@@ -32,7 +32,7 @@
 ##
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall -pthread
 
 if KERNEL_INSTALL_DIR
 AM_CFLAGS += -I$(KERNEL_INSTALL_DIR)/include/generated/uapi
