@@ -32,7 +32,7 @@
 ##
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall -pthread
 
 if DRM
 AM_CFLAGS += \

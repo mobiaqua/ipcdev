@@ -32,7 +32,7 @@
 ##
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall \
+AM_CFLAGS = -I$(top_srcdir)/hlos_common/include -D_GNU_SOURCE -Wall -pthread \
         -DKERNEL_INSTALL_DIR="$(KERNEL_INSTALL_DIR)"
 
 if DRA7XX
