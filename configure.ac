@@ -44,12 +44,13 @@ AC_CONFIG_SRCDIR([packages/ti/ipc/MessageQ.h])
 AC_CONFIG_AUX_DIR([linux/build-aux])
 
 # Initilize automake
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Disabling maintainer mode to prevent rebuild of configure script
 AM_MAINTAINER_MODE([disable])
 
 # Initalize libtool but disable fortran check
+LT_INIT
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 AC_PROG_LIBTOOL(gcc)
 
