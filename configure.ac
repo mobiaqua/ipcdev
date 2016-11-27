@@ -44,7 +44,7 @@ AC_CONFIG_SRCDIR([packages/ti/ipc/MessageQ.h])
 AC_CONFIG_AUX_DIR([linux/build-aux])
 
 # Initilize automake
-AM_INIT_AUTOMAKE([foreign subdir-objects])
+AM_INIT_AUTOMAKE([foreign])
 
 # Disabling maintainer mode to prevent rebuild of configure script
 AM_MAINTAINER_MODE([disable])
