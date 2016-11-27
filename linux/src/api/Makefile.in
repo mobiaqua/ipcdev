@@ -160,14 +160,9 @@ am__libtiipc_la_SOURCES_DIST =  \
 	$(top_srcdir)/linux/src/api/gates/GateMutex.c \
 	$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
 am__objects_1 =
-am__dirstamp = $(am__leading_dot)dirstamp
-@DRA7XX_TRUE@am__objects_2 =  \
-@DRA7XX_TRUE@	$(top_srcdir)/linux/src/api/gates/GateMP.lo \
-@DRA7XX_TRUE@	$(top_srcdir)/linux/src/api/gates/GateMutex.lo \
-@DRA7XX_TRUE@	$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.lo
+@DRA7XX_TRUE@am__objects_2 = GateMP.lo GateMutex.lo GateHWSpinlock.lo
 am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo MultiProc.lo \
-	NameServer.lo Ipc.lo $(top_srcdir)/linux/src/heaps/HeapStd.lo \
-	$(am__objects_2)
+	NameServer.lo Ipc.lo HeapStd.lo $(am__objects_2)
 libtiipc_la_OBJECTS = $(am_libtiipc_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -472,83 +467,78 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
-$(top_srcdir)/linux/src/heaps/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/heaps
-	@: > $(top_srcdir)/linux/src/heaps/$(am__dirstamp)
-$(top_srcdir)/linux/src/heaps/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/heaps/$(DEPDIR)
-	@: > $(top_srcdir)/linux/src/heaps/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/heaps/HeapStd.lo:  \
-	$(top_srcdir)/linux/src/heaps/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/heaps/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/api/gates
-	@: > $(top_srcdir)/linux/src/api/gates/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/api/gates/$(DEPDIR)
-	@: > $(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/GateMP.lo:  \
-	$(top_srcdir)/linux/src/api/gates/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/GateMutex.lo:  \
-	$(top_srcdir)/linux/src/api/gates/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.lo:  \
-	$(top_srcdir)/linux/src/api/gates/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
 
 libtiipc.la: $(libtiipc_la_OBJECTS) $(libtiipc_la_DEPENDENCIES) $(EXTRA_libtiipc_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libtiipc_la_LINK) -rpath $(libdir) $(libtiipc_la_OBJECTS) $(libtiipc_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f $(top_srcdir)/linux/src/api/gates/*.$(OBJEXT)
-	-rm -f $(top_srcdir)/linux/src/api/gates/*.lo
-	-rm -f $(top_srcdir)/linux/src/heaps/*.$(OBJEXT)
-	-rm -f $(top_srcdir)/linux/src/heaps/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/GateHWSpinlock.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/GateMP.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/GateMutex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/heaps/$(DEPDIR)/HeapStd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HeapStd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServer.Plo@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+HeapStd.lo: $(top_srcdir)/linux/src/heaps/HeapStd.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT HeapStd.lo -MD -MP -MF $(DEPDIR)/HeapStd.Tpo -c -o HeapStd.lo `test -f '$(top_srcdir)/linux/src/heaps/HeapStd.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/heaps/HeapStd.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/HeapStd.Tpo $(DEPDIR)/HeapStd.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/heaps/HeapStd.c' object='HeapStd.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o HeapStd.lo `test -f '$(top_srcdir)/linux/src/heaps/HeapStd.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/heaps/HeapStd.c
+
+GateMP.lo: $(top_srcdir)/linux/src/api/gates/GateMP.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMP.lo -MD -MP -MF $(DEPDIR)/GateMP.Tpo -c -o GateMP.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMP.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMP.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMP.Tpo $(DEPDIR)/GateMP.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/api/gates/GateMP.c' object='GateMP.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMP.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMP.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMP.c
+
+GateMutex.lo: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.lo -MD -MP -MF $(DEPDIR)/GateMutex.Tpo -c -o GateMutex.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMutex.Tpo $(DEPDIR)/GateMutex.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+
+GateHWSpinlock.lo: $(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlock.lo -MD -MP -MF $(DEPDIR)/GateHWSpinlock.Tpo -c -o GateHWSpinlock.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateHWSpinlock.Tpo $(DEPDIR)/GateHWSpinlock.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' object='GateHWSpinlock.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlock.lo `test -f '$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
-	-rm -rf $(top_srcdir)/linux/src/api/gates/.libs $(top_srcdir)/linux/src/api/gates/_libs
-	-rm -rf $(top_srcdir)/linux/src/heaps/.libs $(top_srcdir)/linux/src/heaps/_libs
 	-rm -rf .libs _libs
 install-pkgconfigDATA: $(pkgconfig_DATA)
 	@$(NORMAL_INSTALL)
@@ -708,10 +698,6 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-test -z "$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/api/gates/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/api/gates/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/heaps/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/heaps/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/heaps/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/heaps/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -722,7 +708,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf $(top_srcdir)/linux/src/api/gates/$(DEPDIR) $(top_srcdir)/linux/src/heaps/$(DEPDIR) ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -768,7 +754,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf $(top_srcdir)/linux/src/api/gates/$(DEPDIR) $(top_srcdir)/linux/src/heaps/$(DEPDIR) ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

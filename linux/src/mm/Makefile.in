@@ -128,9 +128,7 @@ am__libmmrpc_la_SOURCES_DIST =  \
 	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.h \
 	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
 am__objects_1 =
-am__dirstamp = $(am__leading_dot)dirstamp
-am_libmmrpc_la_OBJECTS = $(am__objects_1) \
-	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.lo
+am_libmmrpc_la_OBJECTS = $(am__objects_1) MmRpc.lo
 libmmrpc_la_OBJECTS = $(am_libmmrpc_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -431,58 +429,50 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
-$(top_srcdir)/packages/ti/ipc/mm/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/packages/ti/ipc/mm
-	@: > $(top_srcdir)/packages/ti/ipc/mm/$(am__dirstamp)
-$(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)
-	@: > $(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/packages/ti/ipc/mm/MmRpc.lo:  \
-	$(top_srcdir)/packages/ti/ipc/mm/$(am__dirstamp) \
-	$(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/$(am__dirstamp)
 
 libmmrpc.la: $(libmmrpc_la_OBJECTS) $(libmmrpc_la_DEPENDENCIES) $(EXTRA_libmmrpc_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libmmrpc_la_LINK) $(am_libmmrpc_la_rpath) $(libmmrpc_la_OBJECTS) $(libmmrpc_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f $(top_srcdir)/packages/ti/ipc/mm/*.$(OBJEXT)
-	-rm -f $(top_srcdir)/packages/ti/ipc/mm/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/MmRpc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MmRpc.Plo@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+MmRpc.lo: $(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MmRpc.lo -MD -MP -MF $(DEPDIR)/MmRpc.Tpo -c -o MmRpc.lo `test -f '$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MmRpc.Tpo $(DEPDIR)/MmRpc.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c' object='MmRpc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MmRpc.lo `test -f '$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
-	-rm -rf $(top_srcdir)/packages/ti/ipc/mm/.libs $(top_srcdir)/packages/ti/ipc/mm/_libs
 	-rm -rf .libs _libs
 install-pkgconfigDATA: $(pkgconfig_DATA)
 	@$(NORMAL_INSTALL)
@@ -642,8 +632,6 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-test -z "$(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/packages/ti/ipc/mm/$(am__dirstamp)" || rm -f $(top_srcdir)/packages/ti/ipc/mm/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -654,7 +642,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf $(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -700,7 +688,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf $(top_srcdir)/packages/ti/ipc/mm/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

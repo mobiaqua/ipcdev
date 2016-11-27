@@ -141,10 +141,8 @@ am__EXEEXT_1 =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am__dirstamp = $(am__leading_dot)dirstamp
-am_GateMPApp_OBJECTS = $(am__objects_1) \
-	$(top_srcdir)/linux/src/tests/main_host.$(OBJEXT) \
-	$(top_srcdir)/linux/src/tests/GateMPApp.$(OBJEXT)
+am_GateMPApp_OBJECTS = $(am__objects_1) main_host.$(OBJEXT) \
+	GateMPApp.$(OBJEXT)
 GateMPApp_OBJECTS = $(am_GateMPApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la \
@@ -184,9 +182,7 @@ NameServerApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 am_fault_OBJECTS = $(am__objects_1) fault.$(OBJEXT)
 fault_OBJECTS = $(am_fault_OBJECTS)
 fault_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am_mmrpc_test_OBJECTS =  \
-	$(top_srcdir)/packages/ti/ipc/tests/Mx.$(OBJEXT) \
-	$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.$(OBJEXT)
+am_mmrpc_test_OBJECTS = Mx.$(OBJEXT) mmrpc_test.$(OBJEXT)
 mmrpc_test_OBJECTS = $(am_mmrpc_test_OBJECTS)
 mmrpc_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/mm/libmmrpc.la \
@@ -597,18 +593,6 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-$(top_srcdir)/linux/src/tests/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/tests
-	@: > $(top_srcdir)/linux/src/tests/$(am__dirstamp)
-$(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/tests/$(DEPDIR)
-	@: > $(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/tests/main_host.$(OBJEXT):  \
-	$(top_srcdir)/linux/src/tests/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/tests/GateMPApp.$(OBJEXT):  \
-	$(top_srcdir)/linux/src/tests/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp)
 
 GateMPApp$(EXEEXT): $(GateMPApp_OBJECTS) $(GateMPApp_DEPENDENCIES) $(EXTRA_GateMPApp_DEPENDENCIES) 
 	@rm -f GateMPApp$(EXEEXT)
@@ -641,18 +625,6 @@ NameServerApp$(EXEEXT): $(NameServerApp_OBJECTS) $(NameServerApp_DEPENDENCIES) $
 fault$(EXEEXT): $(fault_OBJECTS) $(fault_DEPENDENCIES) $(EXTRA_fault_DEPENDENCIES) 
 	@rm -f fault$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(fault_OBJECTS) $(fault_LDADD) $(LIBS)
-$(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/packages/ti/ipc/tests
-	@: > $(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp)
-$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)
-	@: > $(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/packages/ti/ipc/tests/Mx.$(OBJEXT):  \
-	$(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp) \
-	$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.$(OBJEXT):  \
-	$(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp) \
-	$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp)
 
 mmrpc_test$(EXEEXT): $(mmrpc_test_OBJECTS) $(mmrpc_test_DEPENDENCIES) $(EXTRA_mmrpc_test_DEPENDENCIES) 
 	@rm -f mmrpc_test$(EXEEXT)
@@ -668,49 +640,100 @@ ping_rpmsg$(EXEEXT): $(ping_rpmsg_OBJECTS) $(ping_rpmsg_DEPENDENCIES) $(EXTRA_pi
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f $(top_srcdir)/linux/src/tests/*.$(OBJEXT)
-	-rm -f $(top_srcdir)/packages/ti/ipc/tests/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/tests/$(DEPDIR)/GateMPApp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/tests/$(DEPDIR)/main_host.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/Mx.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/mmrpc_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMPApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQBench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMultiMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Msgq100.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fault.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main_host.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmrpc_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nano_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ping_rpmsg.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+main_host.o: $(top_srcdir)/linux/src/tests/main_host.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main_host.o -MD -MP -MF $(DEPDIR)/main_host.Tpo -c -o main_host.o `test -f '$(top_srcdir)/linux/src/tests/main_host.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/main_host.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main_host.Tpo $(DEPDIR)/main_host.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/tests/main_host.c' object='main_host.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main_host.o `test -f '$(top_srcdir)/linux/src/tests/main_host.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/main_host.c
+
+main_host.obj: $(top_srcdir)/linux/src/tests/main_host.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT main_host.obj -MD -MP -MF $(DEPDIR)/main_host.Tpo -c -o main_host.obj `if test -f '$(top_srcdir)/linux/src/tests/main_host.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/main_host.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/main_host.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main_host.Tpo $(DEPDIR)/main_host.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/tests/main_host.c' object='main_host.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o main_host.obj `if test -f '$(top_srcdir)/linux/src/tests/main_host.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/main_host.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/main_host.c'; fi`
+
+GateMPApp.o: $(top_srcdir)/linux/src/tests/GateMPApp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMPApp.o -MD -MP -MF $(DEPDIR)/GateMPApp.Tpo -c -o GateMPApp.o `test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/GateMPApp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMPApp.Tpo $(DEPDIR)/GateMPApp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/tests/GateMPApp.c' object='GateMPApp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMPApp.o `test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/tests/GateMPApp.c
+
+GateMPApp.obj: $(top_srcdir)/linux/src/tests/GateMPApp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMPApp.obj -MD -MP -MF $(DEPDIR)/GateMPApp.Tpo -c -o GateMPApp.obj `if test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/GateMPApp.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/GateMPApp.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMPApp.Tpo $(DEPDIR)/GateMPApp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/tests/GateMPApp.c' object='GateMPApp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMPApp.obj `if test -f '$(top_srcdir)/linux/src/tests/GateMPApp.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/tests/GateMPApp.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/tests/GateMPApp.c'; fi`
+
+Mx.o: $(top_srcdir)/packages/ti/ipc/tests/Mx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Mx.o -MD -MP -MF $(DEPDIR)/Mx.Tpo -c -o Mx.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/Mx.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Mx.Tpo $(DEPDIR)/Mx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/packages/ti/ipc/tests/Mx.c' object='Mx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Mx.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/Mx.c
+
+Mx.obj: $(top_srcdir)/packages/ti/ipc/tests/Mx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Mx.obj -MD -MP -MF $(DEPDIR)/Mx.Tpo -c -o Mx.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Mx.Tpo $(DEPDIR)/Mx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/packages/ti/ipc/tests/Mx.c' object='Mx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Mx.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; fi`
+
+mmrpc_test.o: $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mmrpc_test.o -MD -MP -MF $(DEPDIR)/mmrpc_test.Tpo -c -o mmrpc_test.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mmrpc_test.Tpo $(DEPDIR)/mmrpc_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' object='mmrpc_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mmrpc_test.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+
+mmrpc_test.obj: $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mmrpc_test.obj -MD -MP -MF $(DEPDIR)/mmrpc_test.Tpo -c -o mmrpc_test.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mmrpc_test.Tpo $(DEPDIR)/mmrpc_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' object='mmrpc_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mmrpc_test.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -833,10 +856,6 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-test -z "$(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/tests/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/tests/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/tests/$(am__dirstamp)
-	-test -z "$(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp)" || rm -f $(top_srcdir)/packages/ti/ipc/tests/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -846,7 +865,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf $(top_srcdir)/linux/src/tests/$(DEPDIR) $(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR) ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -892,7 +911,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf $(top_srcdir)/linux/src/tests/$(DEPDIR) $(top_srcdir)/packages/ti/ipc/tests/$(DEPDIR) ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -165,18 +165,16 @@ am__lad_66ak2e_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/linux/include/GateMP_config.h \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_66ak2e.c
-am__dirstamp = $(am__leading_dot)dirstamp
 @DRA7XX_TRUE@am__objects_1 = GateMP_daemon.$(OBJEXT) \
 @DRA7XX_TRUE@	GateHWSpinlock.$(OBJEXT) \
 @DRA7XX_TRUE@	GateHWSpinlock_daemon.$(OBJEXT) \
-@DRA7XX_TRUE@	cfg/GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
-@DRA7XX_TRUE@	$(top_srcdir)/linux/src/api/gates/GateMutex.$(OBJEXT)
-am__objects_2 = lad.$(OBJEXT) Ipc_daemon.$(OBJEXT) \
-	cfg/IpcCfg.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
-	cfg/MessageQCfg.$(OBJEXT) MultiProc_daemon.$(OBJEXT) \
-	NameServer_daemon.$(OBJEXT) $(am__objects_1)
-am_lad_66ak2e_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_66ak2e.$(OBJEXT)
+@DRA7XX_TRUE@	GateHWSpinlockCfg_dra7xx.$(OBJEXT) \
+@DRA7XX_TRUE@	GateMutex.$(OBJEXT)
+am__objects_2 = lad.$(OBJEXT) Ipc_daemon.$(OBJEXT) IpcCfg.$(OBJEXT) \
+	MessageQ_daemon.$(OBJEXT) MessageQCfg.$(OBJEXT) \
+	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT) \
+	$(am__objects_1)
+am_lad_66ak2e_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2e.$(OBJEXT)
 lad_66ak2e_OBJECTS = $(am_lad_66ak2e_OBJECTS)
 am__DEPENDENCIES_1 =  \
 	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
@@ -212,8 +210,7 @@ am__lad_66ak2g_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/linux/include/GateMP_config.h \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_66ak2g.c
-am_lad_66ak2g_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_66ak2g.$(OBJEXT)
+am_lad_66ak2g_OBJECTS = $(am__objects_2) MultiProcCfg_66ak2g.$(OBJEXT)
 lad_66ak2g_OBJECTS = $(am_lad_66ak2g_OBJECTS)
 lad_66ak2g_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_dra7xx_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
@@ -242,8 +239,7 @@ am__lad_dra7xx_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/linux/include/GateMP_config.h \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_dra7xx.c
-am_lad_dra7xx_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_dra7xx.$(OBJEXT)
+am_lad_dra7xx_OBJECTS = $(am__objects_2) MultiProcCfg_dra7xx.$(OBJEXT)
 lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
 lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_omap54xx_smp_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
@@ -273,7 +269,7 @@ am__lad_omap54xx_smp_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_omap54xx_smp.c
 am_lad_omap54xx_smp_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_omap54xx_smp.$(OBJEXT)
+	MultiProcCfg_omap54xx_smp.$(OBJEXT)
 lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
@@ -304,7 +300,7 @@ am__lad_omapl138_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_omapl138.c
 am_lad_omapl138_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_omapl138.$(OBJEXT)
+	MultiProcCfg_omapl138.$(OBJEXT)
 lad_omapl138_OBJECTS = $(am_lad_omapl138_OBJECTS)
 lad_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
@@ -335,7 +331,7 @@ am__lad_tci6614_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_tci6614.c
 am_lad_tci6614_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_tci6614.$(OBJEXT)
+	MultiProcCfg_tci6614.$(OBJEXT)
 lad_tci6614_OBJECTS = $(am_lad_tci6614_OBJECTS)
 lad_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6630_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
@@ -365,7 +361,7 @@ am__lad_tci6630_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_tci6630.c
 am_lad_tci6630_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_tci6630.$(OBJEXT)
+	MultiProcCfg_tci6630.$(OBJEXT)
 lad_tci6630_OBJECTS = $(am_lad_tci6630_OBJECTS)
 lad_tci6630_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6636_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
@@ -395,7 +391,7 @@ am__lad_tci6636_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_tci6638.c
 am_lad_tci6636_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_tci6638.$(OBJEXT)
+	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6636_OBJECTS = $(am_lad_tci6636_OBJECTS)
 lad_tci6636_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__lad_tci6638_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
@@ -425,7 +421,7 @@ am__lad_tci6638_SOURCES_DIST = lad.c Ipc_daemon.c cfg/IpcCfg.c \
 	$(top_srcdir)/packages/ti/ipc/GateMP.h \
 	cfg/MultiProcCfg_tci6638.c
 am_lad_tci6638_OBJECTS = $(am__objects_2) \
-	cfg/MultiProcCfg_tci6638.$(OBJEXT)
+	MultiProcCfg_tci6638.$(OBJEXT)
 lad_tci6638_OBJECTS = $(am_lad_tci6638_OBJECTS)
 lad_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -772,71 +768,34 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-cfg/$(am__dirstamp):
-	@$(MKDIR_P) cfg
-	@: > cfg/$(am__dirstamp)
-cfg/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) cfg/$(DEPDIR)
-	@: > cfg/$(DEPDIR)/$(am__dirstamp)
-cfg/IpcCfg.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
-cfg/MessageQCfg.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
-cfg/GateHWSpinlockCfg_dra7xx.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/api/gates
-	@: > $(top_srcdir)/linux/src/api/gates/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_srcdir)/linux/src/api/gates/$(DEPDIR)
-	@: > $(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-$(top_srcdir)/linux/src/api/gates/GateMutex.$(OBJEXT):  \
-	$(top_srcdir)/linux/src/api/gates/$(am__dirstamp) \
-	$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-cfg/MultiProcCfg_66ak2e.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_66ak2e$(EXEEXT): $(lad_66ak2e_OBJECTS) $(lad_66ak2e_DEPENDENCIES) $(EXTRA_lad_66ak2e_DEPENDENCIES) 
 	@rm -f lad_66ak2e$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_66ak2e_OBJECTS) $(lad_66ak2e_LDADD) $(LIBS)
-cfg/MultiProcCfg_66ak2g.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_66ak2g$(EXEEXT): $(lad_66ak2g_OBJECTS) $(lad_66ak2g_DEPENDENCIES) $(EXTRA_lad_66ak2g_DEPENDENCIES) 
 	@rm -f lad_66ak2g$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_66ak2g_OBJECTS) $(lad_66ak2g_LDADD) $(LIBS)
-cfg/MultiProcCfg_dra7xx.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_dra7xx$(EXEEXT): $(lad_dra7xx_OBJECTS) $(lad_dra7xx_DEPENDENCIES) $(EXTRA_lad_dra7xx_DEPENDENCIES) 
 	@rm -f lad_dra7xx$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_dra7xx_OBJECTS) $(lad_dra7xx_LDADD) $(LIBS)
-cfg/MultiProcCfg_omap54xx_smp.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_omap54xx_smp$(EXEEXT): $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_DEPENDENCIES) $(EXTRA_lad_omap54xx_smp_DEPENDENCIES) 
 	@rm -f lad_omap54xx_smp$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_LDADD) $(LIBS)
-cfg/MultiProcCfg_omapl138.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_omapl138$(EXEEXT): $(lad_omapl138_OBJECTS) $(lad_omapl138_DEPENDENCIES) $(EXTRA_lad_omapl138_DEPENDENCIES) 
 	@rm -f lad_omapl138$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_omapl138_OBJECTS) $(lad_omapl138_LDADD) $(LIBS)
-cfg/MultiProcCfg_tci6614.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_tci6614$(EXEEXT): $(lad_tci6614_OBJECTS) $(lad_tci6614_DEPENDENCIES) $(EXTRA_lad_tci6614_DEPENDENCIES) 
 	@rm -f lad_tci6614$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_tci6614_OBJECTS) $(lad_tci6614_LDADD) $(LIBS)
-cfg/MultiProcCfg_tci6630.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_tci6630$(EXEEXT): $(lad_tci6630_OBJECTS) $(lad_tci6630_DEPENDENCIES) $(EXTRA_lad_tci6630_DEPENDENCIES) 
 	@rm -f lad_tci6630$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lad_tci6630_OBJECTS) $(lad_tci6630_LDADD) $(LIBS)
-cfg/MultiProcCfg_tci6638.$(OBJEXT): cfg/$(am__dirstamp) \
-	cfg/$(DEPDIR)/$(am__dirstamp)
 
 lad_tci6636$(EXEEXT): $(lad_tci6636_OBJECTS) $(lad_tci6636_DEPENDENCIES) $(EXTRA_lad_tci6636_DEPENDENCIES) 
 	@rm -f lad_tci6636$(EXEEXT)
@@ -848,56 +807,219 @@ lad_tci6638$(EXEEXT): $(lad_tci6638_OBJECTS) $(lad_tci6638_DEPENDENCIES) $(EXTRA
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f $(top_srcdir)/linux/src/api/gates/*.$(OBJEXT)
-	-rm -f cfg/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/GateMutex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateHWSpinlock_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMP_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GateMutex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IpcCfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQCfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_66ak2e.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_66ak2g.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omapl138.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_tci6614.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_tci6630.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_tci6638.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProc_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServer_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lad.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/IpcCfg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MessageQCfg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_66ak2e.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_66ak2g.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_omapl138.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_tci6614.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_tci6630.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@cfg/$(DEPDIR)/MultiProcCfg_tci6638.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+IpcCfg.o: cfg/IpcCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IpcCfg.o -MD -MP -MF $(DEPDIR)/IpcCfg.Tpo -c -o IpcCfg.o `test -f 'cfg/IpcCfg.c' || echo '$(srcdir)/'`cfg/IpcCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/IpcCfg.Tpo $(DEPDIR)/IpcCfg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/IpcCfg.c' object='IpcCfg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IpcCfg.o `test -f 'cfg/IpcCfg.c' || echo '$(srcdir)/'`cfg/IpcCfg.c
+
+IpcCfg.obj: cfg/IpcCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IpcCfg.obj -MD -MP -MF $(DEPDIR)/IpcCfg.Tpo -c -o IpcCfg.obj `if test -f 'cfg/IpcCfg.c'; then $(CYGPATH_W) 'cfg/IpcCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/IpcCfg.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/IpcCfg.Tpo $(DEPDIR)/IpcCfg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/IpcCfg.c' object='IpcCfg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IpcCfg.obj `if test -f 'cfg/IpcCfg.c'; then $(CYGPATH_W) 'cfg/IpcCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/IpcCfg.c'; fi`
+
+MessageQCfg.o: cfg/MessageQCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageQCfg.o -MD -MP -MF $(DEPDIR)/MessageQCfg.Tpo -c -o MessageQCfg.o `test -f 'cfg/MessageQCfg.c' || echo '$(srcdir)/'`cfg/MessageQCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MessageQCfg.Tpo $(DEPDIR)/MessageQCfg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MessageQCfg.c' object='MessageQCfg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageQCfg.o `test -f 'cfg/MessageQCfg.c' || echo '$(srcdir)/'`cfg/MessageQCfg.c
+
+MessageQCfg.obj: cfg/MessageQCfg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageQCfg.obj -MD -MP -MF $(DEPDIR)/MessageQCfg.Tpo -c -o MessageQCfg.obj `if test -f 'cfg/MessageQCfg.c'; then $(CYGPATH_W) 'cfg/MessageQCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MessageQCfg.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MessageQCfg.Tpo $(DEPDIR)/MessageQCfg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MessageQCfg.c' object='MessageQCfg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageQCfg.obj `if test -f 'cfg/MessageQCfg.c'; then $(CYGPATH_W) 'cfg/MessageQCfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MessageQCfg.c'; fi`
+
+GateHWSpinlockCfg_dra7xx.o: cfg/GateHWSpinlockCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlockCfg_dra7xx.o -MD -MP -MF $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo -c -o GateHWSpinlockCfg_dra7xx.o `test -f 'cfg/GateHWSpinlockCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/GateHWSpinlockCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/GateHWSpinlockCfg_dra7xx.c' object='GateHWSpinlockCfg_dra7xx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlockCfg_dra7xx.o `test -f 'cfg/GateHWSpinlockCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/GateHWSpinlockCfg_dra7xx.c
+
+GateHWSpinlockCfg_dra7xx.obj: cfg/GateHWSpinlockCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateHWSpinlockCfg_dra7xx.obj -MD -MP -MF $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo -c -o GateHWSpinlockCfg_dra7xx.obj `if test -f 'cfg/GateHWSpinlockCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/GateHWSpinlockCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/GateHWSpinlockCfg_dra7xx.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Tpo $(DEPDIR)/GateHWSpinlockCfg_dra7xx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/GateHWSpinlockCfg_dra7xx.c' object='GateHWSpinlockCfg_dra7xx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateHWSpinlockCfg_dra7xx.obj `if test -f 'cfg/GateHWSpinlockCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/GateHWSpinlockCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/GateHWSpinlockCfg_dra7xx.c'; fi`
+
+GateMutex.o: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.o -MD -MP -MF $(DEPDIR)/GateMutex.Tpo -c -o GateMutex.o `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMutex.Tpo $(DEPDIR)/GateMutex.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.o `test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c' || echo '$(srcdir)/'`$(top_srcdir)/linux/src/api/gates/GateMutex.c
+
+GateMutex.obj: $(top_srcdir)/linux/src/api/gates/GateMutex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT GateMutex.obj -MD -MP -MF $(DEPDIR)/GateMutex.Tpo -c -o GateMutex.obj `if test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/api/gates/GateMutex.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/GateMutex.Tpo $(DEPDIR)/GateMutex.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_srcdir)/linux/src/api/gates/GateMutex.c' object='GateMutex.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o GateMutex.obj `if test -f '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; then $(CYGPATH_W) '$(top_srcdir)/linux/src/api/gates/GateMutex.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/linux/src/api/gates/GateMutex.c'; fi`
+
+MultiProcCfg_66ak2e.o: cfg/MultiProcCfg_66ak2e.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2e.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_66ak2e.Tpo -c -o MultiProcCfg_66ak2e.o `test -f 'cfg/MultiProcCfg_66ak2e.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2e.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_66ak2e.Tpo $(DEPDIR)/MultiProcCfg_66ak2e.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_66ak2e.c' object='MultiProcCfg_66ak2e.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2e.o `test -f 'cfg/MultiProcCfg_66ak2e.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2e.c
+
+MultiProcCfg_66ak2e.obj: cfg/MultiProcCfg_66ak2e.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2e.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_66ak2e.Tpo -c -o MultiProcCfg_66ak2e.obj `if test -f 'cfg/MultiProcCfg_66ak2e.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2e.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2e.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_66ak2e.Tpo $(DEPDIR)/MultiProcCfg_66ak2e.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_66ak2e.c' object='MultiProcCfg_66ak2e.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2e.obj `if test -f 'cfg/MultiProcCfg_66ak2e.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2e.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2e.c'; fi`
+
+MultiProcCfg_66ak2g.o: cfg/MultiProcCfg_66ak2g.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2g.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_66ak2g.Tpo -c -o MultiProcCfg_66ak2g.o `test -f 'cfg/MultiProcCfg_66ak2g.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2g.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_66ak2g.Tpo $(DEPDIR)/MultiProcCfg_66ak2g.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_66ak2g.c' object='MultiProcCfg_66ak2g.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2g.o `test -f 'cfg/MultiProcCfg_66ak2g.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_66ak2g.c
+
+MultiProcCfg_66ak2g.obj: cfg/MultiProcCfg_66ak2g.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_66ak2g.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_66ak2g.Tpo -c -o MultiProcCfg_66ak2g.obj `if test -f 'cfg/MultiProcCfg_66ak2g.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2g.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2g.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_66ak2g.Tpo $(DEPDIR)/MultiProcCfg_66ak2g.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_66ak2g.c' object='MultiProcCfg_66ak2g.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_66ak2g.obj `if test -f 'cfg/MultiProcCfg_66ak2g.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_66ak2g.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_66ak2g.c'; fi`
+
+MultiProcCfg_dra7xx.o: cfg/MultiProcCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_dra7xx.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_dra7xx.Tpo -c -o MultiProcCfg_dra7xx.o `test -f 'cfg/MultiProcCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_dra7xx.Tpo $(DEPDIR)/MultiProcCfg_dra7xx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_dra7xx.c' object='MultiProcCfg_dra7xx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_dra7xx.o `test -f 'cfg/MultiProcCfg_dra7xx.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_dra7xx.c
+
+MultiProcCfg_dra7xx.obj: cfg/MultiProcCfg_dra7xx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_dra7xx.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_dra7xx.Tpo -c -o MultiProcCfg_dra7xx.obj `if test -f 'cfg/MultiProcCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_dra7xx.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_dra7xx.Tpo $(DEPDIR)/MultiProcCfg_dra7xx.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_dra7xx.c' object='MultiProcCfg_dra7xx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_dra7xx.obj `if test -f 'cfg/MultiProcCfg_dra7xx.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_dra7xx.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_dra7xx.c'; fi`
+
+MultiProcCfg_omap54xx_smp.o: cfg/MultiProcCfg_omap54xx_smp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omap54xx_smp.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo -c -o MultiProcCfg_omap54xx_smp.o `test -f 'cfg/MultiProcCfg_omap54xx_smp.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omap54xx_smp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo $(DEPDIR)/MultiProcCfg_omap54xx_smp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_omap54xx_smp.c' object='MultiProcCfg_omap54xx_smp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omap54xx_smp.o `test -f 'cfg/MultiProcCfg_omap54xx_smp.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omap54xx_smp.c
+
+MultiProcCfg_omap54xx_smp.obj: cfg/MultiProcCfg_omap54xx_smp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omap54xx_smp.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo -c -o MultiProcCfg_omap54xx_smp.obj `if test -f 'cfg/MultiProcCfg_omap54xx_smp.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omap54xx_smp.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omap54xx_smp.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_omap54xx_smp.Tpo $(DEPDIR)/MultiProcCfg_omap54xx_smp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_omap54xx_smp.c' object='MultiProcCfg_omap54xx_smp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omap54xx_smp.obj `if test -f 'cfg/MultiProcCfg_omap54xx_smp.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omap54xx_smp.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omap54xx_smp.c'; fi`
+
+MultiProcCfg_omapl138.o: cfg/MultiProcCfg_omapl138.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omapl138.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_omapl138.Tpo -c -o MultiProcCfg_omapl138.o `test -f 'cfg/MultiProcCfg_omapl138.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omapl138.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_omapl138.Tpo $(DEPDIR)/MultiProcCfg_omapl138.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_omapl138.c' object='MultiProcCfg_omapl138.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omapl138.o `test -f 'cfg/MultiProcCfg_omapl138.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_omapl138.c
+
+MultiProcCfg_omapl138.obj: cfg/MultiProcCfg_omapl138.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_omapl138.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_omapl138.Tpo -c -o MultiProcCfg_omapl138.obj `if test -f 'cfg/MultiProcCfg_omapl138.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omapl138.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omapl138.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_omapl138.Tpo $(DEPDIR)/MultiProcCfg_omapl138.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_omapl138.c' object='MultiProcCfg_omapl138.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_omapl138.obj `if test -f 'cfg/MultiProcCfg_omapl138.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_omapl138.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_omapl138.c'; fi`
+
+MultiProcCfg_tci6614.o: cfg/MultiProcCfg_tci6614.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6614.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6614.Tpo -c -o MultiProcCfg_tci6614.o `test -f 'cfg/MultiProcCfg_tci6614.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6614.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6614.Tpo $(DEPDIR)/MultiProcCfg_tci6614.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6614.c' object='MultiProcCfg_tci6614.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6614.o `test -f 'cfg/MultiProcCfg_tci6614.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6614.c
+
+MultiProcCfg_tci6614.obj: cfg/MultiProcCfg_tci6614.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6614.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6614.Tpo -c -o MultiProcCfg_tci6614.obj `if test -f 'cfg/MultiProcCfg_tci6614.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6614.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6614.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6614.Tpo $(DEPDIR)/MultiProcCfg_tci6614.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6614.c' object='MultiProcCfg_tci6614.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6614.obj `if test -f 'cfg/MultiProcCfg_tci6614.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6614.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6614.c'; fi`
+
+MultiProcCfg_tci6630.o: cfg/MultiProcCfg_tci6630.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6630.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6630.Tpo -c -o MultiProcCfg_tci6630.o `test -f 'cfg/MultiProcCfg_tci6630.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6630.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6630.Tpo $(DEPDIR)/MultiProcCfg_tci6630.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6630.c' object='MultiProcCfg_tci6630.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6630.o `test -f 'cfg/MultiProcCfg_tci6630.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6630.c
+
+MultiProcCfg_tci6630.obj: cfg/MultiProcCfg_tci6630.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6630.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6630.Tpo -c -o MultiProcCfg_tci6630.obj `if test -f 'cfg/MultiProcCfg_tci6630.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6630.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6630.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6630.Tpo $(DEPDIR)/MultiProcCfg_tci6630.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6630.c' object='MultiProcCfg_tci6630.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6630.obj `if test -f 'cfg/MultiProcCfg_tci6630.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6630.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6630.c'; fi`
+
+MultiProcCfg_tci6638.o: cfg/MultiProcCfg_tci6638.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6638.o -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6638.Tpo -c -o MultiProcCfg_tci6638.o `test -f 'cfg/MultiProcCfg_tci6638.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6638.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6638.Tpo $(DEPDIR)/MultiProcCfg_tci6638.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6638.c' object='MultiProcCfg_tci6638.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6638.o `test -f 'cfg/MultiProcCfg_tci6638.c' || echo '$(srcdir)/'`cfg/MultiProcCfg_tci6638.c
+
+MultiProcCfg_tci6638.obj: cfg/MultiProcCfg_tci6638.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MultiProcCfg_tci6638.obj -MD -MP -MF $(DEPDIR)/MultiProcCfg_tci6638.Tpo -c -o MultiProcCfg_tci6638.obj `if test -f 'cfg/MultiProcCfg_tci6638.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6638.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6638.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MultiProcCfg_tci6638.Tpo $(DEPDIR)/MultiProcCfg_tci6638.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cfg/MultiProcCfg_tci6638.c' object='MultiProcCfg_tci6638.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MultiProcCfg_tci6638.obj `if test -f 'cfg/MultiProcCfg_tci6638.c'; then $(CYGPATH_W) 'cfg/MultiProcCfg_tci6638.c'; else $(CYGPATH_W) '$(srcdir)/cfg/MultiProcCfg_tci6638.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1020,10 +1142,6 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-rm -f cfg/$(DEPDIR)/$(am__dirstamp)
-	-rm -f cfg/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/api/gates/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_srcdir)/linux/src/api/gates/$(am__dirstamp)" || rm -f $(top_srcdir)/linux/src/api/gates/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1033,7 +1151,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf $(top_srcdir)/linux/src/api/gates/$(DEPDIR) ./$(DEPDIR) cfg/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1079,7 +1197,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf $(top_srcdir)/linux/src/api/gates/$(DEPDIR) ./$(DEPDIR) cfg/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
