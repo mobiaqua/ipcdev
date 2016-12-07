@@ -153,10 +153,12 @@ int main(int argc, char * argv[])
         }
     }
 
+#ifndef IPC_BUILDOS_ANDROID
     if (isDaemonRunning(argv[0])) {
         printf("Multiple instances of LAD are not supported!\n");
         exit(EXIT_FAILURE);
     }
+#endif
 
     /* change to LAD's working directory */
     if ((chdir(LAD_WORKINGDIR)) < 0) {
