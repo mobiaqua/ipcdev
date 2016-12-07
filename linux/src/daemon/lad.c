@@ -61,7 +61,9 @@
 #include <ladclient.h>
 #include <_lad.h>
 
+#ifndef DAEMON
 #define DAEMON        1           /* 1 = run as a daemon; 0 = run as app */
+#endif
 
 #define READ_BUF_SIZE 50
 
