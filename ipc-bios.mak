@@ -139,12 +139,16 @@ all:
 # build everything in the Bios IPC package
 	@$(XDC) -P $(LIST)
 
+interfaces:
+	@echo building interfaces for  ipc packages ...
+	@$(patsubst ${JOBS},,$(XDC)) .interfaces -P $(LIST)
+
 libs:
 	@echo "#"
 	@echo "# Making $@ ..."
 	@$(XDC) .dlls -P $(patsubst %/tests,,$(LIST))
 
-release:
+release: interfaces
 	@echo building ipc packages ...
 # create a XDC release for the Bios IPC package
 	@$(XDC) release -P $(LIST)
