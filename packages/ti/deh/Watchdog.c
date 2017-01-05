@@ -35,7 +35,7 @@
  *  ======== Watchdog.c ========
  *
  */
-
+#include <xdc/std.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Error.h>
@@ -162,7 +162,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
     Types_FreqHz                 tFreq;
     volatile Watchdog_TimerRegs  *timer;
     Int                          i;
-    static Bool                  first = TRUE;
+    static __FAR__ Bool          first = TRUE;
 
     tHandle = Timer_Object_get(NULL, 0);
     Timer_getFreq(tHandle, &tFreq);  /* get timer frequency */
