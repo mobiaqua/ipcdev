@@ -44,8 +44,12 @@
 #include <linux/version.h>
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3,9,0)
 #define AF_RPMSG        40
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 #define AF_RPMSG        41
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(4,7,0)
+#define AF_RPMSG        42
+#else
+#define AF_RPMSG        43
 #endif /* LINUX_VERSION_CODE */
 #endif /* AF_RPMSG */
 
