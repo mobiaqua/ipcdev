@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, Texas Instruments Incorporated
+ * Copyright (c) 2012-2016, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,6 +115,12 @@ module Watchdog {
     metaonly config TimerDevice timerSettings[] = [];
 
     metaonly config String timerIds[] = [];
+
+    /*!
+     *  ======== disableWatchdog ========
+     *  Configuration that allows disabling the watchdog.
+     */
+    config Bool disableWatchdog = false;
 
     /*!
      *  ======== init ========
