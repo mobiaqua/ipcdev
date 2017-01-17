@@ -55,22 +55,25 @@
 Void copyTaskFxn(UArg arg0, UArg arg1)
 {
     RPMessage_Handle    handle;
-    Char                   buffer[128];
-    UInt32                 myEndpoint = 0;
-    UInt32                 remoteEndpoint;
-    UInt16                 dstProc;
-    UInt16                 len;
-    Int                    i;
+    Char                buffer[128];
+    Char                desc[32];
+    UInt32              myEndpoint = 0;
+    UInt32              remoteEndpoint;
+    UInt16              dstProc;
+    UInt16              len;
+    Int                 i;
 
-    System_printf("copyTask %d: Entered...:\n", arg0);
+    System_printf("copyTask sample%d:%d: Entered...:\n", arg1, arg0);
 
     dstProc = MultiProc_getId("HOST");
 
     /* Create the messageQ for receiving (and get our endpoint for sending). */
     handle = RPMessage_create(arg0, NULL, NULL, &myEndpoint);
 
+    System_sprintf(desc, "sample%d", arg1);
+
 #ifdef RPMSG_NS_2_0
-    NameMap_register("rpmsg-client-sample", "sample-desc", arg0);
+    NameMap_register("rpmsg-client-sample", desc, arg0);
 #else
     NameMap_register("rpmsg-client-sample", arg0);
 #endif
@@ -101,11 +104,13 @@ void start_ping_tasks()
     params.instance->name = "copy0";
     params.priority = 3;
     params.arg0 = 50;
+    params.arg1 = 1;
     Task_create(copyTaskFxn, &params, NULL);
 
     Task_Params_init(&params);
     params.instance->name = "copy1";
     params.priority = 3;
     params.arg0 = 51;
+    params.arg1 = 2;
     Task_create(copyTaskFxn, &params, NULL);
 }
