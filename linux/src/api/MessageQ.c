@@ -1157,9 +1157,8 @@ Int MessageQ_free(MessageQ_Msg msg)
     }
     else {
         heap = (IHeap_Handle)MessageQ_module->heaps[msg->heapId];
+        IHeap_free(heap, (void *)msg);
     }
-
-    IHeap_free(heap, (void *)msg);
 
     return (status);
 }

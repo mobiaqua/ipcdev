@@ -904,7 +904,7 @@ static Void GateMP_Instance_finalize(GateMP_Object *obj, Int status)
     /* TODO: close/delete local gate */
 
     /* clear the handle array entry in local memory */
-    if (obj->resourceId != (UInt)-1) {
+    if (remoteGates && (obj->resourceId != (UInt)-1)) {
         remoteGates[obj->resourceId] = NULL;
     }
 

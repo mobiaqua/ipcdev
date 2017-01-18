@@ -102,7 +102,7 @@ GateMutex_Handle GateMutex_create(const GateMutex_Params * params,
 
 Int GateMutex_delete(GateMutex_Handle * handle)
 {
-    GateMutex_Object * obj = (GateMutex_Object *)*handle;
+    GateMutex_Object * obj = NULL;
 
     if (handle == NULL) {
         return GateMutex_E_INVALIDARG;
@@ -110,6 +110,8 @@ Int GateMutex_delete(GateMutex_Handle * handle)
     if (*handle == NULL) {
         return GateMutex_E_INVALIDARG;
     }
+
+    obj = (GateMutex_Object *)*handle;
     pthread_mutex_destroy(&(obj->mutex));
     free(*handle);
     *handle = NULL;
