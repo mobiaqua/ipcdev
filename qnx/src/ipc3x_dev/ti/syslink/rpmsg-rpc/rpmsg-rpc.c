@@ -1701,7 +1701,7 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
                 /* map into my process space */
                 vptr[idx] = mmap64(NULL, function->params[idx].size,
                                    PROT_NOCACHE | PROT_READ | PROT_WRITE,
-                                   MAP_PHYS, NOFD, paddr[idx]);
+                                   MAP_PHYS | MAP_SHARED, NOFD, paddr[idx]);
                 if (vptr[idx] == MAP_FAILED) {
                     vptr[idx] = 0;
                     status = -ENOMEM;
