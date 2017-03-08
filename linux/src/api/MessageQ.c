@@ -909,9 +909,6 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
                 goto done;
             }
         }
-        /* If we get here, then we have failed to deliver a local message. */
-        status = MessageQ_E_FAIL;
-        goto done;
     }
 
     /*  Getting here implies the message is outbound. Must give it to
