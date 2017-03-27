@@ -63,6 +63,66 @@
  *  Globals
  *  ============================================================================
  */
+Int cleanupTest()
+{
+    NameServer_Params params;
+    NameServer_Handle nsHandle;
+    Ptr ptr;
+
+    printf("Testing lazy cleanup...\n");
+
+    NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
+    nsHandle = NameServer_create(NSNAME, &params);
+    if (nsHandle == NULL) {
+        printf("Failed to create NameServer '%s'\n", NSNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSNAME);
+    }
+
+    ptr = NameServer_addUInt32(nsHandle, NSNAME2, 0xdeadbeef);
+    if (ptr == NULL) {
+        printf("    Error: NameServer_addUInt32() returned NULL\n");
+        NameServer_delete(&nsHandle);
+        return -1;
+    }
+    else {
+        printf("Added '%s' of value '0x%x' to instance '%s'\n", NSNAME2, 0xdeadbeef, NSNAME);
+    }
+
+    printf("Deleting nsHandle that still has an entry...\n");
+    NameServer_delete(&nsHandle);
+
+    printf("Creating an nsHandle with the same name again...\n");
+    nsHandle = NameServer_create(NSNAME, &params);
+    if (nsHandle == NULL) {
+        printf("Failed to create NameServer '%s'\n", NSNAME);
+        return -1;
+    }
+    else {
+        printf("Created NameServer '%s'\n", NSNAME);
+    }
+
+    ptr = NameServer_addUInt32(nsHandle, NSNAME2, 0xbadc0ffe);
+    if (ptr == NULL) {
+        printf("    Error: NameServer_addUInt32() returned NULL\n");
+        NameServer_delete(&nsHandle);
+        return -1;
+    }
+    else {
+        printf("Added '%s' of value '0x%x' to instance '%s'\n", NSNAME2, 0xbadc0ffe, NSNAME);
+    }
+
+    NameServer_delete(&nsHandle);
+
+    return 0;
+}
+
 Int nameLenTest()
 {
     NameServer_Params params;
@@ -389,6 +449,12 @@ again:
     status = nameLenTest();
     if (status != 0) {
         printf("Name Length test failed\n");
+        return status;
+    }
+
+    status = cleanupTest();
+    if (status != 0) {
+        printf("Cleanup test failed\n");
         return status;
     }
 
