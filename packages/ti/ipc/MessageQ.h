@@ -732,6 +732,27 @@ Void MessageQ_Params2_init(MessageQ_Params2 *params);
 MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params);
 
 /*!
+ *  @brief      Announce a previously created MessageQ to NameServer
+ *              (Linux/Android only)
+ *
+ *  The name supplied here does not have to be in persistent memory.  The
+ *  maximum length of the string supplied here, including the '\\0' terminator,
+ *  is '32' by default.
+ *
+ *  There are no verifications to ensure that the name supplied in
+ *  MessageQ_announce() is unique across all processors. Caution must be
+ *  exercised to ensure that each processor uses a unique name.
+ *
+ *  @param[in]  name        Name of the queue
+ *  @param[in]  handlePtr   Pointer to handle returned from MessageQ_create.
+ *
+ *  @return     MessageQ status:
+ *              - #MessageQ_E_FAIL: announce failed
+ *              - #MessageQ_S_SUCCESS: announce successful
+ */
+Int MessageQ_announce(String name, MessageQ_Handle * handlePtr);
+
+/*!
  *  @brief      Create a MessageQ instance using the type MessageQ_Params2
  *
  *  The name supplied here does not have to be in persistent memory.  The
