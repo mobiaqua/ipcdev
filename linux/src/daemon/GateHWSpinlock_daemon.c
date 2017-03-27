@@ -58,8 +58,6 @@
 /* Get the default config address & sizes of the GateHWSpinlock module. */
 Void GateHWSpinlock_getConfig (GateHWSpinlock_Config * cfgParams)
 {
-    int i;
-
     assert (cfgParams != NULL);
 
     /* Setup MultiProc config */

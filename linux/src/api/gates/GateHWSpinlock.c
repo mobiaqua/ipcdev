@@ -61,10 +61,10 @@ typedef UInt32            Error_Block;
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#include <linux/ioctl.h>
 #include <linux/hwspinlock_user.h>
 
 /* =============================================================================
