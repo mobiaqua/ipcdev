@@ -72,7 +72,7 @@ for (var i = 0; i < Build.targets.length; i++) {
             copts: myCopts
         }).addObjects(objList);
 
-        if (targ.isa.match(/^(64T|66|v7M4?)$/)) {
+        if (targ.isa.match(/^(64T|66|674|v7M4?)$/)) {
             /* And for select targets, build a rpmsg2-compatible lib */
             Pkg.addLibrary("lib/" + profile + "/" + name + "_rpmsg2", targ, {
                 profile: profile,

@@ -42,7 +42,8 @@ var rpmsg2Device = {
     'OMAP4430'      : { special: "_rpmsg2" },
     'OMAP5430'      : { special: "_rpmsg2" },
     'Vayu'          : { special: "_rpmsg2" },
-    'TMS320TCI6634' : { special: "_rpmsg2" }
+    'TMS320TCI6634' : { special: "_rpmsg2" },
+    'OMAPL138'      : { special: "_rpmsg2" }
 };
 
 /*

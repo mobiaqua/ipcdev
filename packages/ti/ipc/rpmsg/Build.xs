@@ -51,7 +51,7 @@ function getDefs()
     if (target.isa == "674") {
         switch (device) {
             case "OMAPL138":
-                defs += " -DOMAPL138";
+                defs += " -DOMAPL138 -DRPMSG_NS_2_0";
                 break;
             default:
                 throw new Error("Unsupported device: " + device);

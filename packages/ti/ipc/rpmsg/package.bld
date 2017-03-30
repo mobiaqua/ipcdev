@@ -66,7 +66,7 @@ for (var i = 0; i < Build.targets.length; i++) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omapl138", targ, {
                 profile: profile,
                 copts: myCopts,
-                defs: "-DOMAPL138"
+                defs: "-DOMAPL138 -DRPMSG_NS_2_0"
             }).addObjects(objList);
         }
         else if (targ.isa == "66") {
