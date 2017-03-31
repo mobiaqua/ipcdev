@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
+##  Copyright (c) 2013-2017 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@ VPATH = ../../../packages/ti/ipc/tests
 
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
-                MessageQMultiMulti NameServerApp Msgq100 fault
+                MessageQMultiMulti NameServerApp Msgq100 MessageQFaultApp
 
 
 if OMAP54XX_SMP
@@ -158,8 +158,8 @@ mmrpc_test_SOURCES = $(top_srcdir)/packages/ti/ipc/tests/Mx.c \
                 $(top_srcdir)/packages/ti/ipc/tests/Mx.h \
                 $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
 
-# list of sources for the 'fault' binary
-fault_SOURCES = $(common_sources) fault.c
+# list of sources for the 'MessageQFaultApp' binary
+MessageQFaultApp_SOURCES = $(common_sources) MessageQFaultApp.c
 
 # list of sources for the 'MessageQApp' binary
 MessageQApp_SOURCES = $(common_sources) MessageQApp.c
@@ -204,8 +204,8 @@ mmrpc_test_LDADD = $(common_libraries) \
                 $(DRM_PREFIX)/usr/lib/libdrm.la \
                 $(DRM_PREFIX)/usr/lib/libdrm_omap.la
 
-# the additional libraries needed to link fault
-fault_LDADD = $(common_libraries) \
+# the additional libraries needed to link MessageQFaultApp
+MessageQFaultApp_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQApp
