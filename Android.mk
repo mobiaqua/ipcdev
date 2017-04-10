@@ -275,7 +275,7 @@ LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/linux/include \
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
 LOCAL_MODULE_TAGS:= optional
 
-LOCAL_SRC_FILES:= linux/src/tests/fault.c
+LOCAL_SRC_FILES:= linux/src/tests/MessageQFaultApp.c
 
 LOCAL_SHARED_LIBRARIES := \
     liblog libtiipcutils libtiipc libtitransportrpmsg
