@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2017, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,12 +68,12 @@
 #define CONSOLE_VQ1_SIZE        256
 
 /* flip up bits whose indices represent features we support */
-#define RPMSG_IPU_C0_FEATURES         1
+#define RPMSG_DSP_FEATURES      1
 
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[13];
+    UInt32 offset[3];
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
@@ -107,7 +107,7 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     /* rpmsg vdev entry */
     {
         TYPE_VDEV, VIRTIO_ID_RPMSG, 0,
-        RPMSG_IPU_C0_FEATURES, 0, 0, 0, 2, { 0, 0 },
+        RPMSG_DSP_FEATURES, 0, 0, 0, 2, { 0, 0 },
         /* no config data */
     },
     /* the two vrings */
@@ -115,7 +115,7 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     { RPMSG_VRING1_DA, 4096, RPMSG_VQ1_SIZE, 2, 0 },
 
     {
-        TYPE_CARVEOUT, DATA_DA, DATA_DA, DATA_SIZE, 0, 0, "IPU_MEM_DATA",
+        TYPE_CARVEOUT, DATA_DA, DATA_DA, DATA_SIZE, 0, 0, "DSP_MEM_DATA",
     },
 
     {
