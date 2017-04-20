@@ -241,7 +241,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
             }
         }
 
-#if defined(OMAP5) || defined(IPU)
+#if defined(OMAP5) || defined(VAYU)
         if (first) {
             /* Register callback function */
             if (!IpcPower_registerCallback(IpcPower_Event_RESUME, Watchdog_restore,
