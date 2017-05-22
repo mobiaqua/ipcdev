@@ -102,7 +102,7 @@ OsalKfile_open (String             fileName,
                 OsalKfile_Handle * fileHandle)
 {
     Int                 status      = OSALKFILE_SUCCESS;
-    int                 fileDesc    = NULL;
+    int                 fileDesc    = 0;
     OsalKfile_Object *  fileObject  = NULL;
 
     GT_3trace (curTrace, GT_ENTER, "OsalKfile_open",
@@ -398,7 +398,7 @@ OsalKfile_seek (OsalKfile_Handle fileHandle,
                 OsalKfile_Pos    pos)
 {
     Int                 status      = OSALKFILE_SUCCESS;
-    int fileDesc    = NULL;
+    int fileDesc                    = 0;
     OsalKfile_Object *  fileObject  = NULL;
 
     GT_3trace (curTrace, GT_ENTER, "OsalKfile_seek", fileHandle, offset, pos);
