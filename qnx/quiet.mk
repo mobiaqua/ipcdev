@@ -40,7 +40,9 @@ CCPREF := @$(CCPREF)
 ASPREF := @$(ASPREF)
 LDPREF := @$(LDPREF)
 ARPREF := @$(ARPREF) 2>/dev/null
+ifneq ($(UMPREF),)
 UMPREF := @$(UMPREF)
+endif
 MKASMOFF_HOST := @$(MKASMOFF_HOST)
 else
 QUIET_ROOT := $(PROJECT_ROOT)
@@ -52,8 +54,10 @@ LDPREF_CMD := $(LDPREF)
 LDPREF = @echo "Linking   " $(@:$(QUIET_ROOT)/%=%) && $(LDPREF_CMD)
 ARPREF_CMD := $(ARPREF) 2>/dev/null
 ARPREF = @echo "Archiving " $(@:$(QUIET_ROOT)/%=%) && $(ARPREF_CMD)
+ifneq ($(UMPREF),)
 UMPREF_CMD := $(UMPREF)
 UMPREF = @echo "Usemsg     " $(@:$(QUIET_ROOT)/%=%) && $(UMPREF_CMD)
+endif
 MKASMOFF_CMD := $(MKASMOFF_HOST)
 MKASMOFF_HOST = @echo "Generating" $(CURDIR:$(QUIET_ROOT)/%=%)/$@ && \
     $(MKASMOFF_CMD)
