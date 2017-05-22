@@ -104,7 +104,7 @@ MessageQCopyApp_startup (Void)
  *
  */
 Int
-MessageQCopyApp_execute (testNo)
+MessageQCopyApp_execute (int testNo)
 {
     Int status = MessageQCopy_S_SUCCESS;
 
