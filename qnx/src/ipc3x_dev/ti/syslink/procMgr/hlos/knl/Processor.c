@@ -961,7 +961,7 @@ Processor_registerNotify (Processor_Handle    handle,
                 pthread_attr_destroy(&thread_attrs);
                 status = timer_create(CLOCK_REALTIME,&event,&elem->timer);
 #if !defined(IPC_BUILD_OPTIMIZE)
-                if (status != NULL) {
+                if (status != 0) {
                     /*! @retval PROCESSOR_E_FAIL Failed to create timer. */
                     status = PROCESSOR_E_MEMORY;
                     GT_setFailureReason (curTrace,
