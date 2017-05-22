@@ -754,7 +754,7 @@ int ipc_read(resmgr_context_t *ctp, io_read_t *msg, ipc_ocb_t *ocb)
         return (ENOSYS);
 
     /* check to see where the trace buffer is */
-    if (proc_traces[procid].va == NULL) {
+    if (proc_traces[procid].va == 0) {
         return (ENOSYS);
     }
     if (ocb->ocb.offset == 0) {
@@ -981,7 +981,7 @@ int init_ipc_trace_device(ipc_dev_t *dev)
          * device is not yet setup.
          */
         if ((ipc_firmware[i].procState == RUNNING_STATE) &&
-            (proc_traces[i].va == NULL)) {
+            (proc_traces[i].va == 0)) {
             iofunc_func_init(_RESMGR_CONNECT_NFUNCS,
                 &dev->ipc.cfuncs_trace[i],
                 _RESMGR_IO_NFUNCS, &dev->ipc.iofuncs_trace[i]);
@@ -1028,7 +1028,7 @@ int init_ipc_trace_device(ipc_dev_t *dev)
                         "init_ipc_trace_device",
                         status, "mmap_device_io failed");
                     GT_1trace(curTrace, GT_4CLASS, "errno %d", errno);
-                    proc_traces[i].va = NULL;
+                  proc_traces[i].va = 0;
                 }
                 proc_traces[i].firstRead = TRUE;
             }
@@ -1036,7 +1036,7 @@ int init_ipc_trace_device(ipc_dev_t *dev)
                 GT_setFailureReason(curTrace, GT_4CLASS,
                     "init_ipc_trace_device",
                     status, "RscTable_getInfo failed");
-                proc_traces[i].va = NULL;
+                proc_traces[i].va = 0;
             }
             if (-1 == (dev->ipc.resmgr_id_trace[i] =
                        resmgr_attach(dev->dpp, &resmgr_attr,
@@ -1063,7 +1063,7 @@ int deinit_ipc_trace_device(ipc_dev_t *dev)
     for (i = 0; i < ipc_num_cores; i++) {
         /* Only disable trace device on cores in RESET state */
         if ((ipc_firmware[i].procState == RESET_STATE) &&
-            (proc_traces[i].va != NULL)) {
+            (proc_traces[i].va != 0)) {
             status = resmgr_detach(dev->dpp, dev->ipc.resmgr_id_trace[i],
                 0);
             if (status < 0) {
@@ -1075,7 +1075,7 @@ int deinit_ipc_trace_device(ipc_dev_t *dev)
                 munmap((void *)proc_traces[i].va,
                    ((proc_traces[i].len + 8 + 0x1000 - 1) / 0x1000) * 0x1000);
             }
-            proc_traces[i].va = NULL;
+            proc_traces[i].va = 0;
         }
     }
 
