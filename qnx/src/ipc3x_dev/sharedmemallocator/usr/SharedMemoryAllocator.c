@@ -119,8 +119,8 @@ int SHM_alloc(int size, shm_buf *buf)
         slogf (42, _SLOG_DEBUG1, "\nSHM_alloc: Invalid arguments\n");
         return -1;
     }
-    buf->phy_addr = NULL;
-    buf->vir_addr = NULL;
+    buf->phy_addr = 0;
+    buf->vir_addr = 0;
     buf->blockID =  -1;
     buf->size = 0;
 
@@ -163,8 +163,8 @@ int SHM_alloc_aligned(int size, uint alignment, shm_buf *buf)
         slogf (42, _SLOG_DEBUG1, "\nSHM_alloc: Invalid arguments\n");
         return -1;
     }
-    buf->phy_addr = NULL;
-    buf->vir_addr = NULL;
+    buf->phy_addr = 0;
+    buf->vir_addr = 0;
     buf->blockID =  -1;
     buf->size = 0;
 
@@ -203,8 +203,8 @@ int SHM_alloc_fromBlock(int size, int blockID, shm_buf *buf)
     int status = 0;
     SHMAllocatorDrv_CmdArgs     cmdArgs;
 
-    buf->phy_addr = NULL;
-    buf->vir_addr = NULL;
+    buf->phy_addr = 0;
+    buf->vir_addr = 0;
     buf->blockID =  -1;
     buf->size = 0;
 
@@ -249,8 +249,8 @@ int SHM_alloc_aligned_fromBlock(int size, uint alignment, int blockID,
     int status = 0;
     SHMAllocatorDrv_CmdArgs     cmdArgs;
 
-    buf->phy_addr = NULL;
-    buf->vir_addr = NULL;
+    buf->phy_addr = 0;
+    buf->vir_addr = 0;
     buf->blockID =  -1;
     buf->size = 0;
 
@@ -306,7 +306,7 @@ int SHM_release(shm_buf *buf)
         slogf (42, _SLOG_DEBUG1, "\nSHM_release: Invalid arguments\n");
         return -1;
     }
-    if(buf->blockID < MIN_BLOCKS_IDX || buf->blockID > MAX_BLOCKS_IDX || buf->vir_addr == NULL){
+    if(buf->blockID < MIN_BLOCKS_IDX || buf->blockID > MAX_BLOCKS_IDX || buf->vir_addr == 0){
         slogf (42, _SLOG_DEBUG1, "\nSHM_release: Invalid arguments\n");
         return -1;
     }

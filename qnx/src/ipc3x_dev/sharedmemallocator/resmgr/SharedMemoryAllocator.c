@@ -580,8 +580,8 @@ SharedMemAllDrv_devctl(resmgr_context_t * ctp, io_devctl_t * msg,
 
             if(status == -1) {
                 output->result.blockID = -1;
-                output->result.phy_addr = NULL;
-                output->result.vir_addr = NULL;
+                output->result.phy_addr = 0;
+                output->result.vir_addr = 0;
                 output->apiStatus = -1;
             }
             else {

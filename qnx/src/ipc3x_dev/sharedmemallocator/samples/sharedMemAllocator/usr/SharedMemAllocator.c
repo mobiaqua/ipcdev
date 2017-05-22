@@ -87,8 +87,8 @@ void clearSHM()
             if(!status) {
                 shmblocks[bufs[i].blockID] += bufs[i].size;
                 bufs[i].size = 0;
-                bufs[i].vir_addr = NULL;
-                bufs[i].phy_addr = NULL;
+                bufs[i].vir_addr = 0;
+                bufs[i].phy_addr = 0;
                 bufs[i].blockID = -1;
             }
             else
@@ -119,8 +119,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
 
@@ -139,8 +139,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -159,8 +159,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -179,8 +179,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -198,8 +198,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -217,8 +217,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -236,8 +236,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -255,8 +255,8 @@ void monkeyTest()
                     if(!status) {
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                     }
                 }
@@ -407,8 +407,8 @@ int main()
                         printf("\n[APP] : RELEASED REQ PASSED\n");
                         shmblocks[bufs[i].blockID] += bufs[i].size;
                         bufs[i].size = 0;
-                        bufs[i].vir_addr = NULL;
-                        bufs[i].phy_addr = NULL;
+                        bufs[i].vir_addr = 0;
+                        bufs[i].phy_addr = 0;
                         bufs[i].blockID = -1;
                         printf("\nremainng block[0] = 0x%0x", shmblocks[0]);
                         printf("\nremainng block[1] = 0x%0x", shmblocks[1]);
