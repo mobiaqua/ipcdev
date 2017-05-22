@@ -123,7 +123,7 @@ Int GateMPApp_create()
     Module.intPtr = (UInt32 *)Module.buf.vir_addr;
     Module.physAddr = (UInt32)Module.buf.phy_addr;
 
-    if ((Module.intPtr == NULL) || (Module.physAddr == NULL)) {
+    if ((Module.intPtr == NULL) || (Module.physAddr == 0)) {
         printf("GateMPApp_create: Failed to get buffer address\n");
         status = GATEMPAPP_E_FAILURE;
         goto leave;
