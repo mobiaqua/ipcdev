@@ -686,7 +686,7 @@ UInt32 get_DspVirtAdd(VAYUDSP_HalObject * halObject, UInt32 physAdd)
               0);
     if (cr == MAP_FAILED)
     {
-        return NULL;
+        return 0;
     }
 
     memset(cr, 0, sizeof(struct cr_regs) * num);
@@ -728,7 +728,7 @@ static UInt32 dump_tlb_entries (UInt32 mmuBase, char *buf, UInt32 bytes)
               0);
     if (!cr)
     {
-        return NULL;
+        return 0;
 
     }
     memset(cr, 0, sizeof(struct cr_regs) * num);
@@ -1761,7 +1761,7 @@ static Int load_iotlb_entry (UInt32 mmuBase, struct iotlb_entry *e)
     struct iotlb_lock l;
     struct cr_regs *cr;
 
-    if (mmuBase == NULL) {
+    if (mmuBase == 0) {
         err = -EINVAL;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,

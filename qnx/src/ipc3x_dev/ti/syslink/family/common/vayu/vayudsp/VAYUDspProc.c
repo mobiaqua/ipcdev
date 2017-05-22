@@ -1516,9 +1516,9 @@ VAYUDSPPROC_read (Processor_Handle   handle,
 #endif /* #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS) */
         procPtr8 = (UInt8 *) procAddr ;
         buffer = Memory_copy (buffer, procPtr8, *numBytes);
-        GT_assert (curTrace, (buffer != (UInt32) NULL));
+        GT_assert (curTrace, (buffer != NULL));
 #if !defined(IPC_BUILD_OPTIMIZE) && defined (IPC_BUILD_HLOS)
-        if (buffer == (UInt32) NULL) {
+        if (buffer == NULL) {
             /*! @retval PROCESSOR_E_FAIL Failed in memcpy */
             status = PROCESSOR_E_FAIL;
             GT_setFailureReason (curTrace,

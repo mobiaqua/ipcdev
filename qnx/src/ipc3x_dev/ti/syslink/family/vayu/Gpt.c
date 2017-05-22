@@ -161,7 +161,7 @@ struct Gpt_module_object {
 };
 
 static struct Gpt_module_object gptState = {
-    .cmCoreAonBaseVa = NULL,
+    .cmCoreAonBaseVa = 0,
     .isSetup = false
 };
 
@@ -268,7 +268,7 @@ int Gpt_setup(Gpt_Config * cfg)
         gptState.cmCoreAonBaseVa = (uintptr_t)mmap_device_io(
             CM_CORE_AON__IPU_SIZE, CM_CORE_AON__IPU_BASE);
         if((uintptr_t)gptState.cmCoreAonBaseVa == MAP_DEVICE_FAILED) {
-            gptState.cmCoreAonBaseVa = NULL;
+            gptState.cmCoreAonBaseVa = 0;
             retval = -errno;
             goto exit;
         }
@@ -318,7 +318,7 @@ int Gpt_destroy()
 
         if (gptState.cmCoreAonBaseVa) {
             munmap((void *)gptState.cmCoreAonBaseVa, CM_CORE_AON__IPU_SIZE);
-            gptState.cmCoreAonBaseVa = NULL;
+            gptState.cmCoreAonBaseVa = 0;
         }
 
         gptState.isSetup = false;

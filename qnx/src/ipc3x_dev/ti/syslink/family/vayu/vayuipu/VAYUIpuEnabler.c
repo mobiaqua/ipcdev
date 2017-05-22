@@ -652,7 +652,7 @@ UInt32 get_IpuCore0VirtAdd(VAYUIPU_HalObject * halObject, UInt32 physAdd)
               0);
     if (cr == MAP_FAILED)
     {
-        return NULL;
+        return 0;
     }
 
     memset(cr, 0, sizeof(struct cr_regs) * num);
@@ -694,7 +694,7 @@ static UInt32 dump_tlb_entries (VAYUIPU_HalObject * halObject,
               0);
     if (!cr)
     {
-        return NULL;
+        return 0;
 
     }
     memset(cr, 0, sizeof(struct cr_regs) * num);
@@ -1897,7 +1897,7 @@ static Int load_iotlb_entry (VAYUIPU_HalObject * halObject,
         goto out;
     }
 
-    if (halObject->mmuBase == NULL) {
+    if (halObject->mmuBase == 0) {
         err = -EINVAL;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
