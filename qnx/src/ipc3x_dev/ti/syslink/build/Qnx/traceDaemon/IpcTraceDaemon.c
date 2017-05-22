@@ -205,7 +205,7 @@ int main (int argc, char * argv [])
             pthread_create (&threads[i], NULL, (void *)&printTraces, (void *)i);
         }
         else
-            threads[i] = NULL;
+            threads[i] = 0;
     }
 
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
