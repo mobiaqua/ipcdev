@@ -1308,10 +1308,10 @@ static BOOL file_header_magic_number_is_valid(struct Elf32_Ehdr* header)
    /*------------------------------------------------------------------------*/
    /* Check for correct ELF magic numbers in file header.                    */
    /*------------------------------------------------------------------------*/
-   if (!header->e_ident[EI_MAG0] == ELFMAG0 ||
-       !header->e_ident[EI_MAG1] == ELFMAG1 ||
-       !header->e_ident[EI_MAG2] == ELFMAG2 ||
-       !header->e_ident[EI_MAG3] == ELFMAG3)
+   if (!(header->e_ident[EI_MAG0] == ELFMAG0) ||
+       !(header->e_ident[EI_MAG1] == ELFMAG1) ||
+       !(header->e_ident[EI_MAG2] == ELFMAG2) ||
+       !(header->e_ident[EI_MAG3] == ELFMAG3))
    {
       DLIF_error(DLET_FILE, "Invalid ELF magic number.\n");
       return FALSE;
