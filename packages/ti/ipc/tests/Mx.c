@@ -209,7 +209,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->params[0].param.ptr.size = sizeof(Mx_Compute);
     fxnCtx->params[0].param.ptr.addr = (size_t)compute;
 #if defined(IPC_BUILDOS_QNX)
-    fxnCtx->params[0].param.ptr.handle = NULL;
+    fxnCtx->params[0].param.ptr.handle = 0;
 #else
     fxnCtx->params[0].param.ptr.handle = fd;
 #endif
@@ -221,7 +221,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->xltAry[0].offset = MmRpc_OFFSET(compute, &compute->inBuf);
     fxnCtx->xltAry[0].base = (size_t)compute->inBuf;
 #if defined(IPC_BUILDOS_QNX)
-    fxnCtx->xltAry[0].handle = NULL;
+    fxnCtx->xltAry[0].handle = 0;
 #else
     fxnCtx->xltAry[0].handle = fdIn;
 #endif
@@ -230,7 +230,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     fxnCtx->xltAry[1].offset = MmRpc_OFFSET(compute, &compute->outBuf);
     fxnCtx->xltAry[1].base = (size_t)compute->outBuf;
 #if defined(IPC_BUILDOS_QNX)
-    fxnCtx->xltAry[1].handle = NULL;
+    fxnCtx->xltAry[1].handle = 0;
 #else
     fxnCtx->xltAry[1].handle = fdOut;
 #endif
