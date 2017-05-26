@@ -680,6 +680,7 @@ NameServer_Handle NameServer_create(String name,
 {
     NameServer_Handle handle = NULL;
     pthread_mutexattr_t mutex_attr;
+    Int status = 0;
 
     assert(params != NULL);
     assert(name != NULL);
@@ -688,6 +689,9 @@ NameServer_Handle NameServer_create(String name,
     LOG1("NameServer_create(): '%s'\n", name)
 
     pthread_mutex_lock(&NameServer_module->modGate);
+
+    status = pthread_mutexattr_init(&mutex_attr);
+    assert(status == 0);
 
     /* check if the name is already created or not */
     handle = NameServer_getHandle(name);
@@ -748,6 +752,7 @@ cleanup:
     handle = NULL;
 
 leave:
+    pthread_mutexattr_destroy(&mutex_attr);
     pthread_mutex_unlock(&NameServer_module->modGate);
 
     return (handle);
@@ -1074,6 +1079,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
     LOG1("NameServer_getRemote: Sending request via sock: %d\n", sock)
 
+    memset(&nsMsg, 0, sizeof(NameServerRemote_Msg));
     /* Create request message and send to remote processor: */
     nsMsg.reserved = NAMESERVER_MSG_TOKEN;
     nsMsg.request = NAMESERVER_REQUEST;
