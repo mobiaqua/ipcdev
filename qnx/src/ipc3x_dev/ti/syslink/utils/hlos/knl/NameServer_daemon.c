@@ -468,6 +468,30 @@ NameServer_Handle NameServer_getHandle(String name)
     return (handle);
 }
 
+/* Function to validate a NameServer handle exists */
+static Bool NameServer_validateHandle(NameServer_Handle handle)
+{
+    Bool found = FALSE;
+    NameServer_Handle listHandle = NULL;
+    struct NameServer_Object * elem;
+
+    assert(NameServer_module->refCount != 0);
+
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Lookup handle */
+    CIRCLEQ_traverse(elem, &NameServer_module->objList, NameServer_Object) {
+        listHandle = (NameServer_Handle) elem;
+        if (listHandle == handle) {
+            found = TRUE;
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&NameServer_module->modGate);
+
+    return found;
+}
 
 /* Function to create a name server. */
 NameServer_Handle NameServer_create(String name,
@@ -571,6 +595,14 @@ Int NameServer_delete(NameServer_Handle *handle)
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
+    /* Validate that the handle exists before de-referencing */
+    if (NameServer_validateHandle(*handle) != TRUE) {
+        status = NameServer_E_INVALIDARG;
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_delete", status,
+                            "Handle not found!");
+        goto leave;
+    }
+
     obj->refCount--;
     if (obj->refCount != 0) {
         goto leave;
@@ -622,6 +654,18 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     /* Calculate the hash */
     hash = stringHash(name);
+
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Validate that the handle exists before de-referencing */
+    if (NameServer_validateHandle(handle) != TRUE) {
+        status = NameServer_E_INVALIDARG;
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_add", status,
+                            "Handle not found!");
+        pthread_mutex_unlock(&NameServer_module->modGate);
+        return NULL;
+    }
+    pthread_mutex_unlock(&NameServer_module->modGate);
 
     pthread_mutex_lock(&handle->gate);
 
@@ -738,6 +782,18 @@ Int NameServer_remove(NameServer_Handle handle, String name)
     assert(name   != NULL);
     assert(NameServer_module->refCount != 0);
 
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Validate that the handle exists before de-referencing */
+    if (NameServer_validateHandle(handle) != TRUE) {
+        status = NameServer_E_INVALIDARG;
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_remove", status,
+                            " Handle not found!");
+        pthread_mutex_unlock(&NameServer_module->modGate);
+        return status;
+    }
+    pthread_mutex_unlock(&NameServer_module->modGate);
+
     /* Calculate the hash */
     hash = stringHash(name);
 
@@ -807,6 +863,18 @@ Int NameServer_removeEntry(NameServer_Handle handle, Ptr entry)
     assert(entry  != NULL);
     assert(NameServer_module->refCount != 0);
 
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Validate that the handle exists before de-referencing */
+    if (NameServer_validateHandle(handle) != TRUE) {
+        status = NameServer_E_INVALIDARG;
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_removeEntry",
+                            status, "Handle not found!");
+        pthread_mutex_unlock(&NameServer_module->modGate);
+        return status;
+    }
+    pthread_mutex_unlock(&NameServer_module->modGate);
+
     pthread_mutex_lock(&handle->gate);
 
     node = (NameServer_TableEntry *)entry;
@@ -860,6 +928,18 @@ Int NameServer_getRemote(NameServer_Handle handle,
                             "Name is too long in remote query");
         return NameServer_E_NAMETOOLONG;
     }
+
+    pthread_mutex_lock(&NameServer_module->modGate);
+
+    /* Validate that the handle exists before de-referencing */
+    if (NameServer_validateHandle(handle) != TRUE) {
+        GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
+                            NameServer_E_INVALIDARG,
+                            "Handle not found!");
+        pthread_mutex_unlock(&NameServer_module->modGate);
+        return NameServer_E_INVALIDARG;
+    }
+    pthread_mutex_unlock(&NameServer_module->modGate);
 
     if (strlen(obj->name) >= MAXNAMEINCHAR) {
         GT_setFailureReason(curTrace, GT_4CLASS, "NameServer_getRemote",
