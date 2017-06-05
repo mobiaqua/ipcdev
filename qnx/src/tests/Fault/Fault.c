@@ -46,6 +46,9 @@
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
+#include <_NameServer.h>
+#include <ti/ipc/NameServer.h>
+#include <ti/ipc/GateMP.h>
 
 /* App defines:  Must match on remote proc side: */
 #define HEAPID              0u
@@ -54,6 +57,9 @@
 
 #define PROC_ID_DFLT        1     /* Host is zero, remote cores start at 1 */
 #define NUM_LOOPS_DFLT      100
+
+#define NSNAME "MyNS"
+#define GATEMP_HOST_NAME             "GATE_MP1"
 
 typedef struct SyncMsg {
     MessageQ_MsgHeader header;
@@ -72,6 +78,11 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     MessageQ_Handle          msgqHandle;
     char                     remoteQueueName[64];
     UInt32                   msgId;
+    NameServer_Params        nsParams;
+    NameServer_Handle        nsHandle;
+    Ptr                      ptr;
+    GateMP_Params            gateParams;
+    GateMP_Handle            hostGateMPHandle;
 
     printf("Entered MessageQApp_execute\n");
 
@@ -89,6 +100,47 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     sprintf(remoteQueueName, "%s_%s", SLAVE_MESSAGEQNAME,
              MultiProc_getName(procId));
 
+    if (MultiProc_getId("DSP1") == procId) {
+        NameServer_Params_init(&nsParams);
+
+        nsParams.maxValueLen = sizeof(UInt32);
+        nsParams.maxNameLen = 32;
+
+        nsHandle = NameServer_create(NSNAME, &nsParams);
+        if (nsHandle == NULL) {
+            printf("Failed to create NameServer '%s'\n", NSNAME);
+            return -1;
+        }
+        else {
+            printf("Created NameServer '%s'\n", NSNAME);
+        }
+
+        ptr = NameServer_addUInt32(nsHandle, "TestNS", 0xdeadbeef);
+        if (ptr == NULL) {
+            printf("Failed to NameServer_addUInt32()\n");
+            return -1;
+        }
+        else {
+            printf("NameServer_addUInt32() returned %p\n", ptr);
+        }
+
+        /* create GateMP */
+        GateMP_Params_init(&gateParams);
+
+        gateParams.name             = GATEMP_HOST_NAME;
+        gateParams.localProtect     = GateMP_LocalProtect_PROCESS;
+        gateParams.remoteProtect    = GateMP_RemoteProtect_SYSTEM;
+
+        hostGateMPHandle = GateMP_create (&gateParams);
+
+        if (hostGateMPHandle == NULL) {
+            status = -1;
+            printf("Failed to create GateMP\n");
+	    NameServer_delete(&nsHandle);
+            goto cleanup;
+        }
+    }
+
     /* Poll until remote side has it's messageQ created before we send: */
     do {
         status = MessageQ_open(remoteQueueName, &queueId);
@@ -97,6 +149,9 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
 
     if (status < 0) {
         printf("Error in MessageQ_open [%d]\n", status);
+        if (MultiProc_getId("DSP1") == procId) {
+            NameServer_delete(&nsHandle);
+        }
         goto cleanup;
     }
     else {
@@ -106,6 +161,10 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     msg = MessageQ_alloc(HEAPID, sizeof(SyncMsg));
     if (msg == NULL) {
         printf("Error in MessageQ_alloc\n");
+        if (MultiProc_getId("DSP1") == procId) {
+            GateMP_delete(&hostGateMPHandle);
+            NameServer_delete(&nsHandle);
+        }
         MessageQ_close(&queueId);
         goto cleanup;
     }
@@ -178,6 +237,13 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId, UInt32 faultId)
     if (status >= 0) {
         printf("Sample application successfully completed!\n");
         MessageQ_free(msg);
+    }
+
+    if (MultiProc_getId("DSP1") == procId) {
+        /* delete GateMP */
+        GateMP_delete(&hostGateMPHandle);
+
+        NameServer_delete(&nsHandle);
     }
 
     MessageQ_close(&queueId);
@@ -255,6 +321,11 @@ int main (int argc, char ** argv)
     }
     printf("Using numLoops: %d; procId : %d\n", numLoops, procId);
 
+    if (MultiProc_getId("DSP1") == procId) {
+        printf("Calling NameServer_setup()...\n");
+        NameServer_setup();
+    }
+
     if (MessageQApp_execute(numLoops, procId, faultId) < 0) {
         int nAttachAttempts = 1;
 
@@ -270,6 +341,11 @@ int main (int argc, char ** argv)
 
         /* call without fault this time */
         MessageQApp_execute(numLoops, procId, 0);
+    }
+
+    if (MultiProc_getId("DSP1") == procId) {
+        printf("Calling NameServer_destroy()...\n");
+        NameServer_destroy();
     }
 
     Ipc_stop();

@@ -51,7 +51,8 @@ EXCLUDE_OBJS =
 # include path
 EXTRA_INCVPATH += \
         $(IPC_REPO)/packages \
-        $(IPC_REPO)/qnx/include
+        $(IPC_REPO)/qnx/include \
+        $(IPC_REPO)/hlos_common/include
 
 include $(MKFILES_ROOT)/qtargets.mk
 

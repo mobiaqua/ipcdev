@@ -48,6 +48,10 @@
 
 #include <ti/ipc/MessageQ.h>
 
+#if defined (DSP_1)
+#include "gatempapp_rsc_table_vayu_dsp.h"
+#endif
+
 #define SLAVE_MESSAGEQNAME "SLAVE"
 
 #define MessageQ_payload(m) ((void *)((char *)(m) + sizeof(MessageQ_MsgHeader)))
