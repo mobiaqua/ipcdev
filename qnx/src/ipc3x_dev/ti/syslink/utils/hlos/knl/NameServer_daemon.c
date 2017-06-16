@@ -562,6 +562,7 @@ NameServer_Handle NameServer_create(String name,
      * NameServer_removeEntry() enters gate and is called by
      * NameServer_remove() while holding the gate.
      */
+    pthread_mutexattr_init(&mutex_attr);
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&handle->gate, &mutex_attr);
 
