@@ -79,7 +79,6 @@ libtiipc_la_SOURCES =    \
                         $(top_srcdir)/linux/include/ti/ipc/heaps/HeapStd.h \
                         $(top_srcdir)/linux/src/heaps/HeapStd.c
 
-if DRA7XX
 libtiipc_la_SOURCES +=  $(top_srcdir)/linux/include/IGateProvider.h \
                         $(top_srcdir)/linux/include/GateHWSpinlock.h \
                         $(top_srcdir)/linux/include/GateMutex.h \
@@ -89,7 +88,6 @@ libtiipc_la_SOURCES +=  $(top_srcdir)/linux/include/IGateProvider.h \
                         $(top_srcdir)/linux/src/api/gates/GateMP.c \
                         $(top_srcdir)/linux/src/api/gates/GateMutex.c \
                         $(top_srcdir)/linux/src/api/gates/GateHWSpinlock.c
-endif
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0

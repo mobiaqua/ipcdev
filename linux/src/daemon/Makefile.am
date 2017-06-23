@@ -116,7 +116,6 @@ common_sources = \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
                 $(top_srcdir)/packages/ti/ipc/MultiProc.h
 
-if DRA7XX
 common_sources += \
                 GateMP_daemon.c \
 		GateHWSpinlock.c \
@@ -130,7 +129,6 @@ common_sources += \
                 $(top_srcdir)/linux/include/GateMutex.h \
                 $(top_srcdir)/linux/include/GateMP_config.h \
                 $(top_srcdir)/packages/ti/ipc/GateMP.h
-endif
 
 # list of sources for the 'lad' binary and to add to the source distribution
 #
