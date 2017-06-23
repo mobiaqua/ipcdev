@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2017 Texas Instruments Incorporated - http://www.ti.com
+##  Copyright (c) 2013-2018 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -118,6 +118,10 @@ if C66AK2G
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 else
+if AM65XX
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+else
 # Add platform independent apps here or above in bin_PROGRAMS
 if CMEM
   bin_PROGRAMS += nano_test
@@ -125,6 +129,7 @@ endif
 if KDIR
 if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

@@ -1,5 +1,5 @@
 ##
-##  Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
+##  Copyright (c) 2013-2018 Texas Instruments Incorporated - http://www.ti.com
 ##
 ##  Redistribution and use in source and binary forms, with or without
 ##  modification, are permitted provided that the following conditions
@@ -83,7 +83,11 @@ else
 if C66AK2G
   bin_PROGRAMS += lad_66ak2g
 else
-  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638 lad_66ak2g
+if AM65XX
+  bin_PROGRAMS += lad_am65xx
+else
+  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_66ak2e lad_tci6614 lad_tci6630 lad_tci6636 lad_tci6638 lad_66ak2g lad_am65xx
+endif
 endif
 endif
 endif
@@ -143,6 +147,7 @@ lad_tci6630_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6630.c
 lad_tci6636_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
 lad_tci6638_SOURCES = $(common_sources) cfg/MultiProcCfg_tci6638.c
 lad_66ak2g_SOURCES = $(common_sources) cfg/MultiProcCfg_66ak2g.c
+lad_am65xx_SOURCES = $(common_sources) cfg/MultiProcCfg_am65xx.c
 
 common_libraries = -lpthread \
                 $(top_builddir)/linux/src/utils/libtiipcutils_lad.la
@@ -165,6 +170,8 @@ lad_tci6636_LDADD = $(common_libraries) \
 lad_tci6638_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 lad_66ak2g_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+lad_am65xx_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 ###############################################################################

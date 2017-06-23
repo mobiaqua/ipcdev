@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,7 +151,7 @@ var deviceAliases = {
     'TMS320C66AK2E05'   : ['C66AK2E05'],
     'TMS320TCI6630K2L'  : ['TCI6630K2L'],
     'LM3.*'             : ['LM4.*'],
-    'Vayu'              : ['DRA7XX']
+    'Vayu'              : ['DRA7XX'],
 }
 
 /*
@@ -207,7 +207,8 @@ var procNames = {
     'Vayu'              : ["DSP1", "DSP2", "EVE1", "EVE2", "EVE3", "EVE4",
                            "IPU1", "IPU2", "IPU1-0", "IPU1-1", "IPU2-0",
                            "IPU2-1", "HOST"],
-    'TDA3X'             : ["DSP1", "DSP2", "IPU1", "IPU1-0", "IPU1-1", "EVE1"]
+    'TDA3X'             : ["DSP1", "DSP2", "IPU1", "IPU1-0", "IPU1-1", "EVE1"],
+    'AM65X'             : ["HOST", "R5F-0", "R5F-1"]
 };
 setDeviceAliases(procNames, deviceAliases);
 
@@ -222,7 +223,8 @@ var hostNeedsSlaveData = {
     'TMS320DA830'       : 1,
     'OMAPL138'          : 1,
     'Vayu'              : 1,
-    'TDA3X'             : 1
+    'TDA3X'             : 1,
+    'AM65X'             : 1
 };
 setDeviceAliases(hostNeedsSlaveData, deviceAliases);
 
@@ -260,6 +262,7 @@ var hostProcNames = {
     'TMS320TCI6636'     : ["HOST0"],
     'TMS320TCI6638'     : ["HOST0"],
     'Kepler'            : ["HOST"],
+    'AM65X  '           : ["HOST"],
 };
 setDeviceAliases(hostProcNames, deviceAliases);
 
@@ -280,6 +283,7 @@ var nameServerRemoteDelegates = {
     'Vayu'              : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
     'TDA3X'             : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify' },
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
+    'AM65X'             : { del: 'ti.sdo.ipc.nsremote.NameServerRemoteNotify',},
 };
 setDeviceAliases(nameServerRemoteDelegates, deviceAliases);
 
@@ -302,6 +306,7 @@ var notifySetupDelegates = {
     'Arctic'            : { del: 'ti.sdo.ipc.family.arctic.NotifyCircSetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Vayu'              : { del: 'ti.sdo.ipc.family.vayu.NotifySetup', },
+    'AM65X'             : { del: 'ti.sdo.ipc.family.am65xx.NotifySetup', },
     'TDA3X'             : { del: 'ti.sdo.ipc.family.tda3xx.NotifySetup'  },
     'OMAP5430'          : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull' }
 
@@ -326,7 +331,8 @@ var messageQSetupDelegates = {
     'Arctic'            : { del: 'ti.sdo.ipc.transports.TransportShmNotifySetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.transports.TransportNullSetup', },
     'Vayu'              : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
-    'TDA3X'             : { del: 'ti.sdo.ipc.transports.TransportShmSetup' }
+    'TDA3X'             : { del: 'ti.sdo.ipc.transports.TransportShmSetup' },
+    'AM6XX'             : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
 };
 setDeviceAliases(messageQSetupDelegates, deviceAliases);
 
@@ -359,6 +365,12 @@ var interruptDelegates = {
         'TCI6636K2H'    : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
         'TMS320C66AK2E05'      : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
         'TMS320TCI6630K2L'     : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
+    },
+    'ti.catalog.arm.cortexa53' : {
+        'AM65X'          : { del: 'ti.sdo.ipc.family.am65xx.InterruptHost', },
+    },
+    'ti.catalog.arm.cortexr5' : {
+        'AM65X'          : { del: 'ti.sdo.ipc.family.am65xx.InterruptR5f', },
     },
     'ti.catalog.c6000' : {
         'OMAP3530'      : { del: 'ti.sdo.ipc.family.omap3530.InterruptDsp', },
@@ -424,6 +436,18 @@ var spinlockDelegates = {
     'ti.catalog.arm.cortexa15' : {
         'Vayu' : {
             baseAddr:   0x4A0F6800,
+            numLocks:   256
+        },
+    },
+    'ti.catalog.arm.cortexa53' : {
+        'AM65X' : {
+            baseAddr:   0x0030E00800,
+            numLocks:   256
+        },
+    },
+    'ti.catalog.arm.cortexr5' : {
+        'AM65X' : {
+            baseAddr:   0x0030E00800,
             numLocks:   256
         },
     },
@@ -588,7 +612,8 @@ function generateSlaveDataForHost()
     /* A15 is the already the host no need to generate data */
     if ((Program.cpu.catalogName == 'ti.catalog.arm.cortexa8') ||
         (Program.cpu.catalogName == 'ti.catalog.arm.cortexa9') ||
-        (Program.cpu.catalogName == 'ti.catalog.arm.cortexa15')) {
+        (Program.cpu.catalogName == 'ti.catalog.arm.cortexa15') ||
+        (Program.cpu.catalogName == 'ti.catalog.arm.cortexa53')) {
         return (false);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,19 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /*
- *  ======== package.bld ========
+ *  ======== VirtQueue.xdc ========
  */
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
+package ti.ipc.family.am65xx;
 
-var objList = [ "Resource.c" ];
+/*!
+ *  ======== VirtQueue ========
+ */
+@Template("./VirtQueue.xdt")
 
-var trgFilter = {
-    field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
-};
-
-/* if not building a product release, build package libraries */
-if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
-    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
+metaonly module VirtQueue
+{
 }
-
-Pkg.otherFiles = [
-    "package.bld",
-    "rsc_types.h",
-    "linkcmd.xdt",
-    "rsc_table_omapl138.h",
-    "rsc_table_tci6614.h",
-    "rsc_table_tci6614_v3.3.h",
-    "rsc_table_tci6638.h",
-    "rsc_table_omap5_dsp.h",
-    "rsc_table_omap5_ipu.h",
-    "rsc_table_vayu_dsp.h",
-    "rsc_table_vayu_ipu.h",
-    "rsc_table_am65xx_r5f.h"
-].concat(objList);
-
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");

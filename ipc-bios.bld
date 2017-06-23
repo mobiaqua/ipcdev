@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,17 +99,21 @@ var ccOpts = {
     "ti.targets.arm.elf.M3"           : " --embed_inline_assembly -ms -pds=71",
     "ti.targets.arm.elf.M4"           : " -ms -g ",
     "ti.targets.arm.elf.M4F"          : " -ms -g ",
+    "ti.targets.arm.elf.R5F"          : " -ms -g ",
 
     "ti.targets.arp32.elf.ARP32"      : " -g ",
     "ti.targets.arp32.elf.ARP32_far"  : " -g ",
 
     "gnu.targets.arm.A8F"             : " -g ",
-    "gnu.targets.arm.A15F"            : " -g "
+    "gnu.targets.arm.A15F"            : " -g ",
+    "gnu.targets.arm.A53F"            : " -g "
 };
 
 var lnkOpts = {
     "ti.targets.elf.C66"              : " --cinit_compression=off",
     "ti.targets.arm.elf.M4"           : " --retain=.resource_table" +
+                                        " --cinit_compression=off",
+    "ti.targets.arm.elf.R5F"          : " --retain=.resource_table" +
                                         " --cinit_compression=off"
 };
 
@@ -155,7 +159,8 @@ for (arg = 0; arg < arguments.length; arg++) {
         continue;
     }
 
-//    print("Building '" + targetName + "' using '" + rootDir + "' ...");
+//    print("Building for platform:" + platform + " targetName:" + targetName
+//            + " rootDir: " + rootDir + " smpEnabled:" + smpEnabled + "...");
 
     var target = xdc.useModule(targetName);
     target.rootDir = rootDir;
@@ -264,6 +269,18 @@ for (arg = 0; arg < arguments.length; arg++) {
         }
     }
 
+    if (targetName.match(/elf\.R5F$/)) {
+        switch (platform) {
+            case 'AM65XX':
+                target.platforms.$add("ti.platforms.cortexR:AM65X");
+                break;
+
+            default:
+                print("Unknown R5F platform, skipping " + platform);
+                break;
+        }
+    }
+
     Build.targets.$add(target);
 }
 
@@ -276,6 +293,8 @@ if (smpEnabled) {
                 xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
         xdc.module("gnu.targets.arm.A15F").profiles["smp"] =
                 xdc.module("gnu.targets.arm.A15F").profiles["debug"];
+        xdc.module("gnu.targets.arm.A53F").profiles["smp"] =
+                xdc.module("gnu.targets.arm.A53F").profiles["debug"];
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,29 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- *  ======== package.bld ========
+ * ======== MultiProcCfg.c ========
+ * System-wide MultiProc configuration
  */
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
-var objList = [ "Resource.c" ];
+/* Standard IPC headers */
+#include <ti/ipc/Std.h>
 
-var trgFilter = {
-    field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
+/* For Backplane IPC startup/shutdown stuff: */
+#include <_MultiProc.h>
+
+#include <linux/version.h>
+
+/* This must match BIOS side MultiProc configuration for given platform!: */
+MultiProc_Config _MultiProc_cfg =  {
+   .numProcessors = 3,
+   .nameList[0] = "HOST",
+   .nameList[1] = "R5F-0",
+   .nameList[2] = "R5F-1",
+   .rprocList[0] = -1,
+   .rprocList[1] = 0,
+   .rprocList[2] = 1,
+   .id = 0,                 /* The host is always zero */
+   .numProcsInCluster = 3,
+   .baseIdOfCluster = 0
 };
-
-/* if not building a product release, build package libraries */
-if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
-    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
-}
-
-Pkg.otherFiles = [
-    "package.bld",
-    "rsc_types.h",
-    "linkcmd.xdt",
-    "rsc_table_omapl138.h",
-    "rsc_table_tci6614.h",
-    "rsc_table_tci6614_v3.3.h",
-    "rsc_table_tci6638.h",
-    "rsc_table_omap5_dsp.h",
-    "rsc_table_omap5_ipu.h",
-    "rsc_table_vayu_dsp.h",
-    "rsc_table_vayu_ipu.h",
-    "rsc_table_am65xx_r5f.h"
-].concat(objList);
-
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");

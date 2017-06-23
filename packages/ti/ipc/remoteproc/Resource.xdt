@@ -1,6 +1,6 @@
 %%{
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,13 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %        print("ti.ipc.remoteproc.Resource.xdt - unable to provide Vayu " +
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
+%  }
+%  else if (prog.cpu.deviceName.match(/AM65X/)) {
+%    /* TODO: Need to add AM65XX Device */
+%    if (prog.cpu.attrs.cpuCore.match(/R5/)) {
+%           //print("ti.ipc.remoteproc.Resource.xdt : AM65XX_R5");
+%       }
+#include <ti/ipc/remoteproc/rsc_table_am65xx_r5f.h>
 %  }
 %  else {
 %    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +

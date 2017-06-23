@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2015-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,6 +96,16 @@ function getDefs()
         switch (device) {
             case "OMAP5430":
                 defs += " -DOMAP5 -DDSP -DRPMSG_NS_2_0";
+                break;
+            default:
+                throw new Error("Unsupported device: " + device);
+                break;
+        }
+    }
+    else if (target.isa.match(/^v7R$/)) {
+        switch (device) {
+            case "AM65X":
+                defs += " -DAM65XX -DRPMSG_NS_2_0";
                 break;
             default:
                 throw new Error("Unsupported device: " + device);

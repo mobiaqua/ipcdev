@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -224,11 +224,55 @@ else if (Program.platformName.match(/simKepler/) ||
         Diags.ALWAYS_ON);
     */
 }
-else {
-    throw("messageq_common.cfg.xs: Did not match any platform!");
-}
+else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
+         Program.cpu.attrs.cpuCore.match(/^R5$/)) {
 
-Hwi.enableException = true;
+    print("messageq_common.cfg.xs cpuCore:" + Program.cpu.attrs.cpuCore);
+    var VirtQueue = xdc.useModule('ti.ipc.family.am65xx.VirtQueue');
+/* TODO: Need to check on setting the right size */
+//    SysMin.bufSize  = 0x8000;
+//    Memory.defaultHeapSize = 0x20000;
+
+    /* Enable Memory Translation module that operates on the Resource Table */
+    var Resource = xdc.useModule('ti.ipc.remoteproc.Resource');
+    Resource.loadSymbol = "__RESOURCE_TABLE";
+
+    var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    MultiProc.setConfig("R5F-0", ["HOST", "R5F-0", "R5F-1"]);
+
+    xdc.loadPackage('ti.sdo.ipc.family.am65xx');
+    xdc.useModule('ti.sdo.ipc.family.am65xx.InterruptR5f');
+    xdc.loadPackage('ti.ipc.rpmsg');
+    xdc.loadPackage('ti.ipc.family.am65xx');
+
+    var List      = xdc.useModule('ti.sdo.utils.List');
+
+    xdc.useModule('ti.sysbios.xdcruntime.GateThreadSupport');
+    var GateSwi   = xdc.useModule('ti.sysbios.gates.GateSwi');
+    xdc.loadCapsule("R5fmpu_am65xx.cfg");
+
+    var Hwi = xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Hwi');
+/* TODO: Need to check on equivalent for K3 */
+//    Hwi.enableException = true;
+
+    var Core = xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Core');
+
+    var Timer = xdc.module('ti.sysbios.timers.dmtimer.Timer');
+    Timer.checkFrequency = false; /* Disable frequency check */
+    for (var i = 0; i < 4; i++) {
+        Timer.intFreqs[i].lo = 20000000; /* Set a high Timer frequency value
+                                            as default may be too small and
+                                            cause frquenct interrupts. */
+        Timer.intFreqs[i].hi = 0;
+    }
+
+}
+else {
+    throw("messageq_common.cfg.xs: Did not match any platform!"
+          + " platform:" +  Program.platformName + " cpuCore:"
+          + Program.cpu.attrs.cpuCore + " deviceName:"
+          + Program.cpu.deviceName);
+}
 
 xdc.useModule('ti.ipc.ipcmgr.IpcMgr');
 BIOS.addUserStartupFunction('&IpcMgr_ipcStartup');

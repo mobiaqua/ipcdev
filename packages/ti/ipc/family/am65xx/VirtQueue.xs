@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  */
 
 /*
- *  ======== RPMessage.xs ========
+ *  ======== VirtQueue.xs ========
  */
 
 /*
@@ -40,70 +40,28 @@
  */
 function module$use()
 {
+    xdc.useModule('ti.ipc.remoteproc.Resource');
+    xdc.loadPackage('ti.pm');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+
+    xdc.useModule('ti.sysbios.hal.Cache');
+    xdc.useModule('ti.sysbios.hal.Hwi');
+    xdc.useModule('ti.sysbios.gates.GateHwi');
+    xdc.useModule('ti.sysbios.knl.Clock');
+
     xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule('xdc.runtime.Error');
     xdc.useModule('xdc.runtime.Diags');
     xdc.useModule('xdc.runtime.Log');
     xdc.useModule('xdc.runtime.Memory');
     xdc.useModule('xdc.runtime.Registry');
     xdc.useModule('xdc.runtime.System');
 
-    xdc.useModule('ti.sysbios.BIOS');
-    xdc.useModule('ti.sysbios.gates.GateHwi');
-    xdc.useModule('ti.sysbios.knl.Semaphore');
-    xdc.useModule('ti.sysbios.knl.Swi');
-
-    xdc.useModule('ti.sdo.utils.List');
-    xdc.useModule('ti.sdo.utils.MultiProc');
-
+    /* bring in target specific modules */
     var Program = xdc.useModule('xdc.cfg.Program');
-    var device = Program.cpu.deviceName;
+    var targIsaChain = "/" + Program.build.target.getISAChain().join("/") + "/";
 
-    switch (device) {
-        case "OMAP5430": /* OMAP5 */
-            xdc.loadPackage('ti.ipc.family.omap54xx');
-            break;
-
-        case "OMAPL138":
-            xdc.useModule('ti.ipc.family.omapl138.VirtQueue');
-            break;
-
-        case "TMS320TCI6614":
-            xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
-            break;
-
-        case "Kepler":
-        case "TMS320C66AK2E05":
-        case "TMS320C66AK2H12":
-        case "TMS320TCI6630K2L":
-        case "TMS320TCI6636":
-        case "TMS320TCI6638":
-        case "TCI66AK2G02":
-            xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
-            break;
-
-        case "Vayu": /* Vayu */
-        case "DRA7XX": /* Vayu */
-            xdc.useModule('ti.ipc.family.vayu.VirtQueue');
-            break;
-
-        case "AM65X": /* AM65XX */
-            xdc.useModule('ti.ipc.family.am65xx.VirtQueue');
-            break;
-
-        default:
-            throw new Error("Unspported device: " + device);
-            break;
+    if (targIsaChain.match("/v7R/")) {
+        xdc.useModule('ti.sdo.ipc.family.am65xx.InterruptR5f');
     }
-
-    /* create message pool */
-    var HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
-    var params = new HeapBuf.Params();
-
-    params.blockSize = this.messageBufferSize;
-    params.numBlocks = this.numMessageBuffers;
-    params.bufSize = this.messageBufferSize * this.numMessageBuffers;
-    params.align = 8;
-
-    var pkg = this.$package.$name.replace(/\./g, "_");
-    Program.global[pkg+"_RPMessage_heap"] = HeapBuf.create(params);
 }

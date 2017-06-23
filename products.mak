@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+#   Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ DEPOT = _your_depot_folder_
 # Platform to build for
 #   Supported platforms (choose one):
 #       OMAPL138, OMAP54XX, DRA7XX, 66AK2G, 66AK2E, TCI6630, TCI6636, TCI6638,
-#       TDA3XX
+#       TDA3XX, AM65XX
 #
 # Note, this is used for Linux, QNX and BIOS builds
 #
@@ -120,9 +120,11 @@ ti.targets.arm.elf.A8Fnv =
 ti.targets.arm.elf.M3 =
 ti.targets.arm.elf.M4 =
 ti.targets.arm.elf.M4F =
+ti.targets.arm.elf.R5F =
 
 ti.targets.arp32.elf.ARP32 =
 ti.targets.arp32.elf.ARP32_far =
 
 gnu.targets.arm.A8F =
 gnu.targets.arm.A15F =
+gnu.targets.arm.A53F =

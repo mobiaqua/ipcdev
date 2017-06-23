@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,62 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- *  ======== package.bld ========
+ *  ======== InterruptHost.xdc ========
+ *
  */
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
-var objList = [ "Resource.c" ];
+import ti.sdo.utils.MultiProc;
 
-var trgFilter = {
-    field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
-};
+/*!
+ *  ======== InterruptHost ========
+ *  AM65XX/V8A based interrupt manager
+ */
+module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
+{
+    /* Total number of cores on am65xx SoC */
+    const UInt8 NUM_CORES = 3;
 
-/* if not building a product release, build package libraries */
-if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
-    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
+    /* Number of Cores in A15 Sub-system */
+    const UInt8 NUM_HOST_CORES = 1;
+
+    /* Number of System Mailboxes */
+    const UInt8 NUM_SYS_MBX = 3;
+
+    /* Base address for the Mailbox subsystem */
+    config UInt32 mailboxBaseAddr[NUM_SYS_MBX];
+
+    /*
+     * Mailbox table for storing encoded Base Address, mailbox user Id,
+     * and sub-mailbox index.
+     */
+    config UInt32 mailboxTable[NUM_CORES * NUM_CORES];
+
+    config UInt32 procIdTable[NUM_CORES];
+
+internal:
+    /*! Statically retrieve procIds to avoid doing this at runtime */
+    config UInt r5f_0ProcId   = MultiProc.INVALIDID;
+    config UInt hostProcId     = MultiProc.INVALIDID;
+    config UInt r5f_1ProcId   = MultiProc.INVALIDID;
+
+    /*! Function table */
+    struct FxnTable {
+        Fxn    func;
+        UArg   arg;
+    }
+
+    /*!
+     *  ======== intShmStub ========
+     *  Stub to be plugged
+     */
+    Void intShmStub(UInt16 idx);
+
+    struct Module_State {
+        /*
+         * Create a function table of length NUM_CORES (Total number of cores
+         * in the System).
+         */
+        FxnTable   fxnTable[NUM_CORES];
+    };
 }
-
-Pkg.otherFiles = [
-    "package.bld",
-    "rsc_types.h",
-    "linkcmd.xdt",
-    "rsc_table_omapl138.h",
-    "rsc_table_tci6614.h",
-    "rsc_table_tci6614_v3.3.h",
-    "rsc_table_tci6638.h",
-    "rsc_table_omap5_dsp.h",
-    "rsc_table_omap5_ipu.h",
-    "rsc_table_vayu_dsp.h",
-    "rsc_table_vayu_ipu.h",
-    "rsc_table_am65xx_r5f.h"
-].concat(objList);
-
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");

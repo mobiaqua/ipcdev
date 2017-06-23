@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,8 @@ var Memory = xdc.useModule('xdc.runtime.Memory');
 var Semaphore = xdc.useModule('ti.sysbios.knl.Semaphore');
 var BIOS = xdc.useModule('ti.sysbios.BIOS');
 BIOS.heapSize = 0x10000;
-//BIOS.libType = BIOS.LibType_Custom;
+/* Reduces code size, by only pulling in modules explicitly referenced: */
+BIOS.libType = BIOS.LibType_Custom;
 
 var Idle = xdc.useModule('ti.sysbios.knl.Idle');
 Idle.addFunc('&VirtQueue_cacheWb');
@@ -198,11 +199,38 @@ else if (Program.platformName.match(/simKepler/) ||
         Diags.ALWAYS_ON);
     */
 }
-else {
-    throw("ping_rpmsg_common.cfg: Did not match any platform!");
-}
+else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
+         Program.cpu.attrs.cpuCore.match(/^R5$/)) {
 
-Hwi.enableException = true;
+/* TODO: Need check on bufSize & defaultHeapSize */
+//    SysMin.bufSize  = 0x8000;
+//    Memory.defaultHeapSize = 0x20000;
+    var VirtQueue = xdc.useModule('ti.ipc.family.am65xx.VirtQueue');
+
+    /* Enable Memory Translation module that operates on the Resource Table */
+    var Resource = xdc.useModule('ti.ipc.remoteproc.Resource');
+
+    Resource.loadSymbol = "__RESOURCE_TABLE";
+
+    var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    MultiProc.setConfig("R5F-0", ["HOST", "R5F-0", "R5F-1"]);
+
+    xdc.loadCapsule("R5fmpu_am65xx.cfg");
+
+    var Hwi = xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Hwi');
+/* TODO: Need to check on equivalent for K3 */
+/*     Hwi.enableException = true; */
+
+    var SysMin = xdc.useModule('ti.trace.SysMin');
+    System.SupportProxy = SysMin;
+    SysMin.bufSize  = 0x8000;
+
+    Program.sectMap[".tracebuf"] = "TRACE_BUF";
+}else {
+    throw("ping_rpmsg_common.cfg: Did not match any platform!"
+          + " platform:" +  Program.platformName + "cpuCore:"
+          + Program.cpu.attrs.cpuCore );
+}
 
 xdc.useModule('ti.ipc.ipcmgr.IpcMgr');
 BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');

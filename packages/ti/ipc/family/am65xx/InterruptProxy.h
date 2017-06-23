@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,44 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*
+ *  ======== InterruptProxy.h ========
+ *  Proxy Interrupt Manager
+ */
+
+#ifndef ti_ipc_family_am65xx_InterruptProxy__include
+#define ti_ipc_family_am65xx_InterruptProxy__include
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 /*
- *  ======== package.bld ========
+ *  Note that "v7R" matches R5F core
  */
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
+#if defined(xdc_target__isaCompatible_v7R)
 
-var objList = [ "Resource.c" ];
+#include <ti/sdo/ipc/family/am65xx/InterruptR5f.h>
+/*
+ *************************************************************************
+ *                      R5F Interrupt Proxy Macros
+ *************************************************************************
+ */
 
-var trgFilter = {
-    field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
-};
+#define InterruptProxy_intEnable        InterruptR5f_intEnable
 
-/* if not building a product release, build package libraries */
-if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
-    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
+#define InterruptProxy_intDisable       InterruptR5f_intDisable
+
+#define InterruptProxy_intRegister      InterruptR5f_intRegister
+
+#define InterruptProxy_intSend          InterruptR5f_intSend
+
+#define InterruptProxy_intClear         InterruptR5f_intClear
+
+#endif
+
+#if defined(__cplusplus)
 }
+#endif /* defined (__cplusplus) */
 
-Pkg.otherFiles = [
-    "package.bld",
-    "rsc_types.h",
-    "linkcmd.xdt",
-    "rsc_table_omapl138.h",
-    "rsc_table_tci6614.h",
-    "rsc_table_tci6614_v3.3.h",
-    "rsc_table_tci6638.h",
-    "rsc_table_omap5_dsp.h",
-    "rsc_table_omap5_ipu.h",
-    "rsc_table_vayu_dsp.h",
-    "rsc_table_vayu_ipu.h",
-    "rsc_table_am65xx_r5f.h"
-].concat(objList);
-
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");
+#endif /* ti_ipc_family_am65xx_InterruptProxy__include */

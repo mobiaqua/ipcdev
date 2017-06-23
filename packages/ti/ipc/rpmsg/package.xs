@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,10 @@ function getLibs(prog)
         case "Vayu":
         case "DRA7XX":
             platform = "vayu";
+            break;
+
+        case "AM65XX":
+            platform = "am65xx";
             break;
 
         default:

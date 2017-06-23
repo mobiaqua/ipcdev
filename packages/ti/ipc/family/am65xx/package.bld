@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,69 +37,24 @@ var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
-var objList_0 = [
-    "GateMPSupportNull.c",
-    "GatePeterson.c",
-    "GatePetersonN.c"
-];
+var objList = [ "VirtQueue.c" ];
 
-var objList_3 = [
-    "GateHWSem.c",
-    "GateHWSpinlock.c"
-].concat(objList_0);
-
-var objList_1 = [
-    "GateAAMonitor.c",
-    "GateAAMonitor_asm.s64P"
-].concat(objList_3);
-
-var objList_2 = [
-    "GateHWSpinlock.c"
-].concat(objList_0);
-
-var trgFilter_1 = {
+var trgFilter = {
     field: "isa",
-    list: [ "64P" ]
-};
-
-var trgFilter_2 = {
-    field: "isa",
-    list: [ "674", "64T", "v7M", "v7M4", "v7A", "v7A8", "v7A15", "arp32", "v7R", "v8A" ]
-};
-
-var trgFilter_3 = {
-    field: "isa",
-    list: [ "66" ]
-};
-
-var trgFilter_0 = {
-    field: "noIsa",
-    list: trgFilter_1.list.concat(trgFilter_2.list).concat(trgFilter_3.list)
+    list: [ "v7R" ]
 };
 
 /* if not building a product release, build package libraries */
 if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, arguments);
-    IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, arguments);
-    IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, arguments);
-    IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, arguments);
-    IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, ["profile=smp"]);
-    IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, ["profile=smp"]);
-    IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, ["profile=smp"]);
-    IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, ["profile=smp"]);
+    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
+    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
 }
 
 Pkg.otherFiles = [
     "package.bld",
-    "GateMPSupportNull.c",
-    "GatePeterson.c",
-    "GatePetersonN.c",
-    "GateHWSem.c",
-    "GateHWSpinlock.c",
-    "GateAAMonitor.c",
-    "GateAAMonitor_asm.s64P",
-    "GateHWSpinlock.c"
-];
+    "InterruptProxy.h",
+    "VirtQueue.h"
+].concat(objList);
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;

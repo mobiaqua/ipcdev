@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2012-2015, Texas Instruments Incorporated
+#   Copyright (c) 2012-2018, Texas Instruments Incorporated
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -85,6 +85,7 @@ XDCARGS= \
     ti.targets.arm.elf.M3=\"$(ti.targets.arm.elf.M3)\" \
     ti.targets.arm.elf.M4=\"$(ti.targets.arm.elf.M4)\" \
     ti.targets.arm.elf.M4F=\"$(ti.targets.arm.elf.M4F)\" \
+    ti.targets.arm.elf.R5F=\"$(ti.targets.arm.elf.R5F)\" \
     ti.targets.elf.C64P=\"$(ti.targets.elf.C64P)\" \
     ti.targets.elf.C64P_big_endian=\"$(ti.targets.elf.C64P_big_endian)\" \
     ti.targets.elf.C64T=\"$(ti.targets.elf.C64T)\" \
@@ -94,7 +95,8 @@ XDCARGS= \
     ti.targets.arp32.elf.ARP32=\"$(ti.targets.arp32.elf.ARP32)\" \
     ti.targets.arp32.elf.ARP32_far=\"$(ti.targets.arp32.elf.ARP32_far)\" \
     gnu.targets.arm.A8F=\"$(gnu.targets.arm.A8F)\" \
-    gnu.targets.arm.A15F=\"$(gnu.targets.arm.A15F)\"
+    gnu.targets.arm.A15F=\"$(gnu.targets.arm.A15F)\" \
+    gnu.targets.arm.A53F=\"$(gnu.targets.arm.A53F)\"
 
 ifeq ($(MAKECMDGOALS),release)
     XDCARGS += GOAL=release

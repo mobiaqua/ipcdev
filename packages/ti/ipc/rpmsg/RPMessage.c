@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,6 +108,8 @@
 #include <ti/ipc/family/omap54xx/VirtQueue.h>
 #elif defined(VAYU)
 #include <ti/ipc/family/vayu/VirtQueue.h>
+#elif defined(AM65XX)
+#include <ti/ipc/family/am65xx/VirtQueue.h>
 #else
 #error unknown processor!
 #endif

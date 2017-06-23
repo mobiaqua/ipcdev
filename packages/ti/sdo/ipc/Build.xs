@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2013-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ var customGnuArmM4FOpts = " ";
 var customGnuArmA9Opts = " ";
 var customGnuArmA8Opts = " ";
 var customGnuArmA15Opts = " ";
+var customGnuArmA53Opts = " ";
 
 var ccOptsList = {
     "ti.targets.C64P"                           : custom6xOpts,
@@ -67,12 +68,14 @@ var ccOptsList = {
     "ti.targets.arm.elf.M3"                     : customArmOpts,
     "ti.targets.arm.elf.M4"                     : customArmOpts,
     "ti.targets.arm.elf.M4F"                    : customArmOpts,
+    "ti.targets.arm.elf.R5F"                    : customArmOpts,
     "gnu.targets.arm.M3"                        : customGnuArmM3Opts,
     "gnu.targets.arm.M4"                        : customGnuArmM4Opts,
     "gnu.targets.arm.M4F"                       : customGnuArmM4FOpts,
     "gnu.targets.arm.A8F"                       : customGnuArmA8Opts,
     "gnu.targets.arm.A9F"                       : customGnuArmA9Opts,
     "gnu.targets.arm.A15F"                      : customGnuArmA15Opts,
+    "gnu.targets.arm.A53F"                      : customGnuArmA53Opts,
 };
 
 var ipcPackages = [
@@ -88,6 +91,7 @@ var ipcPackages = [
     "ti.sdo.ipc.family.tci663x",
     "ti.sdo.ipc.family.tda3xx",
     "ti.sdo.ipc.family.vayu",
+    "ti.sdo.ipc.family.am65xx",
     "ti.sdo.ipc.gates",
     "ti.sdo.ipc.heaps",
     "ti.sdo.ipc.notifyDrivers",
@@ -97,6 +101,7 @@ var ipcPackages = [
     "ti.ipc.family.tci6614",
     "ti.ipc.family.tci6638",
     "ti.ipc.family.vayu",
+    "ti.ipc.family.am65xx",
     "ti.ipc.namesrv",
     "ti.ipc.remoteproc",
     "ti.ipc.transports"
@@ -107,6 +112,9 @@ var cFiles = {
         cSources: [ "IpcMgr.c" ]
     },
     "ti.ipc.family.vayu" : {
+        cSources: [ "VirtQueue.c" ]
+    },
+    "ti.ipc.family.am65xx" : {
         cSources: [ "VirtQueue.c" ]
     },
     "ti.ipc.rpmsg" : {
@@ -577,6 +585,18 @@ var ARP32Sources = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/tda3xx/NotifyDriverMbx.c " +
                    "ti/sdo/ipc/family/tda3xx/NotifySetup.c ";
 
+var A53FSources  = "ti/sdo/ipc/family/am65xx/InterruptHost.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifySetup.c " +
+                   "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/gates/GateHWSem.c ";
+
+var R5FSources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
+                   "ti/sdo/ipc/family/am65xx/InterruptR5f.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifySetup.c " +
+                   "ti/ipc/family/am65xx/VirtQueue.c ";
+
 var cList = {
     "ti.targets.C64P"                   : commonSources + C647xSources +
                                                 C64PSources,
@@ -604,12 +624,14 @@ var cList = {
     "ti.targets.arm.elf.M3"             : commonSources + M3Sources,
     "ti.targets.arm.elf.M4"             : commonSources + M4Sources,
     "ti.targets.arm.elf.M4F"            : commonSources + M4Sources,
+    "ti.targets.arm.elf.R5F"            : commonSources + R5FSources,
 
     "gnu.targets.arm.A15F"              : commonSources + A15gSources,
     "gnu.targets.arm.A8F"               : commonSources + A8gSources,
     "gnu.targets.arm.M3"                : commonSources + M3Sources,
     "gnu.targets.arm.M4"                : commonSources + M4Sources,
     "gnu.targets.arm.M4F"               : commonSources + M4Sources,
+    "gnu.targets.arm.A53F"              : commonSources + A53FSources,
 };
 
 var asmListNone = [
@@ -641,6 +663,7 @@ var asmList = {
     "ti.targets.arm.elf.M3"             : asmListNone,
     "ti.targets.arm.elf.M4"             : asmListNone,
     "ti.targets.arm.elf.M4F"            : asmListNone,
+    "ti.targets.arm.elf.R5F"            : asmListNone,
 
     "gnu.targets.arm.M3"                : asmListNone,
     "gnu.targets.arm.M4"                : asmListNone,
@@ -648,6 +671,7 @@ var asmList = {
     "gnu.targets.arm.A8F"               : asmListNone,
     "gnu.targets.arm.A9F"               : asmListNone,
     "gnu.targets.arm.A15F"              : asmListNone,
+    "gnu.targets.arm.A53F"              : asmListNone,
 };
 
 function getDefaultCustomCCOpts()

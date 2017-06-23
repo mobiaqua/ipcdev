@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,42 +31,50 @@
  */
 
 /*
- *  ======== package.bld ========
+ *  ======== package.xs ========
+ *
  */
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
-var objList = [ "Resource.c" ];
+var Build = null;
 
-var trgFilter = {
-    field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
-};
+/*
+ *  ======== package.close ========
+ */
+function close()
+{
+    if (xdc.om.$name != 'cfg') {
+        return;
+    }
 
-/* if not building a product release, build package libraries */
-if (Bld_goal != "release") {
-    IpcBuild.buildLibs(objList, undefined, trgFilter, arguments);
-    IpcBuild.buildLibs(objList, undefined, trgFilter, ["profile=smp"]);
+    Build = xdc.useModule('ti.sdo.ipc.Build');
 }
 
-Pkg.otherFiles = [
-    "package.bld",
-    "rsc_types.h",
-    "linkcmd.xdt",
-    "rsc_table_omapl138.h",
-    "rsc_table_tci6614.h",
-    "rsc_table_tci6614_v3.3.h",
-    "rsc_table_tci6638.h",
-    "rsc_table_omap5_dsp.h",
-    "rsc_table_omap5_ipu.h",
-    "rsc_table_vayu_dsp.h",
-    "rsc_table_vayu_ipu.h",
-    "rsc_table_am65xx_r5f.h"
-].concat(objList);
+/*
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
+ */
+function getLibs(prog)
+{
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    var libPath;
+    var suffix;
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+    if (Build.libType == Build.LibType_PkgLib) {
+        /* lib path defined in Build.buildLibs() */
+        libPath = (BIOS.smpEnabled ? "lib/smpipc/debug" : "lib/ipc/debug");
 
-Pkg.generatedFiles.$add("lib/");
+        /* find a compatible suffix */
+        if ("findSuffix" in prog.build.target) {
+            suffix = prog.build.target.findSuffix(this);
+        }
+        else {
+            suffix = prog.build.target.suffix;
+        }
+        return (libPath + "/" + this.$name + ".a" + suffix);
+    }
+    else {
+        return (Build.getLibs(this));
+    }
+}

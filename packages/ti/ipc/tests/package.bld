@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -443,6 +443,16 @@ Build.platformTable["ti.platforms.evmDRA7XX:ipu1"] = {
     stackMemory: "EXT_DATA",
 };
 
+/* Note the EXT_CODE and EXT_DATA sections are specified in the
+   Linker command file
+ */
+Build.platformTable["ti.platforms.cortexR:AM65X"] = {
+
+    codeMemory : "EXT_CODE",
+    dataMemory : "EXT_DATA",
+    stackMemory: "EXT_DATA",
+};
+
 /*
  * Create Keystone platform instances without any external memory.
  * The main reason for this is to prevent SYS/BIOS from tagging
@@ -481,7 +491,7 @@ for (var i = 0; i < Build.targets.length; i++) {
 
     /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
     if (!((targ.isa == "674") || (targ.isa == "66") ||
-          (targ.isa.match(/v7M(|4)/)) || (targ.isa == "64T"))) {
+          (targ.isa.match(/v7M(|4)/)) || (targ.isa == "64T") || (targ.isa == "v7R"))) {
         continue;
     }
 
@@ -489,7 +499,7 @@ for (var i = 0; i < Build.targets.length; i++) {
     for (var j = 0; j < targ.platforms.length; j++) {
         var platform = targ.platforms[j];
 
-        /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
+        /* currently only build for OMAPL138, Keystone II, OMAP5, Vayu, AM6x*/
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
               (platform.match(/^ti.platforms.evmC66AK2E/)) ||
@@ -500,6 +510,7 @@ for (var i = 0; i < Build.targets.length; i++) {
               (platform.match(/^ti\.platform\.omap54xx/)) ||
               (platform.match(/^ti\.platforms\.sdp5430/)) ||
               (platform.match(/^ti\.platform\.vayu/)) ||
+              (platform.match(/^ti\.platforms\.cortexR\:AM65X/)) ||
               (platform.match(/^ti\.platforms\.evmDRA7XX/)) ||
               (platform.match(/\.platforms\.evmOMAPL138/)))) {
              continue;
@@ -521,12 +532,17 @@ for (var i = 0; i < Build.targets.length; i++) {
             extraDefs = " -DRPMSG_NS_2_0";
         }
 
-        /* All Keystone platforms with 4.1/4.4 kernels also require RPMSG_NS_2_0 */
+        /* All Keystone platforms with 4.1/4.4/4.9 kernels also require RPMSG_NS_2_0 */
         if (platform.match(/^ti.platforms.evmC66AK2E/) ||
             platform.match(/^ti.platforms.evmTCI66AK2G02/) ||
             platform.match(/^ti.platforms.evmTCI6630K2L/) ||
             platform.match(/^ti.platforms.evmTCI6638K2K/) ||
             platform.match(/^ti.platforms.evmTCI6636K2H/)) {
+            extraDefs = " -DRPMSG_NS_2_0";
+        }
+
+       /* AM65XX require MmRpc and therefore use RPMSG_NS_2_0 */
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/)) {
             extraDefs = " -DRPMSG_NS_2_0";
         }
 
@@ -537,24 +553,49 @@ for (var i = 0; i < Build.targets.length; i++) {
                 cfgScript: "gatempapp",
                 defs: "-D DSP_1" + extraDefs
             }).addObjects(["messageq_fault.c"]);
-        } else  {
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/messageq_fault", targ, platform, {
                 cfgScript: "rpmsg_transport",
-                defs: extraDefs
+                defs: extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["messageq_fault.c"]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_fault", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: extraDefs,
             }).addObjects(["messageq_fault.c"]);
         }
 
         /* ping_rpmsg */
-        Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
-            cfgScript: "ping_rpmsg",
-            defs: extraDefs
-        }).addObjects(["ping_rpmsg.c"]);
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["ping_rpmsg.c"]);
+        } else {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: extraDefs,
+            }).addObjects(["ping_rpmsg.c"]);
+        }
 
         /* ping_tasks */
-        Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
-            cfgScript: "ping_rpmsg",
-            defs: extraDefs
-        }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+        } else {
+            Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: extraDefs,
+            }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+        }
 
         /* gatempapp */
         if (platform.match(/^ti\.platform\.vayu\.dsp1/) ||
@@ -583,43 +624,76 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* messageq_multi */
-        Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
-            cfgScript: "rpmsg_transport",
-            defs: "-D BENCHMARK" + extraDefs
-        }).addObjects(["messageq_multi.c"]);
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK" + extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["messageq_multi.c"]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK" + extraDefs
+            }).addObjects(["messageq_multi.c"]);
+        }
 
         /* messageq_multimulti */
-        Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
-            cfgScript: "rpmsg_transport",
-            defs: "-D BENCHMARK" + extraDefs
-        }).addObjects(["messageq_multimulti.c"]);
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK" + extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["messageq_multimulti.c"]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK" + extraDefs
+            }).addObjects(["messageq_multimulti.c"]);
+        }
 
         /* messageq_single */
         if (platform.match(/^ti\.platforms\.sdp5430/) &&
-                (targ.isa == "64T")) {
-		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
-		    cfgScript: "rpmsg_transport",
-		    defs: "-D BENCHMARK -D DSP" + extraDefs
-		}).addObjects(["messageq_single.c"]);
-	} else if (platform.match(/^ti\.platforms\.sdp5430/) &&
-                (targ.isa == "M4")) {
-		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
-		    cfgScript: "rpmsg_transport",
-		    defs: "-D BENCHMARK -D IPU" + extraDefs
-		}).addObjects(["messageq_single.c"]);
-	} else {
-		Pkg.addExecutable(name + "/messageq_single", targ, platform, {
-		    cfgScript: "rpmsg_transport",
-		    defs: "-D BENCHMARK " + extraDefs
-		}).addObjects(["messageq_single.c"]);
-	}
+            (targ.isa == "64T")) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -D DSP" + extraDefs,
+            }).addObjects(["messageq_single.c"]);
+        } else if (platform.match(/^ti\.platforms\.sdp5430/) &&
+                   (targ.isa == "M4")) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -D IPU" + extraDefs
+            }).addObjects(["messageq_single.c"]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK " + extraDefs,
+                lopts: "-l R5FLink.cmd",
+            }).addObjects(["messageq_single.c" ]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK " + extraDefs
+            }).addObjects(["messageq_single.c"]);
+        }
 
         /* TODO: NameServerApp.xe66 too big for K2E's 512 KB L2SRAM */
         if (!platform.match(/^ti.platforms.evmC66AK2E/)) {
             /* NameServerApp */
-            Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
-                cfgScript: "nameserverapp",
-            }).addObjects(["NameServerApp.c"]);
+            if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+                (targ.isa == "v7R")) {
+                Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
+                    cfgScript: "nameserverapp",
+                    lopts: "-l R5FLink.cmd",
+                }).addObjects(["NameServerApp.c"]);
+            } else {
+                Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
+                    cfgScript: "nameserverapp",
+                }).addObjects(["NameServerApp.c"]);
+            }
         }
 
         /* nano_test - demonstrates passing ptrs using CMEM */

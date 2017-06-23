@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2013-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ var customGnuArmM4FOpts = " ";
 var customGnuArmA9Opts = " ";
 var customGnuArmA8Opts = " ";
 var customGnuArmA15Opts = " ";
+var customGnuArmA53Opts = " ";
 
 var ccOptsList = {
     "ti.targets.C64P"                           : custom6xOpts,
@@ -66,12 +67,14 @@ var ccOptsList = {
     "ti.targets.arm.elf.M3"                     : customArmOpts,
     "ti.targets.arm.elf.M4"                     : customArmOpts,
     "ti.targets.arm.elf.M4F"                    : customArmOpts,
+    "ti.targets.arm.elf.R5F"                    : customArmOpts,
     "gnu.targets.arm.M3"                        : customGnuArmM3Opts,
     "gnu.targets.arm.M4"                        : customGnuArmM4Opts,
     "gnu.targets.arm.M4F"                       : customGnuArmM4FOpts,
     "gnu.targets.arm.A8F"                       : customGnuArmA8Opts,
     "gnu.targets.arm.A9F"                       : customGnuArmA9Opts,
     "gnu.targets.arm.A15F"                      : customGnuArmA15Opts,
+    "gnu.targets.arm.A53F"                      : customGnuArmA53Opts,
 };
 
 /*
