@@ -425,11 +425,6 @@ var transportsSources =
                    "ti/sdo/ipc/transports/TransportShmSetup.c " +
                    "ti/sdo/ipc/transports/TransportNullSetup.c " ;
 
-var utilsSources = "ti/sdo/utils/MultiProc.c " +
-                   "ti/sdo/utils/List.c " +
-                   "ti/sdo/utils/NameServerRemoteNull.c " +
-                   "ti/sdo/utils/NameServer.c ";
-
 var commonSources = ipcSources +
                     gatesSources +
                     heapsSources +
