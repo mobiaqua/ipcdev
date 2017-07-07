@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2014-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -347,10 +347,27 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
     PRINTVERBOSE1("TransportRpmsg_bind: sending PAUSE event, tid=0x%x\n",
             (unsigned int)tid);
     event = TransportRpmsg_Event_PAUSE;
-    write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    err = write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_bind: pause write failed: %d (%s)\n",
+                      errno, strerror(errno));
+        close(fd);
+        status = MessageQ_E_OSFAILURE;
+        goto done;
+    }
 
     /* wait for ACK event */
-    read(TransportRpmsg_module->waitEvent, &event, sizeof(event));
+    err = read(TransportRpmsg_module->waitEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_bind: ack read failed: %d (%s)\n",
+                      errno, strerror(errno));
+        close(fd);
+        status = MessageQ_E_OSFAILURE;
+        goto done;
+    }
+
     PRINTVERBOSE2("TransportRpmsg_bind: received ACK event (%d), tid=0x%x\n",
             (int)event, (unsigned int)tid);
 
@@ -365,7 +382,15 @@ Int TransportRpmsg_bind(Void *handle, UInt32 queueId)
     PRINTVERBOSE1("TransportRpmsg_bind: sending CONTINUE event, tid=0x%x\n",
             (unsigned int)tid);
     event = TransportRpmsg_Event_CONTINUE;
-    write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    err = write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_bind: dispatch write failed: %d (%s)\n",
+                      errno, strerror(errno));
+        close(fd);
+        status = MessageQ_E_OSFAILURE;
+        goto done;
+    }
 
 done:
     pthread_mutex_unlock(&TransportRpmsg_module->gate);
@@ -386,15 +411,26 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
     int    fd;
     int    i;
     int    j;
+    int     err;
 
     pthread_mutex_lock(&TransportRpmsg_module->gate);
 
     /*  pause the dispatch thread */
     event = TransportRpmsg_Event_PAUSE;
-    write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    err = write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_unbind: pause write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     /* wait for ACK event */
-    read(TransportRpmsg_module->waitEvent, &event, sizeof(event));
+    err = read(TransportRpmsg_module->waitEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_unbind: ack read failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     /*  Check if binding already deleted.
      *
@@ -441,7 +477,12 @@ Int TransportRpmsg_unbind(Void *handle, UInt32 queueId)
 
     /* release the dispatch thread */
     event = TransportRpmsg_Event_CONTINUE;
-    write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    err = write(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+    if (err < 0) {
+       /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("TransportRpmsg_unbind: dispatch write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
 done:
     pthread_mutex_unlock(&TransportRpmsg_module->gate);
@@ -523,6 +564,7 @@ void *rpmsgThreadFxn(void *arg)
     int j;
     int fd;
     (Void)arg;
+    int err;
 
     while (run) {
         maxFd = TransportRpmsg_module->maxFd;
@@ -614,7 +656,12 @@ void *rpmsgThreadFxn(void *arg)
         /* check for events */
         if (FD_ISSET(TransportRpmsg_module->unblockEvent, &rfds)) {
 
-            read(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+            err = read(TransportRpmsg_module->unblockEvent, &event, sizeof(event));
+            if (err < 0) {
+                /* don't hard-printf since this is no longer fatal */
+                PRINTVERBOSE2("rpmsgThreadFxn: event read failed: %d (%s)\n",
+                              errno, strerror(errno));
+            }
 
             do {
                 if (event & TransportRpmsg_Event_SHUTDOWN) {
@@ -635,11 +682,22 @@ void *rpmsgThreadFxn(void *arg)
                     PRINTVERBOSE0("rpmsgThreadFxn: event PAUSE\n");
                     /* send the acknowledgement */
                     event = TransportRpmsg_Event_ACK;
-                    write(TransportRpmsg_module->waitEvent, &event,
+                    err = write(TransportRpmsg_module->waitEvent, &event,
                             sizeof(event));
+                    if (err < 0) {
+                        /* don't hard-printf since this is no longer fatal */
+                        PRINTVERBOSE2("rpmsgThreadFxn: ack write failed: %d (%s)\n",
+                                      errno, strerror(errno));
+                    }
+
                     /* now wait to be released */
-                    read(TransportRpmsg_module->unblockEvent, &event,
+                    err = read(TransportRpmsg_module->unblockEvent, &event,
                             sizeof(event));
+                   if (err < 0) {
+                        /* don't hard-printf since this is no longer fatal */
+                        PRINTVERBOSE2("rpmsgThreadFxn: wait read failed: %d (%s)\n",
+                                      errno, strerror(errno));
+                    }
                 }
             } while (event != 0);
         }
