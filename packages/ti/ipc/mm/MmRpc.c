@@ -116,6 +116,11 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
     MmRpc_Object *  obj;
     char            cbuf[RPPC_MAX_INST_NAMELEN+16];
 
+    if (service == NULL || handlePtr == NULL) {
+        status = MmRpc_E_INVALIDPARAM;
+        goto leave;
+    }
+
     /* allocate the instance object */
     obj = (MmRpc_Object *)calloc(1, sizeof(MmRpc_Object));
 
@@ -154,7 +159,9 @@ leave:
         if (obj != NULL) {
             free(obj);
         }
-        *handlePtr = NULL;
+        if (handlePtr) {
+            *handlePtr = NULL;
+        }
     }
     else {
         *handlePtr = (MmRpc_Handle)obj;
@@ -170,6 +177,10 @@ int MmRpc_delete(MmRpc_Handle *handlePtr)
 {
     int status = MmRpc_S_SUCCESS;
     MmRpc_Object *obj;
+
+    if (handlePtr == NULL) {
+        return MmRpc_E_INVALIDPARAM;
+    }
 
     obj = (MmRpc_Object *)(*handlePtr);
 
@@ -198,6 +209,11 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     void *msg;
     int len;
     int i;
+
+    if (handle == NULL || ctx == NULL || ret == NULL) {
+        status = MmRpc_E_INVALIDPARAM;
+        goto leave;
+    }
 
     /* combine params and translation array into one contiguous message */
     len = sizeof(struct rppc_function) +
@@ -374,6 +390,11 @@ int MmRpc_bufHandle(MmRpc_Handle handle, int cmd, int num, MmRpc_BufDesc *desc)
     MmRpc_Object *obj = (MmRpc_Object *)handle;
     int i;
     struct rppc_buf_fds reg = { num, NULL };
+
+    if (handle == NULL || desc == NULL) {
+        stat = MmRpc_E_INVALIDPARAM;
+        goto leave;
+    }
 
     reg.fds = (int32_t *)malloc(num * sizeof(int32_t));
 
