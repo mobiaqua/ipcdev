@@ -388,7 +388,35 @@ static LAD_Status initWrappers(Void)
  */
 static Bool openCommandFIFO(Void)
 {
+    time_t currentTime;
+    time_t startTime;
+    struct stat statBuf;
+    double delta = 0;
+    int commandFIFOFd = 0;
     int flags;
+
+    startTime = time ((time_t *) 0);
+    while (delta <= LAD_CONNECTTIMEOUT) {
+        /* check if FIFO exists. LAD daemon will be creating it,
+         * we don't want the client to create it */
+        if (stat(commandFIFOFileName, &statBuf) == 0) {
+            /* open a file for writing to FIFO, non-blocking */
+            commandFIFOFd = open(commandFIFOFileName, O_WRONLY | O_TRUNC | O_NONBLOCK);
+            if (commandFIFOFd != -1) {
+                close(commandFIFOFd);
+                break;
+            }
+        }
+        PRINTVERBOSE0("\nLAD_connect: LAD is not yet running, will retry\n")
+        usleep(100);
+        currentTime = time ((time_t *) 0);
+        delta = difftime(currentTime, startTime);
+    }
+
+    if (delta > LAD_CONNECTTIMEOUT) {
+        PRINTVERBOSE0("\nERROR: timed out waiting for LAD to be started\n");
+        return(FALSE);
+    }
 
     /* open a file for writing to FIFO */
     commandFIFOFilePtr = fopen(commandFIFOFileName, "w");
