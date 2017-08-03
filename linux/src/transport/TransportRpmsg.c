@@ -556,7 +556,13 @@ void *rpmsgThreadFxn(void *arg)
                             "rpmsgThreadFxn: transportGet failed on fd %d, "
                             "returned %d\n", fd, tmpStatus);
 
-                    pthread_mutex_lock(&TransportRpmsg_module->gate);
+                    retval = pthread_mutex_trylock(&TransportRpmsg_module->gate);
+                    if (retval != 0) {
+                        printf("Warning: rpmsgThreadFxn: "
+                               "unable to get the lock during shutdown, "
+                               "will try again\n");
+                        continue;
+                    }
 
                     /*
                      * Don't close(fd) at this time since it will get closed
