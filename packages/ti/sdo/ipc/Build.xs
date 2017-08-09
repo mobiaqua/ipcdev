@@ -749,6 +749,7 @@ function getDefs()
         defs += xdc.module('ti.ipc.rpmsg.Build').getDefs();
     }
 
+    /* TODO: Need to clean up : Why is InterruptDucati added here which is platform specific */
     var InterruptDucati =
             xdc.module("ti.sdo.ipc.family.ti81xx.InterruptDucati");
 
