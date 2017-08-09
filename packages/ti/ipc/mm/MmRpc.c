@@ -113,7 +113,7 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
         MmRpc_Handle *handlePtr)
 {
     int             status = MmRpc_S_SUCCESS;
-    MmRpc_Object *  obj;
+    MmRpc_Object *  obj = NULL;
     char            cbuf[RPPC_MAX_INST_NAMELEN+16];
 
     if (service == NULL || handlePtr == NULL) {
@@ -206,7 +206,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     struct rppc_function *rpfxn;
     struct rppc_function_return reply_msg;
     MmRpc_Param *param;
-    void *msg;
+    void *msg = NULL;
     int len;
     int i;
 
