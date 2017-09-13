@@ -574,7 +574,7 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
     /* unplug interrupt if last user */
     NotifySetup_module->numPlugged[mbxIdx]--;
 
-    if (NotifySetup_module->numPlugged[0] == 0) {
+    if (NotifySetup_module->numPlugged[mbxIdx] == 0) {
         hwi = Hwi_getHandle(cpuIntrNum);
         Hwi_delete(&hwi);
     }
@@ -588,7 +588,7 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
     NotifySetup_module->numPlugged[mbxIdx]--;
 
     /* unplug interrupt if last user */
-    if (NotifySetup_module->numPlugged[0] == 0) {
+    if (NotifySetup_module->numPlugged[mbxIdx] == 0) {
         hwi = Hwi_getHandle(cpuIntrNum);
         Hwi_delete(&hwi);
     }
