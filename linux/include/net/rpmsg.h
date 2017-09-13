@@ -41,7 +41,11 @@
 
 /* user space needs this */
 #ifndef AF_RPMSG
+#ifdef IPC_BUILDOS_ANDROID
+#include <uapi/linux/version.h>
+#else
 #include <linux/version.h>
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3,9,0)
 #define AF_RPMSG        40
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
