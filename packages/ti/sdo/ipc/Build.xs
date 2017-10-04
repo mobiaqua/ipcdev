@@ -700,7 +700,7 @@ function getDefaultCustomCCOpts()
         if (Program.build.target.$name.match(/gnu/)) {
             customCCOpts = customCCOpts.replace("-O3","");
             /* add in stack frames for stack back trace */
-            customCCOpts += " -mapcs ";
+            customCCOpts += " -mapcs-frame ";
         }
         else {
             customCCOpts = customCCOpts.replace(" -o3","");
