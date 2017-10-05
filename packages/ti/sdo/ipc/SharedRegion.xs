@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,7 +155,7 @@ function module$static$init(mod, params)
  *  at the end of module$static$init() because the number of entries
  *  cannot be initialize until after user's configuration is executed.
  */
-function setEntryMeta(id, entry)
+function setEntryMeta(id, metaentry)
 {
     var num = SharedRegion.entryCount;
 
@@ -173,48 +173,56 @@ function setEntryMeta(id, entry)
     SharedRegion.entry[num].createHeap    = true;
     SharedRegion.entry[num].name          = String(null);
 
-    /* check to see region does not overlap */
-    checkOverlap(entry);
+/* Check overlap not doable with symbol in entry, base address not yet availble so deprecated */
+        /* check to see region does not overlap */
+    if (metaentry.base) {
+        checkOverlap(metaentry);
+   }
 
     /* squirrel away entry information to be processed in module$static$init */
     idArray[num]                          = id;
-    SharedRegion.entry[num].base          = $addr(entry.base);
-    SharedRegion.entry[num].len           = entry.len;
+    if (metaentry.base) {
+        SharedRegion.entry[num].base          = $addr(metaentry.base);
+        SharedRegion.entry[num].len           = metaentry.len;
+    } else {
+        SharedRegion.entry[num].base          = $externPtr(metaentry.base_symbol);
+        SharedRegion.entry[num].len           = $externPtr(metaentry.len_symbol);
+    }
 
     /* set 'ownerProcId' if defined otherwise no default owner */
-    if (entry.ownerProcId != undefined) {
-        SharedRegion.entry[num].ownerProcId   = entry.ownerProcId;
+    if (metaentry.ownerProcId != undefined) {
+        SharedRegion.entry[num].ownerProcId   = metaentry.ownerProcId;
     }
 
     /* set 'name' field if defined otherwise name is null */
-    if (entry.name != undefined) {
-        SharedRegion.entry[num].name = entry.name;
+    if (metaentry.name != undefined) {
+        SharedRegion.entry[num].name = metaentry.name;
     }
 
     /* set 'isValid' field if defined otherwise its false */
-    if (entry.isValid != undefined) {
-        SharedRegion.entry[num].isValid = entry.isValid;
+    if (metaentry.isValid != undefined) {
+        SharedRegion.entry[num].isValid = metaentry.isValid;
     }
 
     /* set the 'cacheEnable' field if defined otherwise is true */
-    if (entry.cacheEnable != undefined) {
-        SharedRegion.entry[num].cacheEnable = entry.cacheEnable;
+    if (metaentry.cacheEnable != undefined) {
+        SharedRegion.entry[num].cacheEnable = metaentry.cacheEnable;
     }
 
     /* set the 'createHeap' field if defined otherwise use default */
-    if (entry.createHeap != undefined) {
-        SharedRegion.entry[num].createHeap = entry.createHeap;
+    if (metaentry.createHeap != undefined) {
+        SharedRegion.entry[num].createHeap = metaentry.createHeap;
     }
 
     /* set the 'cacheLineSize' field if defined otherwise its the default */
-    if (entry.cacheLineSize != undefined) {
+    if (metaentry.cacheLineSize != undefined) {
         /* Error if cacheEnable but cacheLineSize set to 0 */
-        if (SharedRegion.entry[num].cacheEnable && (entry.cacheLineSize == 0)) {
+        if (SharedRegion.entry[num].cacheEnable && (metaentry.cacheLineSize == 0)) {
             SharedRegion.$logError("cacheEnable is set to true for " +
                 "region: " + id + " cacheLineSize it set to 0.", SharedRegion);
         }
         else {
-            SharedRegion.entry[num].cacheLineSize = entry.cacheLineSize;
+            SharedRegion.entry[num].cacheLineSize = metaentry.cacheLineSize;
         }
     }
 
@@ -231,12 +239,15 @@ function setEntryMeta(id, entry)
         SharedRegion.entry[num].cacheLineSize = 8;
     }
 
-    if (entry.base % SharedRegion.entry[num].cacheLineSize != 0) {
-        /* Error if base address not aligned to cache boundary */
-        SharedRegion.$logError("Base Address of 0x" +
-            Number(entry.base).toString(16) +
-            " is not aligned to cache boundary (" +
-            SharedRegion.entry[num].cacheLineSize + ")", SharedRegion);
+/* Check base address not doable as it is not yet availble. So deprecated */
+    if (metaentry.base) {
+        if (metaentry.base % SharedRegion.entry[num].cacheLineSize != 0) {
+            /* Error if base address not aligned to cache boundary */
+            SharedRegion.$logError("Base Address of 0x" +
+                Number(entry.base).toString(16) +
+                " is not aligned to cache boundary (" +
+                SharedRegion.entry[num].cacheLineSize + ")", SharedRegion);
+        }
     }
 }
 

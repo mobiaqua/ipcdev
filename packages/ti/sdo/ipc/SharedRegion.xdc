@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -265,6 +265,18 @@ module SharedRegion
      */
     struct Entry {
         Ptr    base;
+        Ptr    len;
+        UInt16 ownerProcId;
+        Bool   isValid;
+        Bool   cacheEnable;
+        SizeT  cacheLineSize;
+        Bool   createHeap;
+        String name;
+    };
+    metaonly struct MetaEntry {
+        String base_symbol;
+        String len_symbol;
+        Ptr    base;
         SizeT  len;
         UInt16 ownerProcId;
         Bool   isValid;
@@ -441,7 +453,7 @@ module SharedRegion
      *  @param(id)          Region id.
      *  @param(entry)       Entry fields about the region.
      */
-    metaonly Void setEntryMeta(UInt16 id, Entry entry);
+    metaonly Void setEntryMeta(UInt16 id, MetaEntry metaentry);
 
     /*! @_nodoc
      *  ======== start ========

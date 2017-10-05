@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ Int SharedRegion_clearEntry(UInt16 id)
     /* clear region to their defaults */
     region->entry.isValid       = FALSE;
     region->entry.base          = NULL;
-    region->entry.len           = 0;
+    region->entry.len           = NULL;
     region->entry.ownerProcId   = 0;
     region->entry.cacheEnable   = TRUE;
     region->entry.cacheLineSize = ti_sdo_ipc_SharedRegion_cacheLineSize;
@@ -183,7 +183,7 @@ Int SharedRegion_getEntry(UInt16 id, SharedRegion_Entry *entry)
     region = &(SharedRegion_module->regions[id]);
 
     entry->base          = region->entry.base;
-    entry->len           = region->entry.len;
+    entry->len           = (SizeT)(region->entry.len);
     entry->ownerProcId   = region->entry.ownerProcId;
     entry->isValid       = region->entry.isValid;
     entry->cacheEnable   = region->entry.cacheEnable;
@@ -225,7 +225,7 @@ UInt16 SharedRegion_getId(Ptr addr)
         key = Hwi_disable();
 
         if ((region->entry.isValid) && (addr >= region->entry.base) &&
-            (addr < (Ptr)((UInt32)region->entry.base + region->entry.len))) {
+            (addr < (Ptr)((uintptr_t)region->entry.base + (SizeT)region->entry.len))) {
             regionId = i;
 
             /* leave the gate */
@@ -295,7 +295,7 @@ Ptr SharedRegion_getPtr(SharedRegion_SRPtr srPtr)
     UInt16 regionId;
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        returnPtr = (Ptr)srPtr;
+        returnPtr = (Ptr)(uintptr_t)(srPtr);
     }
     else if (srPtr == ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
         returnPtr = NULL;
@@ -314,8 +314,8 @@ Ptr SharedRegion_getPtr(SharedRegion_SRPtr srPtr)
         Assert_isTrue(region->entry.isValid == TRUE,
                 ti_sdo_ipc_SharedRegion_A_regionInvalid);
 
-        returnPtr = (Ptr)((srPtr & ti_sdo_ipc_SharedRegion_offsetMask) +
-                          (UInt32)region->entry.base);
+        returnPtr = (Ptr)(uintptr_t)((srPtr & ti_sdo_ipc_SharedRegion_offsetMask) +
+                          (uintptr_t)region->entry.base);
     }
 
     return (returnPtr);
@@ -333,7 +333,7 @@ SharedRegion_SRPtr SharedRegion_getSRPtr(Ptr addr, UInt16 id)
 
     /* if translate == false, set SRPtr to addr */
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        retPtr = (SharedRegion_SRPtr)addr;
+        retPtr = (SharedRegion_SRPtr)(uintptr_t)addr;
     }
     else if (addr == NULL) {
         retPtr = ti_sdo_ipc_SharedRegion_INVALIDSRPTR;
@@ -356,8 +356,8 @@ SharedRegion_SRPtr SharedRegion_getSRPtr(Ptr addr, UInt16 id)
          *            ==> address 0x3fffffff would be invalid because the
          *                SRPtr for this address is 0xffffffff
          */
-        if (((UInt32)addr >= (UInt32)region->entry.base) &&
-            ((UInt32)addr < ((UInt32)region->entry.base + region->entry.len))) {
+        if (((uintptr_t)addr >= (uintptr_t)region->entry.base) &&
+            ((uintptr_t)addr < ((uintptr_t)region->entry.base + (SizeT)region->entry.len))) {
             retPtr = (SharedRegion_SRPtr)((id << ti_sdo_ipc_SharedRegion_numOffsetBits)
                      | ((UInt32)addr - (UInt32)region->entry.base));
         }
@@ -425,7 +425,7 @@ Int SharedRegion_setEntry(UInt16 id, SharedRegion_Entry *entry)
     region = &(SharedRegion_module->regions[id]);
 
     /* make sure region does not overlap existing ones */
-    status = SharedRegion_checkOverlap(entry->base, entry->len);
+    status = SharedRegion_checkOverlap(entry->base, (SizeT)entry->len);
 
     if (status == SharedRegion_S_SUCCESS) {
         /* region entry should be invalid at this point */
@@ -447,7 +447,7 @@ Int SharedRegion_setEntry(UInt16 id, SharedRegion_Entry *entry)
 
         /* set specified region id to entry values */
         region->entry.base          = entry->base;
-        region->entry.len           = entry->len;
+        region->entry.len           = (Ptr)entry->len;
         region->entry.ownerProcId   = entry->ownerProcId;
         region->entry.cacheEnable   = entry->cacheEnable;
         region->entry.cacheLineSize = entry->cacheLineSize;
@@ -470,7 +470,7 @@ Int SharedRegion_setEntry(UInt16 id, SharedRegion_Entry *entry)
 
                 HeapMemMP_Params_init(&params);
                 params.sharedAddr = sharedAddr;
-                params.sharedBufSize = region->entry.len -
+                params.sharedBufSize = (SizeT)(region->entry.len) -
                                        region->reservedSize;
 
                 /*
@@ -531,7 +531,7 @@ Int SharedRegion_checkOverlap(Ptr base, SizeT len)
         if (region->entry.isValid) {
             if (base >= region->entry.base) {
                 if (base < (Ptr)((UInt32)region->entry.base +
-                    region->entry.len)) {
+                    (SizeT)region->entry.len)) {
                     Hwi_restore(key);
                     Assert_isTrue(FALSE, ti_sdo_ipc_SharedRegion_A_overlap);
                     return (SharedRegion_E_FAIL);
@@ -753,7 +753,7 @@ Ptr ti_sdo_ipc_SharedRegion_reserveMemory(UInt16 id, SizeT size)
     newSize = _Ipc_roundup(size, minAlign);
 
     /* Need to make sure (curSize + newSize) is smaller than region len */
-    Assert_isTrue((region->entry.len >= (curSize + newSize)),
+    Assert_isTrue(((SizeT)(region->entry.len) >= (curSize + newSize)),
                    ti_sdo_ipc_SharedRegion_A_reserveTooMuch);
 
     /* Add the new size to current size */
@@ -813,7 +813,7 @@ Int ti_sdo_ipc_SharedRegion_start(Void)
             /*  Create the HeapMemMP in the region. */
             HeapMemMP_Params_init(&params);
             params.sharedAddr = sharedAddr;
-            params.sharedBufSize = region->entry.len - region->reservedSize;
+            params.sharedBufSize = (SizeT)(region->entry.len) - region->reservedSize;
 
             /* Adjust to account for the size of HeapMemMP_Attrs */
             params.sharedBufSize -= (HeapMemMP_sharedMemReq(&params)
