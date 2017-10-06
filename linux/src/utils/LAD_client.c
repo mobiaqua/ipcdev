@@ -403,7 +403,6 @@ static Bool openCommandFIFO(Void)
             /* open a file for writing to FIFO, non-blocking */
             commandFIFOFd = open(commandFIFOFileName, O_WRONLY | O_TRUNC | O_NONBLOCK);
             if (commandFIFOFd != -1) {
-                close(commandFIFOFd);
                 break;
             }
         }
@@ -420,6 +419,8 @@ static Bool openCommandFIFO(Void)
 
     /* open a file for writing to FIFO */
     commandFIFOFilePtr = fopen(commandFIFOFileName, "w");
+
+    close(commandFIFOFd);
 
     if (commandFIFOFilePtr == NULL) {
         PRINTVERBOSE2("\nERROR: failed to open %s, errno = %x\n",
