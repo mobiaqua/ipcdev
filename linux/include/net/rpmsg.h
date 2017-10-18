@@ -52,8 +52,10 @@
 #define AF_RPMSG        41
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(4,7,0)
 #define AF_RPMSG        42
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0)
 #define AF_RPMSG        43
+#else
+#define AF_RPMSG        44
 #endif /* LINUX_VERSION_CODE */
 #endif /* AF_RPMSG */
 
