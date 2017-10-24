@@ -699,8 +699,10 @@ function getDefaultCustomCCOpts()
     if (Build.libType == Build.LibType_Debug) {
         if (Program.build.target.$name.match(/gnu/)) {
             customCCOpts = customCCOpts.replace("-O3","");
-            /* add in stack frames for stack back trace */
-            customCCOpts += " -mapcs-frame ";
+            if (!Program.build.target.$name.match(/A53F/)) {
+                /* add in stack frames for stack back trace */
+                customCCOpts += " -mapcs-frame ";
+            }
         }
         else {
             customCCOpts = customCCOpts.replace(" -o3","");
