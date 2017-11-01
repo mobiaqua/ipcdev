@@ -267,7 +267,7 @@ Int testNS(NameServer_Handle nsHandle, String name)
         status = NameServer_getUInt32(nsHandle, key, &val, NULL);
         printf("NameServer_getUInt32(%s) returned %d, val=0x%x (was 0x00c0ffee)\n", key, status, val);
 
-        if (val != (0x0badc0de + i)) {
+        if (val != (UInt32)(0x0badc0de + i)) {
             printf("get val (0x%x) != add val (0x%x)!\n", val, 0x0badc0de + i);
         }
     }
@@ -451,6 +451,9 @@ NameServerApp_shutdown()
 int
 main (int argc, char ** argv)
 {
+    (Void)argc;
+    (Void)argv;
+
     NameServerApp_startup();
     NameServerApp_execute();
     NameServerApp_shutdown();

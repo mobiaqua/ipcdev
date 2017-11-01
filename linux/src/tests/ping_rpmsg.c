@@ -78,7 +78,7 @@ int main (int argc, char ** argv)
     char buf[512];
     struct timespec   start,end;
     long              elapsed=0,delta;
-    int i;
+    unsigned int i;
     fd_set rfds;
 
     /* Parse Args: */

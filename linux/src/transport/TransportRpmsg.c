@@ -459,6 +459,7 @@ Bool TransportRpmsg_put(Void *handle, Ptr pmsg)
     int     sock;
     int     err;
     UInt16  clusterId;
+    (Void)handle;
 
     /*
      * Retrieve the socket for the AF_SYSLINK protocol associated with this
@@ -496,6 +497,9 @@ exit:
  */
 Bool TransportRpmsg_control(Void *handle, UInt cmd, UArg cmdArg)
 {
+    (Void)handle;
+    (Void)cmd;
+    (Void)cmdArg;
     return FALSE;
 }
 
@@ -511,14 +515,14 @@ void *rpmsgThreadFxn(void *arg)
     fd_set   rfds;
     int      maxFd;
     int      nfds;
-    MessageQ_Msg     retMsg;
+    MessageQ_Msg     retMsg = NULL;
     MessageQ_QueueId queueId;
     MessageQ_Handle handle;
     Bool run = TRUE;
     int i;
     int j;
     int fd;
-
+    (Void)arg;
 
     while (run) {
         maxFd = TransportRpmsg_module->maxFd;
@@ -653,7 +657,7 @@ static Int transportGet(int sock, MessageQ_Msg *retMsg)
     Int           status    = MessageQ_S_SUCCESS;
     MessageQ_Msg  msg;
     struct sockaddr_rpmsg fromAddr;  /* [Socket address of sender] */
-    unsigned int  len;
+    socklen_t     len;
     int           byteCount;
 
     /*
@@ -729,12 +733,12 @@ Void bindFdToQueueIndex(TransportRpmsg_Object *obj, Int fd, UInt16 queuePort)
     UInt oldSize;
     UInt newCount;
     UInt queueIndex;
-    int i;
+    UInt i;
 
     /* subtract port offset from queue index */
     queueIndex = queuePort - MessageQ_PORTOFFSET;
 
-    if (queueIndex >= obj->numQueues) {
+    if (queueIndex >= (UInt)obj->numQueues) {
         newCount = queueIndex + TransportRpmsg_GROWSIZE;
         PRINTVERBOSE1("TransportRpmsg_bind: growing numQueues to %d\n",
                 newCount);

@@ -415,7 +415,7 @@ static void *listener_cb(void *arg)
     int i;
     UInt16 procId;
     struct  sockaddr_rpmsg  fromAddr;
-    unsigned int len;
+    socklen_t len;
     NameServerRemote_Msg msg;
     int nbytes;
     UInt16 numProcs = MultiProc_getNumProcsInCluster();
@@ -424,6 +424,7 @@ static void *listener_cb(void *arg)
     uint64_t event;
     Bool run = TRUE;
     Bool reconnect = FALSE;
+    (Void)arg;
 
     LOG0("listener_cb: Entered Listener thread.\n")
 
@@ -1048,7 +1049,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     struct timeval tv;
     uint64_t buf = 1;
     int err;
-    int i;
+    UInt i;
     static int seqNum = 0;
     Bool done = FALSE;
     UInt16 clusterId;
@@ -1129,7 +1130,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
             /* Process response: */
             replyMsg = &NameServer_module->nsMsg;
 
-            if (replyMsg->seqNum != seqNum - 1) {
+            if ((int)(replyMsg->seqNum) != seqNum - 1) {
                 /* Ignore responses without current sequence # */
                 continue;
             }

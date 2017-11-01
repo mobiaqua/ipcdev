@@ -185,6 +185,7 @@ Int MessageQ_setup(const MessageQ_Config * cfg)
 {
     Int                    status = MessageQ_S_SUCCESS;
     NameServer_Params      params;
+    (Void)cfg;
 
     pthread_mutex_lock(&(MessageQ_module->gate));
 

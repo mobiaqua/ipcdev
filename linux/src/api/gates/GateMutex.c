@@ -84,6 +84,8 @@ GateMutex_Handle GateMutex_create(const GateMutex_Params * params,
     Error_Block *eb)
 {
     pthread_mutexattr_t attr;
+    (Void)params;
+    (Void)eb;
 
     GateMutex_Object * obj = (GateMutex_Object *)calloc(1,
         sizeof(GateMutex_Object));
@@ -134,6 +136,7 @@ Void GateMutex_leave (GateMutex_Handle gmHandle, IArg key)
 {
     GateMutex_Object * obj = (GateMutex_Object *)gmHandle;
     int ret;
+    (Void)key;
 
     ret = pthread_mutex_unlock(&(obj->mutex));
     assert(ret == 0);

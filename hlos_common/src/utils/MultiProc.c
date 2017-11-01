@@ -119,8 +119,7 @@ Int MultiProc_setLocalId(UInt16 id)
      *     To call setLocalId, the id must have been set to invalid.
      *  2. Make sure the call is made before module startup
      */
-    if ((_MultiProc_cfg.id == MultiProc_INVALIDID) /* &&
-        (Startup_rtsDone() == FALSE) */  )  {
+    if (_MultiProc_cfg.id == MultiProc_INVALIDID)  {
         /* It is ok to set the id */
         _MultiProc_cfg.id = id;
         return (MultiProc_S_SUCCESS);

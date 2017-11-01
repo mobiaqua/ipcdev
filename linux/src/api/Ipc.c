@@ -410,6 +410,8 @@ exit:
 
 static void cleanup(int arg)
 {
+    (Void)arg;
+
     printf("Ipc: Caught SIGINT, calling Ipc_stop...\n");
     Ipc_stop();
     exit(0);

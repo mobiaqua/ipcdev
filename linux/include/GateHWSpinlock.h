@@ -218,8 +218,8 @@ Int GateHWSpinlock_stop(Void);
 
 /* Function to create an instance of GateHWSpinlock */
 GateHWSpinlock_Handle
-GateHWSpinlock_create (      GateHWSpinlock_LocalProtect localProtect,
-                       const GateHWSpinlock_Params *     params);
+GateHWSpinlock_create (      GateMP_LocalProtect     localProtect,
+                       const GateHWSpinlock_Params * params);
 
 /* Function to delete an instance of GateHWSpinlock */
 Int

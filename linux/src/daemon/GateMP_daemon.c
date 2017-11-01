@@ -674,7 +674,7 @@ Int GateMP_releaseResource(UInt id, GateMP_RemoteProtect type)
             break;
     }
 
-    if ((inUse != NULL) && (id < num)) {
+    if ((inUse != NULL) && (id < (UInt)num)) {
         assert(GateMP_module->defaultGate != NULL);
         key = GateMP_enter(GateMP_module->defaultGate);
         inUse[id] = UNUSED;

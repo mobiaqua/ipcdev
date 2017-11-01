@@ -98,7 +98,7 @@ LAD_ClientHandle LAD_findHandle(Void)
     pid = getpid();
 
     for (i = 0; i < LAD_MAXNUMCLIENTS; i++) {
-        if (clientInfo[i].PID == pid &&
+        if (clientInfo[i].PID == (UInt)pid &&
             clientInfo[i].connectedToLAD == TRUE) {
             break;
         }

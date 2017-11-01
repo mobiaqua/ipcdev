@@ -416,7 +416,7 @@ Int GateMP_open(String name, GateMP_Handle *handle)
                     another processor")
                 status = GateMP_E_FAIL;
             }
-            else if (nsValue[0] != getpid()) {
+            else if (nsValue[0] != (UInt32)getpid()) {
                 /* error: trying to open another process's private gate */
                 *handle = NULL;
                 PRINTVERBOSE0("GateMP_open: cannot open private gate from \
@@ -808,7 +808,7 @@ static Int GateMP_Instance_init(GateMP_Object *obj,
             else {
                 /* created instance */
                 obj->resourceId = GateMP_getFreeResource(obj->remoteProtect);
-                if (obj->resourceId == -1) {
+                if (obj->resourceId == (UInt)-1) {
                     return (GateMP_E_RESOURCE);
                 }
             }
@@ -872,6 +872,7 @@ static Int GateMP_Instance_init(GateMP_Object *obj,
 static Void GateMP_Instance_finalize(GateMP_Object *obj, Int status)
 {
     GateMP_Object ** remoteGates = NULL;
+    (Void)status;
 
     /* remove from NameServer */
     if (obj->nsKey != 0) {

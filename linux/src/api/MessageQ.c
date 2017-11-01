@@ -1015,7 +1015,7 @@ Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout)
     }
 #endif
 
-    if (timeout == MessageQ_FOREVER) {
+    if (timeout == (UInt)MessageQ_FOREVER) {
         sem_wait(&obj->synchronizer);
     }
     else {
@@ -1067,7 +1067,10 @@ Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout)
 Int MessageQ_count(MessageQ_Handle handle)
 {
     Int               count = -1;
-#if 0
+#if 1
+    (Void)handle;
+
+#else
     MessageQ_Object * obj   = (MessageQ_Object *) handle;
     socklen_t         optlen;
 
@@ -1279,6 +1282,7 @@ Void MessageQ_setMsgTrace(MessageQ_Msg msg, Bool traceFlag)
 SizeT MessageQ_sharedMemReq(Ptr sharedAddr)
 {
     SizeT memReq = 0u;
+    (Void)sharedAddr;
 
     /* Do nothing, as this is a copy transport. */
 

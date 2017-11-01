@@ -276,11 +276,12 @@ Void GateHWSpinlock_Params_init(GateHWSpinlock_Params *params)
  * Create a GateHWSpinlock instance
  */
 /* TODO: change the function to accept a local gate. Do this on all platforms */
-GateHWSpinlock_Handle GateHWSpinlock_create(GateHWSpinlock_LocalProtect
+GateHWSpinlock_Handle GateHWSpinlock_create(GateMP_LocalProtect
     localProtect, const GateHWSpinlock_Params * params)
 {
     GateHWSpinlock_Object * obj = (GateHWSpinlock_Object *)calloc(1,
         sizeof (GateHWSpinlock_Object));
+    (Void)localProtect;
 
     if (!obj) {
         PRINTVERBOSE0("GateHWSpinlock_create: memory allocation failure")

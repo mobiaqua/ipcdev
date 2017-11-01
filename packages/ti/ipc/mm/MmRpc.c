@@ -115,6 +115,7 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
     int             status = MmRpc_S_SUCCESS;
     MmRpc_Object *  obj = NULL;
     char            cbuf[RPPC_MAX_INST_NAMELEN+16];
+    (void)params;
 
     if (service == NULL || handlePtr == NULL) {
         status = MmRpc_E_INVALIDPARAM;
@@ -208,7 +209,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     MmRpc_Param *param;
     void *msg = NULL;
     int len;
-    int i;
+    unsigned int i;
 
     if (handle == NULL || ctx == NULL || ret == NULL) {
         status = MmRpc_E_INVALIDPARAM;

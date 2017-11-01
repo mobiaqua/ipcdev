@@ -103,6 +103,7 @@ HeapStd_Handle HeapStd_downCast(IHeap_Handle base)
 void *HeapStd_alloc(void *handle, size_t size)
 {
     void *block;
+    (void)handle;
 
     block = malloc(size);
     return (block);
@@ -113,5 +114,7 @@ void *HeapStd_alloc(void *handle, size_t size)
  */
 void HeapStd_free(void *handle, void *block)
 {
+    (void)handle;
+
     free(block);
 }
