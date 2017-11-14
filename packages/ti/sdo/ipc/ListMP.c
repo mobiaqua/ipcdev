@@ -79,6 +79,19 @@
  *                       Common Header Functions
  *************************************************************************
  */
+/*
+ *  ======== ListMP_barrier ========
+ *    Function ensures all the writeback to memory is complete
+ */
+static inline void ListMP_barrier(void)
+{
+#if defined(xdc_target__isaCompatible_64P)
+    /* Use _mfence to make sure memory transactions are complete */
+    _mfence();
+    /* Second mfence needed due to errata: See C6670 Advisory 32 */
+    _mfence();
+#endif
+}
 
 /*
  *  ======== ListMP_Params_init ========
@@ -382,6 +395,8 @@ Ptr ListMP_getHead(ListMP_Handle handle)
     if (obj->cacheEnabled) {
         Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -463,6 +478,8 @@ Ptr ListMP_getTail(ListMP_Handle handle)
     if (obj->cacheEnabled) {
         Cache_wbInv(&(attrs->head), sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -536,6 +553,8 @@ Int ListMP_insert(ListMP_Handle handle, ListMP_Elem *newElem,
         /* writeback invalidate new elem structure  */
         Cache_wbInv(newElem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -678,6 +697,8 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
         /* Write-back because elem->next & elem->prev changed */
         Cache_wbInv(elem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -747,6 +768,8 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
         /* Write-back because elem->next & elem->prev changed */
         Cache_wbInv(elem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -797,6 +820,8 @@ Int ListMP_remove(ListMP_Handle handle, ListMP_Elem *elem)
     if (localNextElemIsCached) {
         Cache_wbInv(localNextElem, sizeof(ListMP_Elem), Cache_Type_ALL, TRUE);
     }
+    else
+        ListMP_barrier();
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
