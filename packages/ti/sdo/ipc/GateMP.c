@@ -872,6 +872,13 @@ Int ti_sdo_ipc_GateMP_attach(UInt16 remoteProcId, Ptr sharedAddr)
 
     if ((entry.ownerProcId != MultiProc_self()) &&
         (entry.ownerProcId != MultiProc_INVALIDID)) {
+
+        /* Make sure to invalidate cache before using shared memory content */
+        if (entry.cacheEnable) {
+            Cache_inv(sharedAddr, ti_sdo_ipc_GateMP_getRegion0ReservedSize(),
+                      Cache_Type_ALL, TRUE);
+        }
+
         /* if not the owner of the SharedRegion */
         ti_sdo_ipc_GateMP_openRegion0Reserved(sharedAddr);
 
