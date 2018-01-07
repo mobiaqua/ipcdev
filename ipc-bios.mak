@@ -55,7 +55,9 @@ else
 packageprefix := $(prefix)
 endif
 
-include ./products.mak
+#Products.mak can be overriden by SDK top level Rules.make file
+RULES_MAKE ?= ./products.mak
+include $(RULES_MAKE)
 
 #
 # Set XDCARGS to some of the variables above.  XDCARGS are passed
