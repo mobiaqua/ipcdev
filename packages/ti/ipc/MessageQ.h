@@ -599,8 +599,8 @@ typedef struct {
  *  @brief      Required first field in every message
  */
 typedef struct {
-    Bits32       reserved0;         /*!< reserved for List.elem->next       */
-    Bits32       reserved1;         /*!< reserved for List.elem->prev       */
+    Bits64       reserved0;         /*!< reserved for List.elem->next       */
+    Bits64       reserved1;         /*!< reserved for List.elem->prev       */
     Bits32       msgSize;           /*!< message size                       */
     Bits16       flags;             /*!< bitmask of different flags         */
     Bits16       msgId;             /*!< message id                         */
