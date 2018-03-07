@@ -279,8 +279,9 @@ Int GateMP_start(Void)
     if (status < 0) {
         GateMP_stop();
     }
-
-    GateMP_module->isStarted = TRUE;
+    else {
+        GateMP_module->isStarted = TRUE;
+    }
 
     return status;
 }
@@ -446,7 +447,19 @@ Int GateMP_open(String name, GateMP_Handle *handle)
                 case GateMP_RemoteProtect_SYSTEM:
                 case GateMP_RemoteProtect_CUSTOM1:
                 case GateMP_RemoteProtect_CUSTOM2:
-                    obj = GateMP_module->remoteSystemGates[arg];
+                    if (GateMP_module->remoteSystemGates != NULL) {
+                        if ((Int)arg < GateMP_module->numRemoteSystem) {
+                            obj = GateMP_module->remoteSystemGates[arg];
+                        }
+                        else {
+                            status = GateMP_E_FAIL;
+                            PRINTVERBOSE1("GateMP_open: invalid system gate index [%d]\n", arg)
+                        }
+                    }
+                    else {
+                        status = GateMP_E_FAIL;
+                        PRINTVERBOSE0("GateMP_open: GateMP is not attached\n")
+                    }
                     break;
 
                 default:
