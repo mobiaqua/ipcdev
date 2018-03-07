@@ -208,6 +208,7 @@ Int Ipc_start(Void)
 
     if (status < 0) {
         fprintf(stderr, "Ipc_start: NameServer_setup() failed: %d\n", status);
+        LAD_disconnect(ladHandle);
         status = Ipc_E_FAIL;
         goto exit;
     }
@@ -225,6 +226,10 @@ Int Ipc_start(Void)
     status = Ipc_module.transportFactory->createFxn();
 
     if (status < 0) {
+        MessageQ_unregisterHeap(Ipc_module.config.idHeapStd);
+        MessageQ_destroy();
+        NameServer_destroy();
+        LAD_disconnect(ladHandle);
         goto exit;
     }
 
@@ -266,6 +271,32 @@ Int Ipc_start(Void)
         if (status < 0) {
             fprintf(stderr, "Ipc_start: GateHWSpinlock_start failed: %d\n",
                     status);
+            if (Ipc_module.config.procSync == Ipc_ProcSync_ALL) {
+                clusterSize = MultiProc_getNumProcsInCluster();
+                baseId = MultiProc_getBaseIdOfCluster();
+
+                for (clusterId = 0; clusterId < clusterSize; clusterId++) {
+                    procId = baseId + clusterId;
+
+                    if (MultiProc_self() == procId) {
+                        continue;
+                    }
+
+                    /*  For backward compatibility, we might not be attached to
+                     *  all cluster members. Skip unattached processors.
+                     */
+                    if (!Ipc_isAttached(procId)) {
+                        continue;
+                    }
+
+                    Ipc_detach(procId);
+                }
+            }
+            Ipc_module.transportFactory->deleteFxn();
+            MessageQ_unregisterHeap(Ipc_module.config.idHeapStd);
+            MessageQ_destroy();
+            NameServer_destroy();
+            LAD_disconnect(ladHandle);
             status = Ipc_E_FAIL;
             goto exit;
         }
@@ -282,6 +313,32 @@ Int Ipc_start(Void)
                 fprintf(stderr, "Ipc_start: GateMP_start failed: %d\n", status);
                 status = Ipc_E_FAIL;
                 GateHWSpinlock_stop();
+                if (Ipc_module.config.procSync == Ipc_ProcSync_ALL) {
+                    clusterSize = MultiProc_getNumProcsInCluster();
+                    baseId = MultiProc_getBaseIdOfCluster();
+
+                    for (clusterId = 0; clusterId < clusterSize; clusterId++) {
+                        procId = baseId + clusterId;
+
+                        if (MultiProc_self() == procId) {
+                            continue;
+                        }
+
+                        /*  For backward compatibility, we might not be attached to
+                         *  all cluster members. Skip unattached processors.
+                         */
+                        if (!Ipc_isAttached(procId)) {
+                            continue;
+                        }
+
+                        Ipc_detach(procId);
+                    }
+                }
+                Ipc_module.transportFactory->deleteFxn();
+                MessageQ_unregisterHeap(Ipc_module.config.idHeapStd);
+                MessageQ_destroy();
+                NameServer_destroy();
+                LAD_disconnect(ladHandle);
                 goto exit;
             }
         }
