@@ -282,7 +282,7 @@ Bool ListMP_empty(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
     /* ARM speculative execution might have pulled attrs into cache */
     if (obj->cacheEnabled) {
         Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
@@ -340,7 +340,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
     /* ARM speculative execution might have pulled attrs into cache */
     if (obj->cacheEnabled) {
         Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
@@ -423,7 +423,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
     /* ARM speculative execution might have pulled attrs into cache */
     if (obj->cacheEnabled) {
         Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
@@ -655,7 +655,7 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
     /* ARM speculative execution might have pulled attrs into cache */
     if (obj->cacheEnabled) {
         Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
@@ -726,7 +726,7 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
     /* prevent another thread or processor from modifying the ListMP */
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
     /* ARM speculative execution might have pulled attrs into cache */
     if (obj->cacheEnabled) {
         Cache_inv(attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL, TRUE);
@@ -859,7 +859,7 @@ Int ti_sdo_ipc_ListMP_Instance_init(ti_sdo_ipc_ListMP_Object *obj,
         obj->cacheEnabled = SharedRegion_isCacheEnabled(obj->regionId);
         obj->cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
 
-#ifdef xdc_target__isaCompatible_v7A
+#if defined(xdc_target__isaCompatible_v7A) || defined(xdc_target__isaCompatible_v8A)
         /* ARM speculative execution might have pulled attrs into cache */
         if (obj->cacheEnabled) {
             Cache_inv(obj->attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL,
