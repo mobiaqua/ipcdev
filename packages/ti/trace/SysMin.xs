@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, Texas Instruments Incorporated
+ * Copyright (c) 2008-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,22 +41,27 @@ var Core = undefined;
  */
 function module$static$init(obj, params)
 {
-    var segname = Program.sectMap[".tracebuf"];
-    if (segname == undefined) {
-        this.$logError(".tracebuf section not found in Program.sectMap", this);
-    }
 
-    var segment = Program.cpu.memoryMap[segname];
-    if (segment == undefined) {
-        this.$logError(".tracebuf section found, but not in " +
-                "Program.cpu.memoryMap", this);
-    }
+    /* Skip this error checking for AM65X */
+    if (!Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/)) {
 
-    if (params.bufSize > segment.len) {
-        this.$logError("bufSize 0x" + Number(params.bufSize).toString(16) +
-                       " configured is too large, maximum bufSize allowed is " +
-                       "0x" + Number(segment.len).toString(16) + ". Decrement" +
-                       " the bufSize appropriately.", this);
+        var segname = Program.sectMap[".tracebuf"];
+        if (segname == undefined) {
+            this.$logError(".tracebuf section not found in Program.sectMap", this);
+        }
+
+        var segment = Program.cpu.memoryMap[segname];
+        if (segment == undefined) {
+            this.$logError(".tracebuf section found, but not in " +
+                    "Program.cpu.memoryMap", this);
+        }
+
+        if (params.bufSize > segment.len) {
+            this.$logError("bufSize 0x" + Number(params.bufSize).toString(16) +
+                           " configured is too large, maximum bufSize allowed is " +
+                           "0x" + Number(segment.len).toString(16) + ". Decrement" +
+                           " the bufSize appropriately.", this);
+        }
     }
 
     if (params.bufSize - 8 < this.LINEBUFSIZE) {
