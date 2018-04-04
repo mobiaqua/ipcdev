@@ -43,7 +43,7 @@ var Idle = xdc.useModule('ti.sysbios.knl.Idle');
 Idle.addFunc('&VirtQueue_cacheWb');
 
 var System = xdc.useModule('xdc.runtime.System');
-var SysMin = xdc.useModule('xdc.runtime.SysMin');
+var SysMin = xdc.useModule('ti.trace.SysMin');
 System.SupportProxy = SysMin;
 
 var Diags = xdc.useModule('xdc.runtime.Diags');

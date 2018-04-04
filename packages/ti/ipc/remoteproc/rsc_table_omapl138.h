@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, Texas Instruments Incorporated
+ * Copyright (c) 2011-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ struct my_resource_table {
     struct fw_rsc_trace trace;
 };
 
-#define TRACEBUFADDR (UInt32)&xdc_runtime_SysMin_Module_State_0_outbuf__A
+#define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
 #define TRACEBUFSIZE 0x8000
 
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")

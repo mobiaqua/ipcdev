@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ struct my_resource_table {
 };
 
 /* Add trace buffer information to the resource table */
-#define TRACEBUFADDR (UInt32)&xdc_runtime_SysMin_Module_State_0_outbuf__A
+#define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
 #define TRACEBUFSIZE 0x8000
 
 #define CARVEOUTADDR TRACEBUFADDR

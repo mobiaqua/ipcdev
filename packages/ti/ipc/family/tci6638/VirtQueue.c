@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@
 #include <xdc/runtime/Memory.h>
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
-#include <xdc/runtime/SysMin.h>
+#include <ti/trace/SysMin.h>
 #include <ti/sysbios/gates/GateAll.h>
 
 #include <ti/sysbios/knl/Clock.h>
