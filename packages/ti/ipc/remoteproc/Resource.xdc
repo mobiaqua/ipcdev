@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,14 @@ module Resource {
      *          address of the loadSegment
      */
     metaonly config String loadSegment;
+
+    /*!
+     *  @def    Resource_loadSymbol
+     *  @brief  If loadSymbol is defined, loadAddr is overridden with the
+     *          loadSymbol as external pointer
+     */
+    metaonly config String loadSymbol;
+
 
     /*!
      *  @def    Resource_traceOnly
