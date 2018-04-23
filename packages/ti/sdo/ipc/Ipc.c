@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -880,6 +880,9 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
             /* convert Ptr associated with curSRPtr */
             entry = (ti_sdo_ipc_Ipc_ConfigEntry *)
                     (SharedRegion_getPtr(curSRPtr));
+
+            /* Assert that the remoteProc in our cluster */
+            Assert_isTrue(entry != NULL, ti_sdo_ipc_Ipc_A_internal);
 
             /* make sure entry matches remoteProcId, tag, and size */
             if ((entry->remoteProcId == remoteProcId) &&

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -181,6 +181,10 @@ Int ListMP_open(String name, ListMP_Handle *handlePtr)
     }
 
     sharedAddr = SharedRegion_getPtr(sharedShmBase);
+    if ( sharedAddr == NULL ) {
+        *handlePtr = NULL;
+        return (ListMP_E_NOTFOUND);
+    }
 
     status = ListMP_openByAddr(sharedAddr, handlePtr);
 
@@ -856,14 +860,17 @@ Int ti_sdo_ipc_ListMP_Instance_init(ti_sdo_ipc_ListMP_Object *obj,
         obj->cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
 
 #ifdef xdc_target__isaCompatible_v7A
-    /* ARM speculative execution might have pulled attrs into cache */
-    if (obj->cacheEnabled) {
-        Cache_inv(obj->attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL,
+        /* ARM speculative execution might have pulled attrs into cache */
+        if (obj->cacheEnabled) {
+            Cache_inv(obj->attrs, sizeof(ti_sdo_ipc_ListMP_Attrs), Cache_Type_ALL,
                 TRUE);
-    }
+        }
 #endif
         /* get the local address of the SRPtr */
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
+
+        /* Do NULL check on localAddr */
+        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
         if (status != GateMP_S_SUCCESS) {

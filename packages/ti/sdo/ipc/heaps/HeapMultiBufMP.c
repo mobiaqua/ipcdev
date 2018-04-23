@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -308,6 +308,8 @@ Int HeapMultiBufMP_open(String name,
     }
 
     sharedAddr = SharedRegion_getPtr(sharedShmBase);
+    Assert_isTrue(sharedAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
+
 
     status = HeapMultiBufMP_openByAddr(sharedAddr, handlePtr);
 
@@ -456,6 +458,7 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
         obj->cacheEnabled   = SharedRegion_isCacheEnabled(obj->regionId);
 
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
+        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
         if (status != GateMP_S_SUCCESS) {
@@ -513,6 +516,8 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
 
     HeapMultiBufMP_postInit(obj, eb);
     if (Error_check(eb)) {
+        /* Set to NULL since optBucketEntries is on the stack */
+        obj->bucketEntries = NULL;
         return (1);
     }
 
@@ -765,6 +770,10 @@ ti_sdo_ipc_heaps_HeapMultiBufMP_Elem *ti_sdo_ipc_heaps_HeapMultiBufMP_getHead(
             ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
         sharedBlock = obj->attrs->buckets[index].head;
         block = SharedRegion_getPtr(sharedBlock);
+
+        if (block == NULL) {
+            return(NULL);
+        }
 
         if (obj->cacheEnabled) {
             /*

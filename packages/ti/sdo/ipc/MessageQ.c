@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -486,7 +486,7 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
     IMessageQTransport_Handle transport;
     MessageQ_QueueIndex dstProcId = (MessageQ_QueueIndex)(queueId >> 16);
     List_Handle       listHandle;
-    Int               status;
+    Int               status = MessageQ_E_FAIL;
     UInt              priority;
 #ifndef xdc_runtime_Log_DISABLE_ALL
     UInt16            flags;
@@ -640,7 +640,10 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
 
             case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
                 netTrans = INetworkTransport_Handle_downCast(baseTrans);
-
+                if(netTrans == NULL) {
+                    status = MessageQ_E_FAIL;
+                    break;
+                }
                 if (INetworkTransport_put(netTrans, msg)) {
                     status = MessageQ_S_SUCCESS;
                 }
@@ -978,7 +981,7 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj,
     MessageQ_QueueIndex queueIndex;
     MessageQ_QueueIndex queuePort;
     Int tid;
-    Int status;
+    Int status = MessageQ_E_FAIL;
     ITransport_Handle baseTrans;
     INetworkTransport_Handle netTrans;
 
@@ -1097,6 +1100,10 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj,
 
             case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
                 netTrans = INetworkTransport_Handle_downCast(baseTrans);
+                if(netTrans == NULL) {
+                    status = MessageQ_E_FAIL;
+                    break;
+                }
 
                 if (INetworkTransport_bind(netTrans, obj->queue)) {
                     status = MessageQ_S_SUCCESS;
@@ -1109,7 +1116,7 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj,
 
         /* check for failure */
         if (status < 0) {
-            /* TODO add error handling */
+            return(6);
         }
     }
 
@@ -1145,6 +1152,10 @@ Void ti_sdo_ipc_MessageQ_Instance_finalize(
 
             case ti_sdo_ipc_MessageQ_TransportType_INetworkTransport:
                 netTrans = INetworkTransport_Handle_downCast(baseTrans);
+                if(netTrans == NULL) {
+                    status = MessageQ_E_FAIL;
+                    break;
+                }
 
                 if (INetworkTransport_unbind(netTrans, obj->queue)) {
                     status = MessageQ_S_SUCCESS;

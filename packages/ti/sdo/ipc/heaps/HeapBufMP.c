@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -270,6 +270,9 @@ Int HeapBufMP_open(String name,
     }
 
     sharedAddr = SharedRegion_getPtr(sharedShmBase);
+    /* Assert if sharedAddr is NULL */
+    Assert_isTrue(sharedAddr != NULL,
+            ti_sdo_ipc_Ipc_A_internal);
 
     status = HeapBufMP_openByAddr(sharedAddr, handlePtr);
 
@@ -428,6 +431,9 @@ Int ti_sdo_ipc_heaps_HeapBufMP_Instance_init(
         obj->objType        = ti_sdo_ipc_Ipc_ObjType_OPENDYNAMIC;
 
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
+
+        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
+
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
         if (status != GateMP_S_SUCCESS) {
             Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);

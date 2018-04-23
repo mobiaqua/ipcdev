@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -289,6 +289,10 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
         /* Opening a remote GateMP. Need to do SharedRegion Ptr conversion. */
         sharedShmBase = (SharedRegion_SRPtr)nsValue[0];
         sharedAddr = SharedRegion_getPtr(sharedShmBase);
+        if ( sharedAddr == NULL ) {
+            *handlePtr = NULL;
+            return (GateMP_E_FAIL);
+        }
         status = GateMP_openByAddr(sharedAddr, handlePtr);
     }
     else {

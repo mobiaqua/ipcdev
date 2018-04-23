@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -355,6 +355,11 @@ Int Notify_registerEvent(UInt16                 procId,
     listener->callback.cbckArg = cbckArg;
 
     eventList = List_Object_get(obj->eventList, strippedEventId);
+    if (eventList == NULL) {
+        Gate_leaveModule(modKey);
+
+        return (Notify_E_RESOURCE);
+    }
 
     /*
      *  Store whether the list was empty so we know whether to register the
@@ -645,6 +650,10 @@ Int Notify_unregisterEvent(UInt16                 procId,
 
     eventList = List_Object_get(obj->eventList, strippedEventId);
 
+    if ( eventList == NULL) {
+        return (Notify_E_NOTFOUND);
+    }
+
     if (List_empty(eventList)) {
         return (Notify_E_NOTFOUND);
     }
@@ -902,6 +911,9 @@ Void ti_sdo_ipc_Notify_execMany(UInt16 procId, UInt16 lineId, UInt32 eventId,
 
     /* Both loopback and the the event itself are enabled */
     eventList = List_Object_get(obj->eventList, eventId);
+
+    /* Check eventList Non Null */
+    Assert_isTrue(eventList != NULL, ti_sdo_ipc_Notify_A_internal);
 
     /* Use "NULL" to get the first EventListener on the list */
     listener = (ti_sdo_ipc_Notify_EventListener *)List_next(eventList, NULL);

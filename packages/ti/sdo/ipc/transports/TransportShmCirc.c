@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -435,6 +435,9 @@ Void TransportShmCirc_swiFxn(UArg arg)
     while (writeIndex != readIndex) {
         /* get the msg (convert SRPtr to Ptr) */
         msg = SharedRegion_getPtr((SharedRegion_SRPtr)eventEntry[0]);
+
+        /* Make sure the msg Ptr is not NULL */
+        Assert_isTrue(msg != NULL, ti_sdo_ipc_Ipc_A_internal);
 
         /* get the queue id */
         queueId = MessageQ_getDstQueue(msg);
