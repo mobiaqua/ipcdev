@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,30 @@
  */
 
 /*
- *  ======== IpcMemory.xs ========
+ *  ======== Resource.xs ========
  *
  */
-var IpcMemory;
+var Resource;
 
 /*
  *  ======== module$meta$init ========
  */
 function module$use()
 {
-    IpcMemory = this;
+    Resource = this;
 
     var memmap = Program.cpu.memoryMap;
     var segment = null;
-    var addr = IpcMemory.loadAddr;
+    var addr = Resource.loadAddr;
 
-    if (IpcMemory.loadSegment != undefined) {
+    if (Resource.loadSegment != undefined) {
         for (var i=0; i < memmap.length; i++) {
-            if (memmap[i].name == IpcMemory.loadSegment) {
+            if (memmap[i].name == Resource.loadSegment) {
                 segment = memmap[i];
             }
         }
         if (segment == null) {
-            this.$logError("IpcMemory.loadSegment not found", this);
+            this.$logError("Resource.loadSegment not found", this);
         }
         addr = segment.base;
     }
@@ -69,18 +69,18 @@ function module$static$init(obj, params)
 {
     var memmap = Program.cpu.memoryMap;
     var segment = null;
-    var addr = IpcMemory.loadAddr;
+    var addr = Resource.loadAddr;
 
-    if (IpcMemory.loadSegment != undefined) {
+    if (Resource.loadSegment != undefined) {
         for (var i=0; i < memmap.length; i++) {
-            if (memmap[i].name == IpcMemory.loadSegment) {
+            if (memmap[i].name == Resource.loadSegment) {
                 segment = memmap[i];
             }
         }
         if (null == segment) {
-            this.$logError("IpcMemory.loadSegment not found", this);
+            this.$logError("Resource.loadSegment not found", this);
         }
-//        print("IpcMemory.loadSegment", IpcMemory.loadSegment);
+//        print("Resource.loadSegment", Resource.loadSegment);
         addr = segment.base;
     }
 
