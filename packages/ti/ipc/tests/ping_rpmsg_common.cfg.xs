@@ -225,6 +225,16 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
     SysMin.bufSize  = 0x8000;
 
     Program.sectMap[".tracebuf"] = "TRACE_BUF";
+
+    var dmTimer = xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
+    /* Skip the Timer frequency verification check. Need to remove this later */
+    dmTimer.checkFrequency = false;
+
+    /* Match this to the SYS_CLK frequency sourcing the dmTimers.
+     * Not needed once the appropriate build target is used (Make sure
+     * SYS/BIOS family settings are updated */
+    dmTimer.intFreq.hi = 0;
+    dmTimer.intFreq.lo = 25000000;
 }else {
     throw("ping_rpmsg_common.cfg: Did not match any platform!"
           + " platform:" +  Program.platformName + "cpuCore:"
