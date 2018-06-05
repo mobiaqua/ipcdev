@@ -47,6 +47,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <time.h>
 
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
@@ -1065,6 +1066,11 @@ static Int connectToLAD(String clientName, Int pid, String clientProto, Int *cli
     Int clientId = -1;
     Bool connectDenied = FALSE;
     Int status = LAD_SUCCESS;
+    time_t currentTime;
+    time_t startTime;
+    struct stat statBuf;
+    double delta = 0;
+    int filePtrFd = 0;
     FILE * filePtr;
     Int statusIO;
 
@@ -1133,7 +1139,30 @@ openResponseFIFO:
     /* set FIFO permissions to read/write */
     chmod(clientName, 0666);
 
+    startTime = time ((time_t *) 0);
+    while (delta <= LAD_RESPONSEFIFOTIMEOUT) {
+        /* open a file for writing to FIFO, non-blocking so we can timeout */
+        filePtrFd = open(clientName, O_WRONLY | O_TRUNC | O_NONBLOCK);
+        if (filePtrFd != -1) {
+            break;
+        }
+        LOG1("\nWARN: Client %s has not yet opened, will retry\n", clientName)
+        usleep(100);
+        currentTime = time ((time_t *) 0);
+        delta = difftime(currentTime, startTime);
+    }
+
+    if (delta > LAD_RESPONSEFIFOTIMEOUT) {
+        LOG1("\nERROR: timed out waiting for Client to open response FIFO %s\n", clientName);
+        unlink(clientName);
+        status = LAD_IOFAILURE;
+        goto doneconnect;
+    }
+
     filePtr = fopen(clientName, "w");
+
+    close(filePtrFd);
+
     if (filePtr == NULL) {
         LOG1("\nERROR: unable to open response FIFO %s\n", clientName)
 

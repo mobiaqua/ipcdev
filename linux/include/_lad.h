@@ -147,6 +147,7 @@ extern struct timeval start_tv;
 #define LAD_MAXNUMCLIENTS  32      /* max simultaneous clients */
 #define LAD_CONNECTTIMEOUT 5.0  /* LAD connect response timeout (sec) */
 #define LAD_DISCONNECTTIMEOUT   5.0  /* LAD disconnect timeout (sec) */
+#define LAD_RESPONSEFIFOTIMEOUT 1.0  /* LAD timeout for opening the response fifo */
 #define LAD_MAXLENGTHFIFONAME   128  /* max length client FIFO name */
 #define LAD_MAXLENGTHCOMMAND    512  /* size limit for LAD command string */
 #define LAD_MAXLENGTHRESPONSE   512  /* size limit for LAD response string */
