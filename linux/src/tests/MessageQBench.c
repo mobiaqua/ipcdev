@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -228,7 +228,7 @@ int main (int argc, char * argv[])
     if (argc > 4) {
         printf("Usage: %s [<numLoops>] [<payloadSize>] [<ProcId>]\n", argv[0]);
         printf("\tDefaults: numLoops: %d; payloadSize: %d, ProcId: %d\n",
-                   NUM_LOOPS_DFLT, MINPAYLOADSIZE, PROC_ID_DFLT);
+                   NUM_LOOPS_DFLT, (int)MINPAYLOADSIZE, PROC_ID_DFLT);
         exit(0);
     }
 

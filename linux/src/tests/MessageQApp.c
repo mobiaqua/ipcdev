@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,10 +151,10 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
         }
 
         if (numLoops <= 200) {
-            printf("MessageQ_get #%d Msg = 0x%x\n", i, (UInt)msg);
+            printf("MessageQ_get #%d Msg = %p\n", i, msg);
         }
         else if ((i % 1000) == 0) {
-            printf("MessageQ_get #%d Msg = 0x%x\n", i, (UInt)msg);
+            printf("MessageQ_get #%d Msg = %p\n", i, msg);
         }
     }
 
