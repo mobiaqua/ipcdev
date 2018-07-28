@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -401,7 +401,10 @@ static void NameServerRemote_processMessage(NameServerRemote_Msg *msg,
         memcpy(&NameServer_module->nsMsg, msg, sizeof(NameServerRemote_Msg));
 
         /* Post the eventfd upon which NameServer_get() is waiting */
-        write(NameServer_module->waitFd, &buf, sizeof(uint64_t));
+        err = write(NameServer_module->waitFd, &buf, sizeof(uint64_t));
+        if (err < 0) {
+            LOG2("NameServer: event write failed: %d, %s\n", errno, strerror(errno))
+        }
     }
 }
 
@@ -425,6 +428,7 @@ static void *listener_cb(void *arg)
     Bool run = TRUE;
     Bool reconnect = FALSE;
     (Void)arg;
+    int err;
 
     LOG0("listener_cb: Entered Listener thread.\n")
 
@@ -498,8 +502,11 @@ static void *listener_cb(void *arg)
         /* check for events */
         if (FD_ISSET(NameServer_module->unblockFd, &rfds)) {
 
-            read(NameServer_module->unblockFd, &event, sizeof(event));
-
+            err = read(NameServer_module->unblockFd, &event, sizeof(event));
+            if (err < 0) {
+                LOG2("listener_cb: event read failed: %d (%s)\n",
+                              errno, strerror(errno));
+            }
             if (event & NameServer_Event_SHUTDOWN) {
                 LOG0("NameServer: listener thread, event: SHUTDOWN\n")
                 event &= ~NameServer_Event_SHUTDOWN;
@@ -509,7 +516,11 @@ static void *listener_cb(void *arg)
                 LOG0("NameServer: listener thread, event: REFRESH\n")
                 /* send ACK event */
                 event = NameServer_Event_ACK;
-                write(NameServer_module->waitFd, &event, sizeof(event));
+                err = write(NameServer_module->waitFd, &event, sizeof(event));
+                if (err < 0) {
+                    LOG2("listener_cb: event read failed: %d (%s)\n",
+                                  errno, strerror(errno));
+                }
             }
         }
 
@@ -606,6 +617,7 @@ Int NameServer_destroy(void)
 {
     Int status = NameServer_S_SUCCESS;
     uint64_t event;
+    int err;
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
@@ -626,7 +638,11 @@ Int NameServer_destroy(void)
     /* shutdown the NameServer listener thread */
     LOG0("NameServer_destroy: shutdown listener...\n")
     event = NameServer_Event_SHUTDOWN;
-    write(NameServer_module->unblockFd, &event, sizeof(event));
+    err = write(NameServer_module->unblockFd, &event, sizeof(event));
+    if (err < 0) {
+        LOG2("NameServer_destroy: event write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     /* Join: */
     LOG0("NameServer_destroy: joining listener thread...\n")
@@ -1125,7 +1141,11 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
         if (FD_ISSET(waitFd, &rfds)) {
             /* Read, just to balance the write: */
-            read(waitFd, &buf, sizeof(uint64_t));
+            err = read(waitFd, &buf, sizeof(uint64_t));
+            if (err < 0) {
+                LOG2("NameServer_getRemote: event read failed: %d (%s)\n",
+                              errno, strerror(errno));
+            }
 
             /* Process response: */
             replyMsg = &NameServer_module->nsMsg;
@@ -1448,10 +1468,17 @@ Int NameServer_attach(UInt16 procId)
 
     /* tell the listener thread to add new receive sockets */
     event = NameServer_Event_REFRESH;
-    write(NameServer_module->unblockFd, &event, sizeof(event));
-
+    err = write(NameServer_module->unblockFd, &event, sizeof(event));
+    if (err < 0) {
+        LOG2("NameServer_attach: event write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
     /* wait for ACK event */
-    read(NameServer_module->waitFd, &event, sizeof(event));
+    err = read(NameServer_module->waitFd, &event, sizeof(event));
+    if (err < 0) {
+        LOG2("NameServer_attach: event write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     pthread_mutex_lock(&NameServer_module->attachGate);
 
@@ -1490,6 +1517,7 @@ Int NameServer_detach(UInt16 procId)
     int sendSock;
     int recvSock;
     uint64_t event;
+    int err;
 
     /* procId already validated in API layer */
     clId = procId - MultiProc_getBaseIdOfCluster();
@@ -1516,10 +1544,18 @@ Int NameServer_detach(UInt16 procId)
 
     /* tell the listener thread to remove old sockets */
     event = NameServer_Event_REFRESH;
-    write(NameServer_module->unblockFd, &event, sizeof(event));
+    err = write(NameServer_module->unblockFd, &event, sizeof(event));
+    if (err < 0) {
+        LOG2("NameServer_detach: event write failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     /* wait for ACK event */
-    read(NameServer_module->waitFd, &event, sizeof(event));
+    err = read(NameServer_module->waitFd, &event, sizeof(event));
+    if (err < 0) {
+        LOG2("NameServer_detach: ack read failed: %d (%s)\n",
+                      errno, strerror(errno));
+    }
 
     /* close the sending socket */
     LOG1("NameServer_detach: closing socket: %d\n", sendSock)
