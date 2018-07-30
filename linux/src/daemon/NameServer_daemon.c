@@ -1425,8 +1425,8 @@ Int NameServer_attach(UInt16 procId)
     sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
     if (sock < 0) {
         status = NameServer_E_FAIL;
-        LOG2("NameServer_attach: socket failed: %d, %s\n", errno,
-                strerror(errno));
+        LOG3("NameServer_attach: socket failed: Domain %d, Error no %d, Error string:%s\n",
+             AF_RPMSG, errno, strerror(errno));
         goto done;
     }
     NameServer_module->comm[clId].sendSock = sock;
