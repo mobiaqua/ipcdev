@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, Texas Instruments Incorporated
+ * Copyright (c) 2010-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,6 +120,8 @@ var smpTestArray = [
 for each (var targ in Build.targets) {
 
     if (targ.profiles["smp"] === undefined) continue;
+    /* TODO: Currently SMP not supported in BIOS for A53. Disable for now */
+    if (targ.name.match(/A53F/)) continue;
 
     /* For each test... */
     for each (var test in smpTestArray) {
