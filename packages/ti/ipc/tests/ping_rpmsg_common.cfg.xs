@@ -97,6 +97,8 @@ else if (Program.platformName.match(/6614/)) {
     Program.sectMap[".text:_c_int00"].loadSegment = "L2SRAM";
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;
 
+    Program.sectMap[".tracebuf"] = "DDR";
+
     var Hwi = xdc.useModule('ti.sysbios.family.c64p.Hwi');
 
     /* This makes the vrings address range 0xa0000000 to 0xa1ffffff uncachable.
@@ -165,6 +167,8 @@ else if (Program.platformName.match(/simKepler/) ||
     Program.sectMap[".text:_c_int00"] = new Program.SectionSpec();
     Program.sectMap[".text:_c_int00"].loadSegment = "L2SRAM";
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;
+
+    Program.sectMap[".tracebuf"] = "L2SRAM";
 
     var Hwi = xdc.useModule('ti.sysbios.family.c64p.Hwi');
 

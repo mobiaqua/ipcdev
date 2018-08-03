@@ -81,6 +81,7 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Clock.timerId = 1;
 
     SysMin.bufSize  = 0x8000;
+    Program.sectMap[".tracebuf"] = "DDR";
 
     /*  COMMENT OUT TO SHUT OFF LOG FOR BENCHMARKS: */
     /*
@@ -208,6 +209,8 @@ else if (Program.platformName.match(/simKepler/) ||
 
     Program.global.sysMinBufSize = 0x2000;
     SysMin.bufSize  =  Program.global.sysMinBufSize;
+
+    Program.sectMap[".tracebuf"] = "L2SRAM";
 
     /* Enable Memory Translation module that operates on the Resource Table */
     var Resource = xdc.useModule('ti.ipc.remoteproc.Resource');
