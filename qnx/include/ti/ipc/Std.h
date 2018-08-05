@@ -72,9 +72,11 @@ typedef int               Int32;
 typedef unsigned char     UInt8;
 typedef unsigned short    UInt16;
 typedef unsigned int      UInt32;
+typedef unsigned long long UInt64;
 typedef unsigned int      SizeT;
 typedef unsigned short    Bits16;
 typedef UInt32            Bits32;
+typedef UInt64            Bits64;
 
 #define TRUE              1
 #define FALSE             0
