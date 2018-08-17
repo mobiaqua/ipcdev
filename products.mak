@@ -99,6 +99,7 @@ QNX_CFLAGS =
 #
 XDC_INSTALL_DIR = $(DEPOT)/_your_xdctools_install_
 BIOS_INSTALL_DIR = $(DEPOT)/_your_bios_install_
+PDK_INSTALL_DIR = $(DEPOT)/_your_pdk_install_
 
 # Do you want to build SMP-enabled libraries (if supported for your target)?
 # Set to either 0 (disabled) or 1 (enabled)

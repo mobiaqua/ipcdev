@@ -42,6 +42,7 @@
 #include <ti/sdo/ipc/family/am65xx/NotifyDriverMbx.h>
 #include <ti/sdo/ipc/notifyDrivers/NotifyDriverShm.h>
 #include <ti/sdo/utils/_MultiProc.h>
+#include <ti/sdo/ipc/family/am65xx/NotifySciClient.h>
 
 #if defined(xdc_target__isaCompatible_v7R)
 
@@ -56,9 +57,6 @@
 #endif
 
 #include "package/internal/NotifySetup.xdc.h"
-
-
-#define EVENT_GROUP_SIZE 32
 
 /* register access methods */
 #define REG16(A)        (*(volatile UInt16 *)(A))
@@ -90,75 +88,6 @@
 
 #define MBOX_MSG_COUNT(idx) (REG32(MAILBOX_STATUS((idx))))
 
-#define M2M_LVL_INT_RTR_BASE 0x00A10000
-#define M2M_LV_INT_ICR0_OFFSET 0x4
-#define NAVSS_INT_RTR_BASE 0x310E0000
-#define NAVSS_INT_ICR0_OFFSET 0x4
-
-/* Corresponds to VIM: 160 */
-#define M2M_LVL_INT_RTR_OUTPUT_R5F0_0 0
-/* Corresponds to VIM: 161 */
-#define M2M_LVL_INT_RTR_OUTPUT_R5F0_1 1
-/* Corresponds to VIM: 162 */
-#define M2M_LVL_INT_RTR_OUTPUT_R5F1_0 2
-/* Corresponds to VIM: 163 */
-#define M2M_LVL_INT_RTR_OUTPUT_R5F1_1 3
-
-#define NAVSS_INT_RTR_INPUT_MAILBOX0_USER0 436
-#define NAVSS_INT_RTR_INPUT_MAILBOX0_USER1 437
-
-#define NAVSS_INT_RTR_INPUT_MAILBOX1_USER0 432
-#define NAVSS_INT_RTR_INPUT_MAILBOX1_USER1 433
-
-#define NAVSS_INT_RTR_INPUT_MAILBOX2_USER0 428
-#define NAVSS_INT_RTR_INPUT_MAILBOX2_USER1 429
-
-/* Corresponds to GIC: 496 */
-#define NAVSS_INT_RTR_OUTPUT_A53_0    112
-/* Corresponds to GIC: 497 */
-#define NAVSS_INT_RTR_OUTPUT_A53_1    113
-
-#define NAVSS_INT_RTR_OUTPUT_R5F0_0 120
-#define NAVSS_INT_RTR_OUTPUT_R5F1_0 121
-#define NAVSS_INT_RTR_OUTPUT_R5F0_1 122
-#define NAVSS_INT_RTR_OUTPUT_R5F1_1 123
-
-/* The following INPUT is connected to NAVSS OUTPUT 120 */
-#define M2M_LVL_INT_RTR_INPUT_A53_PEND_120 184
-/* The following INPUT is connected to NAVSS OUTPUT 121 */
-#define M2M_LVL_INT_RTR_INPUT_A53_PEND_121 185
-
-/* The following INPUT is connected to NAVSS OUTPUT 122 */
-#define M2M_LVL_INT_RTR_INPUT_A53_PEND_122 186
-/* The following INPUT is connected to NAVSS OUTPUT 123 */
-#define M2M_LVL_INT_RTR_INPUT_A53_PEND_123 187
-
-static inline void connect_m2m_lvl_int_rtr(UInt32 input_evt, UInt32 output_line)
-{
-#ifdef INTERRUPT_ROUTING_THROUGH_DMSC
-    /* TODO: Need to add code to configure routing through DMSC */
-#else
-    /* TODO: Eventually the interrupt routing below cannot be done
-     * directly. Need to go through DMSC. Currently this is done
-     * directly to help Pre-silicon testing
-     */
-    *((UInt32 *)(M2M_LVL_INT_RTR_BASE + M2M_LV_INT_ICR0_OFFSET) + output_line) = input_evt;
-#endif
-}
-
-static inline void connect_navss_int_rtr(UInt32 input_evt, UInt32 output_line)
-{
-#ifdef INTERRUPT_ROUTING_THROUGH_DMSC
-    /* TODO: Need to add code to configure routing through DMSC */
-#else
-    /* TODO: Eventually the interrupt routing below cannot be done
-     * directly. Need to go through DMSC. Currently this is done
-     * directly to help Pre-silicon testing
-     */
-    *((UInt32 *)(NAVSS_INT_RTR_BASE + NAVSS_INT_ICR0_OFFSET) + output_line) = input_evt;
-#endif
-}
-
 /*
  *************************************************************************
  *                      Module functions
@@ -170,65 +99,9 @@ static inline void connect_navss_int_rtr(UInt32 input_evt, UInt32 output_line)
  */
 Int NotifySetup_Module_startup(Int phase)
 {
-#if defined(xdc_target__isaCompatible_v7R)
-    /* connect mailbox interrupts at startup */
-    if ((Core_getId() == 0)) {
-        /* R5F-0 */
-        /* Navss mailbox 0 User 1 */
-        /* Configure NAVSS interrupt router */
-        connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX0_USER1,
-            NAVSS_INT_RTR_OUTPUT_R5F0_0);
-        /* Configure MCU level interrupt router */
-        connect_m2m_lvl_int_rtr(M2M_LVL_INT_RTR_INPUT_A53_PEND_120,
-            M2M_LVL_INT_RTR_OUTPUT_R5F0_0);
+    NotifySciClient_Init();
 
-        /* plug mbx2 only if R5F-1 exists */
-        if ((MultiProc_getId("R5F-1") != MultiProc_INVALIDID)) {
-            /* Navss mailbox 2 User 0 */
-            /* Configure NAVSS interrupt router */
-            connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX2_USER0,
-                NAVSS_INT_RTR_OUTPUT_R5F0_1);
-            /* Configure MCU level interrupt router */
-            connect_m2m_lvl_int_rtr(M2M_LVL_INT_RTR_INPUT_A53_PEND_121,
-                M2M_LVL_INT_RTR_OUTPUT_R5F0_1);
-        }
-    }
-    else { /* R5F-1 */
-        /* Navss mailbox 1 User 1 */
-        /* Configure NAVSS interrupt router */
-        connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX1_USER1,
-            NAVSS_INT_RTR_OUTPUT_R5F1_0);
-        /* Configure MCU level interrupt router */
-        connect_m2m_lvl_int_rtr(M2M_LVL_INT_RTR_INPUT_A53_PEND_122,
-            M2M_LVL_INT_RTR_OUTPUT_R5F1_1);
-
-        /* plug mbx2 only if R5F-0 exists */
-        if ((MultiProc_getId("R5F-0") != MultiProc_INVALIDID)) {
-            /* Navss mailbox 2 User 1 */
-            /* Configure NAVSS interrupt router */
-            connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX2_USER1,
-                NAVSS_INT_RTR_OUTPUT_R5F1_1);
-            /* Configure MCU level interrupt router */
-            connect_m2m_lvl_int_rtr(M2M_LVL_INT_RTR_INPUT_A53_PEND_123,
-                M2M_LVL_INT_RTR_OUTPUT_R5F1_1);
-        }
-    }
     return (Startup_DONE);
-
-#elif defined(xdc_target__isaCompatible_v8A)
-    /* Navss mailbox 0 User 0 */
-    /* Configure NAVSS interrupt router */
-    connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX0_USER0,
-        NAVSS_INT_RTR_OUTPUT_A53_0);
-    /* Navss mailbox 1 User 0 */
-    /* Configure NAVSS interrupt router */
-    connect_navss_int_rtr(NAVSS_INT_RTR_INPUT_MAILBOX1_USER0,
-        NAVSS_INT_RTR_OUTPUT_A53_1);
-    return (Startup_DONE);
-
-#else
-#error Invalid target
-#endif
 }
 
 /*
@@ -305,6 +178,60 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 
     /* disable interrupts */
     key = Hwi_disable();
+#if defined(xdc_target__isaCompatible_v7R)
+    /* connect mailbox interrupts at startup */
+
+    if ((Core_getId() == 0)) {
+        /* R5F-0 */
+        if (remoteProcId == MultiProc_getId("R5F-1") ) {
+            /* Navss mailbox 2 User 0 */
+            /* Configure NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+        } else { /* Host */
+            /* Navss mailbox 0 User 1 */
+            /* Configure NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+         }
+    }
+    else { /* R5F-1 */
+        if (remoteProcId == MultiProc_getId("R5F-0") ) {
+            /* Navss mailbox 2 User 1 */
+            /* Configure NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+
+        } else { /* Host */
+            /* Navss mailbox 1 User 1 */
+            /* Configure NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+        }
+    }
+
+#elif defined(xdc_target__isaCompatible_v8A)
+       if (remoteProcId == MultiProc_getId("R5F-0") ) {
+           /* Navss mailbox 0 User 0 */
+           /* Configure NAVSS interrupt router */
+            NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+
+       } else {
+           /* Navss mailbox 1 User 0 */
+           /* Configure NAVSS interrupt router */
+          NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
+                                 NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                 NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+       }
+#else
+#error Invalid target
+#endif
 
     /* map remote processor id to virtual id */
     srcVirtId = VIRTID(remoteProcId);

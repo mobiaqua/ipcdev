@@ -39,7 +39,8 @@ var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList_common = [
     "NotifySetup.c",
-    "NotifyDriverMbx.c"
+    "NotifyDriverMbx.c",
+    "NotifySciClient.c"
 ];
 
 var objList_r5f = [

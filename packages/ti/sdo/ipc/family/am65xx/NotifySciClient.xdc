@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,42 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== package.xdc ========
- */
+package ti.sdo.ipc.family.am65xx;
 
-requires ti.sdo.ipc;
+module NotifySciClient
+{
+    enum CoreIndex {
+        A53_0_CORE_INDEX = 0,
+        /**< Core index for A53 core 0 */
+        R5F_0_CORE_INDEX,
+        /**< Core index for R5F core 0 */
+        R5F_1_CORE_INDEX
+        /**< Core index for R5F core 1 */
+    } ;
 
-/*!
- *  ======== ti.sdo.ipc.family.am65xx ========
- *  Device specific modules for AM65XX
- *
- *  Low-level modules which interact directly with the device are
- *  grouped into family packages. This package handles the AM65XX
- *  class of devices.
- */
-package ti.sdo.ipc.family.am65xx [1,0,1] {
-    module    TableInit;
-    module    NotifySciClient;
-    module    NotifySetup;
-    module    NotifyDriverMbx;
-    module    InterruptR5f;
-    module    InterruptHost;
-    module    Power;
-}
+    enum SourceIdIndex {
+        MAILBOX_CLUSTER0_SRC_ID_INDEX = 0,
+        /**< Source id index for mailbox cluster 0 */
+        MAILBOX_CLUSTER1_SRC_ID_INDEX,
+        /**< Source id index for mailbox cluster 1 */
+        MAILBOX_CLUSTER2_SRC_ID_INDEX
+        /**< Source id index for mailbox cluster 2 */
+    } ;
+
+    enum MailboxIndex {
+        MAILBOX_USER_0= 0,
+        /**< mailbox user 0 */
+        MAILBOX_USER_1,
+        /**<  mailbox user 1 */
+        MAILBOX_USER_2,
+        /**<  mailbox user 2 */
+        MAILBOX_USER_3
+        /**<  mailbox user 3 */
+    } ;
+
+    Int32 Init ();
+    Int32 IrqSet(CoreIndex coreIndex,
+                 SourceIdIndex mailboxClusterIndex,
+                 MailboxIndex mailboxUserIndex,
+                 UInt32 intNumber);
+};

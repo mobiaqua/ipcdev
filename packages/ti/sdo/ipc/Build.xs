@@ -582,6 +582,7 @@ var ARP32Sources = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
 
 var A53FSources  = "ti/sdo/ipc/family/am65xx/InterruptHost.c " +
                    "ti/sdo/ipc/family/am65xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifySciClient.c " +
                    "ti/sdo/ipc/family/am65xx/NotifySetup.c " +
                    "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/gates/GateHWSem.c ";
@@ -589,6 +590,7 @@ var A53FSources  = "ti/sdo/ipc/family/am65xx/InterruptHost.c " +
 var R5FSources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/am65xx/InterruptR5f.c " +
                    "ti/sdo/ipc/family/am65xx/NotifyDriverMbx.c " +
+                   "ti/sdo/ipc/family/am65xx/NotifySciClient.c " +
                    "ti/sdo/ipc/family/am65xx/NotifySetup.c " +
                    "ti/sdo/ipc/family/am65xx/Power.c " +
                    "ti/ipc/family/am65xx/VirtQueue.c ";
@@ -750,7 +752,6 @@ function getDefs()
         defs += xdc.module('ti.ipc.rpmsg.Build').getDefs();
     }
 
-    /* TODO: Need to clean up : Why is InterruptDucati added here which is platform specific */
     var InterruptDucati =
             xdc.module("ti.sdo.ipc.family.ti81xx.InterruptDucati");
 

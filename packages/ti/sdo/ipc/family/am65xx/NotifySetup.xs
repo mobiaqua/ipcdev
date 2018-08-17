@@ -85,10 +85,25 @@ function module$use()
 {
     /* load modules needed in meta domain and in target domain */
     var TableInit = xdc.useModule("ti.sdo.ipc.family.am65xx.TableInit");
+    var NotifySciClient = xdc.useModule("ti.sdo.ipc.family.am65xx.NotifySciClient");
     MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
     xdc.useModule('xdc.runtime.Assert');
     xdc.useModule('xdc.runtime.Error');
     xdc.useModule('xdc.runtime.Startup');
+
+    /* The following csl & osal modules needed by sciclient module */
+    var devType              = "am65xx"
+    var Csl         	     = xdc.loadPackage('ti.csl');
+    Csl.Settings.deviceType  = devType;
+
+    var osType           = "tirtos";
+    var Osal             = xdc.loadPackage('ti.osal');
+    Osal.Settings.osType = osType;
+
+    /* sciclient needed for interrupt routing and other resource allocation */
+    var sciclientSettings = xdc.useModule ('ti.drv.sciclient.Settings');
+    sciclientSettings.socType = "am65xx";
+    sciclientSettings.boardType = "am65xx_evm";
 
     /* concatinate isa chain into single string for easier matching */
     isaChain = "#" + Program.build.target.getISAChain().join("#") + "#";

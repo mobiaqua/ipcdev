@@ -119,6 +119,11 @@ LIST = $(shell $(XDCPKG) ./packages)
 # Set XDCPATH to contain necessary repositories.
 #
 XDCPATH = $(BIOS_INSTALL_DIR)/packages
+ifeq ($(PDK_INSTALL_DIR),)
+XDCPATH = $(BIOS_INSTALL_DIR)/packages
+else
+XDCPATH = $(BIOS_INSTALL_DIR)/packages;${PDK_INSTALL_DIR}/packages
+endif
 export XDCPATH
 
 #
