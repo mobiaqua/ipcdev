@@ -268,6 +268,10 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
         Timer.intFreqs[i].hi = 0;
     }
 
+    /* Add idle function */
+    xdc.useModule('ti.sdo.ipc.family.am65xx.Power');
+    Idle.addFunc('&Power_Idle');
+
 }
 else {
     throw("messageq_common.cfg.xs: Did not match any platform!"

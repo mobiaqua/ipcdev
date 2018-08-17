@@ -240,6 +240,11 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
      * SYS/BIOS family settings are updated */
     dmTimer.intFreq.hi = 0;
     dmTimer.intFreq.lo = 25000000;
+
+    /* Add idle function */
+    xdc.useModule('ti.sdo.ipc.family.am65xx.Power');
+    Idle.addFunc('&Power_Idle');
+
 }else {
     throw("ping_rpmsg_common.cfg: Did not match any platform!"
           + " platform:" +  Program.platformName + "cpuCore:"
