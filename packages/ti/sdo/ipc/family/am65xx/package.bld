@@ -43,7 +43,8 @@ var objList_common = [
 ];
 
 var objList_r5f = [
-    "InterruptR5f.c"
+    "InterruptR5f.c",
+    "Power.c"
 ].concat(objList_common);
 
 var trgFilter_r5f = {
@@ -71,7 +72,8 @@ if (Bld_goal != "release") {
 Pkg.otherFiles = [
     "package.bld",
     "InterruptR5f.c",
-    "InterruptHost.c"
+    "InterruptHost.c",
+    "Power.c"
 ].concat(objList_common);
 
 /* include source files in the release package */

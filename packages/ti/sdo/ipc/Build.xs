@@ -590,6 +590,7 @@ var R5FSources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
                    "ti/sdo/ipc/family/am65xx/InterruptR5f.c " +
                    "ti/sdo/ipc/family/am65xx/NotifyDriverMbx.c " +
                    "ti/sdo/ipc/family/am65xx/NotifySetup.c " +
+                   "ti/sdo/ipc/family/am65xx/Power.c " +
                    "ti/ipc/family/am65xx/VirtQueue.c ";
 
 var cList = {

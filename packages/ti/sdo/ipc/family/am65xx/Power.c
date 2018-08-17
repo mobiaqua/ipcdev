@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <xdc/std.h>
+
 /*
- *  ======== package.xdc ========
+ *  ======== Power_Idle ========
  */
-
-requires ti.sdo.ipc;
-
-/*!
- *  ======== ti.sdo.ipc.family.am65xx ========
- *  Device specific modules for AM65XX
- *
- *  Low-level modules which interact directly with the device are
- *  grouped into family packages. This package handles the AM65XX
- *  class of devices.
- */
-package ti.sdo.ipc.family.am65xx [1,0,1] {
-    module    TableInit;
-    module    NotifySetup;
-    module    NotifyDriverMbx;
-    module    InterruptR5f;
-    module    InterruptHost;
-    module    Power;
+void Power_Idle()
+{
+    asm(" wfi");
 }
