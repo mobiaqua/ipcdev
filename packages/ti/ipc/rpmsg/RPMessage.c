@@ -304,10 +304,10 @@ Void RPMessage_init(UInt16 remoteProcId)
       Assert_isTrue(FALSE, NULL);
     }
     else {
-#if defined(OMAP5) || defined(VAYU)
-      vqParams.callback = callback_availBufReady;
-#else
+#if defined(OMAPL138)
       vqParams.callback = (xdc_Fxn)callback_availBufReady;
+#else
+      vqParams.callback = callback_availBufReady;
 #endif
     }
 
