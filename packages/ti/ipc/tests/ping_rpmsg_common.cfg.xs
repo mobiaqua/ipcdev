@@ -186,7 +186,7 @@ else if (Program.platformName.match(/simKepler/) ||
     /* TBD: Update for Kepler: */
     Cache.setMarMeta(0xA0000000, 0x1FFFFFF, 0);
 
-    Program.global.sysMinBufSize = 0x8000;
+    Program.global.sysMinBufSize = 0x2000;
     SysMin.bufSize  =  Program.global.sysMinBufSize;
 
     /* Enable Memory Translation module that operates on the Resource Table */
@@ -226,7 +226,7 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
 /* TODO: Need to check on equivalent for K3 */
 /*     Hwi.enableException = true; */
 
-    SysMin.bufSize  = 0x8000;
+    SysMin.bufSize  = 0x2000;
 
     Program.sectMap[".tracebuf"] = "TRACE_BUF";
 

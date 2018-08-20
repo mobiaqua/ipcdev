@@ -284,7 +284,12 @@ var HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
 var params = new HeapBuf.Params;
 params.align = 8;
 params.blockSize = 512;
+if (Program.cpu.deviceName.match(/^TMS320C66AK2E05$/)) {
+params.numBlocks = 32;
+} else {
 params.numBlocks = 64;
+}
+
 var msgHeap = HeapBuf.create(params);
 
 var MessageQ  = xdc.useModule('ti.sdo.ipc.MessageQ');

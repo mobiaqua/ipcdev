@@ -80,10 +80,7 @@ struct my_resource_table {
 
 /* Add trace buffer information to the resource table */
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
-#define TRACEBUFSIZE 0x8000
-
-#define CARVEOUTADDR TRACEBUFADDR
-#define CARVEOUTSIZE TRACEBUFSIZE
+#define TRACEBUFSIZE 0x2000
 
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
