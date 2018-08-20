@@ -59,10 +59,12 @@ function module$use()
         addr = segment.base;
     }
 
-    /* The .resource_table section should always be at the segment base */
-    Program.sectMap[".resource_table"] = new Program.SectionSpec();
-    Program.sectMap[".resource_table"].type = "NOINIT";
-    Program.sectMap[".resource_table"].loadAddress = addr;
+    if ( Resource.loadSymbol == undefined) {
+        /* The .resource_table section should always be at the segment base */
+        Program.sectMap[".resource_table"] = new Program.SectionSpec();
+        Program.sectMap[".resource_table"].type = "NOINIT";
+        Program.sectMap[".resource_table"].loadAddress = addr;
+    }
 }
 
 function module$static$init(obj, params)
