@@ -107,6 +107,7 @@ struct my_resource_table {
 };
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
+#define TRACEBUFSIZE 0x8000
 
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
@@ -154,7 +155,7 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     },
 
     {
-        TYPE_TRACE, TRACEBUFADDR, 0x8000, 0, "trace:r5f0",
+        TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:r5f0",
     },
 
     {

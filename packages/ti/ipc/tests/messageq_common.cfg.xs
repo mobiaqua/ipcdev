@@ -232,8 +232,7 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
 
     print("messageq_common.cfg.xs cpuCore:" + Program.cpu.attrs.cpuCore);
     var VirtQueue = xdc.useModule('ti.ipc.family.am65xx.VirtQueue');
-/* TODO: Need to check on setting the right size */
-//    SysMin.bufSize  = 0x8000;
+    SysMin.bufSize  = 0x8000;
 //    Memory.defaultHeapSize = 0x20000;
 
     /* Enable Memory Translation module that operates on the Resource Table */

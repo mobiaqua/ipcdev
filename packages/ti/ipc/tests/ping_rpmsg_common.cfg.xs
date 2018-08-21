@@ -207,8 +207,7 @@ else if (Program.platformName.match(/simKepler/) ||
 else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
          Program.cpu.attrs.cpuCore.match(/^R5$/)) {
 
-/* TODO: Need check on bufSize & defaultHeapSize */
-//    SysMin.bufSize  = 0x8000;
+/* TODO: Need check on defaultHeapSize */
 //    Memory.defaultHeapSize = 0x20000;
     var VirtQueue = xdc.useModule('ti.ipc.family.am65xx.VirtQueue');
 
@@ -226,7 +225,7 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
 /* TODO: Need to check on equivalent for K3 */
 /*     Hwi.enableException = true; */
 
-    SysMin.bufSize  = 0x2000;
+    SysMin.bufSize  = 0x8000;
 
     Program.sectMap[".tracebuf"] = "TRACE_BUF";
 
