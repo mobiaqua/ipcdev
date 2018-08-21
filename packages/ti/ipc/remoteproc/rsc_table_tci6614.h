@@ -77,9 +77,6 @@ struct resource_table {
 #define TRACEBUFADDR (UInt32)&xdc_runtime_SysMin_Module_State_0_outbuf__A
 #define TRACEBUFSIZE 0x8000
 
-#define CARVEOUTADDR TRACEBUFADDR
-#define CARVEOUTSIZE TRACEBUFSIZE
-
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
