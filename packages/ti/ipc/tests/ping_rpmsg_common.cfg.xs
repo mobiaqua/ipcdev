@@ -84,6 +84,8 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Diags.setMaskMeta("ti.ipc.family.omapl138.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
     */
+
+    Program.sectMap[".tracebuf"] = "DDR";
 }
 else if (Program.platformName.match(/6614/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
