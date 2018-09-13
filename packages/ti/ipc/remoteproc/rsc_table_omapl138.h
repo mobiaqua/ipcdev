@@ -87,7 +87,12 @@ struct my_resource_table {
     struct fw_rsc_trace trace;
 };
 
+/* Add trace buffer information to the resource table */
+#ifdef ti_trace_SysMin_Module_startup
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
+#else
+#define TRACEBUFADDR (UInt32)&xdc_runtime_SysMin_Module_State_0_outbuf__A
+#endif
 #define TRACEBUFSIZE 0x8000
 
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
