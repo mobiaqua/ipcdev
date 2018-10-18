@@ -44,10 +44,6 @@
 
 #include "rsc_types.h"
 
-#define R5F_MEM_TEXT            0x9C200000
-#define R5F_MEM_DATA            0x9C300000
-
-#define R5F_MEM_IPC_DATA        0x9C100000
 #define R5F_MEM_IPC_VRING       0x9C000000
 #define R5F_MEM_RPMSG_VRING0    0x9C000000
 #define R5F_MEM_RPMSG_VRING1    0x9C010000
@@ -55,19 +51,15 @@
 #define R5F_MEM_VRING_BUFS1     0x9C080000
 
 #define R5F_MEM_IPC_VRING_SIZE  SZ_1M
-#define R5F_MEM_IPC_DATA_SIZE   (SZ_1M)
 
-#define R5F_MEM_TEXT_SIZE       (SZ_1M)
-
-#define R5F_MEM_DATA_SIZE       (SZ_1M)
-
-#define R5F_NUM_ENTRIES 6
+#define R5F_NUM_ENTRIES 3
 
 /*
- * Assign fixed RAM addresses to facilitate a fixed MMU table.
- * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
+ * Assign direct mapped RAM address to facilitate address translations in
+ * AM65xx VirtQueue code. The PHYS_MEM_IPC_VRING address should be same as
+ * R5F_MEM_IPC_VRING, and should match the starting base address of the
+ * first reserved memory node assigned to this remoteproc.
  */
-/* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #define PHYS_MEM_IPC_VRING      0x9C000000
 
 /*
@@ -90,15 +82,6 @@ struct my_resource_table {
     struct fw_rsc_vdev_vring rpmsg_vring0;
     struct fw_rsc_vdev_vring rpmsg_vring1;
 
-    /* ipcdata carveout entry */
-    struct fw_rsc_carveout ipcdata_cout;
-
-    /* text carveout entry */
-    struct fw_rsc_carveout text_cout;
-
-    /* data carveout entry */
-    struct fw_rsc_carveout data_cout;
-
     /* trace entry */
     struct fw_rsc_trace trace;
 
@@ -119,9 +102,6 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     /* offsets to entries */
     {
         offsetof(struct my_resource_table, rpmsg_vdev),
-        offsetof(struct my_resource_table, ipcdata_cout),
-        offsetof(struct my_resource_table, text_cout),
-        offsetof(struct my_resource_table, data_cout),
         offsetof(struct my_resource_table, trace),
         offsetof(struct my_resource_table, devmem0),
     },
@@ -135,24 +115,6 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     /* the two vrings */
     { R5F_MEM_RPMSG_VRING0, 4096, R5F_RPMSG_VQ0_SIZE, 1, 0 },
     { R5F_MEM_RPMSG_VRING1, 4096, R5F_RPMSG_VQ1_SIZE, 2, 0 },
-
-    {
-        TYPE_CARVEOUT,
-        R5F_MEM_IPC_DATA, 0,
-        R5F_MEM_IPC_DATA_SIZE, 0, 0, "R5F_MEM_IPC_DATA",
-    },
-
-    {
-        TYPE_CARVEOUT,
-        R5F_MEM_TEXT, 0,
-        R5F_MEM_TEXT_SIZE, 0, 0, "R5F_MEM_TEXT",
-    },
-
-    {
-        TYPE_CARVEOUT,
-        R5F_MEM_DATA, 0,
-        R5F_MEM_DATA_SIZE, 0, 0, "R5F_MEM_DATA",
-    },
 
     {
         TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:r5f0",
