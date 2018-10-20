@@ -62,9 +62,26 @@ module NotifySciClient
         /**<  mailbox user 3 */
     } ;
 
+    enum SecondaryHost {
+        SECONDARYHOST_UNUSED = 0,
+        /**< Secondary host unused */
+        SECONDARYHOST_SPECIFIC_HOST,
+        /**< Secondary host specific host */
+        SECONDARYHOST_ALL
+        /**< Secondary host all */
+    } ;
+
     Int32 Init ();
     Int32 IrqSet(CoreIndex coreIndex,
                  SourceIdIndex mailboxClusterIndex,
                  MailboxIndex mailboxUserIndex,
                  UInt32 intNumber);
+    Int32 IrqRelease(CoreIndex coreIndex,
+                 SourceIdIndex mailboxClusterIndex,
+                 MailboxIndex mailboxUserIndex,
+                 UInt32 intNumber);
+    Int32 getIntNumRange(CoreIndex coreIndex,
+                         SecondaryHost secondaryHost,
+                         UInt16 *rangeStartP,
+                         UInt16 *rangeNumP);
 };

@@ -38,7 +38,9 @@ var Core = null;
 var Mmu = null;
 var isaChain = "";
 
-const NAVSS_MAILBOX0_BASEADDR = 0x0031F80000;
+const NAVSS_MAILBOX0_CLUSTER0_BASEADDR = 0x0031F80000;
+const NAVSS_MAILBOX0_CLUSTER1_BASEADDR = 0x0031F81000;
+const NAVSS_MAILBOX0_CLUSTER2_BASEADDR = 0x0031F82000;
 
 /* The following are decided at the system level */
 /* The following corresponds to M2M Router output 0 */
@@ -125,17 +127,21 @@ function module$use()
     TableInit.generateTable(this);
 
     if (isaChain.match(/#v7R#/)) {
-         if (this.mailboxBaseAddr[0] == undefined) {
-            /* TODO: NAVSS_MAILBOX0_BASEADDR is address from main domain memory map
-             *       Need to find any addresss translation involved for v7R */
-            this.mailboxBaseAddr[0] = NAVSS_MAILBOX0_BASEADDR;  /* System Mailbox 0 */
+        if (this.mailboxBaseAddr[0] == undefined) {
+            this.mailboxBaseAddr[0] = NAVSS_MAILBOX0_CLUSTER0_BASEADDR;  /* System Mailbox 0 */
+        }
+        if (this.mailboxBaseAddr[1] == undefined) {
+            this.mailboxBaseAddr[1] = NAVSS_MAILBOX0_CLUSTER1_BASEADDR;  /* System Mailbox 1 */
+        }
+        if (this.mailboxBaseAddr[2] == undefined) {
+            this.mailboxBaseAddr[2] = NAVSS_MAILBOX0_CLUSTER2_BASEADDR;  /* System Mailbox 2 */
         }
     }
     else if (isaChain.match(/#v8A#/)) {
         /* initialize mailbox base address table */
-            /* TODO: NAVSS_MAILBOX0_BASEADDR is address from main domain memory map
-             *       Need to find any addresss translation involved for v8A */
-            this.mailboxBaseAddr[0] = NAVSS_MAILBOX0_BASEADDR;  /* System Mailbox 0 */
+        this.mailboxBaseAddr[0] = NAVSS_MAILBOX0_CLUSTER0_BASEADDR;  /* System Mailbox 0 */
+        this.mailboxBaseAddr[1] = NAVSS_MAILBOX0_CLUSTER1_BASEADDR;  /* System Mailbox 1 */
+        this.mailboxBaseAddr[2] = NAVSS_MAILBOX0_CLUSTER2_BASEADDR;  /* System Mailbox 2 */
     }
     else {
         throw("Invalid target: " + Program.build.target.$name);

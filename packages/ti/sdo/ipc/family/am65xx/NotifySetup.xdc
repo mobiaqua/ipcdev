@@ -321,7 +321,7 @@ internal:
     const UInt8 NUM_CORES = 3;
 
     /* number of system mailboxes (used by IPC) */
-    const UInt8 NUM_SYS_MBX = 1;
+    const UInt8 NUM_SYS_MBX = 3;
 
     /*  Mailbox table for storing encoded base address, mailbox user ID,
      *  and sub-mailbox index.
@@ -351,6 +351,14 @@ internal:
      */
     config Assert.Id A_internal = {
         msg: "A_internal: internal implementation error"
+    };
+
+    /*
+     *  ======== A_error_resource_allocation ========
+     *  Resource allocation error
+     */
+    config Assert.Id A_error_resource_allocation = {
+        msg: "A_error_resource_allocation: Resource allocation error"
     };
 
     /*

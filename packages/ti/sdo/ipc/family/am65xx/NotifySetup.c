@@ -59,8 +59,8 @@
 #include "package/internal/NotifySetup.xdc.h"
 
 /* register access methods */
-#define REG16(A)        (*(volatile UInt16 *)(A))
-#define REG32(A)        (*(volatile UInt32 *)(A))
+#define REG16(A)        (*(volatile UInt16 *)((uintptr_t)A))
+#define REG32(A)        (*(volatile UInt32 *)((uintptr_t)A))
 
 /* ipc helper macros */
 #define MAILBOX_REG_VAL(m) (0x1 << (2 * (m)))
@@ -99,8 +99,74 @@
  */
 Int NotifySetup_Module_startup(Int phase)
 {
-    NotifySciClient_Init();
+    Int32 retVal;
+    UInt16 rangeStart;
+    UInt16 rangeNum;
+#if defined(xdc_target__isaCompatible_v7R)
+    UInt32 coreId;
 
+    coreId = Core_getId();
+#endif
+
+    NotifySciClient_Init();
+#if defined(xdc_target__isaCompatible_v7R)
+    if (coreId == 0) {
+        retVal = NotifySciClient_getIntNumRange(NotifySciClient_R5F_0_CORE_INDEX,
+                                                NotifySciClient_SECONDARYHOST_SPECIFIC_HOST,
+                                                &rangeStart, &rangeNum);
+        if ((retVal < 0) || (rangeNum < 2))  {
+            retVal = NotifySciClient_getIntNumRange(NotifySciClient_R5F_0_CORE_INDEX,
+                                                    NotifySciClient_SECONDARYHOST_ALL,
+                                                    &rangeStart, &rangeNum);
+            if ((retVal < 0) || (rangeNum < 2))  {
+                return Startup_NOTDONE;
+            }
+        }
+        /* Src id : Host */
+        NotifySetup_module->interruptTable[1] = rangeStart;
+        /* Src id : R5F-1 */
+        NotifySetup_module->interruptTable[2] = rangeStart+1;
+    } else if (coreId == 1) { /* R5F-1 */
+        retVal = NotifySciClient_getIntNumRange(NotifySciClient_R5F_1_CORE_INDEX,
+                                                NotifySciClient_SECONDARYHOST_SPECIFIC_HOST,
+                                                &rangeStart, &rangeNum);
+        if ((retVal < 0) || (rangeNum < 2))  {
+            retVal = NotifySciClient_getIntNumRange(NotifySciClient_R5F_1_CORE_INDEX,
+                                                    NotifySciClient_SECONDARYHOST_ALL,
+                                                    &rangeStart, &rangeNum);
+            if ((retVal < 0) || (rangeNum < 4))  {
+                return Startup_NOTDONE;
+            }
+            /* Src id : R5F-0 */
+            NotifySetup_module->interruptTable[0] = rangeStart+2;
+            /* Src id : Host */
+            NotifySetup_module->interruptTable[1] = rangeStart+3;
+        } else {
+            /* Src id : R5F-0 */
+           NotifySetup_module->interruptTable[0] = rangeStart;
+            /* Src id : Host */
+           NotifySetup_module->interruptTable[1] = rangeStart+1;
+        }
+    } else {
+        return Startup_NOTDONE;
+    }
+#elif defined(xdc_target__isaCompatible_v8A)
+        retVal = NotifySciClient_getIntNumRange(NotifySciClient_A53_0_CORE_INDEX,
+                                                NotifySciClient_SECONDARYHOST_SPECIFIC_HOST,
+                                                &rangeStart, &rangeNum);
+        if ((retVal < 0) || (rangeNum < 2))  {
+            retVal = NotifySciClient_getIntNumRange(NotifySciClient_A53_0_CORE_INDEX,
+                                                    NotifySciClient_SECONDARYHOST_ALL,
+                                                    &rangeStart, &rangeNum);
+            if ((retVal < 0) || (rangeNum < 2))  {
+                return Startup_NOTDONE;
+            }
+        }
+        /* Src id : R5F-0 */
+        NotifySetup_module->interruptTable[0] = rangeStart;
+        /* Src id : R5F-1 */
+        NotifySetup_module->interruptTable[2] = rangeStart+1;
+#endif
     return (Startup_DONE);
 }
 
@@ -172,6 +238,13 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     || defined(xdc_target__isaCompatible_v8A)
     UInt16      idx;
     UInt        mbxIdx;
+    int retVal;
+#endif
+
+#if defined(xdc_target__isaCompatible_v7R)
+    UInt32      coreId;
+
+    coreId = Core_getId();
 #endif
 
     Error_init(&eb);
@@ -181,57 +254,87 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 #if defined(xdc_target__isaCompatible_v7R)
     /* connect mailbox interrupts at startup */
 
-    if ((Core_getId() == 0)) {
+    if (coreId == 0) {
         /* R5F-0 */
         if (remoteProcId == MultiProc_getId("R5F-1") ) {
             /* Navss mailbox 2 User 0 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+            /* Navss mailbox 2 User 0 */
             /* Configure NAVSS & MCU Level Interrupt router */
-            NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
+            retVal = NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
                                    NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
                                    NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
         } else { /* Host */
             /* Navss mailbox 0 User 1 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+            /* Navss mailbox 0 User 1 */
             /* Configure NAVSS & MCU Level Interrupt router */
-            NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
+            retVal = NotifySciClient_IrqSet(NotifySciClient_R5F_0_CORE_INDEX,
                                    NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
                                    NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
          }
-    }
-    else { /* R5F-1 */
+    } else if (coreId == 1) { /* R5F-1 */
         if (remoteProcId == MultiProc_getId("R5F-0") ) {
             /* Navss mailbox 2 User 1 */
             /* Configure NAVSS & MCU Level Interrupt router */
-            NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+            /* Configure NAVSS & MCU Level Interrupt router */
+            retVal = NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
                                    NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
                                    NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
 
         } else { /* Host */
             /* Navss mailbox 1 User 1 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
             /* Configure NAVSS & MCU Level Interrupt router */
-            NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
+            retVal = NotifySciClient_IrqSet(NotifySciClient_R5F_1_CORE_INDEX,
                                    NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
                                    NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
         }
+    } else {
+        /* Error */
+        Assert_isTrue(FALSE, NotifySetup_A_internal);
     }
 
 #elif defined(xdc_target__isaCompatible_v8A)
        if (remoteProcId == MultiProc_getId("R5F-0") ) {
            /* Navss mailbox 0 User 0 */
+           /* Release NAVSS interrupt router */
+           NotifySciClient_IrqRelease(NotifySciClient_A53_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
            /* Configure NAVSS interrupt router */
-            NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
+           retVal = NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
                                    NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
                                    NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
 
        } else {
            /* Navss mailbox 1 User 0 */
+           /* Release NAVSS interrupt router */
+           NotifySciClient_IrqRelease(NotifySciClient_A53_0_CORE_INDEX,
+                                 NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                 NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
            /* Configure NAVSS interrupt router */
-          NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
+           retVal = NotifySciClient_IrqSet(NotifySciClient_A53_0_CORE_INDEX,
                                  NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
                                  NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
        }
 #else
 #error Invalid target
 #endif
+    Assert_isTrue((retVal == 0),
+                  NotifySetup_A_error_resource_allocation);
 
     /* map remote processor id to virtual id */
     srcVirtId = VIRTID(remoteProcId);
@@ -284,6 +387,11 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
     UInt16      idx;
     UInt        mbxIdx;
 #endif
+#if defined(xdc_target__isaCompatible_v7R)
+    UInt32      coreId;
+
+    coreId = Core_getId();
+#endif
 
     /* disable global interrupts (TODO: should be a gated module) */
     key = Hwi_disable();
@@ -307,10 +415,62 @@ Void NotifySetup_unplugHwi(UInt16 remoteProcId, Int cpuIntrNum)
         hwi = Hwi_getHandle(cpuIntrNum);
         Hwi_delete(&hwi);
     }
+#if defined(xdc_target__isaCompatible_v7R)
+    /* connect mailbox interrupts at startup */
 
+    if (coreId == 0) {
+        /* R5F-0 */
+        if (remoteProcId == MultiProc_getId("R5F-1") ) {
+            /* Navss mailbox 2 User 0 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+        } else { /* Host */
+            /* Navss mailbox 0 User 1 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+         }
+    } else if (coreId == 1) { /* R5F-1 */
+        if (remoteProcId == MultiProc_getId("R5F-0") ) {
+            /* Navss mailbox 2 User 1 */
+            /* Configure NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER2_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+        } else { /* Host */
+            /* Navss mailbox 1 User 1 */
+            /* Release NAVSS & MCU Level Interrupt router */
+            NotifySciClient_IrqRelease(NotifySciClient_R5F_1_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_1, cpuIntrNum);
+        }
+    } else {
+        /* Error */
+        Assert_isTrue(FALSE, NotifySetup_A_internal);
+    }
+
+#elif defined(xdc_target__isaCompatible_v8A)
+       if (remoteProcId == MultiProc_getId("R5F-0") ) {
+           /* Navss mailbox 0 User 0 */
+           /* Release NAVSS interrupt router */
+           NotifySciClient_IrqRelease(NotifySciClient_A53_0_CORE_INDEX,
+                                   NotifySciClient_MAILBOX_CLUSTER0_SRC_ID_INDEX,
+                                   NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+       } else {
+           /* Navss mailbox 1 User 0 */
+           /* Release NAVSS interrupt router */
+           NotifySciClient_IrqRelease(NotifySciClient_A53_0_CORE_INDEX,
+                                 NotifySciClient_MAILBOX_CLUSTER1_SRC_ID_INDEX,
+                                 NotifySciClient_MAILBOX_USER_0, cpuIntrNum);
+       }
 #else
 #error Invalid target
 #endif
+#endif /* defined(xdc_target__isaCompatible_v7R) \
+    || defined(xdc_target__isaCompatible_v8A) */
 
     /* restore global interrupts */
     Hwi_restore(key);

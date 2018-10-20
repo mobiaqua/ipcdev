@@ -38,6 +38,7 @@
 
 #include <ti/csl/csl_types.h>
 #include <ti/drv/sciclient/sciclient.h>
+#include <ti/drv/sciclient/include/V0/tisci_resasg_types.h>
 
 #include "package/internal/NotifySciClient.xdc.h"
 
@@ -96,10 +97,11 @@ Int32 NotifySciClient_Init(void)
  * @fn      NotifySciClient_IrqSet
  *
  * @brief   Configures interrupt routes by requesting the system core
- *          and polls for response. If no respone times out.
  *
- * @param1  memType: Memory type for self test
- * @param2  testType: ECC Self test type
+ * @param1  coreIndex: core index
+ * @param2  mailboxClusterIndex: Mailbox Cluster index
+ * @param3  mailboxUserIndex: Mailbox User index
+ * @param4  intNumber: Local cpu interrupt number
  *
  * @return  0 : Success; -1 for failures
  */
@@ -126,7 +128,7 @@ Int32 NotifySciClient_IrqSet(NotifySciClient_CoreIndex coreIndex,
         TISCI_DEV_NAVSS0_MAILBOX0_CLUSTER1,
         TISCI_DEV_NAVSS0_MAILBOX0_CLUSTER2
     };
-#if 0 /* Currently not used */
+
     /* Indexed list of host ids */
     const uint16_t map_host_id[] =
     {
@@ -134,29 +136,23 @@ Int32 NotifySciClient_IrqSet(NotifySciClient_CoreIndex coreIndex,
         TISCI_HOST_ID_R5_0,
         TISCI_HOST_ID_R5_1
     };
-#endif
-    /* Sets bits src_id, src_index, dst_id, dst_host_irq */
+
+    /* Initialize unused parameters */
     struct tisci_msg_rm_irq_set_req irq_set_req =
     {
-        .valid_params   = 0x0,
-        .src_id         = 0,
-        .src_index      = 0,
-        .dst_id         = 0,
-        .dst_host_irq   = 0,
         .ia_id          = 0,
         .vint           = 0,
         .global_event   = 0,
         .vint_status_bit_index = 0,
-        .secondary_host = 0
     };
 
     /* Request irq set for specified interrupt source */
-    irq_set_req.valid_params = 0x3 ; /* Sets bits dst_id, dst_host_irq */
+    irq_set_req.valid_params = 0x80000003 ; /* Sets bits for secondary host, dst_id, dst_host_irq */
     irq_set_req.src_id = map_src_id[mailboxClusterIndex];
     irq_set_req.src_index = mailboxUserIndex;
     irq_set_req.dst_id = map_dst_id[coreIndex];
     irq_set_req.dst_host_irq = intNumber;
-/*    irq_set_req.secondary_host = map_host_id[coreIndex];*/
+    irq_set_req.secondary_host = map_host_id[coreIndex];
 
     /* Call irq Set */
     if (CSL_PASS != Sciclient_rmIrqSet(&irq_set_req, &resp, NOTIFY_SCICLIENT_RESP_TIMEOUT ))
@@ -164,5 +160,143 @@ Int32 NotifySciClient_IrqSet(NotifySciClient_CoreIndex coreIndex,
         return -1;
     }
 
+    return status;
+}
+
+/*********************************************************************
+ * @fn      NotifySciClient_IrqRelease
+ *
+ * @brief   Releases interrupt routes by requesting the system core
+ *
+ * @param1  coreIndex: core index
+ * @param2  mailboxClusterIndex: Mailbox Cluster index
+ * @param3  mailboxUserIndex: Mailbox User index
+ * @param4  intNumber: Local cpu interrupt number
+ *
+ * @return  0 : Success; -1 for failures
+ */
+Int32 NotifySciClient_IrqRelease(NotifySciClient_CoreIndex coreIndex,
+               NotifySciClient_SourceIdIndex mailboxClusterIndex,
+               NotifySciClient_MailboxIndex mailboxUserIndex,
+               UInt32 intNumber)
+{
+    int32_t status = 0;
+
+    /* Indexed list of dst ids */
+    const int32_t map_dst_id[] =
+    {
+        /* NOTE: This list should match the Core index */
+        TISCI_DEV_GIC0,
+        TISCI_DEV_MCU_ARMSS0_CPU0,
+        TISCI_DEV_MCU_ARMSS0_CPU1
+    };
+    /* Indexed list of src ids */
+    const uint16_t map_src_id[] =
+    {
+        TISCI_DEV_NAVSS0_MAILBOX0_CLUSTER0,
+        TISCI_DEV_NAVSS0_MAILBOX0_CLUSTER1,
+        TISCI_DEV_NAVSS0_MAILBOX0_CLUSTER2
+    };
+
+    /* Indexed list of host ids */
+    const uint16_t map_host_id[] =
+    {
+        TISCI_HOST_ID_A53_0,
+        TISCI_HOST_ID_R5_0,
+        TISCI_HOST_ID_R5_1
+    };
+
+    /* Initialize unused parameters */
+    struct tisci_msg_rm_irq_release_req irq_release_req =
+    {
+        .ia_id          = 0,
+        .vint           = 0,
+        .global_event   = 0,
+        .vint_status_bit_index = 0,
+    };
+
+    /* Request irq release for specified interrupt source */
+    irq_release_req.valid_params = 0x80000003 ; /* Sets bits for secondary host, dst_id, dst_host_irq */
+    irq_release_req.src_id = map_src_id[mailboxClusterIndex];
+    irq_release_req.src_index = mailboxUserIndex;
+    irq_release_req.dst_id = map_dst_id[coreIndex];
+    irq_release_req.dst_host_irq = intNumber;
+    irq_release_req.secondary_host = map_host_id[coreIndex];
+
+    /* Call irq Release */
+    if (CSL_PASS != Sciclient_rmIrqRelease(&irq_release_req, NOTIFY_SCICLIENT_RESP_TIMEOUT ))
+    {
+        return -1;
+    }
+
+    return status;
+}
+
+/*********************************************************************
+ * @fn      NotifySciClient_getIntNumRange
+ *
+ * @brief   Get range of interrupt Numbers available
+ *
+ * @param1  coreIndex: core index
+ * @param2  coreIndex: secondary_host
+ * @param1  rangeStartP: Pointer to range start
+ * @param2  rangeNumP: Pointer to number of interrupts
+ *
+ * @return  0 : Success; -1 for failures
+ */
+Int32 NotifySciClient_getIntNumRange(NotifySciClient_CoreIndex coreIndex,
+                                     NotifySciClient_SecondaryHost secondaryHost,
+                                     UInt16 *rangeStartP,
+                                     UInt16 *rangeNumP)
+{
+    int32_t status = 0;
+    struct tisci_msg_rm_get_resource_range_resp resp;
+    struct tisci_msg_rm_get_resource_range_req get_resource_range_req;
+   /* Indexed list of req type */
+    const uint16_t req_type[] =
+    {
+        /* NOTE: This list should match the Core index */
+        TISCI_RESASG_TYPE_GIC_IRQ,
+        TISCI_RESASG_TYPE_PULSAR_C0_IRQ,
+        TISCI_RESASG_TYPE_PULSAR_C1_IRQ
+    };
+   /* Indexed list of req subtype */
+    const uint16_t req_subtype[] =
+    {
+        /* NOTE: This list should match the Core index */
+        TISCI_RESASG_SUBTYPE_GIC_IRQ_MAIN_NAV_SET1,
+        TISCI_RESASG_SUBTYPE_PULSAR_C0_IRQ_MAIN2MCU_LVL,
+        TISCI_RESASG_SUBTYPE_PULSAR_C1_IRQ_MAIN2MCU_LVL
+    };
+
+    /* Indexed list of host ids */
+    const uint16_t map_host_id[] =
+    {
+        TISCI_HOST_ID_A53_0,
+        TISCI_HOST_ID_R5_0,
+        TISCI_HOST_ID_R5_1
+    };
+
+    get_resource_range_req.type = req_type[coreIndex];
+    get_resource_range_req.subtype = req_subtype[coreIndex];
+    if (secondaryHost == NotifySciClient_SECONDARYHOST_UNUSED) {
+        get_resource_range_req.secondary_host = TISCI_MSG_VALUE_RM_UNUSED_SECONDARY_HOST;
+    } else if (secondaryHost == NotifySciClient_SECONDARYHOST_SPECIFIC_HOST) {
+        get_resource_range_req.secondary_host = map_host_id[coreIndex];
+    } else {
+        get_resource_range_req.secondary_host = TISCI_HOST_ID_ALL;
+    }
+    /* Get interrupt number range */
+    status =  Sciclient_rmGetResourceRange(
+                &get_resource_range_req,
+                &resp,
+                NOTIFY_SCICLIENT_RESP_TIMEOUT);
+    if (CSL_PASS == status)
+    {
+        *rangeStartP = resp.range_start;
+        *rangeNumP = resp.range_num;
+    } else {
+        return -1;
+    }
     return status;
 }
