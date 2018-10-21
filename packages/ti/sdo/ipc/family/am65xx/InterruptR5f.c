@@ -49,8 +49,8 @@
 #include "package/internal/InterruptR5f.xdc.h"
 
 /* Register access method. */
-#define REG16(A)   (*(volatile UInt16 *) (A))
-#define REG32(A)   (*(volatile UInt32 *) (A))
+#define REG16(A)   (*(volatile UInt16 *) ((uintptr_t)A))
+#define REG32(A)   (*(volatile UInt32 *) ((uintptr_t)A))
 
 #define PROCID(IDX)               (InterruptR5f_procIdTable[(IDX)])
 #define MBX_TABLE_IDX(SRC, DST)   ((PROCID(SRC) * InterruptR5f_NUM_CORES) + \

@@ -61,8 +61,8 @@
 #define TEST_BIT(num,pos)           ((num) & (1u << (pos)))
 
 /* register access methods */
-#define REG16(A)        (*(volatile UInt16 *)(A))
-#define REG32(A)        (*(volatile UInt32 *)(A))
+#define REG16(A)        (*(volatile UInt16 *)((uintptr_t)A))
+#define REG32(A)        (*(volatile UInt32 *)((uintptr_t)A))
 
 #define MAILBOX_FIFOLENGTH 4
 #define PROCID(idx) (NotifyDriverMbx_procIdTable[(idx)])
