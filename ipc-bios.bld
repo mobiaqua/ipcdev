@@ -272,7 +272,8 @@ for (arg = 0; arg < arguments.length; arg++) {
     if (targetName.match(/elf\.R5F$/)) {
         switch (platform) {
             case 'AM65XX':
-                target.platforms.$add("ti.platforms.cortexR:AM65X");
+                target.platforms.$add("ti.platforms.cortexR:AM65X:false:R5F0");
+                target.platforms.$add("ti.platforms.cortexR:AM65X:false:R5F1");
                 break;
 
             default:

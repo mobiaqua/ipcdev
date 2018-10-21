@@ -219,9 +219,6 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
     Resource.loadSymbol = "__RESOURCE_TABLE";
 
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
-    MultiProc.setConfig("R5F-0", ["HOST", "R5F-0", "R5F-1"]);
-
-    xdc.loadCapsule("R5fmpu_am65xx.cfg");
 
     var Hwi = xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Hwi');
 /* TODO: Need to check on equivalent for K3 */
@@ -244,6 +241,21 @@ else if (Program.platformName.match(/^ti\.platforms\.cortexR:AM65X/) &&
     /* Add idle function */
     xdc.useModule('ti.sdo.ipc.family.am65xx.Power');
     Idle.addFunc('&Power_Idle');
+
+    var Core = xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Core');
+    var Clock = xdc.useModule('ti.sysbios.knl.Clock');
+
+    if (Program.platformName.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/)) {
+        xdc.loadCapsule("R5fmpu_am65xx.cfg");
+        MultiProc.setConfig("R5F-0", ["HOST", "R5F-0", "R5F-1"]);
+        Core.id = 0;
+        Clock.timerId = 0;
+    } else if (Program.platformName.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/)) {
+        xdc.loadCapsule("R5f1_mpu_am65xx.cfg");
+        MultiProc.setConfig("R5F-1", ["HOST", "R5F-0", "R5F-1"]);
+        Core.id = 1;
+        Clock.timerId = 1;
+    }
 
 }else {
     throw("ping_rpmsg_common.cfg: Did not match any platform!"

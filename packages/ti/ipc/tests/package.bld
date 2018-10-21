@@ -446,7 +446,14 @@ Build.platformTable["ti.platforms.evmDRA7XX:ipu1"] = {
 /* Note the EXT_CODE and EXT_DATA sections are specified in the
    Linker command file
  */
-Build.platformTable["ti.platforms.cortexR:AM65X"] = {
+Build.platformTable["ti.platforms.cortexR:AM65X:false:R5F0"] = {
+
+    codeMemory : "EXT_CODE",
+    dataMemory : "EXT_DATA",
+    stackMemory: "EXT_DATA",
+};
+
+Build.platformTable["ti.platforms.cortexR:AM65X:false:R5F1"] = {
 
     codeMemory : "EXT_CODE",
     dataMemory : "EXT_DATA",
@@ -553,13 +560,22 @@ for (var i = 0; i < Build.targets.length; i++) {
                 cfgScript: "gatempapp",
                 defs: "-D DSP_1" + extraDefs
             }).addObjects(["messageq_fault.c"]);
-        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/messageq_fault", targ, platform, {
                 cfgScript: "rpmsg_transport",
-                defs: extraDefs,
+                defs: " -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["messageq_fault.c"]);
+
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_fault", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: " -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["messageq_fault.c"]);
+
         } else {
             Pkg.addExecutable(name + "/messageq_fault", targ, platform, {
                 cfgScript: "rpmsg_transport",
@@ -568,13 +584,21 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* ping_rpmsg */
-        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
                 cfgScript: "ping_rpmsg",
-                defs: extraDefs,
+                defs: " -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["ping_rpmsg.c"]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: " -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["ping_rpmsg.c"]);
+
         } else {
             Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
                 cfgScript: "ping_rpmsg",
@@ -583,13 +607,21 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* ping_tasks */
-        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
                 cfgScript: "ping_rpmsg",
-                defs: extraDefs,
+                defs: " -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: " -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+
         } else {
             Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
                 cfgScript: "ping_rpmsg",
@@ -624,13 +656,21 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* messageq_multi */
-        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
                 cfgScript: "rpmsg_transport",
-                defs: "-D BENCHMARK" + extraDefs,
+                defs: "-D BENCHMARK -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["messageq_multi.c"]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["messageq_multi.c"]);
+
         } else {
             Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
                 cfgScript: "rpmsg_transport",
@@ -639,13 +679,21 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* messageq_multimulti */
-        if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
                 cfgScript: "rpmsg_transport",
-                defs: "-D BENCHMARK" + extraDefs,
+                defs: "-D BENCHMARK -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["messageq_multimulti.c"]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["messageq_multimulti.c"]);
+
         } else {
             Pkg.addExecutable(name + "/messageq_multimulti", targ, platform, {
                 cfgScript: "rpmsg_transport",
@@ -666,13 +714,21 @@ for (var i = 0; i < Build.targets.length; i++) {
                 cfgScript: "rpmsg_transport",
                 defs: "-D BENCHMARK -D IPU" + extraDefs
             }).addObjects(["messageq_single.c"]);
-        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
             Pkg.addExecutable(name + "/messageq_single", targ, platform, {
                 cfgScript: "rpmsg_transport",
-                defs: "-D BENCHMARK " + extraDefs,
+                defs: "-D BENCHMARK -DAM65X_R5F_0" + extraDefs,
                 lopts: "-l R5FLink.cmd",
             }).addObjects(["messageq_single.c" ]);
+        } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DAM65X_R5F_1" + extraDefs,
+                lopts: "-l R5FLink1.cmd",
+            }).addObjects(["messageq_single.c" ]);
+
         } else {
             Pkg.addExecutable(name + "/messageq_single", targ, platform, {
                 cfgScript: "rpmsg_transport",
@@ -683,10 +739,18 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* TODO: NameServerApp.xe66 too big for K2E's 512 KB L2SRAM */
         if (!platform.match(/^ti.platforms.evmC66AK2E/)) {
             /* NameServerApp */
-            if (platform.match(/^ti\.platforms\.cortexR\:AM65X/) &&
+            if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F0/) &&
                 (targ.isa == "v7R")) {
                 Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
                     cfgScript: "nameserverapp",
+                    defs: " -DAM65X_R5F_0",
+                    lopts: "-l R5FLink.cmd",
+                }).addObjects(["NameServerApp.c"]);
+            } else if (platform.match(/^ti\.platforms\.cortexR\:AM65X\:false\:R5F1/) &&
+                (targ.isa == "v7R")) {
+                Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
+                    cfgScript: "nameserverapp",
+                    defs: " -DAM65X_R5F_1",
                     lopts: "-l R5FLink.cmd",
                 }).addObjects(["NameServerApp.c"]);
             } else {
