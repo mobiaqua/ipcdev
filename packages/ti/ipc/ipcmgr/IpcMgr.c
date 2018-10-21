@@ -64,7 +64,7 @@
  */
 Void IpcMgr_rpmsgStartup(Void)
 {
-    Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), NULL);
+    Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), 0);
     RPMessage_init(MultiProc_getId("HOST"));
 
 #ifdef IpcMgr_USEDEH

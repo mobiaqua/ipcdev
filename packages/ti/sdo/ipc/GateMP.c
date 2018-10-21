@@ -655,7 +655,7 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
      */
     offset = _Ipc_roundup(sizeof(ti_sdo_ipc_GateMP_Reserved), minAlign);
     GateMP_module->remoteSystemInUse =
-        (Ptr)((UInt32)sharedAddr + offset);
+        (Ptr)((uintptr_t)sharedAddr + offset);
 
     if (GateMP_module->numRemoteSystem != 0) {
         memset(GateMP_module->remoteSystemInUse, 0,
@@ -759,21 +759,21 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
     if (GateMP_module->hostSupport == TRUE) {
         /* Add special entry to store inuse arrays' location and size */
         ret = _GateMP_virtToPhys(
-            (UInt32)GateMP_module->remoteSystemInUse, &nsValue[0]);
-        Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+            (uintptr_t)GateMP_module->remoteSystemInUse, &nsValue[0]);
+        Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)0);
         (void)ret;   /* silence unused var warning when asserts disabled */
         if (GateMP_module->numRemoteCustom1 != 0) {
             ret = _GateMP_virtToPhys(
-                (UInt32)GateMP_module->remoteCustom1InUse, &nsValue[1]);
-            Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+                (uintptr_t)GateMP_module->remoteCustom1InUse, &nsValue[1]);
+            Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)0);
         }
         else {
             nsValue[1] = 0;
         }
         if (GateMP_module->numRemoteCustom2 != 0) {
             ret = _GateMP_virtToPhys(
-                (UInt32)GateMP_module->remoteCustom2InUse, &nsValue[2]);
-            Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)NULL);
+                (uintptr_t)GateMP_module->remoteCustom2InUse, &nsValue[2]);
+            Assert_isTrue(ret == GateMP_S_SUCCESS, (Assert_Id)0);
 	}
         else {
             nsValue[2] = 0;
@@ -813,7 +813,7 @@ Void ti_sdo_ipc_GateMP_openRegion0Reserved(Ptr sharedAddr)
 
     offset = _Ipc_roundup(sizeof(ti_sdo_ipc_GateMP_Reserved), minAlign);
     GateMP_module->remoteSystemInUse =
-        (Ptr)((UInt32)sharedAddr + offset);
+        (Ptr)((uintptr_t)sharedAddr + offset);
 
     /*
      *  initialize the in-use array in shared memory for the custom1 gates.
@@ -871,7 +871,7 @@ Int ti_sdo_ipc_GateMP_attach(UInt16 remoteProcId, Ptr sharedAddr)
     /* get region 0 information */
     SharedRegion_getEntry(0, &entry);
 
-    gateMPsharedAddr = (Ptr)((UInt32)sharedAddr +
+    gateMPsharedAddr = (Ptr)((uintptr_t)sharedAddr +
                        ti_sdo_ipc_GateMP_getRegion0ReservedSize());
 
     if ((entry.ownerProcId != MultiProc_self()) &&
@@ -954,7 +954,7 @@ Int ti_sdo_ipc_GateMP_start(Ptr sharedAddr)
 
         /* create default GateMP */
         ti_sdo_ipc_GateMP_Params_init(&gateMPParams);
-        gateMPParams.sharedAddr = (Ptr)((UInt32)sharedAddr +
+        gateMPParams.sharedAddr = (Ptr)((uintptr_t)sharedAddr +
                 ti_sdo_ipc_GateMP_getRegion0ReservedSize());
         gateMPParams.localProtect  = ti_sdo_ipc_GateMP_LocalProtect_TASKLET;
         gateMPParams.name = "_GateMP_TI_dGate";
@@ -1078,7 +1078,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
 
         /* TODO: host side created gates cannot have proxy memory */
         if (obj->attrs != NULL) {
-            obj->proxyAttrs = (Ptr)((UInt32)obj->attrs + offset);
+            obj->proxyAttrs = (Ptr)((uintptr_t)obj->attrs + offset);
         }
         else {
             obj->proxyAttrs = NULL;
@@ -1127,12 +1127,12 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
             }
 
             if (params->name) {
-                nsValue[0] = (UInt32)obj->attrs;
+                nsValue[0] = (uintptr_t)obj->attrs;
                 /*
                  *  Top 16 bits = procId of creator
                  *  Bottom 16 bits = '0' if local, '1' otherwise
                  */
-                nsValue[1] = ((UInt32)MultiProc_self()) << 16;
+                nsValue[1] = ((uintptr_t)MultiProc_self()) << 16;
 
                 if (GateMP_module->hostSupport == TRUE) {
                     nsValue[2] = obj->attrs->arg;
@@ -1182,7 +1182,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
 
             offset = _Ipc_roundup(sizeof(ti_sdo_ipc_GateMP_Attrs), minAlign);
 
-            obj->proxyAttrs = (Ptr)((UInt32)obj->attrs + offset);
+            obj->proxyAttrs = (Ptr)((uintptr_t)obj->attrs + offset);
         }
         else {
             /* creating using sharedAddr */
@@ -1203,12 +1203,12 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
 
             /* Assert that sharedAddr has correct alignment */
             Assert_isTrue(minAlign == 0 ||
-                          ((UInt32)params->sharedAddr % minAlign) == 0,
+                          ((uintptr_t)params->sharedAddr % minAlign) == 0,
                           ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
             offset = _Ipc_roundup(sizeof(ti_sdo_ipc_GateMP_Attrs), minAlign);
 
-            obj->proxyAttrs = (Ptr)((UInt32)obj->attrs + offset);
+            obj->proxyAttrs = (Ptr)((uintptr_t)obj->attrs + offset);
         }
     }
 

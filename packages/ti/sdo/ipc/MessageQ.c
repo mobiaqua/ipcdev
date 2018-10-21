@@ -157,7 +157,7 @@ Void MessageQ_Params_init__S(MessageQ_Params *params, Int version)
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 }
@@ -281,7 +281,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *pp)
             ps.queueIndex = ((MessageQ_Params_Version2 *)pp)->queueIndex;
         }
         else {
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
         }
 
         handle = ti_sdo_ipc_MessageQ_create(name, &ps, &eb);
@@ -572,7 +572,7 @@ Int MessageQ_put(MessageQ_QueueId queueId, MessageQ_Msg msg)
                 break;
 
             default:
-                Assert_isTrue(FALSE, NULL);
+                Assert_isTrue(FALSE, 0);
                 break;
         }
 
@@ -852,7 +852,7 @@ Bool ti_sdo_ipc_MessageQ_registerTransport(IMessageQTransport_Handle handle,
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 
@@ -895,7 +895,7 @@ Void ti_sdo_ipc_MessageQ_unregisterTransport(UInt16 procId, UInt priority)
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 

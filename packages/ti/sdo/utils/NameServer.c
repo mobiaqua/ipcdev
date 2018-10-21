@@ -363,7 +363,7 @@ Int NameServer_get(NameServer_Handle handle, String name, Ptr value,
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 
@@ -878,7 +878,7 @@ Bool ti_sdo_utils_NameServer_isRegistered(UInt16 procId)
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 
@@ -956,7 +956,7 @@ Void ti_sdo_utils_NameServer_unregisterRemoteDriver(UInt16 procId)
             break;
 
         default:
-            Assert_isTrue(FALSE, NULL);
+            Assert_isTrue(FALSE, 0);
             break;
     }
 

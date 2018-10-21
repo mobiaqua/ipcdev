@@ -927,7 +927,7 @@ Int ti_sdo_ipc_ListMP_Instance_init(ti_sdo_ipc_ListMP_Object *obj,
 
         /* Assert that sharedAddr is cache aligned */
         Assert_isTrue((obj->cacheLineSize == 0) ||
-                      ((UInt32)params->sharedAddr % obj->cacheLineSize == 0),
+                      ((uintptr_t)params->sharedAddr % obj->cacheLineSize == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
     }
 
