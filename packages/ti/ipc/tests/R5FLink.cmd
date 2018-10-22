@@ -15,19 +15,6 @@
 /*----------------------------------------------------------------------------*/
 /* Memory Map                                                                 */
 
-/*  Memory Map for AM65X platform
- *
- *  --- External Memory ---
- *  Virtual     Physical        Size            Comment
- *  ------------------------------------------------------------------------
- *  9C20_0000   ???0_0000    10_0000  (   1 MB) EXT_CODE
- *  9C30_0000   ???0_0000    10_0000  (   2 MB) EXT_DATA
- *  9C40_0000   ???0_0000    30_0000  (   3 MB) EXT_HEAP
- *  9C10_0000   ???0_0000     6_0000  ( 384 kB) TRACE_BUF
- *  9C16_0000   ???6_0000     1_0000  (  64 kB) EXC_DATA
- *  9C17_0000   ???7_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
- */
-
 #define ATCM_START 0x00000000
 #define BTCM_START 0x41010000
 #define RAM0_ADDR  0x41C00000
