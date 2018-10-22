@@ -44,11 +44,16 @@
 
 #include "rsc_types.h"
 
+#if defined(AM65X_R5F_1)
+#define R5F_MEM_IPC_VRING       0x9B000000
+#else
 #define R5F_MEM_IPC_VRING       0x9C000000
-#define R5F_MEM_RPMSG_VRING0    0x9C000000
-#define R5F_MEM_RPMSG_VRING1    0x9C010000
-#define R5F_MEM_VRING_BUFS0     0x9C040000
-#define R5F_MEM_VRING_BUFS1     0x9C080000
+#endif
+
+#define R5F_MEM_RPMSG_VRING0    (R5F_MEM_IPC_VRING)
+#define R5F_MEM_RPMSG_VRING1    (R5F_MEM_IPC_VRING+0x10000)
+#define R5F_MEM_VRING_BUFS0     (R5F_MEM_IPC_VRING+0x40000)
+#define R5F_MEM_VRING_BUFS1     (R5F_MEM_IPC_VRING+0x80000)
 
 #define R5F_MEM_IPC_VRING_SIZE  SZ_1M
 
@@ -60,7 +65,7 @@
  * R5F_MEM_IPC_VRING, and should match the starting base address of the
  * first reserved memory node assigned to this remoteproc.
  */
-#define PHYS_MEM_IPC_VRING      0x9C000000
+#define PHYS_MEM_IPC_VRING      (R5F_MEM_IPC_VRING)
 
 /*
  * Sizes of the virtqueues (expressed in number of buffers supported,
@@ -88,6 +93,7 @@ struct my_resource_table {
     /* devmem entry */
     struct fw_rsc_devmem devmem0;
 };
+extern char ti_trace_SysMin_Module_State_0_outbuf__A[];
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
 #define TRACEBUFSIZE 0x8000
@@ -117,7 +123,11 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     { R5F_MEM_RPMSG_VRING1, 4096, R5F_RPMSG_VQ1_SIZE, 2, 0 },
 
     {
+#if defined(AM65X_R5F_1)
+        TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:r5f1",
+#else
         TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:r5f0",
+#endif
     },
 
     {
