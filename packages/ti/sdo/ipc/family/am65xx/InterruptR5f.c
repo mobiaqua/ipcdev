@@ -102,12 +102,6 @@ Void InterruptR5f_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
 
-    if ((remoteProcId == InterruptR5f_r5f_0ProcId) ||
-            (remoteProcId == InterruptR5f_r5f_1ProcId)) {
-            Hwi_enableInterrupt(WUGENIPU);
-            useMailbox = FALSE;
-    }
-
     /*  If the remote processor communicates via mailboxes, we should enable
      *  the Mailbox IRQ instead of enabling the Hwi because multiple mailboxes
      *  share the same Hwi
@@ -127,12 +121,6 @@ Void InterruptR5f_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     UInt16 index;
     Bool useMailbox = TRUE;
     UInt subMbxIdx;
-
-    if ((remoteProcId == InterruptR5f_r5f_0ProcId) ||
-            (remoteProcId == InterruptR5f_r5f_1ProcId)) {
-            Hwi_disableInterrupt(WUGENIPU);
-            useMailbox = FALSE;
-    }
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
 
