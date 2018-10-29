@@ -38,7 +38,7 @@ var BIOS = null;
 var Build = null;
 var Ipc = null;
 
-var custom6xOpts = " -q -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 --mem_model:const=data --mem_model:data=far ";
+var custom6xOpts = " -q --opt_for_speed=2 -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 --mem_model:const=data --mem_model:data=far ";
 var customARP32xOpts = " -q --gen_func_subsections ";
 var customArmOpts = " -q -ms --opt_for_speed=2 ";
 var customGnuArmM3Opts = " ";
