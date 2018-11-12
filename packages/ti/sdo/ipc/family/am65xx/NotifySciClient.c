@@ -38,7 +38,6 @@
 
 #include <ti/csl/csl_types.h>
 #include <ti/drv/sciclient/sciclient.h>
-#include <ti/drv/sciclient/include/V0/tisci_resasg_types.h>
 
 #include "package/internal/NotifySciClient.xdc.h"
 
