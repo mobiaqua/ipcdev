@@ -55,7 +55,6 @@
 #include <xdc/runtime/Memory.h>
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
-#include <ti/trace/SysMin.h>
 #include <ti/sysbios/gates/GateAll.h>
 
 #include <ti/sysbios/knl/Clock.h>
@@ -431,6 +430,6 @@ Void VirtQueue_cacheWb()
 
     /* Flush the cache of the SysMin buffer only: */
     Assert_isTrue((VirtQueue_module->traceBufPtr != NULL), NULL);
-    Cache_wb(VirtQueue_module->traceBufPtr, SysMin_bufSize, Cache_Type_ALL,
+    Cache_wb(VirtQueue_module->traceBufPtr, Resource_getTraceBufSize(), Cache_Type_ALL,
              FALSE);
 }

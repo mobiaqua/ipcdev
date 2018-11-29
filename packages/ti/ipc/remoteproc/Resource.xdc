@@ -148,6 +148,14 @@ module Resource {
     Ptr getTraceBufPtr();
 
     /*!
+     *  @brief      Get the Trace Buffer Size from resource table.
+     *
+     *  @return     Size of trace buffer, or NULL if not found.
+     */
+    @DirectCall
+    SizeT getTraceBufSize();
+
+    /*!
      *  @brief      Get the status field of the VDEV, given the fw_rsc_vdev id.
      *
      *  @return     status value which is set by Virtio device on HLOS.

@@ -68,6 +68,30 @@ Ptr Resource_getTraceBufPtr()
 }
 
 /*
+ *  ======== Resource_getTraceBufPtr ========
+ */
+SizeT Resource_getTraceBufSize()
+{
+    UInt32 i;
+    UInt32 offset;
+    UInt32 type;
+    struct fw_rsc_trace *entry = NULL;
+    Resource_RscTable *table = (Resource_RscTable *)
+                                            (Resource_module->pTable);
+
+    for (i = 0; i < module->pTable->num; i++) {
+        offset = (UInt32)((Char *)table + table->offset[i]);
+        type = *(UInt32 *)offset;
+        if (type == TYPE_TRACE) {
+            entry = (struct fw_rsc_trace *)offset;
+            return ((SizeT)entry->len);
+        }
+    }
+
+    return (NULL);
+}
+
+/*
  *  ======== getVdevStatus ========
  */
 Char Resource_getVdevStatus(UInt32 id)
