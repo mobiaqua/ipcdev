@@ -108,12 +108,12 @@ static VirtQueue_Object *queueRegistry[NUM_QUEUES] = {NULL};
 
 static inline Void * mapPAtoVA(UInt pa)
 {
-    return (Void *)((pa & 0x000fffffU) | 0xc3000000U);
+    return (Void *)(pa);
 }
 
 static inline UInt mapVAtoPA(Void * va)
 {
-    return ((UInt)va & 0x000fffffU) | 0xc9000000U;
+    return (UInt)va;
 }
 
 /*
