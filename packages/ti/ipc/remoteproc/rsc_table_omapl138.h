@@ -48,9 +48,6 @@
 #  define DATA_SIZE  (SZ_1M * 15)
 #endif
 
-#define RPMSG_VRING0_DA         0xc3000000
-#define RPMSG_VRING1_DA         0xc3004000
-
 /*
  * sizes of the virtqueues (expressed in number of buffers supported,
  * and must be power of 2)
@@ -89,6 +86,8 @@ struct my_resource_table {
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
+#define RPMSG_VRING_ADDR_ANY FW_RSC_ADDR_ANY
+
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
     3, /* number of entries in the table */
@@ -107,8 +106,8 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         /* no config data */
     },
     /* the two vrings */
-    { RPMSG_VRING0_DA, 4096, RPMSG_VQ0_SIZE, 1, 0 },
-    { RPMSG_VRING1_DA, 4096, RPMSG_VQ1_SIZE, 2, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, RPMSG_VQ0_SIZE, 1, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, RPMSG_VQ1_SIZE, 2, 0 },
 
     {
         TYPE_CARVEOUT, DATA_DA, DATA_DA, DATA_SIZE, 0, 0, "DSP_MEM_DATA",
