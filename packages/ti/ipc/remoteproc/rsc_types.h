@@ -133,9 +133,9 @@ struct fw_rsc_vdev {
     UInt32  dfeatures;
     UInt32  gfeatures;
     UInt32  config_len;
-    Char    status;
-    Char    num_of_vrings;
-    Char    reserved[2];
+    UInt8   status;
+    UInt8   num_of_vrings;
+    UInt8   reserved[2];
 };
 
 #endif /* _RSC_TYPES_H_ */
