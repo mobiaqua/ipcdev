@@ -73,6 +73,9 @@
 #define TYPE_TRACE       2
 #define TYPE_VDEV        3
 
+/* Linux kernel defines this as (-1), below define avoids compile warnings */
+#define FW_RSC_ADDR_ANY (~0)
+
 /* Common Resource Structure Types */
 struct resource_table {
     UInt32 ver;
