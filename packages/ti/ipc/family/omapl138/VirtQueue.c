@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,7 @@
 
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/sdo/ipc/family/da830/InterruptDsp.h>
+#include <ti/ipc/remoteproc/rsc_types.h>
 #include <ti/ipc/remoteproc/Resource.h>
 
 #include <ti/ipc/MultiProc.h>
@@ -79,6 +80,17 @@
 
 #include <ti/ipc/rpmsg/_VirtQueue.h>
 #include <ti/ipc/rpmsg/virtio_ring.h>
+
+/*
+ *  The following three VIRTIO_* defines must match those in
+ *  <Linux_kernel>/include/uapi/linux/virtio_config.h
+ */
+#define VIRTIO_CONFIG_S_ACKNOWLEDGE     1
+#define VIRTIO_CONFIG_S_DRIVER          2
+#define VIRTIO_CONFIG_S_DRIVER_OK       4
+
+#define VRING_BUFS_PRIMED  (VIRTIO_CONFIG_S_ACKNOWLEDGE | \
+                            VIRTIO_CONFIG_S_DRIVER | VIRTIO_CONFIG_S_DRIVER_OK)
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES                      2
@@ -116,6 +128,31 @@ static inline UInt mapVAtoPA(Void * va)
     return (UInt)va;
 }
 
+/*!
+ * ======== _VirtQueue_init ========
+ *
+ * This function waits for the VirtQueue vdev status to be ready before
+ * proceeding with the actual VirtQueue create. This synchronization
+ * ensures that the vring resources are updated properly in the resource
+ * table before the RTOS code can really use them.
+ *
+ * Since _VirtQueue_init is not called by XDC-VirtQueue module clients, this
+ * function is called in the first VirtQueue fxn called: VirtQueue_create.
+ */
+static Void _VirtQueue_init()
+{
+    if (!VirtQueue_module->virtQueueInitialized) {
+        Log_print1(Diags_USER1, "_VirtQueue_init: VDEV status: 0x%x\n",
+                  Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+        Log_print0(Diags_USER1, "_VirtQueue_init: Polling VDEV status...\n");
+        while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
+        Log_print1(Diags_USER1, "_VirtQueue_init: VDEV status synced: 0x%x\n",
+                  Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+
+        VirtQueue_module->virtQueueInitialized = 1;
+    }
+}
+
 /*
  * ======== VirtQueue_Instance_init ========
  */
@@ -125,6 +162,9 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 {
     void *vringAddr = NULL;
     Cache_Mar         marValue;
+
+    /* Perform one-time initialization (mimic non-XDC behavior): */
+    _VirtQueue_init();
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
 
