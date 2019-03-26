@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,21 +51,12 @@
 #define RPMSG_VRING0_DA         0xc3000000
 #define RPMSG_VRING1_DA         0xc3004000
 
-#define CONSOLE_VRING0_DA       0xc3008000
-#define CONSOLE_VRING1_DA       0xc300C000
-
-#define BUFS0_DA                0xc3040000
-#define BUFS1_DA                0xc3080000
-
 /*
  * sizes of the virtqueues (expressed in number of buffers supported,
  * and must be power of 2)
  */
 #define RPMSG_VQ0_SIZE          256
 #define RPMSG_VQ1_SIZE          256
-
-#define CONSOLE_VQ0_SIZE        256
-#define CONSOLE_VQ1_SIZE        256
 
 /* flip up bits whose indices represent features we support */
 #define RPMSG_DSP_FEATURES      1
