@@ -88,7 +88,7 @@ SizeT Resource_getTraceBufSize()
         }
     }
 
-    return (NULL);
+    return 0;
 }
 
 /*
