@@ -45,9 +45,9 @@
 #include "rsc_types.h"
 
 #if defined(AM65X_R5F_1)
-#define R5F_MEM_IPC_VRING       0x9B000000
+#define R5F_MEM_IPC_VRING       0xA1000000
 #else
-#define R5F_MEM_IPC_VRING       0x9C000000
+#define R5F_MEM_IPC_VRING       0xA0000000
 #endif
 
 #define R5F_MEM_RPMSG_VRING0    (R5F_MEM_IPC_VRING)

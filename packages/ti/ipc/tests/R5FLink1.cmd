@@ -19,7 +19,7 @@
 #define BTCM_START 0x41010000
 #define RAM0_ADDR  0x41C00000
 
-#define EXT_BASE   0x9B000000
+#define EXT_BASE   0xA1000000
 
 -e __VECS_ENTRY_POINT
 
@@ -28,14 +28,15 @@ MEMORY{
     BTCM       (RWX) : origin=BTCM_START          length=0x00008000
     RAM0       (RW)  : origin=RAM0_ADDR           length=0x00080000
     DMA_REGION (RW)  : origin=EXT_BASE            length=0x00100000
-    TRACE_BUF  (RW)  : origin=(EXT_BASE+0x100000) length=0x00008000
-    EXC_DATA   (RW)  : origin=(EXT_BASE+0x110000) length=0x00010000
-    PM_DATA    (RW)  : origin=(EXT_BASE+0x120000) length=0x00020000
-    SPARE_REG  (RW)  : origin=(EXT_BASE+0x140000) length=0x00040000
-    RSRC_TABLE (RW)  : origin=(EXT_BASE+0x180000) length=0x00080000
+    RSRC_TABLE (RW)  : origin=(EXT_BASE+0x100000) length=0x00080000
+    TRACE_BUF  (RW)  : origin=(EXT_BASE+0x180000) length=0x00008000
+    EXC_DATA   (RW)  : origin=(EXT_BASE+0x188000) length=0x00010000
+    PM_DATA    (RW)  : origin=(EXT_BASE+0x198000) length=0x00020000
+    SPARE_REG  (RW)  : origin=(EXT_BASE+0x1b8000) length=0x00048000
     EXT_CODE   (RWX) : origin=(EXT_BASE+0x200000) length=0x00100000
     EXT_DATA   (RW)  : origin=(EXT_BASE+0x300000) length=0x00100000
     EXT_HEAP   (RW)  : origin=(EXT_BASE+0x400000) length=0x00300000
+    SPARE_REG2 (RW)  : origin=(EXT_BASE+0x700000) length=0x00900000
 
 }
 
