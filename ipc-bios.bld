@@ -83,14 +83,11 @@ var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g --mem_model:c
 
 var ccOpts = {
     "ti.targets.C64P"                 : c6xOpts,
-    "ti.targets.C64P_big_endian"      : c6xOpts,
     "ti.targets.C674"                 : c6xOpts,
 
     "ti.targets.elf.C64P"             : c6xOpts,
-    "ti.targets.elf.C64P_big_endian"  : c6xOpts,
     "ti.targets.elf.C64T"             : c6xOpts,
     "ti.targets.elf.C66"              : c6xOpts,
-    "ti.targets.elf.C66_big_endian"   : c6xOpts,
     "ti.targets.elf.C674"             : c6xOpts,
 
     "ti.targets.arm.elf.Arm9"         : " -ms -g ",

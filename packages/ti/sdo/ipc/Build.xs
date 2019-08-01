@@ -52,14 +52,11 @@ var customGnuArmA53Opts = " ";
 var ccOptsList = {
     "ti.targets.C64P"                           : custom6xOpts,
     "ti.targets.elf.C64P"                       : custom6xOpts,
-    "ti.targets.C64P_big_endian"                : custom6xOpts,
-    "ti.targets.elf.C64P_big_endian"            : custom6xOpts,
     "ti.targets.C674"                           : custom6xOpts,
     "ti.targets.elf.C674"                       : custom6xOpts,
     "ti.targets.elf.C67P"                       : custom6xOpts,
     "ti.targets.elf.C64T"                       : custom6xOpts,
     "ti.targets.elf.C66"                        : custom6xOpts,
-    "ti.targets.elf.C66_big_endian"             : custom6xOpts,
     "ti.targets.arp32.elf.ARP32"                : customARP32xOpts,
     "ti.targets.arp32.elf.ARP32_far"            : customARP32xOpts,
     "ti.targets.arm.elf.Arm9"                   : customArmOpts,
@@ -598,21 +595,14 @@ var R5FSources    = "ti/sdo/ipc/gates/GateHWSpinlock.c " +
 var cList = {
     "ti.targets.C64P"                   : commonSources + C647xSources +
                                                 C64PSources,
-    "ti.targets.C64P_big_endian"        : commonSources + C647xSources +
-                                                C64PSources,
     "ti.targets.C674"                   : commonSources + C674Sources,
 
     "ti.targets.elf.C64P"               : commonSources + C647xSources +
-                                                C64PSources,
-    "ti.targets.elf.C64P_big_endian"    : commonSources + C647xSources +
                                                 C64PSources,
     "ti.targets.elf.C674"               : commonSources + C674Sources,
     "ti.targets.elf.C64T"               : commonSources + C64TSources,
     "ti.targets.elf.C66"                : commonSources + C647xSources +
                                                 C66Sources,
-    "ti.targets.elf.C66_big_endian"     : commonSources + C647xSources +
-                                                C66Sources,
-
     "ti.targets.arp32.elf.ARP32"        : commonSources + ARP32Sources,
     "ti.targets.arp32.elf.ARP32_far"    : commonSources + ARP32Sources,
 
@@ -641,16 +631,13 @@ var asmList64P = [
 
 var asmList = {
     "ti.targets.C64P"                   : asmList64P,
-    "ti.targets.C64P_big_endian"        : asmList64P,
     "ti.targets.C674"                   : asmList64P,
 
     "ti.targets.elf.C64P"               : asmList64P,
-    "ti.targets.elf.C64P_big_endian"    : asmList64P,
     "ti.targets.elf.C674"               : asmList64P,
 
     "ti.targets.elf.C64T"               : asmListNone,
     "ti.targets.elf.C66"                : asmListNone,
-    "ti.targets.elf.C66_big_endian"     : asmListNone,
 
     "ti.targets.arp32.elf.ARP32"        : asmListNone,
     "ti.targets.arp32.elf.ARP32_far"    : asmListNone,

@@ -46,7 +46,7 @@ var objList_64P = [
 
 var trgFilter_64P = {
         field: "isa",
-        list: [ "64P", "64P_big_endian", "66" ]
+        list: [ "64P" , "66" ]
 };
 
 /* if not building a product release, build package libraries */

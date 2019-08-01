@@ -109,10 +109,8 @@ BIOS_SMPENABLED=1
 # Path to various cgtools
 #
 ti.targets.elf.C64P =
-ti.targets.elf.C64P_big_endian =
 ti.targets.elf.C64T =
 ti.targets.elf.C66 =
-ti.targets.elf.C66_big_endian =
 ti.targets.elf.C674 =
 
 ti.targets.arm.elf.Arm9 =
