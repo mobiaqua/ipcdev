@@ -108,7 +108,11 @@ Int NotifySetup_Module_startup(Int phase)
     coreId = Core_getId();
 #endif
 
-    NotifySciClient_Init();
+    retVal = NotifySciClient_Init();
+    if ( retVal < 0 ) {
+        return Startup_NOTDONE;
+    }
+
 #if defined(xdc_target__isaCompatible_v7R)
     if (coreId == 0) {
         retVal = NotifySciClient_getIntNumRange(NotifySciClient_R5F_0_CORE_INDEX,

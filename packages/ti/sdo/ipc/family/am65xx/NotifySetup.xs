@@ -114,10 +114,17 @@ function module$use()
         xdc.useModule("ti.sysbios.BIOS");
         Core = xdc.useModule("ti.sysbios.family.arm.v7r.keystone3.Core");
         xdc.useModule('ti.sysbios.family.arm.v7r.keystone3.Hwi');
+
+        if(Program.platformName.match(/R5F0/)) {
+            sciclientSettings.coreType = "mcu1_0";
+        } else if (Program.platformName.match(/R5F1/)) {
+            sciclientSettings.coreType = "mcu1_1";
+        }
     }
     else if (isaChain.match(/#v8A#/)) {
         Mmu = xdc.useModule("ti.sysbios.family.arm.v8a.Mmu");
         xdc.useModule('ti.sysbios.family.arm.gicv3.Hwi');
+        sciclientSettings.coreType = "mpu1_0";
     }
 
     /* initialize procIdTable */

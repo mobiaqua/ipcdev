@@ -41,10 +41,7 @@
 
 #include "package/internal/NotifySciClient.xdc.h"
 
-/* Ideally want to use fixed timeout. Work around is to use wait forever */
-/* #define NOTIFY_SCICLIENT_RESP_TIMEOUT 100  */
-
-#define NOTIFY_SCICLIENT_RESP_TIMEOUT SCICLIENT_SERVICE_WAIT_FOREVER
+#define NOTIFY_SCICLIENT_RESP_TIMEOUT 1000000
 
 /*********************************************************************
  * @fn      NotifySciClient_Init
@@ -58,7 +55,7 @@
 Int32 NotifySciClient_Init(void)
 {
     int32_t status = 0;
-
+    Sciclient_ConfigPrms_t        config;
     /* Setup Request for Version check */
     const Sciclient_ReqPrm_t      reqPrm =
     {
@@ -77,6 +74,17 @@ Int32 NotifySciClient_Init(void)
         .pRespPayload = (uint8_t *) &response,
         .respPayloadSize = sizeof (response)
     };
+
+    /* Now reinitialize it as default parameter */
+    Sciclient_configPrmsInit(&config);
+#if defined(xdc_target__isaCompatible_v8A)
+    config.opModeFlag  = SCICLIENT_SERVICE_OPERATION_MODE_POLLED;
+#endif
+
+    status = Sciclient_init(&config);
+    if (status < 0) {
+        return -1;
+    }
 
     /* Check version check to TISCI connection */
     status = Sciclient_service(&reqPrm, &respPrm);
@@ -132,8 +140,8 @@ Int32 NotifySciClient_IrqSet(NotifySciClient_CoreIndex coreIndex,
     const uint16_t map_host_id[] =
     {
         TISCI_HOST_ID_A53_0,
-        TISCI_HOST_ID_R5_0,
-        TISCI_HOST_ID_R5_1
+        TISCI_HOST_ID_R5_0,  /* This corresponds to R5F core 0 non-secure */
+        TISCI_HOST_ID_R5_2   /* This corresponds to R5F core 1 non-secure */
     };
 
     /* Initialize unused parameters */
@@ -201,8 +209,8 @@ Int32 NotifySciClient_IrqRelease(NotifySciClient_CoreIndex coreIndex,
     const uint16_t map_host_id[] =
     {
         TISCI_HOST_ID_A53_0,
-        TISCI_HOST_ID_R5_0,
-        TISCI_HOST_ID_R5_1
+        TISCI_HOST_ID_R5_0,  /* This corresponds to R5F core 0 non-secure */
+        TISCI_HOST_ID_R5_2   /* This corresponds to R5F core 1 non-secure */
     };
 
     /* Initialize unused parameters */
@@ -272,8 +280,8 @@ Int32 NotifySciClient_getIntNumRange(NotifySciClient_CoreIndex coreIndex,
     const uint16_t map_host_id[] =
     {
         TISCI_HOST_ID_A53_0,
-        TISCI_HOST_ID_R5_0,
-        TISCI_HOST_ID_R5_1
+        TISCI_HOST_ID_R5_0,  /* This corresponds to R5F core 0 non-secure */
+        TISCI_HOST_ID_R5_2   /* This corresponds to R5F core 1 non-secure */
     };
 
     get_resource_range_req.type = req_type[coreIndex];
