@@ -84,8 +84,6 @@
 #define IPU_MEM_TEXT            0x0
 #define IPU_MEM_DATA            0x80000000
 
-#define IPU_MEM_IOBUFS          0x90000000
-
 #define IPU_MEM_IPC_DATA        0x9F000000
 #define IPU_MEM_IPC_VRING       0x60000000
 #define IPU_MEM_RPMSG_VRING0    0x60000000
@@ -108,8 +106,6 @@
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 48)
 #endif
 
-#define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
-
 /*
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
@@ -120,8 +116,6 @@
 #elif defined (VAYU_IPU_2)
 #define PHYS_MEM_IPC_VRING      0x95800000
 #endif
-
-#define PHYS_MEM_IOBUFS         0xBA300000
 
 /*
  * Sizes of the virtqueues (expressed in number of buffers supported,
@@ -136,7 +130,7 @@
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[18];  /* Should match 'num' in actual definition */
+    UInt32 offset[17];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
@@ -190,9 +184,6 @@ struct my_resource_table {
 
     /* devmem entry */
     struct fw_rsc_devmem devmem11;
-
-    /* devmem entry */
-    struct fw_rsc_devmem devmem12;
 };
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
@@ -202,7 +193,7 @@ struct my_resource_table {
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    18,     /* number of entries in the table */
+    17,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
@@ -223,7 +214,6 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         offsetof(struct my_resource_table, devmem9),
         offsetof(struct my_resource_table, devmem10),
         offsetof(struct my_resource_table, devmem11),
-        offsetof(struct my_resource_table, devmem12),
     },
 
     /* rpmsg vdev entry */
@@ -262,12 +252,6 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         TYPE_DEVMEM,
         IPU_MEM_IPC_VRING, PHYS_MEM_IPC_VRING,
         IPU_MEM_IPC_VRING_SIZE, 0, 0, "IPU_MEM_IPC_VRING",
-    },
-
-    {
-        TYPE_DEVMEM,
-        IPU_MEM_IOBUFS, PHYS_MEM_IOBUFS,
-        IPU_MEM_IOBUFS_SIZE, 0, 0, "IPU_MEM_IOBUFS",
     },
 
     {
