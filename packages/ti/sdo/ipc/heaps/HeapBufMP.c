@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -270,9 +270,10 @@ Int HeapBufMP_open(String name,
     }
 
     sharedAddr = SharedRegion_getPtr(sharedShmBase);
-    /* Assert if sharedAddr is NULL */
-    Assert_isTrue(sharedAddr != NULL,
-            ti_sdo_ipc_Ipc_A_internal);
+    /* Check if sharedAddr is NULL */
+    if (sharedAddr == NULL) {
+        return (HeapBufMP_E_NOTFOUND);
+    }
 
     status = HeapBufMP_openByAddr(sharedAddr, handlePtr);
 
@@ -432,7 +433,10 @@ Int ti_sdo_ipc_heaps_HeapBufMP_Instance_init(
 
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
 
-        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
+        if (localAddr == NULL) {
+            Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
+            return (4);
+        }
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
         if (status != GateMP_S_SUCCESS) {
@@ -646,7 +650,7 @@ Ptr ti_sdo_ipc_heaps_HeapBufMP_alloc(ti_sdo_ipc_heaps_HeapBufMP_Object *obj,
 
         obj->attrs->numFreeBlocks--;
 
-        if (obj->attrs->numFreeBlocks < (Int32)obj->attrs->minFreeBlocks) {
+        if (obj->attrs->numFreeBlocks < obj->attrs->minFreeBlocks) {
             /* save the new minimum */
             obj->attrs->minFreeBlocks = obj->attrs->numFreeBlocks;
         }
