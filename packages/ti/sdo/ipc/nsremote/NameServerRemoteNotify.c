@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -294,6 +294,9 @@ Void NameServerRemoteNotify_cbFxn(UInt16 procId, UInt16 lineId, UInt32 eventId,
         default:
             /* We should never get here but assert if we do */
             Assert_isTrue(swiHandle != NULL, Ipc_A_internal);
+    }
+    if (swiHandle == NULL) {
+        return;
     }
 
     Swi_post(swiHandle);
