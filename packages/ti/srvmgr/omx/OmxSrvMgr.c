@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,11 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
 #endif
 
     msgq = RPMessage_create(OMX_MGR_PORT, NULL, NULL, &local);
+
+    if (msgq == NULL) {
+        System_printf("OmxSrvMgr: RPMessage create failed: %d\n", OMX_MGR_PORT);
+        return;
+    }
 
     System_printf("OmxSrvMgr: started on port: %d\n", OMX_MGR_PORT);
 
