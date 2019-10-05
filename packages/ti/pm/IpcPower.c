@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -286,6 +286,10 @@ Void IpcPower_init()
 
     for (i = 0; i < Timer_Object_count(); i++) {
         tHandle = Timer_Object_get(NULL, i);
+        if (tHandle == NULL) {
+            System_abort("IpcPower_init: Cannot find Timer Handle \n");
+            return;
+        }
         func = (UInt) Timer_getFunc(tHandle, &arg);
         if (func && ((func == (UInt) ti_sysbios_knl_Clock_doTick__I) ||
                      (func == (UInt) Clock_tick) ||
