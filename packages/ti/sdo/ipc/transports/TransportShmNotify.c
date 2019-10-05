@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,13 @@ Void TransportShmNotify_notifyFxn(UInt16 procId,
     UInt16 regionId;
 
     msg = SharedRegion_getPtr((SharedRegion_SRPtr)payload);
+    Assert_isTrue((msg != NULL),
+                  ti_sdo_ipc_Ipc_E_internal);
 
+    /* Additional check to cover case when Assert is disabled */
+    if (msg == NULL) {
+        return;
+    }
     /* Read new data into memory instead of old data from cache */
     regionId = SharedRegion_getId(msg);
     if (SharedRegion_isCacheEnabled(regionId)) {

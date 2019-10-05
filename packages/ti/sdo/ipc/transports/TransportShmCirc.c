@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -414,6 +414,10 @@ Void TransportShmCirc_swiFxn(UArg arg)
 
     /* Make sure the TransportShmCirc_Object is not NULL */
     Assert_isTrue(obj != NULL, ti_sdo_ipc_Ipc_A_internal);
+    /* Additional check to handle case when Assert is disabled */
+    if(obj == NULL) {
+        return;
+    }
 
     /*
      *  Invalidate both getBuffer and getWriteIndex from cache.
@@ -438,6 +442,10 @@ Void TransportShmCirc_swiFxn(UArg arg)
 
         /* Make sure the msg Ptr is not NULL */
         Assert_isTrue(msg != NULL, ti_sdo_ipc_Ipc_A_internal);
+        /* Additional check to handle case when Assert is disabled */
+        if (msg == NULL) {
+            return;
+        }
 
         /* get the queue id */
         queueId = MessageQ_getDstQueue(msg);

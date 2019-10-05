@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,7 +155,10 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
         obj->cacheEnabled = SharedRegion_isCacheEnabled(obj->regionId);
 
         localAddr = SharedRegion_getPtr(obj->self->gateMPAddr);
-        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
+        if (localAddr == NULL) {
+            Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
+            return(1);
+        }
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&obj->gate);
         if (status < 0) {
