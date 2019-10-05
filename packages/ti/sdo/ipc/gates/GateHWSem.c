@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@
  */
 Int GateHWSem_Module_startup(Int phase)
 {
-    Int i;
+    UInt i;
     volatile UInt32 *baseAddr = (volatile UInt32 *)GateHWSem_baseAddr;
     Bits32 *reservedMaskArr = (Bits32 *)GateHWSem_reservedMaskArr;
 
