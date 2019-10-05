@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -234,6 +234,12 @@ Int HeapMemMP_open(String name, HeapMemMP_Handle *handlePtr)
     /* Assert if sharedAddr is NULL */
     Assert_isTrue(sharedAddr != NULL,
             ti_sdo_ipc_Ipc_A_internal);
+    /* Double check to cover case when Assert disabled */
+    if (sharedAddr == NULL) {
+        /* Shared address not found */
+        *handlePtr = NULL;
+        return (HeapMemMP_E_NOTFOUND);
+    }
 
     status = HeapMemMP_openByAddr(sharedAddr, handlePtr);
 
