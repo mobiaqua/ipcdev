@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -308,8 +308,10 @@ Int HeapMultiBufMP_open(String name,
     }
 
     sharedAddr = SharedRegion_getPtr(sharedShmBase);
-    Assert_isTrue(sharedAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
-
+    if(sharedAddr == NULL) {
+        *handlePtr = NULL;
+        return HeapMultiBufMP_E_NOTFOUND;
+    }
 
     status = HeapMultiBufMP_openByAddr(sharedAddr, handlePtr);
 
@@ -436,7 +438,7 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
 
     /* Check numBuckets */
     Assert_isTrue(params->openFlag ||
-                  params->numBuckets <= HeapMultiBufMP_MAXBUCKETS,
+                  (UInt)params->numBuckets <= HeapMultiBufMP_MAXBUCKETS,
                   ti_sdo_ipc_Ipc_A_invParam);
 
     obj->nsKey          = NULL;
@@ -458,6 +460,10 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
         obj->cacheEnabled   = SharedRegion_isCacheEnabled(obj->regionId);
 
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
+        if (localAddr == NULL) {
+            Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
+            return 1;
+        }
         Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
@@ -875,6 +881,12 @@ Void ti_sdo_ipc_heaps_HeapMultiBufMP_putTail(
     else {
         temp = (ti_sdo_ipc_heaps_HeapMultiBufMP_Elem *)
                 SharedRegion_getPtr(obj->attrs->buckets[index].tail);
+        /* Check for invalid arguments */
+        Assert_isTrue(temp != NULL, ti_sdo_ipc_Ipc_A_internal);
+        /* Additional check to handle case when Assert is disabled */
+        if (temp == NULL) {
+            return;
+        }
         temp->next = sharedBlock;
 
         /*
@@ -1015,7 +1027,7 @@ UInt ti_sdo_ipc_heaps_HeapMultiBufMP_processBuckets(
            sizeof(HeapMultiBufMP_Bucket) * params->numBuckets);
 
     /* Combine if blockSizes (and alignments) are equal and shrink the array */
-    for (i = 0; i < params->numBuckets; i++) {
+    for (i = 0; i < (UInt)params->numBuckets; i++) {
         /* Ensure that align is a power of two */
         Assert_isTrue((optBucketEntries[i].align &
                       (optBucketEntries[i].align - 1)) == 0,
@@ -1045,11 +1057,11 @@ UInt ti_sdo_ipc_heaps_HeapMultiBufMP_processBuckets(
     optNumBuckets = 0;
 
     /* Combine if blockSizes (and alignments) are equal and shrink the array */
-    for (i = 0; i < params->numBuckets; i++) {
+    for (i = 0; i < (UInt)params->numBuckets; i++) {
         if (optBucketEntries[i].numBlocks != 0) {
             memcpy(&(optBucketEntries[optNumBuckets]), &(optBucketEntries[i]),
                    sizeof(HeapMultiBufMP_Bucket));
-            for (j = i + 1 ; j < params->numBuckets; j++) {
+            for (j = i + 1 ; j < (UInt)params->numBuckets; j++) {
                 if (optBucketEntries[optNumBuckets].blockSize ==
                         optBucketEntries[j].blockSize &&
                     optBucketEntries[optNumBuckets].align ==
