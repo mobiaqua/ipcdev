@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,8 +151,8 @@ Bool ServiceMgr_registerSrvTask(UInt16 reserved, Task_FuncPtr func,
             /* Deal with the Task_Params to avoid IInstance mismatch */
             params = &st->params;
             Task_Params_init(params);
-            memcpy((Void *)(&params->arg0), &taskParams->arg0,
-                        sizeof(*params) - sizeof(Void *));
+            memcpy((Void *)(params), taskParams,
+                        sizeof(*params));
             params->instance->name = st->name;
 
             st->reserved = reserved;
