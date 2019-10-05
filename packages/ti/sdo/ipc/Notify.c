@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -914,6 +914,10 @@ Void ti_sdo_ipc_Notify_execMany(UInt16 procId, UInt16 lineId, UInt32 eventId,
 
     /* Check eventList Non Null */
     Assert_isTrue(eventList != NULL, ti_sdo_ipc_Notify_A_internal);
+    /* Additional check to handle case when Assert is disabled */
+    if(eventList == NULL) {
+        return;
+    }
 
     /* Use "NULL" to get the first EventListener on the list */
     listener = (ti_sdo_ipc_Notify_EventListener *)List_next(eventList, NULL);
