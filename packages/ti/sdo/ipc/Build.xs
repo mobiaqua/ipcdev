@@ -353,15 +353,8 @@ function module$validate()
  */
 function getCCOpts(target)
 {
-    var ccOpts = "";
 
-    if (target.$name.match(/^ti\.targets\./)) {
-        if (("ti.ipc.rpmsg" in xdc.om) || ("ti.ipc.transports" in xdc.om)) {
-            ccOpts += " --gcc";
-        }
-    }
-
-    return (Build.customCCOpts + ccOpts);
+    return (Build.customCCOpts);
 }
 
 /*

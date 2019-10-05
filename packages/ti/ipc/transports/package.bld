@@ -58,12 +58,6 @@ for (var i = 0; i < Build.targets.length; i++) {
         continue;
     }
 
-    if (targ.$name.match(/^ti\.targets\./)) {
-        myCopts = "--gcc";  /* Rpmsg.h requires gcc-isms */
-    } else {
-        myCopts = "";
-    }
-
     for (var profile in targ.profiles) {
 
         /* For all targets, build a rpmsg-upstream-compatible lib */
