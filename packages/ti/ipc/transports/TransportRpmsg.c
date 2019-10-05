@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -306,6 +306,10 @@ static Void transportCallbackFxn(RPMessage_Handle msgq, UArg arg, Ptr data,
 
     /* Make sure buf is not NULL */
     Assert_isTrue(buf != NULL, NULL);
+    if (buf == NULL) {
+        Log_print0(Diags_INFO, FXNN" MessageQ_alloc failed \n");
+        goto exit;
+    }
 
     /* copy the message to the buffer allocated. */
     memcpy((Ptr)buf, (Ptr)msg, msgSize);
