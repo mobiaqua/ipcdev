@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ extern __FAR__ Bits32 Ipc_sr0MemorySetup;
  */
 Int Ipc_attach(UInt16 remoteProcId)
 {
-    Int i;
+    UInt i;
     Ptr sharedAddr;
     SizeT memReq;
     volatile ti_sdo_ipc_Ipc_Reserved *slave;
@@ -409,7 +409,7 @@ Bool Ipc_isAttached(UInt16 remoteProcId)
  */
 Int Ipc_detach(UInt16 remoteProcId)
 {
-    Int i;
+    UInt i;
     UInt16 baseId = MultiProc_getBaseIdOfCluster();
     UInt16 clusterId = ti_sdo_utils_MultiProc_getClusterId(remoteProcId);
     Ptr notifySharedAddr;
@@ -662,6 +662,10 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
                       TRUE);
         }
 
+        if (entry == NULL) {
+            return Ipc_E_FAIL;
+        }
+
         if ((entry->remoteProcId == MultiProc_self()) &&
             (entry->localProcId == remoteProcId) &&
             (entry->tag == tag)) {
@@ -875,14 +879,17 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
          */
         curSRPtr = *prevSRPtr;
 
-        /* loop through list of config entries until matching entry is found */
+        /* loop through list of conf`ig entries until matching entry is found */
         while (curSRPtr != ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
             /* convert Ptr associated with curSRPtr */
             entry = (ti_sdo_ipc_Ipc_ConfigEntry *)
                     (SharedRegion_getPtr(curSRPtr));
 
-            /* Assert that the remoteProc in our cluster */
-            Assert_isTrue(entry != NULL, ti_sdo_ipc_Ipc_A_internal);
+            /* Check if entry is NULL */
+            if (entry == NULL) {
+                status = Ipc_E_FAIL;
+                return status;
+            }
 
             /* make sure entry matches remoteProcId, tag, and size */
             if ((entry->remoteProcId == remoteProcId) &&
