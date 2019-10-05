@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Texas Instruments Incorporated
+ * Copyright (c) 2015-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ static Int32 refWakeLockCnt;
 static IpcPower_CallbackElem *IpcPower_callbackList = NULL;
 
 /* Module ref count: */
-static Int curInit = 0;
+static volatile Int curInit = 0;
 
 typedef enum IpcPower_SleepMode {
     IpcPower_SLEEP_MODE_DEEPSLEEP,
@@ -222,6 +222,10 @@ Void IpcPower_init()
 
     for (i = 0; i < Timer_Object_count(); i++) {
         tHandle = Timer_Object_get(NULL, i);
+        if (tHandle == NULL) {
+            Log_print0(Diags_INFO, FXNN": Cannot find Timer Handle \n");
+            return;
+        }
         func = (UInt) Timer_getFunc(tHandle, &arg);
         if (func && ((func == (UInt) ti_sysbios_knl_Clock_doTick__I) ||
                      (func == (UInt) Clock_tick))) {
