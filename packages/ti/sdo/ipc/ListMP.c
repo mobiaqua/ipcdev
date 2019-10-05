@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -528,6 +528,9 @@ Int ListMP_insert(ListMP_Handle handle, ListMP_Elem *newElem,
 
     /* get Ptr for curElem->prev */
     localPrevElem = SharedRegion_getPtr(curElem->prev);
+    if (localPrevElem == NULL) {
+        return ListMP_E_FAIL;
+    }
 
     localPrevElemIsCached = SharedRegion_isCacheEnabled(
             SharedRegion_getId(localPrevElem));
@@ -674,8 +677,10 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
         localNextElem = SharedRegion_getPtr(attrs->head.next);
     }
 
-    /* Assert that pointer is not NULL */
-    Assert_isTrue(localNextElem != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+    /* Return if the pointer is NULL */
+    if (localNextElem == NULL) {
+        return ListMP_E_FAIL;
+    }
 
     localNextElemIsCached = SharedRegion_isCacheEnabled(
         SharedRegion_getId(localNextElem));
@@ -745,8 +750,10 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
         localPrevElem = SharedRegion_getPtr(attrs->head.prev);
     }
 
-    /* Assert that pointer is not NULL */
-    Assert_isTrue(localPrevElem != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+    /* Cross check if localPrevElem is NULL */
+    if (localPrevElem == NULL) {
+        return ListMP_E_FAIL;
+    }
 
     localPrevElemIsCached = SharedRegion_isCacheEnabled(
         SharedRegion_getId(localPrevElem));
@@ -802,6 +809,13 @@ Int ListMP_remove(ListMP_Handle handle, ListMP_Elem *elem)
         localPrevElem = SharedRegion_getPtr(elem->prev);
         localNextElem = SharedRegion_getPtr(elem->next);
     }
+    /* Cross check if localPrevElem and localNextElem is NULL */
+    if ((localPrevElem == NULL) ||
+        (localNextElem == NULL)) {
+        return ListMP_E_FAIL;
+    }
+
+
 
     localPrevElemIsCached = SharedRegion_isCacheEnabled(
             SharedRegion_getId(localPrevElem));
@@ -870,7 +884,10 @@ Int ti_sdo_ipc_ListMP_Instance_init(ti_sdo_ipc_ListMP_Object *obj,
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
 
         /* Do NULL check on localAddr */
-        Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
+        if(localAddr == NULL) {
+            Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
+            return (4);            
+        }
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
         if (status != GateMP_S_SUCCESS) {
