@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -234,7 +234,7 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
     IArg key;
 
     key = GateAll_enter(vq->gateH);
-    if ((head > vring->num) || (head < 0)) {
+    if (((unsigned int)head > vring->num) || (head < 0)) {
         Error_raise(NULL, Error_E_generic, 0, 0);
     }
     else {
