@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Texas Instruments Incorporated
+ * Copyright (c) 2013-2019 Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ Int GatePetersonN_Instance_init(GatePetersonN_Object *obj,
 {
     SizeT  offset;
     SizeT  minAlign = Memory_getMaxDefaultTypeAlign();
-    SizeT  i;
+    UInt  i;
 
     if (SharedRegion_getCacheLineSize(params->regionId) > minAlign) {
             minAlign = SharedRegion_getCacheLineSize(params->regionId);
@@ -103,7 +103,7 @@ Int GatePetersonN_Instance_init(GatePetersonN_Object *obj,
         offset += minAlign;
     }
 
-    for (i=0; i < obj->numProcessors - 1; i++) {
+    for (i=0; i < obj->numProcessors - 1u; i++) {
 	obj->lastProcEnteringStage[i] = (Int32 *)((UArg)(params->sharedAddr)
                                                    + offset);
         offset += minAlign;
@@ -151,7 +151,7 @@ IArg GatePetersonN_enter(GatePetersonN_Object *obj)
     numProcessors = obj->numProcessors;
     myProcId      = obj->selfId;
 
-    for (curStage=0; curStage < (numProcessors - 1); curStage++) {
+    for (curStage=0; curStage < ((Int32)numProcessors - 1); curStage++) {
 
         *(obj->enteredStage[myProcId]) = curStage;
         *(obj->lastProcEnteringStage[curStage]) = myProcId;
