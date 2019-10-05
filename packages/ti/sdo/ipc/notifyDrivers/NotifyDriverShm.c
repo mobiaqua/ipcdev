@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,7 +236,7 @@ Void NotifyDriverShm_registerEvent(NotifyDriverShm_Object *obj,
      *  Chart, in ascending order of event numbers (and decreasing
      *  priorities).
      */
-    for (i = 0; i < ti_sdo_ipc_Notify_numEvents; i++) {
+    for (i = 0; i < (Int)ti_sdo_ipc_Notify_numEvents; i++) {
         /* Find the correct slot in the registration array.*/
         if (obj->regChart[i] == (UInt32)-1) {
             for (j = i - 1; j >= 0; j--) {
@@ -283,7 +283,7 @@ Void NotifyDriverShm_unregisterEvent(NotifyDriverShm_Object *obj,
                                      UInt32 eventId)
 {
     NotifyDriverShm_EventEntry *eventEntry;
-    Int i, j;
+    UInt i, j;
 
     /*
      *  Disable interrupt line to ensure that NotifyDriverShm_isr doesn't
