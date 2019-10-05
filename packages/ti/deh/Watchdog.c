@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,7 +136,10 @@ static Void initTimer(volatile Watchdog_TimerRegs *timer, Bool boot)
 
     /* Check NULL tHandle */
     Assert_isTrue((tHandle != NULL) , NULL);
-
+    /* Double check, In case assert is disabled */
+    if (tHandle == NULL) {
+        return;
+    }
     Timer_getFreq(tHandle, &tFreq);
 
     timer->tisr = ~0;
@@ -177,6 +180,10 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
 
         /* Check NULL tHandle */
         Assert_isTrue((tHandle != NULL) , NULL);
+        if (tHandle == NULL) {
+            System_printf("Timer Object get failed. \n");
+            return;
+        }
 
         Timer_getFreq(tHandle, &tFreq);  /* get timer frequency */
 
