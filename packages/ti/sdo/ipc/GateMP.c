@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2012-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -302,7 +302,7 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
         mask = nsValue[3];
 
         /* Remote case */
-        switch (GETREMOTE(mask)) {
+        switch ((GateMP_RemoteProtect)(GETREMOTE(mask))) {
             case GateMP_RemoteProtect_SYSTEM:
                 obj = GateMP_module->remoteSystemGates[resourceId];
                 break;
@@ -388,7 +388,7 @@ Int GateMP_openByAddr(Ptr sharedAddr, GateMP_Handle *handlePtr)
     }
     else {
         /* Local gate */
-        if (GETREMOTE(attrs->mask) == GateMP_RemoteProtect_NONE) {
+        if ((GateMP_RemoteProtect)GETREMOTE(attrs->mask) == GateMP_RemoteProtect_NONE) {
             if (attrs->creatorProcId != MultiProc_self()) {
                 Error_raise(&eb, ti_sdo_ipc_GateMP_E_localGate, 0, 0);
                 return (GateMP_E_FAIL);
@@ -411,7 +411,7 @@ Int GateMP_openByAddr(Ptr sharedAddr, GateMP_Handle *handlePtr)
         key = Hwi_disable();
 
         /* Remote case */
-        switch (GETREMOTE(attrs->mask)) {
+        switch ((GateMP_RemoteProtect)(GETREMOTE(attrs->mask))) {
             case GateMP_RemoteProtect_SYSTEM:
                 obj = GateMP_module->remoteSystemGates[attrs->arg];
                 break;
@@ -531,7 +531,7 @@ IGateProvider_Handle ti_sdo_ipc_GateMP_createLocal(
     IGateProvider_Handle gateHandle;
 
     /* Create the local gate. */
-    switch (localProtect) {
+    switch ((GateMP_LocalProtect)localProtect) {
         case GateMP_LocalProtect_NONE:
             /* Plug with the GateNull singleton */
             gateHandle = GateMP_module->gateNull;
@@ -631,7 +631,7 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
 {
     ti_sdo_ipc_GateMP_Reserved *reserve;
     SizeT minAlign, offset;
-    UInt i;
+    Int i;
     Bits32 *delegateReservedMask;
     UInt32 nsValue[6];
     Int ret;
@@ -1091,7 +1091,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
         obj->nsKey         = 0;
         obj->numOpens      = 0;
 
-        if (obj->remoteProtect == GateMP_RemoteProtect_NONE) {
+        if ((GateMP_RemoteProtect)(obj->remoteProtect) == GateMP_RemoteProtect_NONE) {
             obj->gateHandle = ti_sdo_ipc_GateMP_createLocal(obj->localProtect);
             if (params->sharedAddr != NULL) {
                 /* Create a local gate using shared memory */
@@ -1213,7 +1213,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
     }
 
     /* Proxy work for open and create done here */
-    switch (obj->remoteProtect) {
+    switch ((GateMP_RemoteProtect)(obj->remoteProtect)) {
         case GateMP_RemoteProtect_SYSTEM:
             if (obj->objType != ti_sdo_ipc_Ipc_ObjType_OPENDYNAMIC) {
                 /* Created Instance */
@@ -1419,7 +1419,7 @@ Void ti_sdo_ipc_GateMP_Instance_finalize(
         Memory_free(NULL, obj->attrs, sizeof(ti_sdo_ipc_GateMP_Attrs));
     }
 
-    switch (obj->remoteProtect) {
+    switch ((GateMP_RemoteProtect)(obj->remoteProtect)) {
         case GateMP_RemoteProtect_SYSTEM:
             if (obj->gateHandle) {
                 systemHandle =
@@ -1573,7 +1573,7 @@ UInt ti_sdo_ipc_GateMP_getFreeResource(UInt8 *inUse, Int num, Error_Block *eb)
      *  Find a free resource id. Note: zero is reserved on the
      *  system proxy for the default gate.
      */
-    for (resourceId = 0; resourceId < num; resourceId++) {
+    for (resourceId = 0; resourceId < (UInt)num; resourceId++) {
         /*
          *  If not in-use, set the inUse to TRUE to prevent other
          *  creates from getting this one.
