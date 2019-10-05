@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ Int MmServiceMgr_start(const String name, Int aryLen,
  *              a service.
  *
  */
-UInt32 MmServiceMgr_getId();
+UArg MmServiceMgr_getId();
 
 #if defined (__cplusplus)
 }
