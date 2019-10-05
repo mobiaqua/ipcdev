@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ typedef struct OmapRpc_Object {
     RPMessage_Handle         msgq;
     UInt32                   localEndPt;
     Task_Handle              taskHandle;
-    Bool                     shutdown;
+    volatile Bool            shutdown;
     Semaphore_Handle         exitSem;
     OmapRpc_SrvDelNotifyFxn  srvDelCB;
     RcmServer_Params         rcmParams;
@@ -329,7 +329,8 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
                     (RcmServer_MsgCreateFxn)OmapRpc_GetSvrMgrHandle;
 
             strncpy(obj->funcSigs[func].name, obj->rcmParams.fxns.elem[0].name,
-                    OMAPRPC_MAX_CHANNEL_NAMELEN);
+                    OMAPRPC_MAX_CHANNEL_NAMELEN-1);
+            obj->funcSigs[func].name[OMAPRPC_MAX_CHANNEL_NAMELEN-1] = '\0';
             obj->funcSigs[func].numParam = 0;
         }
         else {
