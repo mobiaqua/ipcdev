@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,7 +191,7 @@ Void SysMin_putch(Char ch)
             uSec  = Clock_getTicks() * (UInt64)Clock_tickPeriod;
             SysMin_output('[');
             if (uSec) {
-                sprintf(timeStamp, "%17llu\0", uSec);
+                snprintf(timeStamp, sizeof(timeStamp), "%17llu\0", uSec);
             }
             for (index = startIdx; index < endIdx; index++) {
                 if (index == decPtIdx) {
