@@ -245,7 +245,7 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
     UInt32 mask;
     UInt32 resourceId;
     Ptr sharedAddr;
-    UInt32 nsValue[4];
+    UInt32 nsValue[5];
 
     Error_init(&eb);
 
@@ -282,7 +282,10 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
          * Opening a local GateMP locally. The GateMP is created
          * from a local heap so don't do SharedRegion Ptr conversion.
          */
-        sharedAddr = (Ptr)nsValue[0];
+        sharedAddr = (Ptr)((UArg)nsValue[0]);
+#if UINTPTR_MAX == 0xffffffffffffffff
+            sharedAddr = (Ptr)(((UArg)sharedAddr) | ((UArg)nsValue[2] << 32u));
+#endif
         status = GateMP_openByAddr(sharedAddr, handlePtr);
     }
     else if (GateMP_module->hostSupport == FALSE) {
@@ -397,7 +400,7 @@ Int GateMP_openByAddr(Ptr sharedAddr, GateMP_Handle *handlePtr)
             /* need to atomically increment number of opens */
             key = Hwi_disable();
 
-            obj = (ti_sdo_ipc_GateMP_Object *)attrs->arg;
+            obj = (ti_sdo_ipc_GateMP_Object *)((UArg)attrs->arg);
             *handlePtr = (GateMP_Handle)obj;
             obj->numOpens++;
 
@@ -871,7 +874,7 @@ Int ti_sdo_ipc_GateMP_attach(UInt16 remoteProcId, Ptr sharedAddr)
     /* get region 0 information */
     SharedRegion_getEntry(0, &entry);
 
-    gateMPsharedAddr = (Ptr)((uintptr_t)sharedAddr +
+    gateMPsharedAddr = (Ptr)((UArg)sharedAddr +
                        ti_sdo_ipc_GateMP_getRegion0ReservedSize());
 
     if ((entry.ownerProcId != MultiProc_self()) &&
@@ -1039,7 +1042,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
     SizeT minAlign, offset;
     SharedRegion_SRPtr sharedShmBase;
     GateMP_Params sparams;
-    UInt32 nsValue[4];
+    UInt32 nsValue[5];
     UInt32 sizeNsValue;
     IHeap_Handle regionHeap;
 
@@ -1113,7 +1116,7 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
 
             }
 
-            obj->attrs->arg = (Bits32)obj;
+            obj->attrs->arg = (UArg)obj;
             obj->attrs->mask = SETMASK(obj->remoteProtect, obj->localProtect);
             obj->attrs->creatorProcId = MultiProc_self();
             obj->attrs->status = ti_sdo_ipc_GateMP_CREATED;
@@ -1127,20 +1130,22 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
             }
 
             if (params->name) {
-                nsValue[0] = (uintptr_t)obj->attrs;
+                nsValue[0] = (UInt32)(((UArg)obj->attrs) & 0xffffffffu);
                 /*
                  *  Top 16 bits = procId of creator
                  *  Bottom 16 bits = '0' if local, '1' otherwise
                  */
-                nsValue[1] = ((uintptr_t)MultiProc_self()) << 16;
-
+                nsValue[1] = ((UInt32)MultiProc_self()) << 16;
+#if UINTPTR_MAX == 0xffffffffffffffff
+                nsValue[2] = (UInt32)(((UArg)obj->attrs) >> 32u);
+#endif
                 if (GateMP_module->hostSupport == TRUE) {
-                    nsValue[2] = obj->attrs->arg;
-                    nsValue[3] = obj->attrs->mask;
-                    sizeNsValue = sizeof(nsValue);
+                    nsValue[3] = obj->attrs->arg;
+                    nsValue[4] = obj->attrs->mask;
+                    sizeNsValue =  5 * sizeof(UInt32);
                 }
                 else {
-                    sizeNsValue = 2 * sizeof(UInt32);
+                    sizeNsValue = 3 * sizeof(UInt32);
                 }
 
                 obj->nsKey = NameServer_add((NameServer_Handle)
@@ -1347,9 +1352,9 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
 
             if (GateMP_module->hostSupport == TRUE) {
                 /* Making a copy of these for host processor */
-                nsValue[2] = obj->attrs->arg;
+                nsValue[2] = (UInt32)obj->attrs->arg;
                 nsValue[3] = obj->attrs->mask;
-                sizeNsValue = sizeof(nsValue);
+                sizeNsValue = 4 * sizeof(UInt32);
             }
             else {
                 sizeNsValue = 2 * sizeof(UInt32);
