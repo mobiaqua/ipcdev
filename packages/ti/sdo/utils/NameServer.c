@@ -1031,7 +1031,7 @@ Int ti_sdo_utils_NameServer_postInit(ti_sdo_utils_NameServer_Object *obj)
 
         /* Carve out some room for the dynamically added values */
         if (obj->maxValueLen > sizeof(UInt32)) {
-            tableEntry->value = (UArg)((UInt32)obj->values +
+            tableEntry->value = (UArg)((UArg)obj->values +
                     (i * obj->maxValueLen));
             tableEntry->len   = obj->maxValueLen;
         }
