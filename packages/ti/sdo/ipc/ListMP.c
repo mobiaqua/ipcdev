@@ -291,7 +291,7 @@ Bool ListMP_empty(ListMP_Handle handle)
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
         /* get the SRPtr for the head */
-        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
+        sharedHead = (SharedRegion_SRPtr)((UArg)&(attrs->head));
     }
     else {
         /* get the SRPtr for the head */
@@ -348,7 +348,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
 #endif
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        localHeadNext = (ListMP_Elem *)attrs->head.next;
+        localHeadNext = (ListMP_Elem *)((UArg)attrs->head.next);
     }
     else {
         localHeadNext = SharedRegion_getPtr(attrs->head.next);
@@ -369,7 +369,7 @@ Ptr ListMP_getHead(ListMP_Handle handle)
         }
 
         if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-            localNext = (ListMP_Elem *)localHeadNext->next;
+            localNext = (ListMP_Elem *)((UArg)localHeadNext->next);
         }
         else {
             localNext = SharedRegion_getPtr(localHeadNext->next);
@@ -431,7 +431,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
 #endif
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        localHeadPrev = (ListMP_Elem *)attrs->head.prev;
+        localHeadPrev = (ListMP_Elem *)((UArg)attrs->head.prev);
     }
     else {
         localHeadPrev = SharedRegion_getPtr(attrs->head.prev);
@@ -452,7 +452,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
         }
 
         if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-            localPrev = (ListMP_Elem *)localHeadPrev->prev;
+            localPrev = (ListMP_Elem *)((UArg)localHeadPrev->prev);
         }
         else {
             localPrev = SharedRegion_getPtr(localHeadPrev->prev);
@@ -508,8 +508,13 @@ Int ListMP_insert(ListMP_Handle handle, ListMP_Elem *newElem,
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        sharedNewElem = (SharedRegion_SRPtr)newElem;
-        sharedCurElem = (SharedRegion_SRPtr)curElem;
+        if ((UArg)newElem > (UArg)(0xffffffffu) ||
+            (UArg)curElem > (UArg)(0xffffffffu)) {
+            GateMP_leave((GateMP_Handle)obj->gate, key);
+            return ListMP_E_FAIL;
+        }
+        sharedNewElem = (SharedRegion_SRPtr)((UArg)newElem);
+        sharedCurElem = (SharedRegion_SRPtr)((UArg)curElem);
     }
     else {
         /* get SRPtr for newElem */
@@ -667,9 +672,13 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
 
     id = SharedRegion_getId(elem);
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        sharedElem = (SharedRegion_SRPtr)elem;
-        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
-        localNextElem = (ListMP_Elem *)attrs->head.next;
+        if ((UArg)elem > (UArg)0xffffffffu) {
+            GateMP_leave((GateMP_Handle)obj->gate, key);
+            return ListMP_E_FAIL;
+        }
+        sharedElem = (SharedRegion_SRPtr)((UArg)elem);
+        sharedHead = (SharedRegion_SRPtr)((UArg)(&(attrs->head)));
+        localNextElem = (ListMP_Elem *)((UArg)attrs->head.next);
     }
     else {
         sharedElem = SharedRegion_getSRPtr(elem, id);
@@ -679,6 +688,7 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem)
 
     /* Return if the pointer is NULL */
     if (localNextElem == NULL) {
+        GateMP_leave((GateMP_Handle)obj->gate, key);
         return ListMP_E_FAIL;
     }
 
@@ -740,9 +750,13 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
 
     id = SharedRegion_getId(elem);
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        sharedElem = (SharedRegion_SRPtr)elem;
-        sharedHead = (SharedRegion_SRPtr)&(attrs->head);
-        localPrevElem = (ListMP_Elem *)attrs->head.prev;
+        if ((UArg)elem > ((UArg)0xffffffffu)) {
+            GateMP_leave((GateMP_Handle)obj->gate, key);
+            return ListMP_E_FAIL;
+        }
+        sharedElem = (SharedRegion_SRPtr)((UArg)elem);
+        sharedHead = (SharedRegion_SRPtr)((UArg)(&(attrs->head)));
+        localPrevElem = (ListMP_Elem *)((UArg)attrs->head.prev);
     }
     else {
         sharedElem = SharedRegion_getSRPtr(elem, id);
@@ -752,6 +766,7 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem)
 
     /* Cross check if localPrevElem is NULL */
     if (localPrevElem == NULL) {
+        GateMP_leave((GateMP_Handle)obj->gate, key);
         return ListMP_E_FAIL;
     }
 
@@ -802,8 +817,8 @@ Int ListMP_remove(ListMP_Handle handle, ListMP_Elem *elem)
     key = GateMP_enter((GateMP_Handle)obj->gate);
 
     if (ti_sdo_ipc_SharedRegion_translate == FALSE) {
-        localPrevElem = (ListMP_Elem *)(elem->prev);
-        localNextElem = (ListMP_Elem *)(elem->next);
+        localPrevElem = (ListMP_Elem *)((UArg)(elem->prev));
+        localNextElem = (ListMP_Elem *)((UArg)(elem->next));
     }
     else {
         localPrevElem = SharedRegion_getPtr(elem->prev);
