@@ -61,7 +61,7 @@
 
 #define EVENTENTRY(eventChart, entrySize, eventId) \
             ((NotifyDriverShm_EventEntry *) \
-             ((UInt32)(eventChart) + ((entrySize) * (eventId))));
+             ((UArg)(eventChart) + ((entrySize) * (eventId))));
 
 /*
  **************************************************************
@@ -119,7 +119,7 @@ Int NotifyDriverShm_Instance_init(NotifyDriverShm_Object *obj,
     }
 
     /* Check if shared memory base addr is aligned to cache line boundary.*/
-    Assert_isTrue ((UInt32)params->sharedAddr % minAlign == 0,
+    Assert_isTrue ((UArg)params->sharedAddr % minAlign == 0,
         ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
     obj->remoteProcId           = params->remoteProcId;
@@ -154,15 +154,15 @@ Int NotifyDriverShm_Instance_init(NotifyDriverShm_Object *obj,
         minAlign);
 
     obj->selfProcCtrl = (NotifyDriverShm_ProcCtrl *)
-        ((UInt32)params->sharedAddr + (obj->selfId * procCtrlSize));
+        ((UArg)params->sharedAddr + (obj->selfId * procCtrlSize));
     obj->otherProcCtrl = (NotifyDriverShm_ProcCtrl *)
-        ((UInt32)params->sharedAddr + (obj->otherId * procCtrlSize));
+        ((UArg)params->sharedAddr + (obj->otherId * procCtrlSize));
     obj->selfEventChart  = (NotifyDriverShm_EventEntry *)
-        ((UInt32)params->sharedAddr
+        ((UArg)params->sharedAddr
          + (2 * procCtrlSize)
          + (obj->eventEntrySize * ti_sdo_ipc_Notify_numEvents * obj->selfId));
     obj->otherEventChart  = (NotifyDriverShm_EventEntry *)
-         ((UInt32)params->sharedAddr
+         ((UArg)params->sharedAddr
          + (2 * procCtrlSize)
          + (obj->eventEntrySize * ti_sdo_ipc_Notify_numEvents * obj->otherId));
 
