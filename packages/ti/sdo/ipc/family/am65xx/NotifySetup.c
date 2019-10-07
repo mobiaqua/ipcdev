@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -339,6 +339,10 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
 #endif
     Assert_isTrue((retVal == 0),
                   NotifySetup_A_error_resource_allocation);
+    /* Additional check to handle case when Assert is disabled */
+    if (retVal != 0) {
+        return;
+    }
 
     /* map remote processor id to virtual id */
     srcVirtId = VIRTID(remoteProcId);
