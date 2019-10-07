@@ -447,14 +447,14 @@ Int ti_sdo_ipc_heaps_HeapMemMP_Instance_init(
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
         /* Assert that sharedAddr is cache aligned */
-        Assert_isTrue(((UInt32)params->sharedAddr %
+        Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
         obj->objType    = ti_sdo_ipc_Ipc_ObjType_CREATEDYNAMIC;
 
         /* obj->buf will get alignment-adjusted in postInit */
-        obj->buf        = (Ptr)((UInt32)params->sharedAddr +
+        obj->buf        = (Ptr)((UArg)params->sharedAddr +
                           sizeof(ti_sdo_ipc_heaps_HeapMemMP_Attrs));
         obj->attrs     = (ti_sdo_ipc_heaps_HeapMemMP_Attrs *)params->sharedAddr;
     }
@@ -771,7 +771,7 @@ Void ti_sdo_ipc_heaps_HeapMemMP_free(ti_sdo_ipc_heaps_HeapMemMP_Object *obj,
     SizeT offset;
 
     /* Assert that 'addr' is cache aligned  */
-    Assert_isTrue(((UInt32)addr % obj->minAlign == 0),
+    Assert_isTrue(((UArg)addr % obj->minAlign == 0),
             ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
     /* Restore size to actual allocated size */
@@ -972,12 +972,12 @@ Void ti_sdo_ipc_heaps_HeapMemMP_postInit(ti_sdo_ipc_heaps_HeapMemMP_Object *obj,
             return;
         }
 
-        obj->buf = (Ptr)((UInt32)obj->attrs +
+        obj->buf = (Ptr)((UArg)obj->attrs +
                 sizeof(ti_sdo_ipc_heaps_HeapMemMP_Attrs));
     }
 
     /* Round obj->buf up by obj->minAlign */
-    obj->buf = (Ptr)_Ipc_roundup(obj->buf, obj->minAlign);
+    obj->buf = (Ptr)_Ipc_ptrRoundup(obj->buf, obj->minAlign);
 
     /* Verify the buffer is large enough */
     Assert_isTrue((obj->bufSize >=
