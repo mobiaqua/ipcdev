@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -228,6 +228,10 @@ static Void _VirtQueue_init()
         /* register with xdc.runtime to get a diags mask */
         result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);
         Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
+        /* Additional check to handle case when Assert is disabled */
+        if (result != Registry_SUCCESS) {
+            return;
+        }
 
         initialized = 1;
     }
@@ -459,6 +463,10 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
 
             result = Resource_physToVirt(vq->basePa, &(vq->baseVa));
             Assert_isTrue(result == Resource_S_SUCCESS, (Assert_Id)NULL);
+            /* Additional check to handle case when Assert is disabled */
+            if (result != Resource_S_SUCCESS) {
+                return (NULL);
+            }
 
             vringAddr = (Void *)vq->baseVa;
             break;
