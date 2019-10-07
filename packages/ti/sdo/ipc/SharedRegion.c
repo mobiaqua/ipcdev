@@ -359,7 +359,7 @@ SharedRegion_SRPtr SharedRegion_getSRPtr(Ptr addr, UInt16 id)
         if (((uintptr_t)addr >= (uintptr_t)region->entry.base) &&
             ((uintptr_t)addr < ((uintptr_t)region->entry.base + (SizeT)region->entry.len))) {
             retPtr = (SharedRegion_SRPtr)((id << ti_sdo_ipc_SharedRegion_numOffsetBits)
-                     | ((UInt32)addr - (UInt32)region->entry.base));
+                     | ((UArg)addr - (UArg)region->entry.base));
         }
         else {
             Assert_isTrue(FALSE, ti_sdo_ipc_SharedRegion_A_addrOutOfRange);
@@ -493,7 +493,7 @@ Int SharedRegion_setEntry(UInt16 id, SharedRegion_Entry *entry)
         else {
             if ((entry->createHeap) && (region->heap == NULL)) {
                 /* sharedAddr should match creator's for each region */
-                sharedAddr = (Ptr)((UInt32)entry->base +
+                sharedAddr = (Ptr)((UArg)entry->base +
                     region->reservedSize);
 
                 /* set the pointer to a heap handle */
@@ -530,7 +530,7 @@ Int SharedRegion_checkOverlap(Ptr base, SizeT len)
         region = &(SharedRegion_module->regions[i]);
         if (region->entry.isValid) {
             if (base >= region->entry.base) {
-                if (base < (Ptr)((UInt32)region->entry.base +
+                if (base < (Ptr)((UArg)region->entry.base +
                     (SizeT)region->entry.len)) {
                     Hwi_restore(key);
                     Assert_isTrue(FALSE, ti_sdo_ipc_SharedRegion_A_overlap);
@@ -538,7 +538,7 @@ Int SharedRegion_checkOverlap(Ptr base, SizeT len)
                 }
             }
             else {
-                if ((Ptr)((UInt32)base + len) > region->entry.base) {
+                if ((Ptr)((UArg)base + len) > region->entry.base) {
                     Hwi_restore(key);
                     Assert_isTrue(FALSE, ti_sdo_ipc_SharedRegion_A_overlap);
                     return (SharedRegion_E_FAIL);
@@ -645,7 +645,7 @@ Int ti_sdo_ipc_SharedRegion_attach(UInt16 remoteProcId)
             (region->entry.createHeap) &&
             (region->heap == NULL)) {
             /* sharedAddr should match creator's for each region */
-            sharedAddr = (Ptr)((UInt32)region->entry.base +
+            sharedAddr = (Ptr)((UArg)region->entry.base +
                 region->reservedSize);
 
             /* get the heap handle from SharedRegion Module state */
@@ -747,7 +747,7 @@ Ptr ti_sdo_ipc_SharedRegion_reserveMemory(UInt16 id, SizeT size)
     curSize = region->reservedSize;
 
     /* No need to round here since curSize is already aligned */
-    retPtr = (Ptr)((UInt32)region->entry.base + curSize);
+    retPtr = (Ptr)((UArg)region->entry.base + curSize);
 
     /*  Round the new size to the min alignment since */
     newSize = _Ipc_roundup(size, minAlign);
@@ -807,7 +807,7 @@ Int ti_sdo_ipc_SharedRegion_start(Void)
             (region->entry.createHeap) &&
             (region->heap == NULL)) {
             /* get the next free address in each region */
-            sharedAddr = (Ptr)((UInt32)region->entry.base +
+            sharedAddr = (Ptr)((UArg)region->entry.base +
                 region->reservedSize);
 
             /*  Create the HeapMemMP in the region. */
