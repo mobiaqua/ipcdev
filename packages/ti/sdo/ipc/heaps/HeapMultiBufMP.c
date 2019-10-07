@@ -500,14 +500,14 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
         /* Assert that sharedAddr is cached aligned if region cache aligned */
-        Assert_isTrue(((UInt32)params->sharedAddr %
+        Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
         obj->objType    = ti_sdo_ipc_Ipc_ObjType_CREATEDYNAMIC;
 
         /* obj->buf will get alignment-adjusted in postInit */
-        obj->buf        = (Ptr)((UInt32)params->sharedAddr +
+        obj->buf        = (Ptr)((UArg)params->sharedAddr +
                                 sizeof(ti_sdo_ipc_heaps_HeapMultiBufMP_Attrs));
         obj->attrs      = (ti_sdo_ipc_heaps_HeapMultiBufMP_Attrs *)
             params->sharedAddr;
@@ -946,7 +946,7 @@ Void ti_sdo_ipc_heaps_HeapMultiBufMP_postInit(
             return;
         }
 
-        obj->buf = (Ptr)((UInt32)obj->attrs +
+        obj->buf = (Ptr)((UArg)obj->attrs +
             sizeof(ti_sdo_ipc_heaps_HeapMultiBufMP_Attrs));
     }
 
@@ -965,11 +965,11 @@ Void ti_sdo_ipc_heaps_HeapMultiBufMP_postInit(
     }
 
     /* obj->buf should point to base of first buffer */
-    obj->buf = buf = (Ptr)_Ipc_roundup(obj->buf, obj->attrs->buckets[0].align);
+    obj->buf = buf = (Ptr)_Ipc_ptrRoundup(obj->buf, obj->attrs->buckets[0].align);
     for (i = 0; i < obj->numBuckets; i++) {
 
         /* Make sure buffer is buffer-aligned (not just min-Align'ed) */
-        buf = (Ptr)_Ipc_roundup(buf, obj->attrs->buckets[i].align);
+        buf = (Ptr)_Ipc_ptrRoundup(buf, obj->attrs->buckets[i].align);
 
         /* Put a shared pointer to the buf in attrs */
         obj->attrs->buckets[i].baseAddr =
