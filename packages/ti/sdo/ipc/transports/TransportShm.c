@@ -184,7 +184,7 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
 
         /* Assert that sharedAddr is cache aligned */
         Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
-                ((UInt32)params->sharedAddr %
+                ((UArg)params->sharedAddr %
                 SharedRegion_getCacheLineSize(obj->regionId) == 0),
                 ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
@@ -205,17 +205,17 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
      *  If cache is enabled, these need to be on separate cache lines.
      *  This is done with minAlign and _Ipc_roundup function.
      */
-    obj->other = (TransportShm_Attrs *)((UInt32)(obj->self) +
+    obj->other = (TransportShm_Attrs *)((UArg)(obj->self) +
         (_Ipc_roundup(sizeof(TransportShm_Attrs), minAlign)));
 
     ListMP_Params_init(&(listMPParams[0]));
     listMPParams[0].gate = (GateMP_Handle)obj->gate;
-    listMPParams[0].sharedAddr = (UInt32 *)((UInt32)(obj->other) +
+    listMPParams[0].sharedAddr = (UInt32 *)((UArg)(obj->other) +
         (_Ipc_roundup(sizeof(TransportShm_Attrs), minAlign)));
 
     ListMP_Params_init(&listMPParams[1]);
     listMPParams[1].gate = (GateMP_Handle)obj->gate;
-    listMPParams[1].sharedAddr = (UInt32 *)((UInt32)(listMPParams[0].sharedAddr)
+    listMPParams[1].sharedAddr = (UInt32 *)((UArg)(listMPParams[0].sharedAddr)
         + ListMP_sharedMemReq(&listMPParams[0]));
 
     obj->priority      = params->priority;
