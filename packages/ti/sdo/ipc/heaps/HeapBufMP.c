@@ -445,8 +445,8 @@ Int ti_sdo_ipc_heaps_HeapBufMP_Instance_init(
         }
 
         /* Open the ListMP */
-        localAddr = (Ptr)_Ipc_roundup(
-            (UInt32)obj->attrs + sizeof(ti_sdo_ipc_heaps_HeapBufMP_Attrs),
+        localAddr = (Ptr)_Ipc_ptrRoundup(
+            (UArg)obj->attrs + sizeof(ti_sdo_ipc_heaps_HeapBufMP_Attrs),
             minAlign);
         status = ListMP_openByAddr(localAddr,
             (ListMP_Handle *)&(obj->freeList));
@@ -489,7 +489,7 @@ Int ti_sdo_ipc_heaps_HeapBufMP_Instance_init(
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
         /* Assert that sharedAddr is cached aligned if region requires align. */
-        Assert_isTrue(((UInt32)params->sharedAddr %
+        Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
@@ -677,12 +677,12 @@ Void ti_sdo_ipc_heaps_HeapBufMP_free(ti_sdo_ipc_heaps_HeapBufMP_Object *obj,
 {
     IArg key;
 
-    Assert_isTrue(((UInt32)block >= (UInt32)obj->buf) &&
-        ((UInt32)block < ((UInt32)obj->buf + obj->blockSize * obj->numBlocks)),
+    Assert_isTrue(((UArg)block >= (UArg)obj->buf) &&
+        ((UArg)block < ((UArg)obj->buf + obj->blockSize * obj->numBlocks)),
         ti_sdo_ipc_heaps_HeapBufMP_A_invBlockFreed);
 
     /* Assert that 'addr' is block-aligned */
-    Assert_isTrue((UInt32)block % obj->align == 0,
+    Assert_isTrue((UArg)block % obj->align == 0,
             ti_sdo_ipc_heaps_HeapBufMP_A_badAlignment);
 
     /*
@@ -831,7 +831,7 @@ Void ti_sdo_ipc_heaps_HeapBufMP_postInit(ti_sdo_ipc_heaps_HeapBufMP_Object *obj,
 
     /* Create the freeList */
     ListMP_Params_init(&listMPParams);
-    listMPParams.sharedAddr = (Ptr)_Ipc_roundup((UInt32)obj->attrs +
+    listMPParams.sharedAddr = (Ptr)_Ipc_ptrRoundup((UArg)obj->attrs +
             sizeof(ti_sdo_ipc_heaps_HeapBufMP_Attrs), minAlign);
     listMPParams.gate       = (GateMP_Handle)obj->gate;
     obj->freeList   = (ti_sdo_ipc_ListMP_Handle)ListMP_create(&listMPParams);
@@ -850,7 +850,7 @@ Void ti_sdo_ipc_heaps_HeapBufMP_postInit(ti_sdo_ipc_heaps_HeapBufMP_Object *obj,
     obj->attrs->exact         = obj->exact ? 1 : 0;
 
     /* Adjust obj->buf and put a SRPtr in attrs */
-    buf = obj->buf = (Ptr)_Ipc_roundup(obj->buf, obj->align);
+    buf = obj->buf = (Ptr)_Ipc_ptrRoundup(obj->buf, obj->align);
     obj->attrs->bufPtr = SharedRegion_getSRPtr(obj->buf, obj->regionId);
 
     /*
