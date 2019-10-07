@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1529,7 +1529,7 @@ Int RcmServer_execMsg_I(RcmServer_Object *obj, RcmClient_Message *msg)
         System_printf("RcmServer_execMsg_I: Calling fxnIdx: %d\n",
                       (msg->fxnIdx & 0x0000FFFF));
 #endif
-        Task_setEnv(Task_self(), (Ptr)RcmServer_getLocalAddress(obj));
+        Task_setEnv(Task_self(), (Ptr)((UArg)RcmServer_getLocalAddress(obj)));
 #if USE_RPMESSAGE
         if (createFxn)  {
             msg->result = (*createFxn)(obj, msg->dataSize, msg->data);
