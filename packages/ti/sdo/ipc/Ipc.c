@@ -635,6 +635,7 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
     UInt16 clusterId = ti_sdo_utils_MultiProc_getClusterId(remoteProcId);
     volatile ti_sdo_ipc_Ipc_ConfigEntry *entry;
     Bool cacheEnabled = SharedRegion_isCacheEnabled(0);
+    SharedRegion_SRPtr SRPtr;
 
     /* Assert that the remoteProc in our cluster and isn't our own */
     Assert_isTrue(clusterId < ti_sdo_utils_MultiProc_numProcsInCluster,
@@ -647,12 +648,11 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
                   TRUE);
     }
 
-    entry = (ti_sdo_ipc_Ipc_ConfigEntry *)
-            *Ipc_module->procEntry[clusterId].remoteConfigList;
+    SRPtr = *Ipc_module->procEntry[clusterId].remoteConfigList;
 
-    while ((SharedRegion_SRPtr)entry != ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
+    while (SRPtr != (SharedRegion_SRPtr)ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
         entry = (ti_sdo_ipc_Ipc_ConfigEntry *)
-                SharedRegion_getPtr((SharedRegion_SRPtr)entry);
+                SharedRegion_getPtr(SRPtr);
 
         /* Traverse the list to find the tag */
         if (cacheEnabled) {
@@ -671,7 +671,7 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
             (entry->tag == tag)) {
 
             if (size == entry->size) {
-                memcpy(cfg, (Ptr)((UInt32)entry + sizeof(ti_sdo_ipc_Ipc_ConfigEntry)),
+                memcpy(cfg, (Ptr)((UArg)entry + sizeof(ti_sdo_ipc_Ipc_ConfigEntry)),
                         entry->size);
                 return (Ipc_S_SUCCESS);
             }
@@ -680,7 +680,7 @@ Int Ipc_readConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
             }
         }
 
-        entry = (ti_sdo_ipc_Ipc_ConfigEntry *)entry->next;
+        SRPtr = entry->next;
     }
 
     return (status);
@@ -855,7 +855,7 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
 {
     Int status = Ipc_S_SUCCESS;
     UInt16 clusterId = ti_sdo_utils_MultiProc_getClusterId(remoteProcId);
-    SharedRegion_SRPtr curSRPtr, *prevSRPtr;
+    SharedRegion_SRPtr curSRPtr, *prevSRPtrP;
     ti_sdo_ipc_Ipc_ConfigEntry *entry;
     Error_Block eb;
     Bool cacheEnabled = SharedRegion_isCacheEnabled(0);
@@ -870,14 +870,14 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
         status = Ipc_E_FAIL;
 
         /* get head of local config list and set prevSRPtr to it */
-        prevSRPtr = (Ipc_module->procEntry[clusterId].localConfigList);
+        prevSRPtrP = (Ipc_module->procEntry[clusterId].localConfigList);
 
         /*
          *  When cfg is NULL, the last memory allocated from a previous
          *  Ipc_writeConfig call with the same remoteProcId, tag, and size
          *  is freed.
          */
-        curSRPtr = *prevSRPtr;
+        curSRPtr = *prevSRPtrP;
 
         /* loop through list of conf`ig entries until matching entry is found */
         while (curSRPtr != ti_sdo_ipc_SharedRegion_INVALIDSRPTR) {
@@ -896,11 +896,11 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
                 (entry->tag == tag) &&
                 (entry->size == size)) {
                 /* Update the 'prev' next ptr */
-                *prevSRPtr = (SharedRegion_SRPtr)entry->next;
+                *prevSRPtrP = (SharedRegion_SRPtr)entry->next;
 
                 /* writeback the 'prev' ptr */
                 if (cacheEnabled) {
-                    Cache_wb(prevSRPtr,
+                    Cache_wb(prevSRPtrP,
                         sizeof(ti_sdo_ipc_Ipc_ConfigEntry),
                         Cache_Type_ALL,
                         FALSE);
@@ -917,7 +917,7 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
             }
 
             /* set the 'prev' to the 'cur' SRPtr */
-            prevSRPtr = (SharedRegion_SRPtr *)(&entry->next);
+            prevSRPtrP = (SharedRegion_SRPtr *)(&entry->next);
 
             /* point to next config entry */
             curSRPtr = (SharedRegion_SRPtr)entry->next;
@@ -942,7 +942,7 @@ Int Ipc_writeConfig(UInt16 remoteProcId, UInt32 tag, Ptr cfg, SizeT size)
     entry->localProcId = MultiProc_self();
     entry->tag = tag;
     entry->size = size;
-    memcpy((Ptr)((UInt32)entry + sizeof(ti_sdo_ipc_Ipc_ConfigEntry)), cfg,
+    memcpy((Ptr)((UArg)entry + sizeof(ti_sdo_ipc_Ipc_ConfigEntry)), cfg,
                   size);
 
     /* point the entry's next to the first entry in the list */
@@ -1046,7 +1046,7 @@ Ptr ti_sdo_ipc_Ipc_getMasterAddr(UInt16 remoteProcId, Ptr sharedAddr)
     }
 
     /* determine the reserve address for master between self and remote */
-    master = (ti_sdo_ipc_Ipc_Reserved *)((UInt32)sharedAddr +
+    master = (ti_sdo_ipc_Ipc_Reserved *)((UArg)sharedAddr +
              ((masterId * reservedSize) +
              (slot * sizeof(ti_sdo_ipc_Ipc_Reserved))));
 
@@ -1087,7 +1087,7 @@ Ptr ti_sdo_ipc_Ipc_getSlaveAddr(UInt16 remoteProcId, Ptr sharedAddr)
     }
 
     /* determine the reserve address for slave between self and remote */
-    slave = (ti_sdo_ipc_Ipc_Reserved *)((UInt32)sharedAddr +
+    slave = (ti_sdo_ipc_Ipc_Reserved *)((UArg)sharedAddr +
             ((slaveId * reservedSize) +
             (slot * sizeof(ti_sdo_ipc_Ipc_Reserved))));
 
