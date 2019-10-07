@@ -473,8 +473,8 @@ internal:
     struct Attrs {
         Bits16 mask;
         Bits16 creatorProcId;
-        Bits32 arg;
         Bits32 status;                  /* Created stamp                 */
+        Bits64 arg;
     };
 
     struct Instance_State {
