@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,7 +114,7 @@ Void NotifyDriverCirc_Instance_init(NotifyDriverCirc_Object *obj,
     }
 
     /* Check if shared memory base addr is aligned to cache line boundary.*/
-    Assert_isTrue ((UInt32)params->sharedAddr % minAlign == 0,
+    Assert_isTrue ((UArg)params->sharedAddr % minAlign == 0,
         ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
     /*
@@ -158,18 +158,18 @@ Void NotifyDriverCirc_Instance_init(NotifyDriverCirc_Object *obj,
      *  These are all on different cache lines.
      */
     obj->putBuffer = (NotifyDriverCirc_EventEntry *)
-        ((UInt32)params->sharedAddr + (localIndex * totalSelfSize));
+        ((UArg)params->sharedAddr + (localIndex * totalSelfSize));
 
-    obj->putWriteIndex = (Bits32 *)((UInt32)obj->putBuffer + circBufSize);
+    obj->putWriteIndex = (Bits32 *)((UArg)obj->putBuffer + circBufSize);
 
-    obj->putReadIndex = (Bits32 *)((UInt32)obj->putWriteIndex + ctrlSize);
+    obj->putReadIndex = (Bits32 *)((UArg)obj->putWriteIndex + ctrlSize);
 
     obj->getBuffer = (NotifyDriverCirc_EventEntry *)
-        ((UInt32)params->sharedAddr + (remoteIndex * totalSelfSize));
+        ((UArg)params->sharedAddr + (remoteIndex * totalSelfSize));
 
-    obj->getWriteIndex = (Bits32 *)((UInt32)obj->getBuffer + circBufSize);
+    obj->getWriteIndex = (Bits32 *)((UArg)obj->getBuffer + circBufSize);
 
-    obj->getReadIndex = (Bits32 *)((UInt32)obj->getWriteIndex + ctrlSize);
+    obj->getReadIndex = (Bits32 *)((UArg)obj->getWriteIndex + ctrlSize);
 
     /*
      *  Calculate the size for cache wb/inv in sendEvent and isr.
@@ -177,7 +177,7 @@ Void NotifyDriverCirc_Instance_init(NotifyDriverCirc_Object *obj,
      *  [sizeof(EventEntry) * numMsgs] + [the sizeof(Ptr)]
      *  aligned to a cache line.
      */
-    obj->opCacheSize = ((UInt32)obj->putReadIndex - (UInt32)obj->putBuffer);
+    obj->opCacheSize = ((UArg)obj->putReadIndex - (UArg)obj->putBuffer);
 
     /* init the putWrite and putRead Index to 0 */
     obj->putWriteIndex[0] = 0;
@@ -219,7 +219,7 @@ Void NotifyDriverCirc_Instance_finalize(NotifyDriverCirc_Object *obj)
     if (obj->cacheEnabled) {
         if (obj->remoteProcId > MultiProc_self()) {
             /* calculate the size of the buffer and indexes for one side */
-            sizeToInv = ((UInt32)obj->getBuffer - (UInt32)obj->putBuffer);
+            sizeToInv = ((UArg)obj->getBuffer - (UArg)obj->putBuffer);
 
             /* invalidate the shared memory for this instance */
             Cache_inv(obj->putBuffer,
@@ -228,7 +228,7 @@ Void NotifyDriverCirc_Instance_finalize(NotifyDriverCirc_Object *obj)
         }
         else {
             /* calculate the size of the buffer and indexes for one side */
-            sizeToInv = ((UInt32)obj->putBuffer - (UInt32)obj->getBuffer);
+            sizeToInv = ((UArg)obj->putBuffer - (UArg)obj->getBuffer);
 
             /* invalidate the shared memory for this instance */
             Cache_inv(obj->getBuffer,
@@ -360,7 +360,7 @@ Int NotifyDriverCirc_sendEvent(NotifyDriverCirc_Object *obj,
     }
 
     /* calculate the next available entry */
-    eventEntry = (NotifyDriverCirc_EventEntry *)((UInt32)obj->putBuffer +
+    eventEntry = (NotifyDriverCirc_EventEntry *)((UArg)obj->putBuffer +
                  (writeIndex * sizeof(NotifyDriverCirc_EventEntry)));
 
     /* Set the eventId field and payload for the entry */
