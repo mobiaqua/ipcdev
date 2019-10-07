@@ -112,7 +112,7 @@ Int TransportShmCirc_Instance_init(TransportShmCirc_Object *obj,
         ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
     /* Assert that sharedAddr is cache aligned */
-    Assert_isTrue(((UInt32)params->sharedAddr % minAlign == 0),
+    Assert_isTrue(((UArg)params->sharedAddr % minAlign == 0),
         ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
 
     /* set object fields */
@@ -136,18 +136,18 @@ Int TransportShmCirc_Instance_init(TransportShmCirc_Object *obj,
      *  These are all on different cache lines.
      */
     obj->putBuffer =
-        (Ptr)((UInt32)params->sharedAddr + (localIndex * totalSelfSize));
+        (Ptr)((UArg)params->sharedAddr + (localIndex * totalSelfSize));
 
-    obj->putWriteIndex = (Bits32 *)((UInt32)obj->putBuffer + circBufSize);
+    obj->putWriteIndex = (Bits32 *)((UArg)obj->putBuffer + circBufSize);
 
-    obj->putReadIndex = (Bits32 *)((UInt32)obj->putWriteIndex + ctrlSize);
+    obj->putReadIndex = (Bits32 *)((UArg)obj->putWriteIndex + ctrlSize);
 
     obj->getBuffer =
-        (Ptr)((UInt32)params->sharedAddr + (remoteIndex * totalSelfSize));
+        (Ptr)((UArg)params->sharedAddr + (remoteIndex * totalSelfSize));
 
-    obj->getWriteIndex = (Bits32 *)((UInt32)obj->getBuffer + circBufSize);
+    obj->getWriteIndex = (Bits32 *)((UArg)obj->getBuffer + circBufSize);
 
-    obj->getReadIndex = (Bits32 *)((UInt32)obj->getWriteIndex + ctrlSize);
+    obj->getReadIndex = (Bits32 *)((UArg)obj->getWriteIndex + ctrlSize);
 
     /*
      *  Calculate the size for cache inv in isr.
@@ -155,7 +155,7 @@ Int TransportShmCirc_Instance_init(TransportShmCirc_Object *obj,
      *  [sizeof(Ptr) * numMsgs] + [the sizeof(Ptr)]
      *  aligned to a cache line.
      */
-    obj->opCacheSize = ((UInt32)obj->putReadIndex - (UInt32)obj->putBuffer);
+    obj->opCacheSize = ((UArg)obj->putReadIndex - (UArg)obj->putBuffer);
 
     /* construct the Swi */
     Swi_Params_init(&swiParams);
@@ -308,7 +308,7 @@ Bool TransportShmCirc_put(TransportShmCirc_Object *obj, Ptr msg)
 
     /* calculate the next available entry */
     eventEntry = (UInt32 *)(
-        (UInt32)obj->putBuffer + (writeIndex * sizeof(Ptr)));
+        (UArg)obj->putBuffer + (writeIndex * sizeof(Ptr)));
 
     /* Set the eventId field and payload for the entry */
     eventEntry[0] = msgSRPtr;
