@@ -44,4 +44,7 @@
 
 /* Round the value 'a' up by 'b', a power of two */
 #define _Ipc_roundup(a, b) \
-    (UInt32)((((UInt32)(a)) + (((UInt32)(b)) - 1)) & ~((UInt32)(b) - 1))
+    ((UInt32)((((UInt32)(a)) + (((UInt32)(b)) - 1)) & ~((UInt32)(b) - 1)))
+
+#define _Ipc_ptrRoundup(a, b) \
+    ((UArg)((((UArg)(a)) + (((UArg)(b)) - 1)) & ~((UArg)(b) - 1)))
