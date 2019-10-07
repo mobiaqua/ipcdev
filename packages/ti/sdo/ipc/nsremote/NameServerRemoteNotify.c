@@ -103,7 +103,7 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
 
     /* assert that sharedAddr is cache aligned */
     Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
-            ((UInt32)params->sharedAddr %
+            ((UArg)params->sharedAddr %
             SharedRegion_getCacheLineSize(obj->regionId) == 0),
             Ipc_A_addrNotCacheAligned);
 
@@ -114,7 +114,7 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
             NameServerRemoteNotify_A_messageSize);
 
     obj->msg[0] = (NameServerRemoteNotify_Message *)(params->sharedAddr);
-    obj->msg[1] = (NameServerRemoteNotify_Message *)((UInt32)obj->msg[0] +
+    obj->msg[1] = (NameServerRemoteNotify_Message *)((UArg)obj->msg[0] +
                           sizeof(NameServerRemoteNotify_Message));
     obj->gate = params->gate;
     obj->remoteProcId = remoteProcId;
