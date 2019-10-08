@@ -238,11 +238,11 @@ Void NotifySetup_plugHwi(UInt16 remoteProcId, Int cpuIntrNum,
     UInt        key;
     Hwi_Params  hwiParams;
     UInt16      srcVirtId;
+    int retVal = -1;
 #if defined(xdc_target__isaCompatible_v7R) \
     || defined(xdc_target__isaCompatible_v8A)
     UInt16      idx;
     UInt        mbxIdx;
-    int retVal;
 #endif
 
 #if defined(xdc_target__isaCompatible_v7R)
