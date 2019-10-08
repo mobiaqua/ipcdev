@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,10 @@ Void copyTaskFxn(UArg arg0, UArg arg1)
 
     /* Create the messageQ for receiving (and get our endpoint for sending). */
     handle = RPMessage_create(arg0, NULL, NULL, &myEndpoint);
+    if (handle == NULL) {
+        System_printf("RPMessage_create failed...\n");
+        return;
+    }
 
     System_sprintf(desc, "sample%d", arg1);
 

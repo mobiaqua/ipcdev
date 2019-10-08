@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@
 
 Int32 fxnFault(UInt32 faultId)
 {
-    Int32 a;
+    Int32 a=0;
     Void (*fxn)(void) = (Void (*)())0x96000000;
     volatile Int dummy = 0;
 
@@ -123,6 +123,7 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
     messageQ = MessageQ_create(localQueueName, NULL);
     if (messageQ == NULL) {
         System_abort("MessageQ_create failed\n");
+        return;
     }
 
     System_printf("tsk1Fxn: created MessageQ: %s; QueueID: 0x%x\n",
@@ -132,6 +133,8 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
         /* handshake with host to get starting parameters */
         System_printf("Awaiting sync message from host...\n");
         MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
+
+        Assert_isTrue(msg != NULL, NULL);
 
         params = MessageQ_payload(msg);
         numLoops = params[0];

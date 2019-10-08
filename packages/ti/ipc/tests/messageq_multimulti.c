@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,6 +83,7 @@ Void loopbackFxn(UArg arg0, UArg arg1)
     messageQ = MessageQ_create(localQueueName, NULL);
     if (messageQ == NULL) {
         System_abort("MessageQ_create failed\n");
+        return;
     }
 
     System_printf("loopbackFxn: created MessageQ: %s; QueueID: 0x%x\n",
@@ -92,8 +93,10 @@ Void loopbackFxn(UArg arg0, UArg arg1)
     while (msgId < NUMLOOPS) {
         /* Get a message */
         status = MessageQ_get(messageQ, &getMsg, MessageQ_FOREVER);
-        if (status != MessageQ_S_SUCCESS) {
-           System_abort("This should not happen since timeout is forever\n");
+        if ((status != MessageQ_S_SUCCESS)
+            || (getMsg == NULL)) {
+            System_abort("This should not happen since timeout is forever\n");
+            return;
         }
         remoteQueueId = MessageQ_getReplyQueue(getMsg);
 

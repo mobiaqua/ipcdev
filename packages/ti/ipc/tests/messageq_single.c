@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,6 +79,7 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
     messageQ = MessageQ_create(localQueueName, NULL);
     if (messageQ == NULL) {
         System_abort("MessageQ_create failed\n");
+        return;
     }
 
     System_printf("tsk1Fxn: created MessageQ: %s; QueueID: 0x%x\n",
@@ -89,6 +90,7 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
         System_printf("Awaiting sync message from host...\n");
         MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
 
+        Assert_isTrue(msg != NULL, NULL);
         params = MessageQ_payload(msg);
         numLoops = params[0];
         print = params[1];
@@ -109,6 +111,7 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
         for (i = 1; i <= numLoops; i++) {
             status = MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
             Assert_isTrue(status == MessageQ_S_SUCCESS, NULL);
+            Assert_isTrue(msg != NULL, NULL);
 
             params = MessageQ_payload(msg);
             msgId = params[0];
