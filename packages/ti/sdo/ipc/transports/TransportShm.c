@@ -131,6 +131,7 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
     Swi_Handle     swiHandle;
     Swi_Params     swiParams;
     Ptr            localAddr;
+    SizeT          cacheLineSize;
 
     swiHandle = TransportShm_Instance_State_swiObj(obj);
 
@@ -181,12 +182,12 @@ Int TransportShm_Instance_init(TransportShm_Object *obj,
         /* Assert that the buffer is in a valid shared region */
         Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
                 ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
-
-        /* Assert that sharedAddr is cache aligned */
-        Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
-                ((UArg)params->sharedAddr %
-                SharedRegion_getCacheLineSize(obj->regionId) == 0),
+        cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
+        if (cacheLineSize !=  0) {
+            /* Assert that sharedAddr is cache aligned */
+            Assert_isTrue(((((UArg)params->sharedAddr) % cacheLineSize) == 0),
                 ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
+        }
 
         /* set object's cacheEnabled, type, self */
         obj->cacheEnabled = SharedRegion_isCacheEnabled(obj->regionId);

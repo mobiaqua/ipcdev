@@ -85,6 +85,7 @@ Int TransportShmCirc_Instance_init(TransportShmCirc_Object *obj,
     Swi_Handle  swiHandle;
     Swi_Params  swiParams;
     SizeT       ctrlSize, circBufSize, totalSelfSize;
+    SizeT       cacheLineSize;
 
     swiHandle = TransportShmCirc_Instance_State_swiObj(obj);
 
@@ -103,14 +104,18 @@ Int TransportShmCirc_Instance_init(TransportShmCirc_Object *obj,
 
     /* determine the minimum alignment */
     minAlign = Memory_getMaxDefaultTypeAlign();
-    if (SharedRegion_getCacheLineSize(obj->regionId) > minAlign) {
-        minAlign = SharedRegion_getCacheLineSize(obj->regionId);
+    cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
+    if (cacheLineSize > minAlign) {
+        minAlign = cacheLineSize;
     }
 
     /* Assert that the buffer is in a valid shared region */
     Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
         ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
 
+    if (obj->regionId == SharedRegion_INVALIDREGIONID) {
+        return 3;
+    }
     /* Assert that sharedAddr is cache aligned */
     Assert_isTrue(((UArg)params->sharedAddr % minAlign == 0),
         ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
