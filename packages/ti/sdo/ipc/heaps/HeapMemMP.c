@@ -330,6 +330,7 @@ SizeT HeapMemMP_sharedMemReq(const HeapMemMP_Params *params)
 {
     SizeT memReq, minAlign;
     UInt16 regionId;
+    SizeT       cacheLineSize;
 
     /* Ensure that the sharedBufSize param has been set */
     Assert_isTrue(params->sharedBufSize != 0, ti_sdo_ipc_Ipc_A_invParam);
@@ -343,10 +344,14 @@ SizeT HeapMemMP_sharedMemReq(const HeapMemMP_Params *params)
 
     Assert_isTrue(regionId != SharedRegion_INVALIDREGIONID,
             ti_sdo_ipc_Ipc_A_internal);
+    if (regionId != SharedRegion_INVALIDREGIONID) {
+        return 0;
+    }
 
     minAlign = sizeof(ti_sdo_ipc_heaps_HeapMemMP_Header);
-    if (SharedRegion_getCacheLineSize(regionId) > minAlign) {
-        minAlign = SharedRegion_getCacheLineSize(regionId);
+    cacheLineSize = SharedRegion_getCacheLineSize(regionId);
+    if (cacheLineSize > minAlign) {
+        minAlign = cacheLineSize;
     }
 
     /* Add size of HeapBufMP Attrs */
@@ -409,7 +414,7 @@ Int ti_sdo_ipc_heaps_HeapMemMP_Instance_init(
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
         if (localAddr == NULL) {
             Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
-            return(1);
+            return(4);
         }
 
         status = GateMP_openByAddr(localAddr, (GateMP_Handle *)&(obj->gate));
@@ -445,11 +450,19 @@ Int ti_sdo_ipc_heaps_HeapMemMP_Instance_init(
         /* Assert that the buffer is in a valid shared region */
         Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
-
+        /* Additional check to handle case when Assert is disabled */
+        if (obj->regionId == SharedRegion_INVALIDREGIONID) {
+            return(5);
+        }
         /* Assert that sharedAddr is cache aligned */
         Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
+        /* Additional check to handle case when Assert is disabled */
+        if (((UArg)params->sharedAddr %
+                      SharedRegion_getCacheLineSize(obj->regionId) != 0)) {
+            return(6);
+        }
 
         obj->objType    = ti_sdo_ipc_Ipc_ObjType_CREATEDYNAMIC;
 

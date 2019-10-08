@@ -487,11 +487,20 @@ Int ti_sdo_ipc_heaps_HeapBufMP_Instance_init(
         /* Assert that the buffer is in a valid shared region */
         Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
-
+        /* Additional check to handle case when Assert is disabled */
+        if (obj->regionId == SharedRegion_INVALIDREGIONID) {
+            return(5);
+        }
         /* Assert that sharedAddr is cached aligned if region requires align. */
         Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
+        /* Additional check to handle case when Assert is disabled */
+        if (((UArg)params->sharedAddr %
+                      SharedRegion_getCacheLineSize(obj->regionId) != 0)) {
+            return(6);
+        }
+
 
         obj->objType    = ti_sdo_ipc_Ipc_ObjType_CREATEDYNAMIC;
         obj->attrs      = (ti_sdo_ipc_heaps_HeapBufMP_Attrs *)

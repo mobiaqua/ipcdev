@@ -462,7 +462,7 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
         localAddr = SharedRegion_getPtr(obj->attrs->gateMPAddr);
         if (localAddr == NULL) {
             Error_raise(eb, ti_sdo_ipc_Ipc_E_internal, 0, 0);
-            return 1;
+            return 4;
         }
         Assert_isTrue(localAddr != NULL, ti_sdo_ipc_Ipc_A_internal);
 
@@ -498,12 +498,19 @@ Int ti_sdo_ipc_heaps_HeapMultiBufMP_Instance_init(
         /* Assert that the buffer is in a valid shared region */
         Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
-
+        /* Additional check to handle case when Assert is disabled */
+        if (obj->regionId == SharedRegion_INVALIDREGIONID) {
+            return(5);
+        }
         /* Assert that sharedAddr is cached aligned if region cache aligned */
         Assert_isTrue(((UArg)params->sharedAddr %
                       SharedRegion_getCacheLineSize(obj->regionId) == 0),
                       ti_sdo_ipc_Ipc_A_addrNotCacheAligned);
-
+        /* Additional check to handle case when Assert is disabled */
+        if (((UArg)params->sharedAddr %
+                      SharedRegion_getCacheLineSize(obj->regionId) != 0)) {
+            return(6);
+        }
         obj->objType    = ti_sdo_ipc_Ipc_ObjType_CREATEDYNAMIC;
 
         /* obj->buf will get alignment-adjusted in postInit */
