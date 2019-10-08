@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2019 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -519,8 +519,13 @@ Int RPMessage_recv(RPMessage_Handle handle, Ptr data, UInt16 *len,
        status = RPMessage_E_UNBLOCKED;
     }
     else  {
-       payload = (Queue_elem *)List_get(obj->queue);
-       Assert_isTrue((payload), NULL);
+        payload = (Queue_elem *)List_get(obj->queue);
+        Assert_isTrue((payload), NULL);
+        /* Additional check to handle case when Assert is disabled */
+        if(payload == NULL) {
+            Log_print0(Diags_STATUS, FXNN": Payload NULL!");
+            status = RPMessage_E_FAIL;
+        }
     }
 
     if (status == RPMessage_S_SUCCESS)  {
