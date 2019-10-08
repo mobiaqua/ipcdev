@@ -120,6 +120,7 @@ Void NameServerMessageQ_Instance_finalize(NameServerMessageQ_Object *obj)
 Int NameServerMessageQ_Module_startup(Int phase)
 {
     MessageQ_Params2  messageQParams;
+    MessageQ_QueueId queueId;
 
     /* Ensure MessageQ and SyncSwi Module_startup() have completed */
     if ((ti_sdo_ipc_MessageQ_Module_startupDone() == FALSE) ||
@@ -137,11 +138,20 @@ Int NameServerMessageQ_Module_startup(Int phase)
     /* assert msgHandle is not null */
     Assert_isTrue(NameServerMessageQ_module->msgHandle != NULL,
         Ipc_A_nullPointer);
+    /* Additonal check for case with  assert disabled */
+    if(NameServerMessageQ_module->msgHandle == NULL) {
+        return Startup_NOTDONE;
+    }
 
+    queueId = MessageQ_getQueueId((MessageQ_Handle)
+                                  NameServerMessageQ_module->msgHandle);
     /* assert this is the first MessageQ created */
-    Assert_isTrue((MessageQ_getQueueId((MessageQ_Handle)
-        NameServerMessageQ_module->msgHandle) & 0xffff) == MESSAGEQ_INDEX,
+    Assert_isTrue( (queueId & 0xffff) == MESSAGEQ_INDEX,
         NameServerMessageQ_A_reservedMsgQueueId);
+    /* Additonal check for case with  assert disabled */
+    if ((queueId & 0xffff) != MESSAGEQ_INDEX) {
+        return Startup_NOTDONE;
+    }
 
     return (Startup_DONE);
 }

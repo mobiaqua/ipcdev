@@ -83,6 +83,7 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
     Semaphore_Handle  semHandle;
     Swi_Params        swiParams;
     Swi_Handle        swiHandle;
+    SizeT          cacheLineSize;
 
     /* Assert that a NameServerRemoteNotify_Params has been supplied */
     Assert_isTrue(params != NULL, Ipc_A_nullArgument);
@@ -101,17 +102,18 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
     obj->localState = NameServerRemoteNotify_IDLE;
     obj->remoteState = NameServerRemoteNotify_IDLE;
 
-    /* assert that sharedAddr is cache aligned */
-    Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
-            ((UArg)params->sharedAddr %
-            SharedRegion_getCacheLineSize(obj->regionId) == 0),
+    cacheLineSize = SharedRegion_getCacheLineSize(obj->regionId);
+    if (cacheLineSize !=  0) {
+        /* assert that sharedAddr is cache aligned */
+        Assert_isTrue((((UArg)params->sharedAddr) %
+            cacheLineSize == 0),
             Ipc_A_addrNotCacheAligned);
 
-    /* asset message structure size is cache aligned */
-    Assert_isTrue(SharedRegion_getCacheLineSize(obj->regionId) == 0 ||
-            (sizeof(NameServerRemoteNotify_Message) %
-            SharedRegion_getCacheLineSize(obj->regionId)) == 0,
+        /* asset message structure size is cache aligned */
+        Assert_isTrue((sizeof(NameServerRemoteNotify_Message) %
+            cacheLineSize) == 0,
             NameServerRemoteNotify_A_messageSize);
+    }
 
     obj->msg[0] = (NameServerRemoteNotify_Message *)(params->sharedAddr);
     obj->msg[1] = (NameServerRemoteNotify_Message *)((UArg)obj->msg[0] +
