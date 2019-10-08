@@ -356,6 +356,11 @@ Ptr ListMP_getHead(ListMP_Handle handle)
 
     /* Assert that pointer is not NULL */
     Assert_isTrue(localHeadNext != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+    /* Additional check to handle case when Assert is disabled */
+    if (localHeadNext == NULL) {
+        elem = NULL;
+        goto leave;
+    }
 
     /* See if the ListMP was empty */
     if (localHeadNext == (ListMP_Elem *)(&(attrs->head))) {
@@ -377,6 +382,11 @@ Ptr ListMP_getHead(ListMP_Handle handle)
 
         /* Assert that pointer is not NULL */
         Assert_isTrue(localNext != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+        /* Additional check to handle case when Assert is disabled */
+        if (localNext == NULL) {
+            elem = NULL;
+            goto leave;
+        }
 
         /* Elem to return */
         elem = localHeadNext;
@@ -401,6 +411,8 @@ Ptr ListMP_getHead(ListMP_Handle handle)
     }
     else
         ListMP_barrier();
+
+leave:
 
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
@@ -439,6 +451,11 @@ Ptr ListMP_getTail(ListMP_Handle handle)
 
     /* Assert that pointer is not NULL */
     Assert_isTrue(localHeadPrev != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+    /* Additional check to handle case when Assert is disabled */
+    if (localHeadPrev == NULL) {
+        elem = NULL;
+        goto leave;
+    }
 
     /* See if the ListMP was empty */
     if (localHeadPrev == (ListMP_Elem *)(&(attrs->head))) {
@@ -460,6 +477,11 @@ Ptr ListMP_getTail(ListMP_Handle handle)
 
         /* Assert that pointer is not NULL */
         Assert_isTrue(localPrev != NULL, ti_sdo_ipc_Ipc_A_nullPointer);
+        /* Additional check to handle case when Assert is disabled */
+        if (localPrev == NULL) {
+            elem = NULL;
+            goto leave;
+        }
 
         /* Elem to return */
         elem = localHeadPrev;
@@ -485,6 +507,7 @@ Ptr ListMP_getTail(ListMP_Handle handle)
     else
         ListMP_barrier();
 
+leave:
     GateMP_leave((GateMP_Handle)obj->gate, key);
 
     return (elem);
@@ -829,8 +852,6 @@ Int ListMP_remove(ListMP_Handle handle, ListMP_Elem *elem)
         (localNextElem == NULL)) {
         return ListMP_E_FAIL;
     }
-
-
 
     localPrevElemIsCached = SharedRegion_isCacheEnabled(
             SharedRegion_getId(localPrevElem));
