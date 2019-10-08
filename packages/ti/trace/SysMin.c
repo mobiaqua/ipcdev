@@ -191,7 +191,7 @@ Void SysMin_putch(Char ch)
             uSec  = Clock_getTicks() * (UInt64)Clock_tickPeriod;
             SysMin_output('[');
             if (uSec) {
-                snprintf(timeStamp, sizeof(timeStamp), "%17llu\0", uSec);
+                snprintf(timeStamp, sizeof(timeStamp), "%17llu\0", (unsigned long long)uSec);
             }
             for (index = startIdx; index < endIdx; index++) {
                 if (index == decPtIdx) {
