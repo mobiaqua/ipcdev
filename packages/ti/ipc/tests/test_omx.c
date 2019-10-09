@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, Texas Instruments Incorporated
+ * Copyright (c) 2011-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,8 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
      * <hComp]
      */
 
-    strncpy(cComponentName, sizeof(cComponentName), (char *)data + sizeof(map_info_type));
+    strncpy(cComponentName,  (char *)((UArg)data + sizeof(map_info_type)),
+            sizeof(cComponentName));
 
 #if CHATTER
     System_printf("RPC_SKEL_GetHandle: Component Name received: %s\n",
