@@ -149,7 +149,7 @@ Void SysMin_putch(Char ch)
 
         /* Find number of characters needes for seconds and sub-seconds,
          * tick periods are specified in microseconds */
-        for (; iLocal < (Int)maxuSecCharLen; i++) {
+        for (; iLocal < (Int)maxuSecCharLen; iLocal++) {
             if (Clock_tickPeriod % mod) {
                 break;
             }
