@@ -127,7 +127,7 @@ Void SysMin_putch(Char ch)
 #endif
     UInt        lineIdx;
     Char        *lineBuf;
-    Int         index;
+    UInt        index;
     UInt64      uSec;
     static Bool configure = FALSE;
     static UInt startIdx;
@@ -145,19 +145,19 @@ Void SysMin_putch(Char ch)
 
     /* Configure the trace timestamp format */
     if (!configure) {
-        Int i = 0, mod = 10;
+        Int iLocal = 0, mod = 10;
 
         /* Find number of characters needes for seconds and sub-seconds,
          * tick periods are specified in microseconds */
-        for (; i < maxuSecCharLen; i++) {
+        for (; iLocal < (Int)maxuSecCharLen; i++) {
             if (Clock_tickPeriod % mod) {
                 break;
             }
             mod = mod * 10;
         }
-        timeStampSecCharLen = minSecCharLen + i;
+        timeStampSecCharLen = minSecCharLen + iLocal;
         startIdx = decPtIdx - timeStampSecCharLen;
-        endIdx = timeStampBufLen - (i + 1); /* Account for null character too */
+        endIdx = timeStampBufLen - (iLocal + 1); /* Account for null character too */
         configure = TRUE;
     }
 
