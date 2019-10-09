@@ -1047,7 +1047,7 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
     for (i = 1; i < RcmServer_MAX_TABLES; i++) {
         if (obj->fxnTab[i] != NULL) {
             tabCount = (1 << (i + 4));
-            for (j = 0; j < tabCount; j++) {
+            for (j = 0; j < (Int)tabCount; j++) {
                 if (((obj->fxnTab[i])+j)->name != NULL) {
                     cp = ((obj->fxnTab[i])+j)->name;
                     size = _strlen(cp) + 1;
@@ -1138,7 +1138,7 @@ Int RcmServer_addSymbol(RcmServer_Object *obj, String funcName,
     /* look for an empty slot to use */
     for (i = 1; i < RcmServer_MAX_TABLES; i++) {
         if (obj->fxnTab[i] != NULL) {
-            for (j = 0; j < (1 << (i + 4)); j++) {
+            for (j = 0; j < (Int)(1 << (i + 4)); j++) {
                 if (((obj->fxnTab[i])+j)->addr.fxn == 0) {
                     slot = (obj->fxnTab[i]) + j;  /* found empty slot*/
                     break;
@@ -1589,7 +1589,7 @@ Int RcmServer_getFxnAddr_P(RcmServer_Object *obj, UInt32 fxnIdx,
     /* static functions have bit-31 set */
     if (fxnIdx & 0x80000000) {
         j = (fxnIdx & 0x0000FFFF);
-        if (j < (obj->fxnTabStatic.length)) {
+        if (j < (UInt)(obj->fxnTabStatic.length)) {
 
             /* fetch the function address from the table */
             slot = (obj->fxnTab[0])+j;
