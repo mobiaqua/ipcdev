@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,9 +80,22 @@
 
 #define L3_TILER_MODE_3         0x78000000
 #define IPU_TILER_MODE_3        0xB8000000
-
+#if defined(VAYU_IPU_1)
 #define IPU_MEM_TEXT            0x0
-#define IPU_MEM_DATA            0x80000000
+#elif defined(VAYU_IPU_2)
+#define IPU_MEM_TEXT0            0x0
+#define IPU_MEM_TEXT1            0x0200000
+#endif
+
+#if defined(VAYU_IPU_1)
+#define IPU_MEM_DATA0            0x80000000
+#define IPU_MEM_DATA1            0x80100000
+#elif defined(VAYU_IPU_2)
+#define IPU_MEM_DATA0            0x80000000
+#define IPU_MEM_DATA1            0x80800000
+#define IPU_MEM_DATA2            0x81800000
+#define IPU_MEM_DATA3            0x82800000
+#endif
 
 #define IPU_MEM_IPC_DATA        0x9F000000
 #define IPU_MEM_IPC_VRING       0x60000000
@@ -97,20 +110,28 @@
 #if defined(VAYU_IPU_1)
 #define IPU_MEM_TEXT_SIZE       (SZ_1M)
 #elif defined(VAYU_IPU_2)
-#define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
+#define IPU_MEM_TEXT0_SIZE       (SZ_1M * 2)
+#define IPU_MEM_TEXT1_SIZE       (SZ_1M * 4)
 #endif
 
 #if defined(VAYU_IPU_1)
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 5)
+#define IPU_MEM_DATA0_SIZE       (SZ_1M * 1)
+#define IPU_MEM_DATA1_SIZE       (SZ_1M * 4)
 #elif defined(VAYU_IPU_2)
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 48)
+#define IPU_MEM_DATA0_SIZE       (SZ_1M * 8)
+#define IPU_MEM_DATA1_SIZE       (SZ_1M * 16)
+#define IPU_MEM_DATA2_SIZE       (SZ_1M * 16)
+#define IPU_MEM_DATA3_SIZE       (SZ_1M * 8)
 #endif
 
 /*
- * Assign fixed RAM addresses to facilitate a fixed MMU table.
- * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
+ * NOTE:
+ * To avoid issues with allocation failures with Linux carveout regions, need
+ * to use the RSC_CARVEOUT entries with power of 2 page order sizes and aligned
+ * on the same page order.
+ * The size and the alignment order of entries in the resource table plays a
+ * part in avoiding gaps in allocation
  */
-/* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #if defined(VAYU_IPU_1)
 #define PHYS_MEM_IPC_VRING      0x9D000000
 #elif defined (VAYU_IPU_2)
@@ -127,24 +148,39 @@
 /* flip up bits whose indices represent features we support */
 #define RPMSG_IPU_C0_FEATURES   1
 
+#if defined(VAYU_IPU_1)
+#define NUM_RSC_ENTRIES 18
+#elif defined (VAYU_IPU_2)
+#define NUM_RSC_ENTRIES 21
+#endif
+
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[17];  /* Should match 'num' in actual definition */
+    UInt32 offset[NUM_RSC_ENTRIES];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
     struct fw_rsc_vdev_vring rpmsg_vring0;
     struct fw_rsc_vdev_vring rpmsg_vring1;
 
-    /* text carveout entry */
-    struct fw_rsc_carveout text_cout;
-
-    /* data carveout entry */
-    struct fw_rsc_carveout data_cout;
-
     /* ipcdata carveout entry */
     struct fw_rsc_carveout ipcdata_cout;
+
+    /* text carveout entry */
+#if defined(VAYU_IPU_1)
+    struct fw_rsc_carveout text_cout;
+#elif defined (VAYU_IPU_2)
+    struct fw_rsc_carveout text0_cout;
+    struct fw_rsc_carveout text1_cout;
+#endif
+    /* data carveout entries */
+    struct fw_rsc_carveout data0_cout;
+    struct fw_rsc_carveout data1_cout;
+#if defined(VAYU_IPU_2)
+    struct fw_rsc_carveout data2_cout;
+    struct fw_rsc_carveout data3_cout;
+#endif
 
     /* trace entry */
     struct fw_rsc_trace trace;
@@ -193,14 +229,24 @@ struct my_resource_table {
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    17,     /* number of entries in the table */
+    NUM_RSC_ENTRIES,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
         offsetof(struct my_resource_table, rpmsg_vdev),
-        offsetof(struct my_resource_table, text_cout),
-        offsetof(struct my_resource_table, data_cout),
         offsetof(struct my_resource_table, ipcdata_cout),
+#if defined(VAYU_IPU_1)
+        offsetof(struct my_resource_table, text_cout),
+#elif defined (VAYU_IPU_2)
+        offsetof(struct my_resource_table, text0_cout),
+        offsetof(struct my_resource_table, text1_cout),
+#endif
+        offsetof(struct my_resource_table, data0_cout),
+        offsetof(struct my_resource_table, data1_cout),
+#if defined(VAYU_IPU_2)
+        offsetof(struct my_resource_table, data2_cout),
+        offsetof(struct my_resource_table, data3_cout),
+#endif
         offsetof(struct my_resource_table, trace),
         offsetof(struct my_resource_table, devmem0),
         offsetof(struct my_resource_table, devmem1),
@@ -228,21 +274,55 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 
     {
         TYPE_CARVEOUT,
-        IPU_MEM_TEXT, 0,
-        IPU_MEM_TEXT_SIZE, 0, 0, "IPU_MEM_TEXT",
-    },
-
-    {
-        TYPE_CARVEOUT,
-        IPU_MEM_DATA, 0,
-        IPU_MEM_DATA_SIZE, 0, 0, "IPU_MEM_DATA",
-    },
-
-    {
-        TYPE_CARVEOUT,
         IPU_MEM_IPC_DATA, 0,
         IPU_MEM_IPC_DATA_SIZE, 0, 0, "IPU_MEM_IPC_DATA",
     },
+
+#if defined(VAYU_IPU_1)
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_TEXT, 0,
+        IPU_MEM_TEXT_SIZE, 0, 0, "IPU_MEM_TEXT",
+    },
+#elif defined (VAYU_IPU_2)
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_TEXT0, 0,
+        IPU_MEM_TEXT0_SIZE, 0, 0, "IPU_MEM_TEXT0",
+    },
+
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_TEXT1, 0,
+        IPU_MEM_TEXT1_SIZE, 0, 0, "IPU_MEM_TEXT1",
+    },
+#endif
+
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_DATA0, 0,
+        IPU_MEM_DATA0_SIZE, 0, 0, "IPU_MEM_DATA0",
+    },
+
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_DATA1, 0,
+        IPU_MEM_DATA1_SIZE, 0, 0, "IPU_MEM_DATA1",
+    },
+
+#if defined(VAYU_IPU_2)
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_DATA2, 0,
+        IPU_MEM_DATA2_SIZE, 0, 0, "IPU_MEM_DATA2",
+    },
+
+    {
+        TYPE_CARVEOUT,
+        IPU_MEM_DATA3, 0,
+        IPU_MEM_DATA3_SIZE, 0, 0, "IPU_MEM_DATA3",
+    },
+#endif
 
     {
         TYPE_TRACE, TRACEBUFADDR, 0x8000, 0, "trace:sysm3",

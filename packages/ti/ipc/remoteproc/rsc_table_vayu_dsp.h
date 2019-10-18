@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, Texas Instruments Incorporated
+ * Copyright (c) 2012-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,8 @@
 
 #define DSP_MEM_TEXT            0x95000000
 #define DSP_MEM_DATA            0x95100000
-#define DSP_MEM_HEAP            0x95200000
+#define DSP_MEM_HEAP0           0x95200000
+#define DSP_MEM_HEAP1           0x95300000
 
 #define DSP_MEM_IPC_DATA        0x9F000000
 #define DSP_MEM_IPC_VRING       0xA0000000
@@ -85,16 +86,26 @@
 #define DSP_MEM_VRING_BUFS0     0xA0040000
 #define DSP_MEM_VRING_BUFS1     0xA0080000
 
+/*
+ * NOTE:
+ * To avoid issues with allocation failures with Linux carveout regions, need
+ * to use the RSC_CARVEOUT entries with power of 2 page order sizes and aligned
+ * on the same page order.
+ * The size and the alignment order of entries in the resource table plays a
+ * part in avoiding gaps in allocation
+ */
 #define DSP_MEM_IPC_VRING_SIZE  SZ_1M
 #define DSP_MEM_IPC_DATA_SIZE   SZ_1M
 #define DSP_MEM_TEXT_SIZE       SZ_1M
 #define DSP_MEM_DATA_SIZE       SZ_1M
-#define DSP_MEM_HEAP_SIZE       (SZ_1M * 3)
+#define DSP_MEM_HEAP0_SIZE      (SZ_1M * 2)
+#define DSP_MEM_HEAP1_SIZE      (SZ_1M * 1)
 
 /*
- * Assign fixed RAM addresses to facilitate a fixed MMU table.
+ * The following values need to match Linux side device tree reserved
+ * memory region start address for specific processor core.
+ * The addresses are used to create mmu entry for IPC vrings and buffers
  */
-/* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #if defined (VAYU_DSP_1)
 #define PHYS_MEM_IPC_VRING      0x99000000
 #elif defined (VAYU_DSP_2)
@@ -111,15 +122,20 @@
 /* flip up bits whose indices represent features we support */
 #define RPMSG_DSP_C0_FEATURES         1
 
+#define NUM_RSC_ENTRIES 17
+
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[16];  /* Should match 'num' in actual definition */
+    UInt32 offset[NUM_RSC_ENTRIES];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
     struct fw_rsc_vdev_vring rpmsg_vring0;
     struct fw_rsc_vdev_vring rpmsg_vring1;
+
+    /* ipcdata carveout entry */
+    struct fw_rsc_carveout ipcdata_cout;
 
     /* text carveout entry */
     struct fw_rsc_carveout text_cout;
@@ -128,10 +144,10 @@ struct my_resource_table {
     struct fw_rsc_carveout data_cout;
 
     /* heap carveout entry */
-    struct fw_rsc_carveout heap_cout;
+    struct fw_rsc_carveout heap0_cout;
 
-    /* ipcdata carveout entry */
-    struct fw_rsc_carveout ipcdata_cout;
+    /* heap carveout entry */
+    struct fw_rsc_carveout heap1_cout;
 
     /* trace entry */
     struct fw_rsc_trace trace;
@@ -174,15 +190,16 @@ struct my_resource_table {
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    16,     /* number of entries in the table */
+    NUM_RSC_ENTRIES,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
         offsetof(struct my_resource_table, rpmsg_vdev),
+        offsetof(struct my_resource_table, ipcdata_cout),
         offsetof(struct my_resource_table, text_cout),
         offsetof(struct my_resource_table, data_cout),
-        offsetof(struct my_resource_table, heap_cout),
-        offsetof(struct my_resource_table, ipcdata_cout),
+        offsetof(struct my_resource_table, heap0_cout),
+        offsetof(struct my_resource_table, heap1_cout),
         offsetof(struct my_resource_table, trace),
         offsetof(struct my_resource_table, devmem0),
         offsetof(struct my_resource_table, devmem1),
@@ -208,6 +225,12 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 
     {
         TYPE_CARVEOUT,
+        DSP_MEM_IPC_DATA, 0,
+        DSP_MEM_IPC_DATA_SIZE, 0, 0, "DSP_MEM_IPC_DATA",
+    },
+
+    {
+        TYPE_CARVEOUT,
         DSP_MEM_TEXT, 0,
         DSP_MEM_TEXT_SIZE, 0, 0, "DSP_MEM_TEXT",
     },
@@ -220,14 +243,14 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 
     {
         TYPE_CARVEOUT,
-        DSP_MEM_HEAP, 0,
-        DSP_MEM_HEAP_SIZE, 0, 0, "DSP_MEM_HEAP",
+        DSP_MEM_HEAP0, 0,
+        DSP_MEM_HEAP0_SIZE, 0, 0, "DSP_MEM_HEAP0",
     },
 
     {
         TYPE_CARVEOUT,
-        DSP_MEM_IPC_DATA, 0,
-        DSP_MEM_IPC_DATA_SIZE, 0, 0, "DSP_MEM_IPC_DATA",
+        DSP_MEM_HEAP1, 0,
+        DSP_MEM_HEAP1_SIZE, 0, 0, "DSP_MEM_HEAP1",
     },
 
     {
