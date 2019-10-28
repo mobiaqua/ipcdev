@@ -169,6 +169,8 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
 
     strncpy(cComponentName,  (char *)((UArg)data + sizeof(map_info_type)),
             sizeof(cComponentName)-1);
+    /* Add NULL to terminate string */
+    cComponentName[127] = '\0';
 
 #if CHATTER
     System_printf("RPC_SKEL_GetHandle: Component Name received: %s\n",
