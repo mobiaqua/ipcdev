@@ -233,6 +233,8 @@ static Void _VirtQueue_init()
             return;
         }
 
+        while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
+
         initialized = 1;
     }
 }
