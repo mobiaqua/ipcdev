@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@
 
 #define R5F_MEM_IPC_VRING_SIZE  SZ_1M
 
-#define R5F_NUM_ENTRIES 3
+#define R5F_NUM_ENTRIES 2
 
 /*
  * Assign direct mapped RAM address to facilitate address translations in
@@ -89,9 +89,6 @@ struct my_resource_table {
 
     /* trace entry */
     struct fw_rsc_trace trace;
-
-    /* devmem entry */
-    struct fw_rsc_devmem devmem0;
 };
 extern char ti_trace_SysMin_Module_State_0_outbuf__A[];
 
@@ -109,7 +106,6 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     {
         offsetof(struct my_resource_table, rpmsg_vdev),
         offsetof(struct my_resource_table, trace),
-        offsetof(struct my_resource_table, devmem0),
     },
 
     /* rpmsg vdev entry */
@@ -128,12 +124,6 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 #else
         TYPE_TRACE, TRACEBUFADDR, TRACEBUFSIZE, 0, "trace:r5f0",
 #endif
-    },
-
-    {
-        TYPE_DEVMEM,
-        R5F_MEM_IPC_VRING, PHYS_MEM_IPC_VRING,
-        R5F_MEM_IPC_VRING_SIZE, 0, 0, "R5F_MEM_IPC_VRING",
     },
 
 };

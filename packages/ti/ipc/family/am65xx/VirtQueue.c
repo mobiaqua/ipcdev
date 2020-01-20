@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2017-2020 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -237,9 +237,9 @@ static Void _VirtQueue_init()
     }
 }
 
-static inline Void * _VirtQueue_getVA(VirtQueue_Handle vq, UInt32 pa)
+static inline Void * mapPAtoVA(UInt pa)
 {
-    return (Void *)(pa - vq->basePa + vq->baseVa);
+    return (Void *)(pa);
 }
 
 /*!
@@ -321,7 +321,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
          */
         head = vq->vring.avail->ring[vq->last_avail_idx++ % vq->vring.num];
 
-        *buf = _VirtQueue_getVA(vq, vq->vring.desc[head].addr);
+        *buf = mapPAtoVA(vq->vring.desc[head].addr);
         *len = vq->vring.desc[head].len;
     }
     GateHwi_leave(vq->gateH, key);
@@ -461,13 +461,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
             vq->basePa = (UInt32)Resource_getVringDA(vq->id);
             Assert_isTrue(vq->basePa != 0, NULL);
 
-            result = Resource_physToVirt(vq->basePa, &(vq->baseVa));
-            Assert_isTrue(result == Resource_S_SUCCESS, (Assert_Id)NULL);
-            /* Additional check to handle case when Assert is disabled */
-            if (result != Resource_S_SUCCESS) {
-                return (NULL);
-            }
-
+            vq->baseVa = mapPAtoVA(vq->basePa);
             vringAddr = (Void *)vq->baseVa;
             break;
         default:
