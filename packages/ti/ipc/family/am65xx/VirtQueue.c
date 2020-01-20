@@ -232,6 +232,8 @@ static Void _VirtQueue_init()
         if (result != Registry_SUCCESS) {
             return;
         }
+        /* Wait till Vdev buffers are primed and ready to go */
+        while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
 
         initialized = 1;
     }
