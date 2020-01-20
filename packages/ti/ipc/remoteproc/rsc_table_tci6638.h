@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, Texas Instruments Incorporated
+ * Copyright (c) 2012-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,6 @@
 /* flip up bits whose indices represent features we support */
 #define RPMSG_IPU_C0_FEATURES         1
 
-#define RPMSG_VRING0_DA     0xA0000000
-#define RPMSG_VRING1_DA     0xA0004000
-
 /*
  * sizes of the virtqueues (expressed in number of buffers supported,
  * and must be power of 2)
@@ -90,6 +87,8 @@ struct my_resource_table {
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
+#define RPMSG_VRING_ADDR_ANY	FW_RSC_ADDR_ANY
+
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
 #ifndef TRACE_RESOURCE_ONLY
@@ -114,8 +113,8 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         /* no config data */
     },
     /* the two vrings */
-    { RPMSG_VRING0_DA, 4096, RPMSG_VQ0_SIZE, 1, 0 },
-    { RPMSG_VRING1_DA, 4096, RPMSG_VQ1_SIZE, 2, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, RPMSG_VQ0_SIZE, 1, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, RPMSG_VQ1_SIZE, 2, 0 },
 #endif
 
     {
