@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2011-2020 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@
 #include <ti/sysbios/knl/Swi.h>
 
 #include <ti/ipc/remoteproc/Resource.h>
+#include <ti/ipc/remoteproc/rsc_types.h>
 
 #include <ti/ipc/MultiProc.h>
 
@@ -71,6 +72,17 @@
 
 #include <ti/ipc/rpmsg/_VirtQueue.h>
 #include <ti/ipc/rpmsg/virtio_ring.h>
+
+/*
+ *  The following three VIRTIO_* defines must match those in
+ *  <Linux_kernel>/include/uapi/linux/virtio_config.h
+ */
+#define VIRTIO_CONFIG_S_ACKNOWLEDGE     1
+#define VIRTIO_CONFIG_S_DRIVER          2
+#define VIRTIO_CONFIG_S_DRIVER_OK       4
+
+#define VRING_BUFS_PRIMED  (VIRTIO_CONFIG_S_ACKNOWLEDGE | \
+                            VIRTIO_CONFIG_S_DRIVER | VIRTIO_CONFIG_S_DRIVER_OK)
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES 2
@@ -112,6 +124,17 @@ Void VirtQueue_init()
     extern cregister volatile UInt DNUM;
     UInt16 clusterId;
     UInt16 procId;
+
+    if (!VirtQueue_module->virtQueueInitialized) {
+        Log_print1(Diags_USER1, "_VirtQueue_init: VDEV status: 0x%x\n",
+                  Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+        Log_print0(Diags_USER1, "_VirtQueue_init: Polling VDEV status...\n");
+        while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
+        Log_print1(Diags_USER1, "_VirtQueue_init: VDEV status synced: 0x%x\n",
+                  Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+
+        VirtQueue_module->virtQueueInitialized = 1;
+    }
 
     /*  VirtQueue_init() must be called before MultiProcSetup_init().
      *  Check the xdc_runtime_Startup_firstFxns__A array in the XDC
