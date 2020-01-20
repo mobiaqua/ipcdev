@@ -44,19 +44,6 @@
 
 #include "rsc_types.h"
 
-#if defined(AM65X_R5F_1)
-#define R5F_MEM_IPC_VRING       0xA1000000
-#else
-#define R5F_MEM_IPC_VRING       0xA0000000
-#endif
-
-#define R5F_MEM_RPMSG_VRING0    (R5F_MEM_IPC_VRING)
-#define R5F_MEM_RPMSG_VRING1    (R5F_MEM_IPC_VRING+0x10000)
-#define R5F_MEM_VRING_BUFS0     (R5F_MEM_IPC_VRING+0x40000)
-#define R5F_MEM_VRING_BUFS1     (R5F_MEM_IPC_VRING+0x80000)
-
-#define R5F_MEM_IPC_VRING_SIZE  SZ_1M
-
 #define R5F_NUM_ENTRIES 2
 
 /*
@@ -98,6 +85,8 @@ extern char ti_trace_SysMin_Module_State_0_outbuf__A[];
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
+#define RPMSG_VRING_ADDR_ANY	FW_RSC_ADDR_ANY
+
 const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
     R5F_NUM_ENTRIES,     /* number of entries in the table */
@@ -115,8 +104,8 @@ const struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         /* no config data */
     },
     /* the two vrings */
-    { R5F_MEM_RPMSG_VRING0, 4096, R5F_RPMSG_VQ0_SIZE, 1, 0 },
-    { R5F_MEM_RPMSG_VRING1, 4096, R5F_RPMSG_VQ1_SIZE, 2, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, R5F_RPMSG_VQ0_SIZE, 1, 0 },
+    { RPMSG_VRING_ADDR_ANY, 4096, R5F_RPMSG_VQ1_SIZE, 2, 0 },
 
     {
 #if defined(AM65X_R5F_1)
