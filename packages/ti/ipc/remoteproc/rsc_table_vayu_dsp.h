@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2019, Texas Instruments Incorporated
+ * Copyright (c) 2012-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@
 #define DSP_MEM_TEXT            0x95000000
 #define DSP_MEM_DATA            0x95100000
 #define DSP_MEM_HEAP0           0x95200000
-#define DSP_MEM_HEAP1           0x95300000
+#define DSP_MEM_HEAP1           0x95400000
 
 #define DSP_MEM_IPC_DATA        0x9F000000
 #define DSP_MEM_IPC_VRING       0xA0000000
