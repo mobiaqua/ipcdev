@@ -56,13 +56,15 @@ Int32 NotifySciClient_Init(void)
 {
     int32_t status = 0;
     Sciclient_ConfigPrms_t        config;
+
+    struct tisci_msg_version_req request;
     /* Setup Request for Version check */
     const Sciclient_ReqPrm_t      reqPrm =
     {
         .messageType = TISCI_MSG_VERSION,
         .flags = TISCI_MSG_FLAG_AOP,
-        .pReqPayload = NULL,
-        .reqPayloadSize = 0,
+        .pReqPayload = (uint8_t *) &request,
+        .reqPayloadSize = sizeof(request),
         .timeout = NOTIFY_SCICLIENT_RESP_TIMEOUT
     };
 
