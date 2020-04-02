@@ -265,17 +265,17 @@ Int32 NotifySciClient_getIntNumRange(NotifySciClient_CoreIndex coreIndex,
     const uint16_t req_type[] =
     {
         /* NOTE: This list should match the Core index */
-        TISCI_RESASG_TYPE_GIC_IRQ,
-        TISCI_RESASG_TYPE_PULSAR_C0_IRQ,
-        TISCI_RESASG_TYPE_PULSAR_C1_IRQ
+        TISCI_DEV_GIC0,
+        TISCI_DEV_MCU_ARMSS0_CPU0,
+        TISCI_DEV_MCU_ARMSS0_CPU1
     };
    /* Indexed list of req subtype */
     const uint16_t req_subtype[] =
     {
         /* NOTE: This list should match the Core index */
-        TISCI_RESASG_SUBTYPE_GIC_IRQ_MAIN_NAV_SET1,
-        TISCI_RESASG_SUBTYPE_PULSAR_C0_IRQ_MAIN2MCU_LVL,
-        TISCI_RESASG_SUBTYPE_PULSAR_C1_IRQ_MAIN2MCU_LVL
+        TISCI_RESASG_SUBTYPE_GIC0_SPI_IRQ_GROUP0_FROM_NAVSS0_INTR_ROUTER_0,
+        TISCI_RESASG_SUBTYPE_MCU_ARMSS0_CPU0_INTR_IRQ_GROUP0_FROM_MAIN2MCU_LVL_INTRTR0,
+        TISCI_RESASG_SUBTYPE_MCU_ARMSS0_CPU1_INTR_IRQ_GROUP0_FROM_MAIN2MCU_LVL_INTRTR0
     };
 
     /* Indexed list of host ids */
