@@ -104,6 +104,9 @@ var ccOpts = {
     "gnu.targets.arm.A8F"             : " -g ",
     "gnu.targets.arm.A15F"            : " -g ",
     "gnu.targets.arm.A53F"            : " -g "
+    "gnu.targets.arm.M3"              : " -g ",
+    "gnu.targets.arm.M4"              : " -g ",
+    "gnu.targets.arm.M4F"             : " -g "
 };
 
 var lnkOpts = {
