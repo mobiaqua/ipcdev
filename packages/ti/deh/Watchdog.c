@@ -52,6 +52,9 @@
 
 #ifdef DSP
 #include <ti/sysbios/family/c64p/Hwi.h>
+#ifdef OMAP4
+#include <ti/sysbios/family/c64p/tesla/Wugen.h>
+#endif
 #ifdef OMAP5
 #include <ti/sysbios/family/c64p/tesla/Wugen.h>
 #endif
@@ -236,7 +239,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
                 initTimer(timer, TRUE);
 
                 Hwi_enableInterrupt(Watchdog_module->device[i].intNum);
-#if defined(DSP) && defined(OMAP5)
+#if defined(DSP) && (defined(OMAP4) || defined(OMAP5))
                 Wugen_enableEvent(Watchdog_module->device[i].eventId);
 #endif
                 Hwi_restore(key);
@@ -256,7 +259,7 @@ Void Watchdog_init( Void (*timerFxn)(Void) )
             }
         }
 
-#if defined(OMAP5) || defined(VAYU)
+#if defined(OMAP4) || defined(OMAP5) || defined(VAYU)
         if (first) {
             /* Register callback function */
             if (!IpcPower_registerCallback(IpcPower_Event_RESUME, Watchdog_restore,

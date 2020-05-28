@@ -55,7 +55,9 @@
 #include <ti/deh/Watchdog.h>
 
 /* TBD: VirtQueue.h needs to somehow get factored out of family directory .*/
-#if defined(OMAP5)
+#if defined(OMAP4)
+#include <ti/ipc/family/omap44xx/VirtQueue.h>
+#elif defined(OMAP5)
 #include <ti/ipc/family/omap54xx/VirtQueue.h>
 #elif defined(VAYU)
 #include <ti/ipc/family/vayu/VirtQueue.h>

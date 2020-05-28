@@ -194,7 +194,7 @@ var procNames = {
                            "CORE3", "CORE4", "CORE5"],
     'TMS320C6474'       : ["CORE0", "CORE1", "CORE2"],
     'OMAP3530'          : ["DSP", "HOST"],
-    'OMAP4430'          : ["DSP", "CORE0", "CORE1", "HOST"],
+    'OMAP4430'          : ["DSP", "IPU", "HOST"],
 
     /*
      * Note that only SMP-BIOS is supported on OMAP5430, so there's only

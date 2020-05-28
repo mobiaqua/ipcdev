@@ -331,7 +331,7 @@ Void IpcPower_init()
     IpcPower_sleepMode(IpcPower_SLEEP_MODE_DEEPSLEEP);
 
     IpcPower_getWugen(&wugenEvtMask);
-#ifdef OMAP5
+#if defined(OMAP4) || defined(OMAP5)
     wugenEvtMask.mevt0 |= OMAP_IPU_WUGEN_INT_MASK0;
     wugenEvtMask.mevt1 |= OMAP_IPU_WUGEN_INT_MASK1;
 #else

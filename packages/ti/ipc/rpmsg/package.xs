@@ -85,6 +85,7 @@ function getLibs(prog)
             /* OMAP4 */
             platform = "omap4";
             break;
+
         case "OMAP5430":
             /* OMAP5 */
             platform = "omap5";

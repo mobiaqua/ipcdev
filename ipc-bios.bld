@@ -245,14 +245,14 @@ for (arg = 0; arg < arguments.length; arg++) {
             target.platforms.$add("ti.platforms.sdp5430:DSP");
         }
         if (platform == 'OMAP44XX') {
-            target.platforms.$add("ti.platform.omap430:DSP");
+            target.platforms.$add("ti.platforms.sdp4430:DSP");
         }
     }
 
     if (targetName.match(/elf\.M3$/)) {
         switch (platform) {
             case 'OMAP44XX':
-                target.platforms.$add("ti.platform.omap4430:IPU");
+                target.platforms.$add("ti.platforms.sdp4430:IPU");
                 break;
 
             case 'NONE':

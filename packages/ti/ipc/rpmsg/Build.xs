@@ -80,6 +80,8 @@ function getDefs()
     else if (target.isa.match(/^v7M(|4)$/)) {
         switch (device) {
             case "OMAP4430":
+                defs += " -DOMAP4 -DRPMSG_NS_2_0";
+                break;
             case "OMAP5430":
                 defs += " -DOMAP5 -DRPMSG_NS_2_0";
                 break;
@@ -94,6 +96,9 @@ function getDefs()
     }
     else if (target.isa == "64T") {
         switch (device) {
+            case "OMAP4430":
+                defs += " -DOMAP4 -DDSP -DRPMSG_NS_2_0";
+                break;
             case "OMAP5430":
                 defs += " -DOMAP5 -DDSP -DRPMSG_NS_2_0";
                 break;

@@ -31,7 +31,7 @@
  */
 /*
  *  ======== InterruptIpu.h ========
- *  OMAP54xx IPU Interrupt Manger
+ *  OMAP44xx IPU Interrupt Manger
  */
 
 #ifndef ti_ipc_family_omap44xx_InterruptIpu__include

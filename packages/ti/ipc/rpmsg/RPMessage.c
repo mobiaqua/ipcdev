@@ -104,6 +104,8 @@
 #include <ti/ipc/family/tci6614/VirtQueue.h>
 #elif defined(TCI6638)
 #include <ti/ipc/family/tci6638/VirtQueue.h>
+#elif defined(OMAP4)
+#include <ti/ipc/family/omap44xx/VirtQueue.h>
 #elif defined(OMAP5)
 #include <ti/ipc/family/omap54xx/VirtQueue.h>
 #elif defined(VAYU)
