@@ -69,7 +69,7 @@ Build.platformTable["ti.platforms.evmOMAPL138:DSP"] = {
     l2Mode: "32k"
 };
 
-/*  Memory Map for ti.platform.omap4430:IPU
+/*  Memory Map for ti.platform.omap4430:ipu
  *
  *  --- External Memory ---
  *  Virtual     Physical        Size            Comment
@@ -126,7 +126,7 @@ var omap4430_ExtMemMapIpu = {
     }
 };
 
-Build.platformTable["ti.platform.omap4430:IPU"] = {
+Build.platformTable["ti.platform.omap4430:ipu"] = {
     externalMemoryMap: [
         [ "EXT_CODE", omap4430_ExtMemMapIpu.EXT_CODE ],
         [ "EXT_DATA", omap4430_ExtMemMapIpu.EXT_DATA ],
@@ -140,7 +140,7 @@ Build.platformTable["ti.platform.omap4430:IPU"] = {
     stackMemory: "EXT_DATA",
 };
 
-/*  Memory Map for ti.platform.omap4430:DSP
+/*  Memory Map for ti.platform.omap4430:dsp
  *
  *  --- External Memory ---
  *  Virtual     Physical        Size            Comment
@@ -197,7 +197,7 @@ var omap4430_ExtMemMapDsp = {
     }
 };
 
-Build.platformTable["ti.platform.omap4430:DSP"] = {
+Build.platformTable["ti.platform.omap4430:dsp"] = {
     externalMemoryMap: [
         [ "EXT_CODE", omap4430_ExtMemMapDsp.EXT_CODE ],
         [ "EXT_DATA", omap4430_ExtMemMapDsp.EXT_DATA ],
