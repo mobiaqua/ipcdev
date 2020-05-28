@@ -93,7 +93,10 @@ XDCARGS= \
     ti.targets.arp32.elf.ARP32_far=\"$(ti.targets.arp32.elf.ARP32_far)\" \
     gnu.targets.arm.A8F=\"$(gnu.targets.arm.A8F)\" \
     gnu.targets.arm.A15F=\"$(gnu.targets.arm.A15F)\" \
-    gnu.targets.arm.A53F=\"$(gnu.targets.arm.A53F)\"
+    gnu.targets.arm.A53F=\"$(gnu.targets.arm.A53F)\" \
+    gnu.targets.arm.M3=\"$(gnu.targets.arm.M3)\" \
+    gnu.targets.arm.M4=\"$(gnu.targets.arm.M4)\" \
+    gnu.targets.arm.M4F=\"$(gnu.targets.arm.M4F)\"
 
 ifeq ($(MAKECMDGOALS),release)
     XDCARGS += GOAL=release
