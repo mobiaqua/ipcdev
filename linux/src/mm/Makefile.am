@@ -41,6 +41,18 @@ AM_CFLAGS = -Wall @AM_CFLAGS@ -DKERNEL_INSTALL_DIR="$(KERNEL_INSTALL_DIR)"
 # the library names to build (note we are building shared libs)
 lib_LTLIBRARIES =
 
+if OMAP44XX_SMP
+if KDIR
+lib_LTLIBRARIES += libmmrpc.la
+
+# where to install the headers on the system
+libmmrpc_ladir = $(includedir)/ti/ipc/mm
+
+# the list of header files that belong to the library (to be installed later)
+libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
+endif
+endif
+
 if OMAP54XX_SMP
 if KDIR
 lib_LTLIBRARIES += libmmrpc.la

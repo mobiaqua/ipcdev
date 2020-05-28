@@ -41,7 +41,7 @@ var objList = [ "NameServerRemoteRpmsg.c" ];
 
 var trgFilter = {
     field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4" ]
+    list: [ "64T", "66", "66e", "674", "v7M", "v7M3", "v7M4" ]
 };
 
 /* if not building a product release, build package libraries */

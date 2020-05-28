@@ -66,6 +66,15 @@ bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
                 MessageQMultiMulti NameServerApp Msgq100 MessageQFaultApp
 
 
+if OMAP44XX_SMP
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+if KDIR
+if DRM
+  bin_PROGRAMS += mmrpc_test
+endif
+endif
+else
 if OMAP54XX_SMP
 # Add platform specific bin application's here
   bin_PROGRAMS +=

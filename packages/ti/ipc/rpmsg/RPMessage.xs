@@ -59,6 +59,10 @@ function module$use()
     var device = Program.cpu.deviceName;
 
     switch (device) {
+        case "OMAP4430": /* OMAP4 */
+            xdc.loadPackage('ti.ipc.family.omap44xx');
+            break;
+
         case "OMAP5430": /* OMAP5 */
             xdc.loadPackage('ti.ipc.family.omap54xx');
             break;

@@ -94,7 +94,7 @@ var ccOpts = {
     "ti.targets.arm.elf.A8F"          : " -ms -g ",
     "ti.targets.arm.elf.A8Fnv"        : " -ms -g ",
     "ti.targets.arm.elf.M3"           : " --embed_inline_assembly -ms -pds=71",
-    "ti.targets.arm.elf.M4"           : " -ms -g ",
+    "ti.targets.arm.elf.M4"           : " --embed_inline_assembly -ms -pds=71 ",
     "ti.targets.arm.elf.M4F"          : " -ms -g ",
     "ti.targets.arm.elf.R5F"          : " -ms -g ",
 
@@ -108,6 +108,8 @@ var ccOpts = {
 
 var lnkOpts = {
     "ti.targets.elf.C66"              : " --cinit_compression=off",
+    "ti.targets.arm.elf.M3"           : " --retain=.resource_table" +
+                                        " --cinit_compression=off",
     "ti.targets.arm.elf.M4"           : " --retain=.resource_table" +
                                         " --cinit_compression=off",
     "ti.targets.arm.elf.R5F"          : " --retain=.resource_table" +
@@ -238,6 +240,25 @@ for (arg = 0; arg < arguments.length; arg++) {
     if (targetName.match(/elf\.C64T/)) {
         if (platform == 'OMAP54XX') {
             target.platforms.$add("ti.platforms.sdp5430:DSP");
+        }
+        if (platform == 'OMAP44XX') {
+            target.platforms.$add("ti.platform.omap430:DSP");
+        }
+    }
+
+    if (targetName.match(/elf\.M3$/)) {
+        switch (platform) {
+            case 'OMAP44XX':
+                target.platforms.$add("ti.platform.omap4430:IPU");
+                break;
+
+            case 'NONE':
+                /* okay, no platform specified */
+                break;
+
+            default:
+                print("Unknown M3 platform, skipping " + platform);
+                break;
         }
     }
 

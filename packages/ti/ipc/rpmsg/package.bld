@@ -78,6 +78,13 @@ for (var i = 0; i < Build.targets.length; i++) {
                 defs: "-DVAYU -DDSP -DRPMSG_NS_2_0"
             }).addObjects(objList);
         }
+        else if (targ.isa.match(/^v7M3?$/)) {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap4_smp", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP4 -DSMP -DRPMSG_NS_2_0"
+            }).addObjects(objList);
+        }
         else if (targ.isa.match(/^v7M4?$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
                 profile: profile,

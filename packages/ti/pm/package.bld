@@ -65,8 +65,12 @@ libArray.push(
         libAttrs: {
             defs: " -DSMP"
         },
-        isas: [ "v7M", "v7M4" ],
+        isas: [ "v7M", "v7M3", "v7M4" ],
         devices: [
+            {
+                name: "_omap4",
+                defs: " -DOMAP4",
+            },
             {
                 name: "_omap5",
                 defs: " -DOMAP5",
@@ -76,6 +80,17 @@ libArray.push(
                 defs: " -DVAYU",
             },
         ],
+    }
+);
+
+/* pm library for Tesla DSP target */
+libArray.push(
+    {
+        name: "ti.pm_omap4",
+        sources: [
+            "IpcPowerDsp_omap44xx",
+        ],
+        isas: [ "64T" ],
     }
 );
 
@@ -115,7 +130,7 @@ libArray.push(
         sources: [
             "IpcPower_null",
         ],
-        isas: [ "66", "v7M", "v7M4", "64T" ],
+        isas: [ "66", "v7M", "v7M3", "v7M4", "64T" ],
     }
 );
 

@@ -60,6 +60,12 @@ for (var i = 0; i < Build.targets.length; i++) {
                 defs: "-DIpcMgr_USEDEH -DIpcMgr_DSP"
             }).addObjects(objList);
         }
+        else if (targ.isa.match(/^v7M3?$/)) {
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_deh", targ, {
+                profile: profile,
+                defs: "-DIpcMgr_USEDEH -DIpcMgr_IPU"
+            }).addObjects(objList);
+        }
         else if (targ.isa.match(/^v7M4?$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_deh", targ, {
                 profile: profile,

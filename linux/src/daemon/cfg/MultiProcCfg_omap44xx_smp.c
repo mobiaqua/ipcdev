@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2013-2015 Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,73 +29,27 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- *  ======== package.xs ========
- *
+ * ======== MultiProcCfg.c ========
+ * System-wide MultiProc configuration
  */
 
-/*
- *  ======== getLibs ========
- */
-function getLibs(prog)
-{
-    var suffix;
-    var lib;
-    var profile = this.profile;
-    var smp = "";
-    var plat = "";
+/* Standard IPC headers */
+#include <ti/ipc/Std.h>
 
-    suffix = prog.build.target.findSuffix(this);
-    if (suffix == null) {
-        return "";  /* nothing to contribute */
-    }
+/* For Backplane IPC startup/shutdown stuff: */
+#include <_MultiProc.h>
 
-    var device = Program.cpu.deviceName;
-    switch (device) {
-	case "OMAP4430": /* OMAP4 */
-	    plat = "_omap4";
-	    break;
-
-	case "OMAP5430": /* OMAP5 */
-	    plat = "_omap5";
-	    break;
-
-	case "Vayu":
-	case "DRA7XX":
-	    plat = "_vayu";
-	    break;
-
-	default:
-	    var deh = xdc.module("ti.deh.Deh");
-	    var watchdog = xdc.module("ti.deh.Watchdog");
-	    var stackdbg = xdc.module("ti.deh.StackDbg");
-	    if (deh.$used || watchdog.$used || stackdbg.$used) {
-		    throw new Error("Unsupported device: " + device);
-	    }
-	    else {
-		/* package is merely referenced and not used */
-		return "";
-	    }
-
-	    break;
-    }
-
-    if (Program.build.target.isa.match(/v7M(|4)/)) {
-        smp = "_smp";
-    }
-
-    var name = "/ti.deh" + plat + smp + ".a" + suffix;
-    lib = "lib/" + profile + name;
-
-    /*
-     * If the requested profile doesn't exist, we return the 'release' library.
-     */
-    if (!java.io.File(this.packageBase + lib).exists()) {
-        $trace("Unable to locate lib for requested '" + this.profile +
-                "' profile.  Using 'release' profile.", 1, ['getLibs']);
-        lib = "lib/release/" + name;
-    }
-
-    return lib;
-}
+/* This must match BIOS side MultiProc configuration for given platform!: */
+MultiProc_Config _MultiProc_cfg =  {
+   .numProcessors = 3,
+   .nameList[0] = "HOST",
+   .nameList[1] = "IPU",
+   .nameList[2] = "DSP",
+   .rprocList[0] = -1,
+   .rprocList[1] = 1,
+   .rprocList[2] = 0,
+   .id = 0,                 /* The host is always zero */
+   .numProcsInCluster = 3,
+   .baseIdOfCluster = 0
+};

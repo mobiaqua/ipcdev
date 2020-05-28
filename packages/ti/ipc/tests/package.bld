@@ -69,6 +69,148 @@ Build.platformTable["ti.platforms.evmOMAPL138:DSP"] = {
     l2Mode: "32k"
 };
 
+/*  Memory Map for ti.platform.omap4430:IPU
+ *
+ *  --- External Memory ---
+ *  Virtual     Physical        Size            Comment
+ *  ------------------------------------------------------------------------
+ *  0000_4000   ???0_4000    5F_C000  (  ~6 MB) EXT_CODE
+ *  8000_0000   ???0_0000    60_0000  (   6 MB) EXT_DATA
+ *  8060_0000   ???0_0000   2A0_0000  (  42 MB) EXT_HEAP
+ *  9F00_0000   ???0_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   ???6_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   ???7_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ */
+var omap4430_ExtMemMapIpu = {
+    EXT_CODE: {
+        name: "EXT_CODE",
+        base: 0x00004000,
+        len:  0x005FC000,
+        space: "code",
+        access: "RWX"
+    },
+    EXT_DATA: {
+        name: "EXT_DATA",
+        base: 0x80000000,
+        len:  0x00600000,
+        space: "data",
+        access: "RW"
+    },
+    EXT_HEAP: {
+        name: "EXT_HEAP",
+        base: 0x80600000,
+        len:  0x02A00000,
+        space: "data",
+        access: "RW"
+    },
+    TRACE_BUF: {
+        name: "TRACE_BUF",
+        base: 0x9F000000,
+        len:  0x00060000,
+        space: "data",
+        access: "RW"
+    },
+    EXC_DATA: {
+        name: "EXC_DATA",
+        base: 0x9F060000,
+        len:  0x00010000,
+        space: "data",
+        access: "RW"
+    },
+    PM_DATA: {
+        name: "PM_DATA",
+        base: 0x9F070000,
+        len:  0x00020000,
+        space: "data",
+        access: "RWX"  /* should this have execute perm? */
+    }
+};
+
+Build.platformTable["ti.platform.omap4430:IPU"] = {
+    externalMemoryMap: [
+        [ "EXT_CODE", omap4430_ExtMemMapIpu.EXT_CODE ],
+        [ "EXT_DATA", omap4430_ExtMemMapIpu.EXT_DATA ],
+        [ "EXT_HEAP", omap4430_ExtMemMapIpu.EXT_HEAP ],
+        [ "TRACE_BUF", omap4430_ExtMemMapIpu.TRACE_BUF ],
+        [ "EXC_DATA", omap4430_ExtMemMapIpu.EXC_DATA ],
+        [ "PM_DATA", omap4430_ExtMemMapIpu.PM_DATA ]
+    ],
+    codeMemory: "EXT_CODE",
+    dataMemory: "EXT_DATA",
+    stackMemory: "EXT_DATA",
+};
+
+/*  Memory Map for ti.platform.omap4430:DSP
+ *
+ *  --- External Memory ---
+ *  Virtual     Physical        Size            Comment
+ *  ------------------------------------------------------------------------
+ *  2000_0000   ????_????    10_0000  (   1 MB) EXT_CODE
+ *  9000_0000   ????_????    10_0000  (   1 MB) EXT_DATA
+ *  9010_0000   ????_????    30_0000  (   3 MB) EXT_HEAP
+ *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ */
+var omap4430_ExtMemMapDsp = {
+    EXT_CODE: {
+        name: "EXT_CODE",
+        base: 0x20000000,
+        len:  0x00100000,
+        space: "code",
+        access: "RWX"
+    },
+    EXT_DATA: {
+        name: "EXT_DATA",
+        base: 0x90000000,
+        len:  0x00100000,
+        space: "data",
+        access: "RW"
+    },
+    EXT_HEAP: {
+        name: "EXT_HEAP",
+        base: 0x90100000,
+        len:  0x00300000,
+        space: "data",
+        access: "RW"
+    },
+    TRACE_BUF: {
+        name: "TRACE_BUF",
+        base: 0x9F000000,
+        len:  0x00060000,
+        space: "data",
+        access: "RW"
+    },
+    EXC_DATA: {
+        name: "EXC_DATA",
+        base: 0x9F060000,
+        len:  0x00010000,
+        space: "data",
+        access: "RW"
+    },
+    PM_DATA: {
+        name: "PM_DATA",
+        base: 0x9F070000,
+        len:  0x00020000,
+        space: "data",
+        access: "RWX"  /* should this have execute perm? */
+    }
+};
+
+Build.platformTable["ti.platform.omap4430:DSP"] = {
+    externalMemoryMap: [
+        [ "EXT_CODE", omap4430_ExtMemMapDsp.EXT_CODE ],
+        [ "EXT_DATA", omap4430_ExtMemMapDsp.EXT_DATA ],
+        [ "EXT_HEAP", omap4430_ExtMemMapDsp.EXT_HEAP ],
+        [ "TRACE_BUF", omap4430_ExtMemMapDsp.TRACE_BUF ],
+        [ "EXC_DATA", omap4430_ExtMemMapDsp.EXC_DATA ],
+        [ "PM_DATA", omap4430_ExtMemMapDsp.PM_DATA ]
+    ],
+    codeMemory: "EXT_CODE",
+    dataMemory: "EXT_DATA",
+    stackMemory: "EXT_DATA",
+};
+
 /*  Memory Map for ti.platforms.sdp5430:IPU
  *
  *  --- External Memory ---
@@ -514,6 +656,7 @@ for (var i = 0; i < Build.targets.length; i++) {
               (platform.match(/^ti.platforms.evmTCI6630K2L/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti.platforms.evmTCI6636K2H/)) ||
+              (platform.match(/^ti\.platform\.omap44xx/)) ||
               (platform.match(/^ti\.platform\.omap54xx/)) ||
               (platform.match(/^ti\.platforms\.sdp5430/)) ||
               (platform.match(/^ti\.platform\.vayu/)) ||
@@ -534,6 +677,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* Vayu and OMAP5 require MmRpc and therefore use RPMSG_NS_2_0 */
         if (platform.match(/^ti\.platform\.vayu/) ||
                 platform.match(/^ti\.platforms\.evmDRA7XX/) ||
+                platform.match(/^ti\.platform\.omap4430/) ||
                 platform.match(/^ti\.platforms\.sdp5430/) ||
                 platform.match(/^ti\.platforms\.evmOMAPL138/)) {
             extraDefs = " -DRPMSG_NS_2_0";
@@ -702,7 +846,13 @@ for (var i = 0; i < Build.targets.length; i++) {
         }
 
         /* messageq_single */
-        if (platform.match(/^ti\.platforms\.sdp5430/) &&
+        if (platform.match(/^ti\.platform\.omap5430/) &&
+            (targ.isa == "64T")) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -D DSP" + extraDefs,
+            }).addObjects(["messageq_single.c"]);
+        } else if (platform.match(/^ti\.platforms\.sdp5430/) &&
             (targ.isa == "64T")) {
             Pkg.addExecutable(name + "/messageq_single", targ, platform, {
                 cfgScript: "rpmsg_transport",
@@ -769,6 +919,22 @@ for (var i = 0; i < Build.targets.length; i++) {
 
         var test_omx_SRCS = ["test_omx.c","ping_tasks.c","rpc_task.c",
                 "MxServer.c"];
+
+        if (platform.match(/^ti\.platform\.omap4430/) &&
+                (targ.isa == "v7M3")) {
+            Pkg.addExecutable(name + "/test_omx_ipu_omap4", targ, platform, {
+                cfgScript: "test_omx_ipu_omap4",
+                defs: "-D IPU -D OMAP4xxx -DRPMSG_NS_2_0"
+            }).addObjects(test_omx_SRCS);
+        }
+
+        if (platform.match(/^ti\.platform\.omap4430/) &&
+                (targ.isa == "64T")) {
+            Pkg.addExecutable(name + "/test_omx_dsp_omap4", targ, platform, {
+                cfgScript: "test_omx_dsp_omap4",
+                defs: "-D DSP -D OMAP4xxx -DRPMSG_NS_2_0"
+            }).addObjects(test_omx_SRCS);
+        }
 
         if (platform.match(/^ti\.platforms\.sdp5430/) &&
                 (targ.isa == "v7M4")) {

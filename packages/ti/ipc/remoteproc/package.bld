@@ -41,7 +41,7 @@ var objList = [ "Resource.c" ];
 
 var trgFilter = {
     field: "isa",
-    list: [ "64T", "66", "66e", "674", "v7M", "v7M4", "v7R" ]
+    list: [ "64T", "66", "66e", "674", "v7M", "v7M3", "v7M4", "v7R" ]
 };
 
 /* if not building a product release, build package libraries */
@@ -58,6 +58,8 @@ Pkg.otherFiles = [
     "rsc_table_tci6614.h",
     "rsc_table_tci6614_v3.3.h",
     "rsc_table_tci6638.h",
+    "rsc_table_omap4_dsp.h",
+    "rsc_table_omap4_ipu.h",
     "rsc_table_omap5_dsp.h",
     "rsc_table_omap5_ipu.h",
     "rsc_table_vayu_dsp.h",

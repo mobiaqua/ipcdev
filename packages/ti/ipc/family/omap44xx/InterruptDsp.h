@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,73 +29,42 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
- *  ======== package.xs ========
- *
+ *  ======== InterruptDsp.h ========
+ *  OMAP4430/DSP Interrupt Manger
  */
 
-/*
- *  ======== getLibs ========
+#include <ti/sysbios/hal/Hwi.h>
+
+#define INVALIDPAYLOAD       (0xFFFFFFFF)
+
+
+/*!
+ *  ======== InterruptDsp_intEnable ========
+ *  Enable remote processor interrupt
  */
-function getLibs(prog)
-{
-    var suffix;
-    var lib;
-    var profile = this.profile;
-    var smp = "";
-    var plat = "";
+Void InterruptDsp_intEnable();
 
-    suffix = prog.build.target.findSuffix(this);
-    if (suffix == null) {
-        return "";  /* nothing to contribute */
-    }
+/*!
+ *  ======== InterruptDsp_intDisable ========
+ */
+Void InterruptDsp_intDisable();
 
-    var device = Program.cpu.deviceName;
-    switch (device) {
-	case "OMAP4430": /* OMAP4 */
-	    plat = "_omap4";
-	    break;
+/*!
+ *  ======== InterruptDsp_intRegister ========
+ */
+Void InterruptDsp_intRegister(Hwi_FuncPtr fxn);
 
-	case "OMAP5430": /* OMAP5 */
-	    plat = "_omap5";
-	    break;
 
-	case "Vayu":
-	case "DRA7XX":
-	    plat = "_vayu";
-	    break;
+/*!
+ *  ======== InterruptDsp_intSend ========
+ *  Send interrupt to the remote processor
+ */
+Void InterruptDsp_intSend(UInt16 remoteProcId,  UArg arg);
 
-	default:
-	    var deh = xdc.module("ti.deh.Deh");
-	    var watchdog = xdc.module("ti.deh.Watchdog");
-	    var stackdbg = xdc.module("ti.deh.StackDbg");
-	    if (deh.$used || watchdog.$used || stackdbg.$used) {
-		    throw new Error("Unsupported device: " + device);
-	    }
-	    else {
-		/* package is merely referenced and not used */
-		return "";
-	    }
 
-	    break;
-    }
-
-    if (Program.build.target.isa.match(/v7M(|4)/)) {
-        smp = "_smp";
-    }
-
-    var name = "/ti.deh" + plat + smp + ".a" + suffix;
-    lib = "lib/" + profile + name;
-
-    /*
-     * If the requested profile doesn't exist, we return the 'release' library.
-     */
-    if (!java.io.File(this.packageBase + lib).exists()) {
-        $trace("Unable to locate lib for requested '" + this.profile +
-                "' profile.  Using 'release' profile.", 1, ['getLibs']);
-        lib = "lib/release/" + name;
-    }
-
-    return lib;
-}
+/*!
+ *  ======== InterruptDsp_intClear ========
+ *  Clear interrupt
+ */
+UInt InterruptDsp_intClear();

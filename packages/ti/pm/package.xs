@@ -79,6 +79,7 @@ function close()
 
     /* plug-in the power event hooks for SMP/BIOS */
     if (Program.build.target.isa.match(/v7M4/) &&
+        (Program.platformName.match(/v7M3/) ||
         (Program.platformName.match(/IPU/) ||
          Program.platformName.match(/ipu/))) {
         var BIOS = xdc.module('ti.sysbios.BIOS');
@@ -116,6 +117,10 @@ function getLibs(prog)
     }
 
     switch (device) {
+        case "OMAP4430":
+            platform = "_omap4";
+            break;
+
         case "OMAP5430":
             platform = "_omap5";
             break;

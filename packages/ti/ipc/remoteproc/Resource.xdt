@@ -58,6 +58,17 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %    }
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %  }
+%  else if (prog.cpu.deviceName.match(/^OMAP4430$/)) {
+%    if (prog.cpu.attrs.cpuCore.match(/^CM3$/)) {
+#include <ti/ipc/remoteproc/rsc_table_omap4_ipu.h>
+%    } else if (prog.cpu.attrs.cpuCore.match(/^64T$/)) {
+#include <ti/ipc/remoteproc/rsc_table_omap4_dsp.h>
+%    }
+%    else {
+%        print("ti.ipc.remoteproc.Resource.xdt - unable to provide OMAP4 " +
+%                "resource table (" + prog.cpu.attrs.cpuCore + ")");
+%    }
+%  }
 %  else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {
 %    if (prog.cpu.attrs.cpuCore.match(/^CM4$/)) {
 #define OMAP5
