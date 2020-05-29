@@ -73,7 +73,7 @@ for (var i = 0; i < Build.targets.length; i++) {
                 copts: myCopts,
                 defs: "-DVAYU -DDSP"
             }).addObjects(SRCS_DSP);
-        } else if (targ.isa.match(/^v7M(|4)$/)) {
+        } else if (targ.isa.match(/^v7M4$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
                 profile: profile,
                 copts: myCopts,
@@ -85,7 +85,7 @@ for (var i = 0; i < Build.targets.length; i++) {
                 copts: myCopts,
                 defs: "-DVAYU -DSMP -DIPU -DHAS_AMMU"
             }).addObjects(SRCS_IPU);
-        } else if (targ.isa.match(/^v7M(|3)$/)) {
+        } else if (targ.isa.match(/^v7M3$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap4_smp", targ, {
                 profile: profile,
                 copts: myCopts,

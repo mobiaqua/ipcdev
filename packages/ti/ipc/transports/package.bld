@@ -54,7 +54,7 @@ for (var i = 0; i < Build.targets.length; i++) {
      *  Only devices with an rpmsg-enabled HLOS and a slave would need this
      *  library.  Skip targets that will never need this.
      */
-    if (!targ.isa.match(/^(64T|66|674|v7M4?|v7R)$/)) {
+    if (!targ.isa.match(/^(64T|66|674|v7M?|v7M3?|v7M4?|v7R)$/)) {
         continue;
     }
 
@@ -66,7 +66,7 @@ for (var i = 0; i < Build.targets.length; i++) {
             copts: myCopts
         }).addObjects(objList);
 
-        if (targ.isa.match(/^(64T|66|674|v7M4?|v7R)$/)) {
+        if (targ.isa.match(/^(64T|66|674|v7M3?|v7M4?|v7R)$/)) {
             /* And for select targets, build a rpmsg2-compatible lib */
             Pkg.addLibrary("lib/" + profile + "/" + name + "_rpmsg2", targ, {
                 profile: profile,

@@ -64,7 +64,7 @@ for (var i = 0; i < Build.targets.length; i++) {
          */
 
         /* SMP-enabled libraries for M3 and M4 */
-        if (targ.isa.match(/^v7M(|4)$/)) {
+        if (targ.isa.match(/^v7M(|3|4)$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_smp", targ, {
                 profile: profile,
                 defs: " -DRPMSG_NS_2_0 -DSMP"

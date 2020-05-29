@@ -81,7 +81,7 @@ function getLibs(prog)
 	    break;
     }
 
-    if (Program.build.target.isa.match(/v7M(|4)/)) {
+    if (Program.build.target.isa.match(/v7M(|3|4)/)) {
         smp = "_smp";
     }
 

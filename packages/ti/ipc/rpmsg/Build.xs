@@ -77,7 +77,7 @@ function getDefs()
                 break;
         }
     }
-    else if (target.isa.match(/^v7M(|4)$/)) {
+    else if (target.isa.match(/^v7M(|3|4)$/)) {
         switch (device) {
             case "OMAP4430":
                 defs += " -DOMAP4 -DRPMSG_NS_2_0";

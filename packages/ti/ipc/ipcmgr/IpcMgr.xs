@@ -77,7 +77,7 @@ function getDefs()
         if (isa.match(/66|64T/)) {
             defs += " -DIpcMgr_DSP";
         }
-        else if (isa.match(/^v7M(|4)$/)) {
+        else if (isa.match(/^v7M(|3|4)$/)) {
             defs += " -DIpcMgr_IPU";
         }
         else {

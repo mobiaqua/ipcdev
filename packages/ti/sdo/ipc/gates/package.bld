@@ -64,7 +64,7 @@ var trgFilter_1 = {
 
 var trgFilter_2 = {
     field: "isa",
-    list: [ "674", "64T", "v7M", "v7M4", "v7A", "v7A8", "v7A15", "arp32", "v7R", "v8A" ]
+    list: [ "674", "64T", "v7M", "v7M4", "v7M3", "v7A", "v7A8", "v7A15", "arp32", "v7R", "v8A" ]
 };
 
 var trgFilter_3 = {

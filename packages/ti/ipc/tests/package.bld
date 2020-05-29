@@ -640,7 +640,7 @@ for (var i = 0; i < Build.targets.length; i++) {
 
     /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
     if (!((targ.isa == "674") || (targ.isa == "66") ||
-          (targ.isa.match(/v7M(|4)/)) || (targ.isa == "64T") || (targ.isa == "v7R"))) {
+          (targ.isa.match(/v7M(|3|4)/)) || (targ.isa == "64T") || (targ.isa == "v7R"))) {
         continue;
     }
 
@@ -917,55 +917,6 @@ for (var i = 0; i < Build.targets.length; i++) {
             Pkg.addExecutable(name + "/nano_test", targ, platform, {
                 cfgScript: "rpmsg_transport"
             }).addObjects(["nano_test.c"]);
-        }
-
-        var test_omx_SRCS = ["test_omx.c","ping_tasks.c","rpc_task.c",
-                "MxServer.c"];
-
-        if (platform.match(/^ti\.platforms\.sdp5430/) &&
-                (targ.isa == "v7M4")) {
-            Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
-                cfgScript: "test_omx_ipu_omap5",
-                defs: "-D IPU -D OMAP5xxx -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
-        }
-
-        if (platform.match(/^ti\.platforms\.sdp5430/) &&
-                (targ.isa == "64T")) {
-            Pkg.addExecutable(name + "/test_omx_dsp_omap5", targ, platform, {
-                cfgScript: "test_omx_dsp_omap5",
-                defs: "-D DSP -D OMAP5xxx -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
-        }
-
-        if (platform.match(/^ti\.platform\.vayu\.ipu1/) ||
-                platform.match(/^ti\.platforms\.evmDRA7XX:ipu1$/)) {
-            Pkg.addExecutable(name + "/test_omx_ipu1_vayu", targ, platform, {
-                cfgScript: "test_omx_ipu_vayu",
-                defs: "-D IPU -D VAYU -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
-        }
-        if (platform.match(/^ti\.platform\.vayu\.ipu2/) ||
-                platform.match(/^ti\.platforms\.evmDRA7XX:ipu2$/)) {
-            Pkg.addExecutable(name + "/test_omx_ipu2_vayu", targ, platform, {
-                cfgScript: "test_omx_ipu_vayu",
-                defs: "-D IPU -D VAYU -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
-        }
-
-        if (platform.match(/^ti\.platform\.vayu/) ||
-                platform.match(/^ti\.platforms\.evmDRA7XX:dsp1$/)) {
-            Pkg.addExecutable(name + "/test_omx_dsp1_vayu", targ, platform, {
-                cfgScript: "test_omx_dsp_vayu",
-                defs: "-D DSP_1 -D DSP -D VAYU -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
-        }
-        if (platform.match(/^ti\.platform\.vayu/) ||
-                platform.match(/^ti\.platforms\.evmDRA7XX:dsp2$/)) {
-            Pkg.addExecutable(name + "/test_omx_dsp2_vayu", targ, platform, {
-                cfgScript: "test_omx_dsp_vayu",
-                defs: "-D DSP_2 -D DSP -D VAYU -DRPMSG_NS_2_0"
-            }).addObjects(test_omx_SRCS);
         }
     }
 }
