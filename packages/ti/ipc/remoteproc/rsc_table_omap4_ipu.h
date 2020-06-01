@@ -96,7 +96,7 @@
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
  */
-#define PHYS_MEM_IPC_VRING      0x95800000
+#define PHYS_MEM_IPC_VRING      0x99000000
 
 #define PHYS_MEM_IOBUFS         0xBA300000
 
