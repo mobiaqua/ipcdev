@@ -218,7 +218,6 @@ setDeviceAliases(procNames, deviceAliases);
 var hostNeedsSlaveData = {
     'TMS320TI816X'      : 1,
     'OMAP3530'          : 1,
-    'OMAP4430'          : 1,
     'TMS320CDM6446'     : 1,
     'TMS320DA830'       : 1,
     'OMAPL138'          : 1,
@@ -236,7 +235,6 @@ setDeviceAliases(hostNeedsSlaveData, deviceAliases);
 var sr0MemorySetup = {
     'TMS320TI816X'      : 1,
     'OMAP3530'          : 1,
-    'OMAP4430'          : 1,
 };
 setDeviceAliases(sr0MemorySetup, deviceAliases);
 
@@ -250,7 +248,6 @@ var hostProcNames = {
     'OMAPL138'          : ["HOST"],
     'TMS320TI816X'      : ["HOST"],
     'OMAP3530'          : ["HOST"],
-    'OMAP4430'          : ["HOST"],
     'TMS320C6678'       : ["CORE0"],
     'TMS320C6670'       : ["CORE0"],
     'TMS320C6472'       : ["CORE0"],
@@ -302,7 +299,7 @@ var notifySetupDelegates = {
     'TMS320C6474'       : { del: 'ti.sdo.ipc.family.c647x.NotifySetup', },
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.family.tci663x.NotifyCircSetup', },
     'TCI6636K2H'        : { del: 'ti.sdo.ipc.family.tci663x.NotifyCircSetup', },
-    'OMAP4430'          : { del: 'ti.sdo.ipc.family.omap4430.NotifySetup', },
+    'OMAP4430'          : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Arctic'            : { del: 'ti.sdo.ipc.family.arctic.NotifyCircSetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Vayu'              : { del: 'ti.sdo.ipc.family.vayu.NotifySetup', },
@@ -327,7 +324,6 @@ var messageQSetupDelegates = {
     'TMS320C6472'       : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
     'TMS320C6474'       : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
     'TMS320TCI6634'     : { del: 'ti.sdo.ipc.transports.TransportShmNotifySetup', },
-    'OMAP4430'          : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
     'Arctic'            : { del: 'ti.sdo.ipc.transports.TransportShmNotifySetup', },
     'LM3.*'             : { del: 'ti.sdo.ipc.transports.TransportNullSetup', },
     'Vayu'              : { del: 'ti.sdo.ipc.transports.TransportShmSetup', },
@@ -348,7 +344,6 @@ var interruptDelegates = {
     'ti.catalog.arm.cortexm3' : {
         'TMS320TI816X'  : { del: 'ti.sdo.ipc.family.ti81xx.InterruptDucati', },
         'TMS320C6A8149' : { del: 'ti.sdo.ipc.family.c6a8149.InterruptDucati', },
-        'OMAP4430'      : { del: 'ti.sdo.ipc.family.omap4430.InterruptDucati', },
     },
     'ti.catalog.arm.cortexm4' : {
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptIpu', },
@@ -386,7 +381,6 @@ var interruptDelegates = {
         'TMS320TCI6634' : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
         'TCI6636K2H'    : { del: 'ti.sdo.ipc.family.tci663x.Interrupt', },
 
-        'OMAP4430'      : { del: 'ti.sdo.ipc.family.omap4430.InterruptDsp', },
         'Arctic'        : { del: 'ti.sdo.ipc.family.arctic.InterruptDsp', },
         'Vayu'          : { del: 'ti.sdo.ipc.family.vayu.InterruptDsp', },
         'TDA3X'         : { del: 'ti.sdo.ipc.family.tda3xx.InterruptDsp' },
@@ -408,10 +402,6 @@ setCatalogAliases(interruptDelegates, catalogAliases);
  */
 var spinlockDelegates = {
     'ti.catalog.arm.cortexm3' : {
-        'OMAP4430' : {
-            baseAddr:   0x4A0F6800,
-            numLocks:   32,
-        },
         'TMS320TI816X' : {
             baseAddr:   0x480CA800,
             numLocks:   64,
@@ -455,10 +445,6 @@ var spinlockDelegates = {
         'TMS320TI816X' : {
             baseAddr:   0x080CA800,
             numLocks:   64,
-        },
-        'OMAP4430' : {
-            baseAddr:   0x4A0F6800,
-            numLocks:   32,
         },
         'Arctic' : {
             baseAddr:   0x480CA800,
