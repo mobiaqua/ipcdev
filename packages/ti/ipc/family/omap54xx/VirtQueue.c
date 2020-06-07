@@ -54,7 +54,7 @@
  */
 
 /* this define must precede inclusion of any xdc header file */
-#define Registry_CURDESC ti_ipc_family_vayu__Desc
+#define Registry_CURDESC ti_ipc_family_omap54xx__Desc
 #define MODULE_NAME "ti.ipc.family.omap54xx.VirtQueue"
 
 #include <xdc/std.h>

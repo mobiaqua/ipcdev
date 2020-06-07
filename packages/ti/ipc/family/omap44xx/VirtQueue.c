@@ -48,13 +48,13 @@
  *
  *  The virtio header should be included in an application as follows:
  *  @code
- *  #include <ti/ipc/family/omap54xx/VirtQueue.h>
+ *  #include <ti/ipc/family/omap44xx/VirtQueue.h>
  *  @endcode
  *
  */
 
 /* this define must precede inclusion of any xdc header file */
-#define Registry_CURDESC ti_ipc_family_vayu__Desc
+#define Registry_CURDESC ti_ipc_family_omap44xx__Desc
 #define MODULE_NAME "ti.ipc.family.omap44xx.VirtQueue"
 
 #include <xdc/std.h>
