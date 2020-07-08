@@ -237,28 +237,28 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
                 "GPTimer3": {
                     name: "WdTimer3Ipu",    /* GpTimer 3 */
                     baseAddr: 0xA8034000,   /* Virtual address */
-                    clkCtrl: 0xAA009040,    /* Virtual address */
+                    clkCtrl: 0xAA009440,    /* Virtual address */
                     intNum:  53,
                     eventId: -1,
                 },
                 "GPTimer4": {
                     name: "WdTimer4Ipu",    /* GpTimer 4 */
                     baseAddr: 0xA8036000,   /* Virtual address */
-                    clkCtrl: 0xAA009048,    /* Virtual address */
+                    clkCtrl: 0xAA009448,    /* Virtual address */
                     intNum:  54,
                     eventId: -1,
                 },
                 "GPTimer9": {
                     name: "WdTimer9Ipu",    /* GpTimer 9 */
                     baseAddr: 0xA803E000,   /* Virtual address */
-                    clkCtrl: 0xAA009050,    /* Virtual address */
+                    clkCtrl: 0xAA009450,    /* Virtual address */
                     intNum:  55,
                     eventId: -1,
                 },
                 "GPTimer11": {
                     name: "WdTimer11Ipu",   /* GpTimer 11 */
                     baseAddr: 0xA8088000,   /* Virtual address */
-                    clkCtrl: 0xAA009030,    /* Virtual address */
+                    clkCtrl: 0xAA009430,    /* Virtual address */
                     intNum:  56,
                     eventId: -1,
                 },
@@ -273,28 +273,28 @@ if (xdc.om.$name == "cfg" || typeof(genCdoc) != "undefined") {
                 "GPTimer3": {
                     name: "WdTimer3Ipu",    /* GpTimer 3 */
                     baseAddr: 0xA8034000,   /* Virtual address */
-                    clkCtrl: 0xAA009040,    /* Virtual address */
+                    clkCtrl: 0xAA009440,    /* Virtual address */
                     intNum:  53,
                     eventId: -1,
                 },
                 "GPTimer4": {
                     name: "WdTimer4Ipu",    /* GpTimer 4 */
                     baseAddr: 0xA8036000,   /* Virtual address */
-                    clkCtrl: 0xAA009048,    /* Virtual address */
+                    clkCtrl: 0xAA009448,    /* Virtual address */
                     intNum:  54,
                     eventId: -1,
                 },
                 "GPTimer9": {
                     name: "WdTimer9Ipu",    /* GpTimer 9 */
                     baseAddr: 0xA803E000,   /* Virtual address */
-                    clkCtrl: 0xAA009050,    /* Virtual address */
+                    clkCtrl: 0xAA009450,    /* Virtual address */
                     intNum:  55,
                     eventId: -1,
                 },
                 "GPTimer11": {
                     name: "WdTimer11Ipu",   /* GpTimer 11 */
                     baseAddr: 0xA8088000,   /* Virtual address */
-                    clkCtrl: 0xAA009030,    /* Virtual address */
+                    clkCtrl: 0xAA009430,    /* Virtual address */
                     intNum:  56,
                     eventId: -1,
                 },
