@@ -112,7 +112,8 @@ function getLibs(prog)
         return "";  /* nothing to contribute */
     }
 
-    if (prog.platformName.match(/ipu/)) {
+    if (prog.platformName.match(/IPU/) ||
+        prog.platformName.match(/ipu/)) {
         smp = "_smp";
     }
 

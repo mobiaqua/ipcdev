@@ -99,6 +99,12 @@ for (var i = 0; i < Build.targets.length; i++) {
             }).addObjects(objList);
         }
         else if (targ.isa == "64T") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap4", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP4 -DDSP -DRPMSG_NS_2_0"
+            }).addObjects(objList);
+
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
                 profile: profile,
                 copts: myCopts,

@@ -229,4 +229,4 @@ Void VirtQueue_postCrashToMailbox(Void);
 }
 #endif /* defined (__cplusplus) */
 
-#endif /* ti_ipc_family_omap54xx_VirtQueue__include */
+#endif /* ti_ipc_family_omap44xx_VirtQueue__include */
