@@ -45,13 +45,6 @@ function init()
     if (xdc.om.$name != 'cfg') {
         return;
     }
-
-    if (Program.build.target.name.match(/M3/) &&
-        !Program.platformName.match(/ipu/)) {
-        Program.sectMap[".ipcpower_data"] = new Program.SectionSpec();
-        Program.sectMap[".ipcpower_data"].type = "NOINIT";
-        Program.sectMap[".ipcpower_data"].loadAddress = 0x2100;
-    }
 }
 
 /*
