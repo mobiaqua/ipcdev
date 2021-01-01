@@ -71,8 +71,7 @@ function close()
     }
 
     /* plug-in the power event hooks for SMP/BIOS */
-    if ((Program.build.target.isa.match(/v7M4/) ||
-         Program.build.target.isa.match(/v7M3/)) &&
+    if (Program.build.target.isa.match(/^v7M(|3|4)$/) &&
         (Program.platformName.match(/IPU/) ||
          Program.platformName.match(/ipu/))) {
         var BIOS = xdc.module('ti.sysbios.BIOS');
