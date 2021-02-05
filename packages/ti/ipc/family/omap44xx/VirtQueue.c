@@ -224,6 +224,12 @@ static Void _VirtQueue_init()
         /* register with xdc.runtime to get a diags mask */
         result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);
         Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
+        /* Double check , In case Assert is disabled */
+        if (result != Registry_SUCCESS) {
+            return;
+        }
+
+        while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
 
         initialized = 1;
     }
@@ -261,7 +267,7 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
     IArg key;
 
     key = GateHwi_enter(vq->gateH);
-    if ((head > vq->vring.num) || (head < 0)) {
+    if (((unsigned int)head > vq->vring.num) || (head < 0)) {
         GateHwi_leave(vq->gateH, key);
         Error_raise(NULL, Error_E_generic, 0, 0);
     }
@@ -360,15 +366,15 @@ Void VirtQueue_isr(UArg msg)
             return;
 
         case (UInt)RP_MBOX_ABORT_REQUEST:
-        {
-            /* Suppress Coverity Error: FORWARD_NULL: */
-            /* coverity[assign_zero] */
-            Fxn f = (Fxn)0x0;
-            Log_print0(Diags_USER1, "Crash on demand ...\n");
-            /* coverity[var_deref_op] */
-            f();
-        }
-        return;
+            {
+                /* Suppress Coverity Error: FORWARD_NULL: */
+                /* coverity[assign_zero] */
+                Fxn f = (Fxn)0x0;
+                Log_print0(Diags_USER1, "Crash on demand ...\n");
+                /* coverity[var_deref_op] */
+                f();
+            }
+            return;
 
         case (UInt)RP_MSG_FLUSH_CACHE:
             Cache_wbAll();
@@ -448,10 +454,13 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
         case ID_SELF_TO_HOST:
         case ID_HOST_TO_SELF:
             vq->basePa = (UInt32)Resource_getVringDA(vq->id);
-            Assert_isTrue(vq->basePa != NULL, NULL);
+            Assert_isTrue(vq->basePa != 0, NULL);
 
             result = Resource_physToVirt(vq->basePa, &(vq->baseVa));
             Assert_isTrue(result == Resource_S_SUCCESS, (Assert_Id)NULL);
+            if (result != Resource_S_SUCCESS) {
+                return NULL;
+            }
 
             vringAddr = (Void *)vq->baseVa;
             break;
