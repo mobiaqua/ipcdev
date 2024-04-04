@@ -344,7 +344,7 @@ SizeT HeapMemMP_sharedMemReq(const HeapMemMP_Params *params)
 
     Assert_isTrue(regionId != SharedRegion_INVALIDREGIONID,
             ti_sdo_ipc_Ipc_A_internal);
-    if (regionId != SharedRegion_INVALIDREGIONID) {
+    if (regionId == SharedRegion_INVALIDREGIONID) {
         return 0;
     }
 
